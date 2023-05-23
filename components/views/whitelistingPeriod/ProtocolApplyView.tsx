@@ -68,6 +68,7 @@ function ApplyView({onApplied}: TApplyViewProps): ReactElement {
 	const {balances} = useWallet();
 	const [selectedCheckboxes, set_selectedCheckboxes] = useState(0);
 	const [isExecutingTransaction, set_isExecutingTransaction] = useState<TTxStatus>(defaultTxStatus);
+	const [hasClickedFillForm, set_hasClickedFillForm] = useState(false);
 	const {whitelistEnd} = periods || {};
 	const hasEnded = whitelistEnd?.status === 'success' && (Number(whitelistEnd.result) * 1000) < Date.now();
 
@@ -92,7 +93,6 @@ function ApplyView({onApplied}: TApplyViewProps): ReactElement {
 			const {hash} = await writeContract(config.request);
 			await waitForTransaction({chainId: chainID, hash});
 			set_isExecutingTransaction({...defaultTxStatus, success: true});
-			onApplied();
 		} catch (error) {
 			const errorAsBaseError = error as BaseError;
 			console.error(errorAsBaseError);
@@ -123,7 +123,7 @@ function ApplyView({onApplied}: TApplyViewProps): ReactElement {
 		<form onSubmit={onSubmitForm}>
 			<div className={'col-span-12 mt-6 rounded border border-neutral-200 bg-neutral-0 px-6 pb-6 pt-4 font-mono'}>
 				<div className={'mb-4'}>
-					<b className={'font-mono text-sm'}>{'HOLD ON'}</b>
+					<b className={'font-mono text-sm'}>{'Place your hand on the monitor and repeat after us:'}</b>
 				</div>
 				<label className={'flex cursor-pointer items-center font-mono text-sm text-neutral-500'}>
 					<input
@@ -131,7 +131,7 @@ function ApplyView({onApplied}: TApplyViewProps): ReactElement {
 						required
 						type={'checkbox'}
 						className={'checkbox mr-2 cursor-pointer'} />
-					<p className={'font-mono'}>{'I understand that I will pay 1 ETH to apply to the whitelist.'}</p>
+					<p className={'font-mono'}>{'I understand that applying to be whitelisted costs 1 ETH.'}</p>
 				</label>
 				<label className={'mt-2 flex cursor-pointer items-center font-mono text-sm text-neutral-500'}>
 					<input
@@ -139,7 +139,7 @@ function ApplyView({onApplied}: TApplyViewProps): ReactElement {
 						required
 						type={'checkbox'}
 						className={'checkbox mr-2 cursor-pointer'} />
-					<p className={'font-mono'}>{'I understand that I may not be whitelisted.'}</p>
+					<p className={'font-mono'}>{'I understand that this does not guarantee my LSD will be whitelisted.'}</p>
 				</label>
 				<label className={'mt-2 flex cursor-pointer items-center font-mono text-sm text-neutral-500'}>
 					<input
@@ -147,11 +147,11 @@ function ApplyView({onApplied}: TApplyViewProps): ReactElement {
 						required
 						type={'checkbox'}
 						className={'checkbox mr-2 cursor-pointer'} />
-					<p className={'font-mono'}>{'I understand that Major is the goat.'}</p>
+					<p className={'font-mono'}>{'I understand lists of three look more balanced and aesthetic.'}</p>
 				</label>
 			</div>
 
-			<div className={'mt-6'}>
+			<div className={'mt-6 flex w-full flex-row space-x-4'}>
 				<FormButton
 					hasApplied={hasApplied}
 					isWhitelisted={isWhitelisted}
@@ -163,10 +163,30 @@ function ApplyView({onApplied}: TApplyViewProps): ReactElement {
 						!selectedToken || isZeroAddress(selectedToken) ||
 						balances?.[ETH_TOKEN_ADDRESS]?.raw <= parseEther('1') ||
 						hasEnded ||
-						selectedCheckboxes !== 3
+						selectedCheckboxes !== 3 ||
+						isExecutingTransaction.success
 					} />
 
+				<a
+					className={'w-full'}
+					href={isExecutingTransaction.success ? 'https://hello-draper.com' : '#'}
+					target={'_blank'}
+					rel={'noreferrer'}>
+					<Button
+						type={'button'}
+						onClick={(): void => set_hasClickedFillForm(true)}
+						isDisabled={!isExecutingTransaction.success}
+						className={'w-full rounded-md !text-sm'}>
+						{'Fill application form'}
+					</Button>
+				</a>
 			</div>
+			<button
+				disabled={!hasClickedFillForm}
+				onClick={onApplied}
+				className={'w-full cursor-pointer pt-4 text-center text-xs text-neutral-400 transition-colors hover:text-neutral-900'}>
+				&nbsp;{hasClickedFillForm ? 'I filled the form, show me my application' : ''}&nbsp;
+			</button>
 		</form>
 	);
 }
@@ -186,11 +206,11 @@ function	ProtocolApplyView({onProceed}: TProtocolTokenViewProps): ReactElement {
 	}, [onProceed, selectedToken, updateApplicationStatus]);
 
 	return (
-		<section className={'box-0 relative mx-auto w-full border-neutral-900 p-6'}>
+		<section className={'box-0 relative mx-auto w-full border-neutral-900 p-6 pb-4'}>
 			<div className={'w-full md:w-3/4'}>
-				<b>{'Whitelisting'}</b>
+				<b>{'Ready to whitelist?'}</b>
 				<p className={'text-sm text-neutral-500'}>
-					{'First, we need some suppliers. If you got some gud stuff, send us a sample.'}
+					{'Whitelisting is easy. All you need to do is pay 1 ETH (as a spam prevention method) and fill out the application form.'}
 				</p>
 				<WhitelistTimelineStatus />
 			</div>

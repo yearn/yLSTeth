@@ -34,9 +34,9 @@ function	ProtocolTokenView({onProceed}: TProtocolTokenViewProps): ReactElement {
 			<div className={'box-0 grid w-full grid-cols-12 overflow-hidden'}>
 				<div className={'col-span-12 flex flex-col p-4 text-neutral-900 md:p-6'}>
 					<div className={'w-full md:w-3/4'}>
-						<b>{'What\'s your LSD'}</b>
+						<b>{'Whitelist your LSD.'}</b>
 						<p className={'text-sm text-neutral-500'}>
-							{'As a LSD protocol apply to be whitelisted for potential inclusion into the yETH pool. Indicate the address of the token you want to whitelist.'}
+							{'Give us the address of the LSD token you want to whitelist and we’ll walk you through the easy whitelisting process. Let’s go.'}
 						</p>
 					</div>
 					<AddressInput

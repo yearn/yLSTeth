@@ -254,6 +254,10 @@ details {
 	}
 }
 
+.box-900 {
+	@apply bg-neutral-900 border border-neutral-200 rounded-md text-neutral-0;
+}
+
 
 .tooltip {
 	@apply relative cursor-help;

@@ -6,14 +6,6 @@ import IconWallet from '@yearn-finance/web-lib/icons/IconWallet';
 
 import type {ReactElement} from 'react';
 
-
-export enum	Step {
-	ADDRESS = 'address',
-	APPLY = 'apply',
-	APPLIED = 'applied',
-	WHITELISTED = 'whitelisted'
-}
-
 function	Home(): ReactElement {
 	const router = useRouter();
 
