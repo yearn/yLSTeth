@@ -1,21 +1,10 @@
-import React, {useState} from 'react';
+import React from 'react';
 import IconCheck from 'components/icons/IconCheck';
-import useBootstrap from 'contexts/useBootstrap';
-import {useIntervalEffect} from '@react-hookz/web';
 import {Button} from '@yearn-finance/web-lib/components/Button';
 
 import type {ReactElement} from 'react';
 
 function ProtocolWhitelistedView(): ReactElement {
-	const {periods} = useBootstrap();
-	const {incentiveBegin} = periods || {};
-	const startDate = Number(incentiveBegin?.result || 0) * 1000;
-	const [timeToStart, set_timeToStart] = useState(startDate - Date.now());
-
-	useIntervalEffect((): void => {
-		set_timeToStart(Number(incentiveBegin?.result || 0) * 1000 - Date.now());
-	}, 500);
-
 	return (
 		<section className={'box-0 relative mx-auto w-full border-neutral-900 !bg-[#16a34a] p-6 text-neutral-0'}>
 			<div className={'col-span-12 font-mono'}>
@@ -34,12 +23,6 @@ function ProtocolWhitelistedView(): ReactElement {
 								{'Read the docs'}
 							</Button>
 						</div>
-						{/* <div className={'mx-auto w-3/4 cursor-alias items-center justify-center border border-dashed border-[#16a34a] bg-neutral-100 p-2 text-center font-mono text-sm text-neutral-900 transition-colors hover:bg-neutral-200'}>
-							{'Bribing period will start shortly'}
-						</div> */}
-						{/* <div className={'mt-4 w-full cursor-alias items-center justify-center border border-dashed border-neutral-400 bg-neutral-0 p-4 text-center font-mono transition-colors hover:bg-neutral-50'}>
-							{`Bribing period will start ${formatDuration(timeToStart, true)}`}
-						</div> */}
 					</div>
 				</div>
 			</div>
