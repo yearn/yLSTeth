@@ -204,7 +204,8 @@ function	AppHeader(): ReactElement {
 	const nav = useMemo((): TMenu[] => {
 		const nav: TMenu[] = [
 			{path: '/', label: <Logo className={'h-8 text-neutral-900'} />},
-			{path: '/apply', label: 'Apply'}
+			{path: '/apply', label: 'Apply'},
+			{path: '/deposit', label: 'Deposit'}
 		];
 		return nav;
 	}, []);

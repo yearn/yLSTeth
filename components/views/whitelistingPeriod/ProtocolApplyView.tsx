@@ -105,7 +105,6 @@ function ApplyView({onApplied}: TApplyViewProps): ReactElement {
 				set_isExecutingTransaction({...defaultTxStatus});
 			}, 3000);
 			onApplied();
-
 		}
 	}, [isActive, provider, selectedToken, onApplied, hasEnded]);
 

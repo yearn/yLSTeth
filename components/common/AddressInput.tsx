@@ -48,7 +48,7 @@ function	AddressInput({value, onChangeValue, onConfirm, className, shouldBeDisab
 	return (
 		<form
 			onSubmit={async (e): Promise<void> => e.preventDefault()}
-			className={`mt-6 grid w-full grid-cols-12 flex-row items-center justify-between gap-4 md:w-3/4 md:gap-6 ${className}`}>
+			className={`grid w-full grid-cols-12 flex-row items-center justify-between gap-4 md:w-3/4 md:gap-6 ${className}`}>
 			<div className={'box-0 grow-1 col-span-12 flex h-10 w-full items-center p-2 md:col-span-9'}>
 				<input
 					aria-invalid={!isValidValue}

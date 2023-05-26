@@ -269,10 +269,19 @@ details {
 	margin-right: calc(-89px + 50%);
 	box-shadow: 0px 4px 16px rgba(0, 0, 0, 0.16);
 }
-.tooltip:hover .tooltiptext {
+.tooltip .tooltiptextBig {
+	@apply text-xs text-center invisible bg-neutral-0 border border-neutral-200 rounded text-neutral-900 absolute z-50 right-1 opacity-0 transition-opacity p-2;
+	width: 16rem;
+	top: 130%;
+	margin-right: calc(-122px + 50%);
+	box-shadow: 0px 4px 16px rgba(0, 0, 0, 0.16);
+}
+.tooltip:hover .tooltiptext,
+.tooltip:hover .tooltiptextBig {
 	@apply visible opacity-100;
 }
-.tooltip .tooltiptext::after {
+.tooltip .tooltiptext::after,
+.tooltip .tooltiptextBig::after {
 	content: "";
 	position: absolute;
 	bottom: 98%;
@@ -284,11 +293,13 @@ details {
 	transform: rotate(180deg);
 }
 
-.tooltip.top .tooltiptext {
+.tooltip.top .tooltiptext,
+.tooltip.top .tooltiptextBig {
 	top: -105%;
 	bottom: unset;
 }
-.tooltip.top .tooltiptext::after {
+.tooltip.top .tooltiptext::after,
+.tooltip.top .tooltiptextBig::after {
 	top: 98%;
 	transform: rotate(0deg);
 }
