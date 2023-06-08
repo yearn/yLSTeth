@@ -1,19 +1,9 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 const {join} = require('path');
-const plugin = require('tailwindcss/plugin');
 const defaultTheme = require('tailwindcss/defaultTheme');
-const colors = require('tailwindcss/colors');
-
-function withOpacityValue(variable) {
-	return ({opacityValue}) => {
-		if (opacityValue === undefined) {
-			return `hsl(var(${variable}))`;
-		}
-		return `hsl(var(${variable}) / ${opacityValue})`;
-	};
-}
 
 module.exports = {
+	presets: [require('@yearn-finance/web-lib/tailwind.config.cjs')],
 	content: [
 		'./components/**/*.{js,ts,jsx,tsx}',
 		'./contexts/**/*.{js,ts,jsx,tsx}',
@@ -26,30 +16,10 @@ module.exports = {
 		join(__dirname, 'node_modules', '@yearn-finance', 'web-lib', 'utils', '**', '*.{js,ts,jsx,tsx}')
 	],
 	theme: {
-		colors: {
-			'black': 'hsl(0, 0%, 0%)',
-			'white': 'rgb(255, 255, 255)',
-			'transparent': 'transparent',
-			'inherit': 'inherit',
-			neutral: {
-				0: withOpacityValue('--color-neutral-0'),
-				50: withOpacityValue('--color-neutral-50'),
-				100: withOpacityValue('--color-neutral-100'),
-				200: withOpacityValue('--color-neutral-200'),
-				300: withOpacityValue('--color-neutral-300'),
-				400: withOpacityValue('--color-neutral-400'),
-				500: withOpacityValue('--color-neutral-500'),
-				600: withOpacityValue('--color-neutral-600'),
-				700: withOpacityValue('--color-neutral-700'),
-				800: withOpacityValue('--color-neutral-800'),
-				900: withOpacityValue('--color-neutral-900')
-			},
-			pink: colors.pink
-		},
 		extend: {
 			fontFamily: {
-				sans: ['var(--inter-font)', 'Inter', 'Roboto', ...defaultTheme.fontFamily.sans],
-				mono: ['Source Code Pro', ...defaultTheme.fontFamily.mono]
+				aeonik: ['var(--font-aeonik)', 'Aeonik', ...defaultTheme.fontFamily.sans],
+				mono: ['Aeonik Mono', ...defaultTheme.fontFamily.mono]
 			},
 			width: {
 				'inherit': 'inherit'
@@ -64,7 +34,8 @@ module.exports = {
 				'xl': ['24px', '32px'],
 				'3xl': ['32px', '40px'],
 				'4xl': ['40px', '56px'],
-				'7xl': ['80px', '96px']
+				'7xl': ['80px', '96px'],
+				'8xl': ['88px', '106px']
 			},
 			maxWidth: {
 				'xl': '552px',
@@ -72,20 +43,5 @@ module.exports = {
 				'6xl': '1200px'
 			}
 		}
-	},
-	plugins: [
-		require('@tailwindcss/forms'),
-		require('@tailwindcss/typography'),
-		plugin(function ({addUtilities}) {
-			addUtilities({
-				'.scrollbar-none': {
-					'-ms-overflow-style': 'none',
-					'scrollbar-width': 'none',
-					'&::-webkit-scrollbar': {
-						display: 'none'
-					}
-				}
-			});
-		})
-	]
+	}
 };

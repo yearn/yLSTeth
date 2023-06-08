@@ -203,16 +203,19 @@ function	AppHeader(): ReactElement {
 
 	const nav = useMemo((): TMenu[] => {
 		const nav: TMenu[] = [
-			{path: '/', label: <Logo className={'h-8 text-neutral-900'} />},
-			{path: '/apply', label: 'Apply'},
-			{path: '/deposit', label: 'Deposit'}
+			{path: '/', label: 'Home'},
+			{path: '/#apply', label: 'yETH'},
+			{path: '/#deposit', label: 'Deposit'},
+			{path: '/#bribe', label: 'Bribe'},
+			{path: '/#vote', label: 'Vote'},
+			{path: '/docs', label: 'Docs'}
 		];
 		return nav;
 	}, []);
 
 	return (
-		<div id={'head'} className={'fixed inset-x-0 top-0 z-50 w-full border-b border-neutral-100 bg-neutral-0/95'}>
-			<div className={'mx-auto max-w-5xl'}>
+		<div id={'head'} className={'fixed inset-x-0 top-0 z-50 w-full bg-neutral-0/95'}>
+			<div className={'mx-auto max-w-6xl'}>
 				<header className={'yearn--header'}>
 					<Navbar currentPathName={pathname || ''} nav={nav} />
 					<div className={'flex w-1/3 items-center justify-center md:hidden'}>
@@ -221,6 +224,9 @@ function	AppHeader(): ReactElement {
 						</Link>
 					</div>
 					<div className={'flex w-1/3 justify-center'}>
+						<Link href={'/'}>
+							<Logo className={'h-10 w-10 rounded-full bg-purple-300 p-1.5'} />
+						</Link>
 					</div>
 					<div className={'flex w-1/3 items-center justify-end'}>
 						<NetworkSelector supportedChainID={supportedChainID} />

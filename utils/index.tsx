@@ -1,15 +1,17 @@
-import {toAddress} from '@yearn-finance/web-lib/utils/address';
 import {parseUnits} from '@yearn-finance/web-lib/utils/format.bigNumber';
 
+import type {Transition} from 'framer-motion';
 import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 
-export const MATIC_TOKEN_ADDRESS = toAddress('0x0000000000000000000000000000000000001010');
-export const transition = {duration: 0.3, ease: [0.17, 0.67, 0.83, 1], height: {duration: 0}};
-export const thumbnailVariants = {
-	initial: {y: 20, opacity: 0, transition, height: 0},
-	enter: {y: 0, opacity: 1, transition, height: 'auto'},
-	exit: {y: -20, opacity: 1, transition, height: 'auto'}
-};
+export const transition = {duration: 0.8, ease: 'easeInOut'};
+export const customVariants = (delay: number): any => ({
+	initial: ([x]: number[]): Transition => ({x}),
+	move: ({transition: {...transition, delay}, x: '0vw'}),
+	exit: ([,x]: number[]): Transition => ({
+		transition: {...transition, delay},
+		x
+	})
+});
 
 export function handleInputChangeEventValue(e: React.ChangeEvent<HTMLInputElement>, decimals?: number): TNormalizedBN {
 	const {valueAsNumber, value} = e.target;

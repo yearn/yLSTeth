@@ -23,9 +23,9 @@ export function	computeTimeLeft({endTime}: {endTime?: TSeconds}): number {
 }
 
 function	useTimer({endTime}: TProps): string {
-	const	interval = useRef<NodeJS.Timeout | null>(null);
-	const	timeLeft = computeTimeLeft({endTime});
-	const	[time, set_time] = useState<TMilliseconds>(timeLeft);
+	const interval = useRef<NodeJS.Timeout | null>(null);
+	const timeLeft = computeTimeLeft({endTime});
+	const [time, set_time] = useState<TMilliseconds>(timeLeft);
 
 	useEffect((): VoidFunction => {
 		interval.current = setInterval((): void => {
@@ -41,12 +41,12 @@ function	useTimer({endTime}: TProps): string {
 	}, [endTime, timeLeft]);
 
 	const formatTimestamp = useCallback((n: number): string => {
-		const	twoDP = (n: number): string | number => (n > 9 ? n : '0' + n);
-		const	duration = dayjs.duration(n, 'milliseconds');
-		const	days = duration.days();
-		const	hours = duration.hours();
-		const	minutes = duration.minutes();
-		const	seconds = duration.seconds();
+		const twoDP = (n: number): string | number => (n > 9 ? n : '0' + n);
+		const duration = dayjs.duration(n, 'milliseconds');
+		const days = duration.days();
+		const hours = duration.hours();
+		const minutes = duration.minutes();
+		const seconds = duration.seconds();
 		if (days) {
 			return `${days}d ${twoDP(hours)}h ${twoDP(minutes)}m ${twoDP(seconds)}s`;
 		}

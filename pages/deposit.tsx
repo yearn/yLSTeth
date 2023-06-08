@@ -1,8 +1,8 @@
 import React, {useCallback, useState} from 'react';
 import DepositView from 'components/views/DepositView';
-import ProtocolAppliedView from 'components/views/ProtocolAppliedView';
-import ProtocolApplyView from 'components/views/ProtocolApplyView';
-import ProtocolWhitelistedView from 'components/views/ProtocolWhitelistedView';
+import ProtocolAppliedView from 'components/views/whitelistingPeriod/ProtocolAppliedView';
+import ProtocolApplyView from 'components/views/whitelistingPeriod/ProtocolApplyView';
+import ProtocolWhitelistedView from 'components/views/whitelistingPeriod/ProtocolWhitelistedView';
 
 import type {ReactElement} from 'react';
 
@@ -44,7 +44,7 @@ function	Home(): ReactElement {
 				</span>
 			</div>
 
-			<DepositView onProceed={handlePostAction} />
+			<DepositView />
 
 			<div
 				id={'whitelistView'}

@@ -1,15 +1,37 @@
-@import './style.base.css';
-@import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;500;600;700&display=swap');
+@import "@yearn-finance/web-lib/style.css";
 
-:root {
+@font-face {
+	font-family: "Aeonik Mono";
+	src: url("public/fonts/AeonikMono-Regular.eot");
+	src: local("Aeonik Mono Regular"), local("AeonikMono-Regular"),
+		url("public/fonts/AeonikMono-Regular.eot?#iefix")
+			format("embedded-opentype"),
+		url("public/fonts/AeonikMono-Regular.woff2") format("woff2"),
+		url("public/fonts/AeonikMono-Regular.woff") format("woff"),
+		url("public/fonts/AeonikMono-Regular.ttf") format("truetype"),
+		url("public/fonts/AeonikMono-Regular.svg#AeonikMono-Regular")
+			format("svg");
+	font-weight: normal;
+	font-style: normal;
+	font-display: swap;
 }
 
-.font-mono {
-	font-family: 'Source Code Pro', monospace !important;
+@font-face {
+	font-family: "Aeonik Mono";
+	src: url("public/fonts/AeonikMono-Bold.eot");
+	src: local("Aeonik Mono Bold"), local("AeonikMono-Bold"),
+		url("public/fonts/AeonikMono-Bold.eot?#iefix")
+			format("embedded-opentype"),
+		url("public/fonts/AeonikMono-Bold.woff2") format("woff2"),
+		url("public/fonts/AeonikMono-Bold.woff") format("woff"),
+		url("public/fonts/AeonikMono-Bold.ttf") format("truetype"),
+		url("public/fonts/AeonikMono-Bold.svg#AeonikMono-Bold") format("svg");
+	font-weight: bold;
+	font-style: normal;
+	font-display: swap;
 }
+
 @layer base {
-
-.max-w-5xl {@apply max-w-[904px] px-4;}
 
 .font-number {
 	@apply font-mono tabular-nums;
@@ -23,57 +45,35 @@
 	@apply hover:!bg-neutral-100/80;
 }
 
-
-.yearn--button {
-	@apply rounded-md;
-	&:invalid {@apply opacity-40;}
-	&[data-variant="error"] {
-		@apply text-neutral-0 bg-[#dc2626] border border-transparent;
-		&:disabled {@apply bg-[#dc2626] opacity-100 text-neutral-0;}
-		&:not(:disabled):not([aria-busy="true"]):hover {@apply bg-[#dc2626];}
-	}
-	&[data-variant="warning"] {
-		@apply text-neutral-0 bg-[#f59e0b] border border-transparent;
-		&:disabled {@apply bg-neutral-200 opacity-40;}
-		&:not(:disabled):not([aria-busy="true"]):hover {@apply bg-[#f97316];}
-	}
-	&[data-variant="reverted"] {
-		@apply text-neutral-900 bg-neutral-0 font-normal border border-transparent;
-		&:disabled {@apply bg-neutral-200 opacity-40;}
-		&:not(:disabled):not([aria-busy="true"]):hover {@apply bg-neutral-200;}
-
-		&[aria-busy="true"] svg {
-			@apply text-neutral-900;
-		}
-	}
-	&[data-variant="reverted-alt"] {
-		@apply text-neutral-900 bg-neutral-0 font-normal border border-transparent;
-		&:disabled {@apply bg-neutral-200 opacity-40;}
-		&:not(:disabled):not([aria-busy="true"]):hover {@apply bg-neutral-200;}
-
-		&[aria-busy="true"] svg {
-			@apply text-neutral-900;
-		}
-	}
-}
-.yearn--button-smaller {
-	@apply !rounded-md;
-}
-:root.dark {
-	& .yearn--button-smaller {
-		&[data-variant="reverted"] {
-			&:not(:disabled):not([aria-busy="true"]):hover {@apply !bg-neutral-100;}
-		}
-	}
+:root {
 	& .yearn--button {
-		&[data-variant="reverted-alt"] {
-			@apply text-neutral-0 bg-neutral-900 font-normal border border-transparent;
-			&:disabled {@apply bg-neutral-700 opacity-40;}
-			&:not(:disabled):not([aria-busy="true"]):hover {@apply bg-neutral-800;}
+		&:invalid {@apply opacity-40;}
+		&[data-variant="error"] {
+			@apply text-neutral-0 bg-[#dc2626] border border-transparent;
+			&:disabled {@apply bg-[#dc2626] opacity-100 text-neutral-0;}
+			&:not(:disabled):not([aria-busy="true"]):hover {@apply bg-[#dc2626];}
+		}
+		&[data-variant="warning"] {
+			@apply text-neutral-0 bg-[#f59e0b] border border-transparent;
+			&:disabled {@apply bg-neutral-200 opacity-40;}
+			&:not(:disabled):not([aria-busy="true"]):hover {@apply bg-[#f97316];}
+		}
+		&[data-variant="filled"] {
+			@apply bg-purple-300 font-bold;
+			&:disabled {@apply bg-purple-300 opacity-40;}
+			&:not(:disabled):not([aria-busy="true"]):hover {@apply bg-purple-300/90;}
+		}
+		&[data-variant="reverted"] {
+			@apply text-neutral-900 bg-neutral-0 font-normal border border-transparent;
+			&:disabled {@apply bg-neutral-200 opacity-40;}
+			&:not(:disabled):not([aria-busy="true"]):hover {@apply bg-neutral-200;}
+
+			&[aria-busy="true"] svg {
+				@apply text-neutral-900;
+			}
 		}
 	}
 }
-
 
 /* 🔵 - Yearn Finance ******************************************************************************
 ** Table
@@ -230,32 +230,32 @@ details {
 
 
 .box-0 {
-	@apply bg-neutral-0 border border-neutral-200 rounded-md;
+	@apply bg-neutral-0 border border-neutral-500 rounded-none;
 	&.hover {
 		@apply transition-colors hover:bg-neutral-100;
 	}
 }
 .box-50 {
-	@apply bg-neutral-100/50 border border-neutral-200 rounded-md;
+	@apply bg-neutral-100/50 border border-neutral-200 rounded-none;
 	&.hover {
 		@apply transition-colors hover:bg-neutral-100;
 	}
 }
 .box-100 {
-	@apply bg-neutral-100 border border-neutral-200 rounded-md;
+	@apply bg-neutral-100 border border-neutral-200 rounded-none;
 	&.hover {
 		@apply transition-colors hover:bg-neutral-200;
 	}
 }
 .box-200 {
-	@apply bg-neutral-200 border border-neutral-200 rounded-md;
+	@apply bg-neutral-200 border border-neutral-200 rounded-none;
 	&.hover {
 		@apply transition-colors hover:bg-neutral-200;
 	}
 }
 
 .box-900 {
-	@apply bg-neutral-900 border border-neutral-200 rounded-md text-neutral-0;
+	@apply bg-neutral-900 border border-neutral-200 rounded-none text-neutral-0;
 }
 
 

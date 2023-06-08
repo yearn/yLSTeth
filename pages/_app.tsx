@@ -1,28 +1,38 @@
 import React from 'react';
-import {Inter} from 'next/font/google';
 import AppWrapper from 'components/common/AppWrapper';
 import {BootstrapContextApp} from 'contexts/useBootstrap';
 import {PriceContextApp} from 'contexts/usePrices';
 import {TokenListContextApp} from 'contexts/useTokenList';
 import {WalletContextApp} from 'contexts/useWallet';
+import localFont from '@next/font/local';
 import {WithYearn} from '@yearn-finance/web-lib/contexts/WithYearn';
+import {cl} from '@yearn-finance/web-lib/utils/cl';
 
 import type {AppProps} from 'next/app';
 import type {ReactElement} from 'react';
 
 import	'../style.css';
 
-const inter = Inter({
-	weight: ['400', '500', '600', '700'],
-	subsets: ['latin'],
+const aeonik = localFont({
+	variable: '--font-aeonik',
 	display: 'swap',
-	variable: '--inter-font'
+	src: [
+		{
+			path: '../public/fonts/Aeonik-Regular.woff2',
+			weight: '400',
+			style: 'normal'
+		}, {
+			path: '../public/fonts/Aeonik-Bold.woff2',
+			weight: '700',
+			style: 'normal'
+		}
+	]
 });
 
 function	MyApp(props: AppProps): ReactElement {
 	return (
 		<>
-			<style jsx global>{`html {font-family: ${inter.style.fontFamily};}`}</style>
+			<style jsx global>{'html {font-family: Aeonik;}'}</style>
 			<WithYearn
 				options={{
 					web3: {
@@ -33,7 +43,7 @@ function	MyApp(props: AppProps): ReactElement {
 					<BootstrapContextApp>
 						<TokenListContextApp>
 							<WalletContextApp>
-								<main className={`flex h-screen flex-col ${inter.variable}`}>
+								<main className={cl('flex h-screen flex-col', aeonik.className)}>
 									<AppWrapper {...props} />
 								</main>
 							</WalletContextApp>

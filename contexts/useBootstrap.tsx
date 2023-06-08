@@ -3,7 +3,7 @@ import useBootstrapPeriods from 'hooks/useBootstrapPeriods';
 import BOOTSTRAP_ABI from 'utils/abi/bootstrap.abi';
 import {useContractReads} from 'wagmi';
 import {useChainID} from '@yearn-finance/web-lib/hooks/useChainID';
-import {isZeroAddress, toWagmiAddress} from '@yearn-finance/web-lib/utils/address';
+import {isZeroAddress, toAddress} from '@yearn-finance/web-lib/utils/address';
 
 import type {TUseBootstrapPeriodsResp} from 'hooks/useBootstrapPeriods';
 import type {Dispatch, SetStateAction} from 'react';
@@ -34,18 +34,18 @@ export const BootstrapContextApp = ({children}: {children: React.ReactElement}):
 	const {data, refetch, isSuccess} = useContractReads({
 		contracts: [
 			{
-				address: toWagmiAddress(process.env.BOOTSTRAP_ADDRESS),
+				address: toAddress(process.env.BOOTSTRAP_ADDRESS),
 				abi: BOOTSTRAP_ABI,
 				chainId: chainID,
 				functionName: 'has_applied',
-				args: [toWagmiAddress(selectedToken)]
+				args: [toAddress(selectedToken)]
 			},
 			{
-				address: toWagmiAddress(process.env.BOOTSTRAP_ADDRESS),
+				address: toAddress(process.env.BOOTSTRAP_ADDRESS),
 				abi: BOOTSTRAP_ABI,
 				chainId: chainID,
 				functionName: 'is_whitelisted',
-				args: [toWagmiAddress(selectedToken)]
+				args: [toAddress(selectedToken)]
 			}
 		],
 		enabled: false

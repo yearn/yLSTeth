@@ -9,18 +9,18 @@ import {isZeroAddress, toAddress} from '@yearn-finance/web-lib/utils/address';
 import type {ReactElement} from 'react';
 import type {TAddress} from '@yearn-finance/web-lib/types';
 
-function	AddressInput({value, onChangeValue, onConfirm, className, shouldBeDisabled}: {
+function AddressInput({value, onChangeValue, onConfirm, className, shouldBeDisabled}: {
 	value: TAddress,
 	onChangeValue: (value: TAddress) => void,
 	onConfirm: (newReceiver: TAddress) => void,
 	className?: string,
 	shouldBeDisabled?: boolean,
 }): ReactElement {
-	const	[isValidValue, set_isValidValue] = useState<boolean | 'undetermined'>('undetermined');
-	const	[isValidish, set_isValidish] = useState<boolean | 'undetermined'>('undetermined');
-	const	[namedValue, set_namedValue] = useState<string>('');
+	const [isValidValue, set_isValidValue] = useState<boolean | 'undetermined'>('undetermined');
+	const [isValidish, set_isValidish] = useState<boolean | 'undetermined'>('undetermined');
+	const [namedValue, set_namedValue] = useState<string>('');
 
-	const	checkDestinationValidity = useCallback(async (): Promise<void> => {
+	const checkDestinationValidity = useCallback(async (): Promise<void> => {
 		set_isValidValue('undetermined');
 		if (namedValue && isValidish) {
 			set_isValidValue(true);
@@ -48,8 +48,8 @@ function	AddressInput({value, onChangeValue, onConfirm, className, shouldBeDisab
 	return (
 		<form
 			onSubmit={async (e): Promise<void> => e.preventDefault()}
-			className={`grid w-full grid-cols-12 flex-row items-center justify-between gap-4 md:w-3/4 md:gap-6 ${className}`}>
-			<div className={'box-0 grow-1 col-span-12 flex h-10 w-full items-center p-2 md:col-span-9'}>
+			className={`flex w-full flex-row items-center justify-between gap-4 ${className}`}>
+			<div className={'box-0 grow-1 flex h-10 w-full items-center p-2 md:min-w-[400px]'}>
 				<input
 					aria-invalid={!isValidValue}
 					onFocus={async (): Promise<void> => checkDestinationValidity()}
@@ -63,7 +63,7 @@ function	AddressInput({value, onChangeValue, onConfirm, className, shouldBeDisab
 						set_isValidValue('undetermined');
 						onChangeValue(e.target.value as never);
 					}}
-					className={'w-full overflow-x-scroll border-none bg-transparent px-0 py-4 font-mono text-sm font-bold outline-none scrollbar-none'} />
+					className={'w-full overflow-x-scroll border-none bg-transparent px-0 py-4 font-mono text-sm outline-none scrollbar-none'} />
 				<div className={'pointer-events-none relative h-4 w-4'}>
 					<IconCheck
 						className={`absolute h-4 w-4 text-[#16a34a] transition-opacity ${isValidValue === true || isValidish === true ? 'opacity-100' : 'opacity-0'}`} />
@@ -72,9 +72,9 @@ function	AddressInput({value, onChangeValue, onConfirm, className, shouldBeDisab
 				</div>
 			</div>
 
-			<div className={'col-span-12 md:col-span-3'}>
+			<div className={'w-full'}>
 				<Button
-					className={'yearn--button !w-[160px] rounded-md !text-sm'}
+					className={'yearn--button w-full rounded-md !text-sm'}
 					onClick={(): void => {
 						if (value.endsWith('.eth') || value.endsWith('.lens')) {
 							onConfirm(toAddress(namedValue));
@@ -83,7 +83,7 @@ function	AddressInput({value, onChangeValue, onConfirm, className, shouldBeDisab
 						}
 					}}
 					disabled={!(isValidValue === true || isValidish === true )|| shouldBeDisabled}>
-					{'Next'}
+					{'Take me to the form'}
 				</Button>
 			</div>
 		</form>

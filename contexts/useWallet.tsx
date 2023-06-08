@@ -1,7 +1,6 @@
 import React, {createContext, memo, useCallback, useContext, useMemo, useState} from 'react';
 import {useTokenList} from 'contexts/useTokenList';
 import {useBalances} from 'hooks/useBalances';
-import {MATIC_TOKEN_ADDRESS} from 'utils';
 import defaultTokenList from 'utils/tokenLists.json';
 import {useLocalStorageValue, useMountEffect, useUpdateEffect} from '@react-hookz/web';
 import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
@@ -53,9 +52,6 @@ export const WalletContextApp = memo(function WalletContextApp({children}: {chil
 		withDefaultTokens
 			.filter((token): boolean => token.chainId === safeChainID)
 			.forEach((token): void => {
-				if (safeChainID === 137 && toAddress(token.address) === MATIC_TOKEN_ADDRESS) {
-					return;
-				}
 				tokens.push({token: toAddress(token.address), decimals: Number(token.decimals), name: token.name, symbol: token.symbol});
 			});
 		if (safeChainID === 1) {

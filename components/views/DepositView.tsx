@@ -8,7 +8,7 @@ import {Button} from '@yearn-finance/web-lib/components/Button';
 import {yToast} from '@yearn-finance/web-lib/components/yToast';
 import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
 import {useChainID} from '@yearn-finance/web-lib/hooks/useChainID';
-import {toWagmiAddress} from '@yearn-finance/web-lib/utils/address';
+import {toAddress} from '@yearn-finance/web-lib/utils/address';
 import {toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
 import performBatchedUpdates from '@yearn-finance/web-lib/utils/performBatchedUpdates';
@@ -78,7 +78,7 @@ function DepositView(): ReactElement {
 			const signer = await provider.getWalletClient();
 			const chainID = await provider.getChainId();
 			const config = await prepareWriteContract({
-				address: toWagmiAddress(process.env.BOOTSTRAP_ADDRESS),
+				address: toAddress(process.env.BOOTSTRAP_ADDRESS),
 				abi: BOOTSTRAP_ABI,
 				functionName: 'deposit',
 				walletClient: signer,

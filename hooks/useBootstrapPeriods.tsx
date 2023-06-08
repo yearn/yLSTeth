@@ -2,7 +2,7 @@ import {useMemo} from 'react';
 import BOOTSTRAP_ABI from 'utils/abi/bootstrap.abi';
 import {useContractReads} from 'wagmi';
 import {useChainID} from '@yearn-finance/web-lib/hooks/useChainID';
-import {toWagmiAddress} from '@yearn-finance/web-lib/utils/address';
+import {toAddress} from '@yearn-finance/web-lib/utils/address';
 
 import type {TAddressWagmi} from '@yearn-finance/web-lib/types';
 
@@ -48,7 +48,7 @@ export type TUseBootstrapPeriodsResp = {
 function useBootstrapPeriods(): TUseBootstrapPeriodsResp {
 	const {chainID} = useChainID();
 	const bootstrapContractReadData = useMemo((): TBaseReadContractData => ({
-		address: toWagmiAddress(process.env.BOOTSTRAP_ADDRESS),
+		address: toAddress(process.env.BOOTSTRAP_ADDRESS),
 		abi: BOOTSTRAP_ABI,
 		chainId: chainID
 	}), [chainID]);
