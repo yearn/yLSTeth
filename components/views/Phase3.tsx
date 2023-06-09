@@ -1,9 +1,9 @@
 import React, {useMemo} from 'react';
 import useBootstrap from 'contexts/useBootstrap';
-import {toBigInt} from 'ethers';
 import {useTimer} from 'hooks/useTimer';
 import {customVariants} from 'utils';
 import {motion} from 'framer-motion';
+import {toBigInt} from '@yearn-finance/web-lib/utils/format.bigNumber';
 
 import type {ReactElement} from 'react';
 
