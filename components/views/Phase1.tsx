@@ -39,8 +39,8 @@ function Phase1({variant}: {variant: string[]}): ReactElement {
 	}, [set_selectedToken, updateApplicationStatus]);
 
 	return (
-		<section className={'absolute inset-0 grid grid-cols-2 pt-10 md:pt-12'}>
-			<div>
+		<section className={'absolute inset-x-0 grid grid-cols-1 gap-10 px-4 pt-10 md:grid-cols-2 md:gap-20 md:pt-12'}>
+			<div className={'mb-20 md:mb-0'}>
 				<div className={'mb-10 flex flex-col justify-center'}>
 					<motion.p
 						className={'text-lg'}
@@ -79,11 +79,21 @@ function Phase1({variant}: {variant: string[]}): ReactElement {
 					initial={'initial'}
 					animate={'move'}
 					exit={'exit'}>
-					<p>{'To be part of the action, LSD protocols need to pony up a 1 ETH fee - it\'s non-refundable, but don\'t worry, it turns into yield for st-yETH users.'}</p>
+					<p>{'Want your LST to be included in yETH’s basket of tokens? You’ve come to the right place. Get whitelisted for your LST to take part in yETH Bootstrapping.'}</p>
 					&nbsp;
-					<p>{'After that, protocols fill out a basic form. Think of it as a friendly chat, but on paper. Our Yearn contributors play detective, sifting out the sneaky fraudsters.'}</p>
+					<ul className={'list-inside list-disc'}>
+						<li className={'font-bold'}>
+							{'Pay a non refundable 1 ETH fee (to prevent spam)'}
+						</li>
+						<li className={'font-bold'}>
+							{'Fill in the form.'}
+						</li>
+						<li className={'font-bold'}>
+							{'Wait for the Yearn rug detection unit to check your application.'}
+						</li>
+					</ul>
 					&nbsp;
-					<p>{'Get through this, and you\'re on the Whitelist for the Bootstrapping phase. Now, it\'s time to step up and show the world what your protocol can do. Let the games begin!'}</p>
+					<p>{'Applications are checked for obvious scams, but nothing further. Genuine applications will be Whitelisted to take part in the super fun Bootstrapping Incentive Games. Yay.'}</p>
 				</motion.div>
 
 				<motion.div
@@ -107,18 +117,20 @@ function Phase1({variant}: {variant: string[]}): ReactElement {
 			</div>
 
 			<motion.div
-				className={'flex items-center justify-center pl-10'}
+				className={'hidden md:flex'}
 				variants={customVariants(0.06)}
 				custom={variant}
 				initial={'initial'}
 				animate={'move'}
 				exit={'exit'}>
-				<Image
-					loading={'eager'}
-					alt={''}
-					src={'/hero_yeth.png'}
-					width={490}
-					height={490} />
+				<div className={'flex h-full items-center justify-center'}>
+					<Image
+						loading={'eager'}
+						alt={''}
+						src={'/hero_yeth.png'}
+						width={420}
+						height={420} />
+				</div>
 			</motion.div>
 		</section>
 	);

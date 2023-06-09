@@ -105,7 +105,7 @@ function ProgressBar({page}: {page: number}): ReactElement {
 	}
 
 	return (
-		<div className={'fixed bottom-0 left-0 w-full pb-4'}>
+		<div className={'bottom-0 left-0 hidden w-full py-4 md:fixed md:block md:pt-0'}>
 			{renderPeriod()}
 			<div className={'my-2 h-0.5 w-full bg-neutral-300'}>
 				<div className={'relative mx-auto grid w-full max-w-6xl grid-cols-7 gap-4'}>
@@ -173,11 +173,11 @@ function YETH(): ReactElement {
 	}
 
 	return (
-		<div className={'relative mx-auto h-screen w-screen max-w-6xl'}>
+		<div className={'relative mx-auto w-screen max-w-6xl'}>
 			<motion.div
 				transition={transition}
 				animate={{x: page > 0 ? '0vw' : '-100vw'}}
-				className={'absolute left-0 top-0 z-10'}>
+				className={'absolute left-0 top-0 z-10 px-4'}>
 				<button
 					onClick={(): void => {
 						performBatchedUpdates((): void => {
@@ -188,15 +188,34 @@ function YETH(): ReactElement {
 					<IconArrow className={'h-6 w-6 rotate-180 cursor-pointer text-purple-300'} />
 				</button>
 			</motion.div>
-			<AnimatePresence
-				mode={'sync'}
-				custom={[
-					direction === TO_RIGHT ? '-100vw' : direction === NO_DIRECTION ? '0vw' : '100vw', // initial
-					direction === TO_RIGHT ? '100vw' : '-100vw' // onExit
-				]}>
-				{renderElement()}
-			</AnimatePresence>
-			<div className={'absolute right-0 flex h-full items-center'}>
+			<motion.div
+				transition={transition}
+				animate={{x: page < 3 ? '0vw' : '100vw'}}
+				className={'absolute right-0 top-0 z-10 block px-4 md:hidden'}>
+				<button
+					onClick={(): void => {
+						performBatchedUpdates((): void => {
+							set_page((s): number => s + 1);
+							set_direction(-1);
+						});
+					}}>
+					<IconArrow className={'h-6 w-6 cursor-pointer text-purple-300'} />
+				</button>
+			</motion.div>
+			<div className={'flex flex-row'}>
+				<AnimatePresence
+					mode={'sync'}
+					custom={[
+						direction === TO_RIGHT ? '-100vw' : direction === NO_DIRECTION ? '0vw' : '100vw', // initial
+						direction === TO_RIGHT ? '100vw' : '-100vw' // onExit
+					]}>
+					{renderElement()}
+				</AnimatePresence>
+			</div>
+			<motion.div
+				transition={transition}
+				animate={{x: page < 3 ? '0vw' : '100vw'}}
+				className={'fixed inset-y-0 right-4 hidden h-full items-center md:flex'}>
 				<button
 					onClick={(): void => {
 						performBatchedUpdates((): void => {
@@ -207,7 +226,7 @@ function YETH(): ReactElement {
 					className={'flex h-16 w-16 items-center justify-center rounded-full bg-[#DED0FE]/50 backdrop-blur-sm transition-colors hover:bg-[#DED0FE]'}>
 					<IconArrow className={'w-6 text-purple-300'} />
 				</button>
-			</div>
+			</motion.div>
 			<ProgressBar page={page} />
 		</div>
 	);

@@ -27,8 +27,8 @@ function Timer(): ReactElement {
 
 function Phase3({variant}: {variant: string[]}): ReactElement {
 	return (
-		<section className={'absolute inset-0 grid grid-cols-1 pt-10 md:pt-12'}>
-			<div>
+		<section className={'absolute inset-x-0 grid grid-cols-1 px-4 pt-10 md:pt-12'}>
+			<div className={'mb-20 md:mb-0'}>
 				<div className={'mb-10 flex flex-col justify-center'}>
 					<motion.p
 						className={'text-lg'}
@@ -60,19 +60,19 @@ function Phase3({variant}: {variant: string[]}): ReactElement {
 				</div>
 
 				<motion.div
-					className={'grid w-1/2 grid-cols-1 text-neutral-700'}
+					className={'grid w-full grid-cols-1 text-neutral-700 md:w-1/2'}
 					variants={customVariants(0.05)}
 					custom={variant}
 					initial={'initial'}
 					animate={'move'}
 					exit={'exit'}>
-					<p>{'You\'ve got your st-yETH, you\'ve checked out the LSD protocols, you\'ve been wooed by the bribes - now, it\'s decision time. Who will get your coveted vote?'}</p>
+					<p>{'Depositors who locked their ETH for st-yETH can check out the proposals from different LST protocols to be included in yETH.'}</p>
 					&nbsp;
-					<p>{'Each vote you cast will help decide the launch composition of yETH. Remember, your voting power equals the amount of st-yETH you hold. You can spread your votes over multiple LSD protocols or put all your votes behind your favorite one - it\'s your choice!'}</p>
+					<p>{'No need for game theory here, vote for whoever you feel should be in the basket and you’ll receive your share of incentives from the LSTs that are successful, whether your voted for them or not.'}</p>
 					&nbsp;
-					<p>{'And don\'t worry, we\'ve made voting easy. Just select your LSD, input your vote amount, and hit confirm. Easy peasy, lemon squeezy!'}</p>
+					<p>{'Your vote matters anon, as it will help decide the launch composition of yETH. Your voting power is equal to the amount of st-yETH you’re holding and you can spread your votes over multiple protocols or go all in on one. Your vote, your choice.'}</p>
 					&nbsp;
-					<p>{'So what are you waiting for? It\'s time to exercise your crypto-democratic rights. Let\'s make this vote count!'}</p>
+					<p>{'If only regular democracy came with incentives… sigh.'}</p>
 				</motion.div>
 
 			</div>

@@ -90,7 +90,7 @@ export const UIStepContextApp = ({children}: {children: React.ReactElement}): Re
 
 	return (
 		<UIStepContext.Provider value={contextValue}>
-			<div className={'mx-auto w-full overflow-hidden'}>
+			<div className={'mx-auto w-full'}>
 				{children}
 				<div id={'scalooor'} />
 			</div>

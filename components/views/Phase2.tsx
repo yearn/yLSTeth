@@ -27,8 +27,8 @@ function Timer(): ReactElement {
 
 function Phase2({variant}: {variant: string[]}): ReactElement {
 	return (
-		<section className={'absolute inset-0 grid grid-cols-1 pt-10 md:pt-12'}>
-			<div>
+		<section className={'absolute inset-x-0 grid grid-cols-1 px-4 pt-10 md:pt-12'}>
+			<div className={'mb-20 md:mb-0'}>
 				<div className={'mb-10 flex flex-col justify-center'}>
 					<motion.p
 						className={'text-lg'}
@@ -60,7 +60,7 @@ function Phase2({variant}: {variant: string[]}): ReactElement {
 				</div>
 
 				<motion.div
-					className={'grid w-3/4 grid-cols-2 gap-[88px]'}
+					className={'grid w-full grid-cols-1 gap-10 md:w-3/4 md:grid-cols-2 md:gap-[88px]'}
 					variants={customVariants(0.05)}
 					custom={variant}
 					initial={'initial'}
@@ -69,23 +69,22 @@ function Phase2({variant}: {variant: string[]}): ReactElement {
 					<div>
 						<b>{'Deposit'}</b>
 						<div className={'mt-2 text-neutral-700'}>
-							<p>{'Get ready for the Deposit phase, folks! It\'s the time when future yETH users turn their ETH into st-yETH. Remember, it\'s a 1:1 deal, nice and easy.'}</p>
+							<p>{'Depositooooors! Lock ETH in the Bootstrapper contract and recieve st-yETH at a 1:1 rate (nice when the maths is simple eh?)'}</p>
 							&nbsp;
-							<p>{'But hang on, there\'s a twist! You deposit your ETH in the Bootstrapper contract. The contract keeps a tab on its yETH debt, and your shiny new st-yETH gets locked for 16 weeks. Think of it as a vacation for your tokens.'}</p>
+							<p>{'This ETH is locked for the 16 week duration of the Bootstrapping period in which time you can vote on LSTs to include in yETH in exchange for bri…incentives.'}</p>
 							&nbsp;
-							<p>{'When the clock ticks down to zero on the Deposit phase, the Bootstrapper says \'no more\' to deposits and yETH minting.'}</p>
+							<p>{'You’ll get incentives from the LSTs that end up in the yETH basket, whether or not you voted from them. So no need for clever games, vote however you want.'}</p>
 						</div>
 					</div>
 
 					<div>
 						<b>{'Bribe'}</b>
 						<div className={'mt-2 text-neutral-700'}>
-							<p>{'You\'ve got your st-yETH and now you\'re ready to influence the yETH\'s launch composition. How do you do it? By enticing voters with a delicious bribe, of course!'}</p>
+							<p>{'Whitelisted protocols, time to get those incentives ready. Incentives can be posted in any token and in any amount.'}</p>
 							&nbsp;
-							<p>{'Just pick an LSD protocol you want to support, choose a token from your wallet, decide how much you want to give, and then... boom! You\'ve posted your bribe.'}</p>
-							<p>{'And remember, no amount is too small or too big.'}</p>
+							<p>{'If your LST does not get included in yETH (sad), you’ll be able to claim back the full incentive amount (happy).'}</p>
 							&nbsp;
-							<p>{'So go on, make some noise and see if you can swing those votes. After all, it\'s all fair in love and blockchain!'}</p>
+							<p>{'If your LST is included in yETH, your incentive will be distributed to all st-yETH holders that participated in the voting process, whether they voted for you or not.'}</p>
 						</div>
 					</div>
 				</motion.div>

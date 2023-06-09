@@ -10,8 +10,8 @@ function Timer(): ReactElement {
 
 function Phase4({variant}: {variant: string[]}): ReactElement {
 	return (
-		<section className={'absolute inset-0 grid grid-cols-1 pt-10 md:pt-12'}>
-			<div>
+		<section className={'absolute inset-x-0 grid grid-cols-1 px-4 pt-10 md:pt-12'}>
+			<div className={'mb-20 md:mb-0'}>
 				<div className={'mb-10 flex flex-col justify-center'}>
 					<motion.p
 						className={'text-lg'}
@@ -43,21 +43,19 @@ function Phase4({variant}: {variant: string[]}): ReactElement {
 				</div>
 
 				<motion.div
-					className={'grid w-1/2 grid-cols-1 text-neutral-700'}
+					className={'grid w-full grid-cols-1 text-neutral-700 md:w-1/2'}
 					variants={customVariants(0.05)}
 					custom={variant}
 					initial={'initial'}
 					animate={'move'}
 					exit={'exit'}>
-					<p>{'Launch phase, folks! The real deal starts now.'}</p>
-						&nbsp;
-					<p>{'We\'ve voted, we\'ve prepared, and it\'s time to set the yETH machine in motion. Contracts are deployed, 90% of the deposited ETH buys the LSDs we\'ve all chosen.'}</p>
+					<p>{'Aaaaaah, we’re launchingggggg.'}</p>
 					&nbsp;
-					<p>{'And hey, any surplus LSDs? They\'re your yield, st-yETH holders! A little gift from us to you.'}</p>
+					<p>{'The votes have been counted, the basket has been constructed, contracts are deployed and the deposited ETH has been swapped for the constituent LSTs.'}</p>
 					&nbsp;
-					<p>{'In the end, we deploy a yETH/ETH Curve Pool, request a gauge, and if the stars align, we\'ll get a yETH/ETH Curve yVault.'}</p>
+					<p>{'yETH, a basket of risk adjusted epically yielding LSTs is ready for lift off.'}</p>
 					&nbsp;
-					<p>{'Hold tight, we\'re launching!'}</p>
+					<p>{'One token, multiple benefits. LFG.'}</p>
 				</motion.div>
 
 			</div>

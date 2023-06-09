@@ -4,6 +4,7 @@ import {BootstrapContextApp} from 'contexts/useBootstrap';
 import {PriceContextApp} from 'contexts/usePrices';
 import {TokenListContextApp} from 'contexts/useTokenList';
 import {WalletContextApp} from 'contexts/useWallet';
+import config from 'utils/wagmiConfig';
 import localFont from '@next/font/local';
 import {WithYearn} from '@yearn-finance/web-lib/contexts/WithYearn';
 import {cl} from '@yearn-finance/web-lib/utils/cl';
@@ -34,6 +35,7 @@ function	MyApp(props: AppProps): ReactElement {
 		<>
 			<style jsx global>{'html {font-family: Aeonik;}'}</style>
 			<WithYearn
+				configOverwrite={config}
 				options={{
 					web3: {
 						supportedChainID: [1, 250, 1337]

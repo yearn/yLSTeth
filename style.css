@@ -38,7 +38,7 @@
 }
 
 .yearn--header {
-	@apply !p-0 !h-14;
+	@apply !p-0 !h-20 !mb-0;
 }
 
 .yearn--listbox-menu-item {
