@@ -51,8 +51,8 @@ function Phase1({variant}: {variant: string[]}): ReactElement {
 	}, [set_selectedToken, updateApplicationStatus]);
 
 	return (
-		<section className={'absolute inset-x-0 grid grid-cols-1 gap-10 px-4 pt-10 md:grid-cols-2 md:gap-20 md:pt-12'}>
-			<div className={'mb-20 md:mb-0'}>
+		<section className={'absolute inset-x-0 grid grid-cols-12 gap-10 px-4 pt-10 md:gap-20 md:pt-12'}>
+			<div className={'col-span-12 mb-20 md:col-span-6 md:mb-0'}>
 				<div className={'mb-10 flex flex-col justify-center'}>
 					<motion.p
 						className={'text-lg'}
@@ -93,7 +93,7 @@ function Phase1({variant}: {variant: string[]}): ReactElement {
 					exit={'exit'}>
 					<p>{'Want your LST to be included in yETH’s basket of tokens? You’ve come to the right place. Get whitelisted for your LST to take part in yETH Bootstrapping.'}</p>
 					&nbsp;
-					<ul className={'list-inside list-disc'}>
+					<ul className={'list-outside list-disc pl-4'}>
 						<li className={'font-bold'}>
 							{'Pay a non refundable 1 ETH fee (to prevent spam)'}
 						</li>
@@ -129,7 +129,7 @@ function Phase1({variant}: {variant: string[]}): ReactElement {
 			</div>
 
 			<motion.div
-				className={'hidden md:flex'}
+				className={'col-span-12 hidden md:col-span-6 md:flex'}
 				variants={customVariants(0.06)}
 				custom={variant}
 				initial={'initial'}
