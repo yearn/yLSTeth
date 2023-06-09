@@ -33,7 +33,7 @@ const aeonik = localFont({
 function	MyApp(props: AppProps): ReactElement {
 	return (
 		<>
-			<style jsx global>{'html {font-family: Aeonik;}'}</style>
+			<style jsx global>{`html {font-family: ${aeonik.style.fontFamily};}`}</style>
 			<WithYearn
 				configOverwrite={config}
 				options={{
