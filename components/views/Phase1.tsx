@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import Image from 'next/image';
 import AddressInput from 'components/common/AddressInput';
 import useBootstrap from 'contexts/useBootstrap';
@@ -6,6 +6,7 @@ import {useTimer} from 'hooks/useTimer';
 import {customVariants} from 'utils';
 import {motion} from 'framer-motion';
 import {isZeroAddress} from '@yearn-finance/web-lib/utils/address';
+import {toBigInt} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import performBatchedUpdates from '@yearn-finance/web-lib/utils/performBatchedUpdates';
 
 import type {ReactElement} from 'react';
@@ -13,9 +14,20 @@ import type {TAddress} from '@yearn-finance/web-lib/types';
 
 function Timer(): ReactElement {
 	const {periods} = useBootstrap();
-	const {whitelistEnd} = periods || {};
+	const {whitelistEnd, whitelistBegin} = periods || {};
 	const time = useTimer({endTime: (Number(whitelistEnd?.result) * 1000 || 0)});
-	return <>{time}</>;
+	const hasStarted = useMemo((): boolean => (
+		(toBigInt(whitelistBegin?.result || 0) > 0n) //Not started
+		&&
+		(Number(whitelistBegin?.result) * 1000 || 0) < Date.now()
+	), [whitelistBegin]);
+	const hasEnded = useMemo((): boolean => ((
+		(toBigInt(whitelistEnd?.result || 0) > 0n) //Not started
+		&&
+		(Number(whitelistEnd?.result) * 1000 || 0) < Date.now())
+	), [whitelistEnd]);
+
+	return <>{hasEnded ? 'ended' : hasStarted ? time : 'coming soon'}</>;
 }
 
 function Phase1({variant}: {variant: string[]}): ReactElement {

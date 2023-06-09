@@ -2,7 +2,6 @@ import React, {createContext, useContext, useMemo, useState} from 'react';
 import useBootstrapPeriods from 'hooks/useBootstrapPeriods';
 import BOOTSTRAP_ABI from 'utils/abi/bootstrap.abi';
 import {useContractReads} from 'wagmi';
-import {useChainID} from '@yearn-finance/web-lib/hooks/useChainID';
 import {isZeroAddress, toAddress} from '@yearn-finance/web-lib/utils/address';
 
 import type {TUseBootstrapPeriodsResp} from 'hooks/useBootstrapPeriods';
@@ -28,7 +27,6 @@ const defaultProps: TUseBootstrapProps = {
 
 const Bootstrap = createContext<TUseBootstrapProps>(defaultProps);
 export const BootstrapContextApp = ({children}: {children: React.ReactElement}): React.ReactElement => {
-	const {chainID} = useChainID();
 	const periods = useBootstrapPeriods();
 	const [selectedToken, set_selectedToken] = useState<TAddress | undefined>();
 	const {data, refetch, isSuccess} = useContractReads({
@@ -36,14 +34,14 @@ export const BootstrapContextApp = ({children}: {children: React.ReactElement}):
 			{
 				address: toAddress(process.env.BOOTSTRAP_ADDRESS),
 				abi: BOOTSTRAP_ABI,
-				chainId: chainID,
+				chainId: 250,
 				functionName: 'has_applied',
 				args: [toAddress(selectedToken)]
 			},
 			{
 				address: toAddress(process.env.BOOTSTRAP_ADDRESS),
 				abi: BOOTSTRAP_ABI,
-				chainId: chainID,
+				chainId: 250,
 				functionName: 'is_whitelisted',
 				args: [toAddress(selectedToken)]
 			}
