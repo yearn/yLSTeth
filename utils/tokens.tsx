@@ -21,3 +21,21 @@ export const FTM_TOKEN: TTokenInfo = {
 	logoURI: `https://assets.smold.app/api/token/1/${ETH_TOKEN_ADDRESS}/logo-128.png`
 };
 
+export const STYETH_TOKEN: TTokenInfo = {
+	address: toAddress(process.env.STYETH_ADDRESS),
+	chainId: 1,
+	name: 'Staked Yearn ETH',
+	symbol: 'st-yETH',
+	decimals: 18,
+	logoURI: '/favicons/favicon.svg'
+};
+
+export const YETH_TOKEN: TTokenInfo = {
+	address: toAddress(process.env.YETH_ADDRESS),
+	chainId: 1,
+	name: 'Yearn ETH',
+	symbol: 'yETH',
+	decimals: 18,
+	logoURI: '/favicons/favicon.svg'
+};
+

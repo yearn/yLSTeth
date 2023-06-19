@@ -49,7 +49,7 @@ function Phase3({variant}: {variant: string[]}): ReactElement {
 						{'Voting'}
 					</motion.h1>
 					<motion.b
-						className={'font-number mt-4 text-4xl text-purple-300'}
+						className={'font-number mt-4 text-3xl text-purple-300 md:text-4xl'}
 						variants={customVariants(0.04)}
 						custom={variant}
 						initial={'initial'}

@@ -1,6 +1,7 @@
 import {getNativeToken} from 'utils/toWagmiProvider';
+import config from 'utils/wagmiConfig';
 import {serialize} from 'wagmi';
-import {erc20ABI, multicall} from '@wagmi/core';
+import {erc20ABI} from '@wagmi/core';
 import AGGREGATE3_ABI from '@yearn-finance/web-lib/utils/abi/aggregate.abi';
 import {toAddress} from '@yearn-finance/web-lib/utils/address';
 import {ARB_WETH_TOKEN_ADDRESS, ETH_TOKEN_ADDRESS, MULTICALL3_ADDRESS, OPT_WETH_TOKEN_ADDRESS, WETH_TOKEN_ADDRESS, WFTM_TOKEN_ADDRESS, ZERO_ADDRESS} from '@yearn-finance/web-lib/utils/constants';
@@ -42,8 +43,8 @@ async function getBatchBalances({
 }: TPerformCall): Promise<TDict<TBalanceData>> {
 	const data: TDict<TBalanceData> = {};
 	const chunks = [];
-	for (let i = 0; i < tokens.length; i += 5_000) {
-		chunks.push(tokens.slice(i, i + 5_000));
+	for (let i = 0; i < tokens.length; i += 2_000) {
+		chunks.push(tokens.slice(i, i + 2_000));
 	}
 	const nativeToken = getNativeToken(chainID);
 	const nativeTokenWrapper = getNativeTokenWrapperContract(chainID);
@@ -70,7 +71,8 @@ async function getBatchBalances({
 		}
 
 		try {
-			const results = await multicall({contracts: calls as never[], chainId: chainID});
+			const multicallInstance = config.getPublicClient({chainId: chainID}).multicall;
+			const results = await multicallInstance({contracts: calls as never[]});
 
 			let rIndex = 0;
 			for (const element of tokens) {
@@ -92,7 +94,7 @@ async function getBatchBalances({
 				};
 			}
 		} catch (error) {
-			console.log(error);
+			// console.log(error);
 			continue;
 		}
 	}

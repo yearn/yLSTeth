@@ -16,7 +16,7 @@
 		"@next/font": "^13.4.4",
 		"@react-hookz/web": "^23.0.1",
 		"@wagmi/core": "^1.1.1",
-		"@yearn-finance/web-lib": "^0.20.70",
+		"@yearn-finance/web-lib": "^0.20.73",
 		"axios": "^1.4.0",
 		"dayjs": "^1.11.8",
 		"framer-motion": "^10.12.16",

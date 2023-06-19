@@ -203,10 +203,10 @@ function	AppHeader(): ReactElement {
 
 	const nav = useMemo((): TMenu[] => {
 		const nav: TMenu[] = [
-			{path: '/', label: 'Home'},
-			{path: '/#apply', label: 'yETH'},
-			{path: '/#deposit', label: 'Deposit'},
-			{path: '/#bribe', label: 'Bribe'},
+			{path: 'https://yearn.finance', label: 'Home', target: '_blank'},
+			{path: '/', label: 'yETH'},
+			{path: '/deposit', label: 'Deposit'},
+			{path: '/incentivize', label: 'Incentivize'},
 			{path: '/#vote', label: 'Vote'},
 			{path: '/docs', label: 'Docs'}
 		];

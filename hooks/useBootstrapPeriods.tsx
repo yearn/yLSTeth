@@ -48,7 +48,7 @@ function useBootstrapPeriods(): TUseBootstrapPeriodsResp {
 	const bootstrapContractReadData = useMemo((): TBaseReadContractData => ({
 		address: toAddress(process.env.BOOTSTRAP_ADDRESS),
 		abi: BOOTSTRAP_ABI,
-		chainId: 250
+		chainId: Number(process.env.DEFAULT_CHAINID || 1)
 	}), []);
 
 	const {data} = useContractReads({

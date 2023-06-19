@@ -1,16 +1,13 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useMemo} from 'react';
 import Image from 'next/image';
-import AddressInput from 'components/common/AddressInput';
 import useBootstrap from 'contexts/useBootstrap';
 import {useTimer} from 'hooks/useTimer';
 import {customVariants} from 'utils';
 import {motion} from 'framer-motion';
-import {isZeroAddress} from '@yearn-finance/web-lib/utils/address';
+import {Button} from '@yearn-finance/web-lib/components/Button';
 import {toBigInt} from '@yearn-finance/web-lib/utils/format.bigNumber';
-import performBatchedUpdates from '@yearn-finance/web-lib/utils/performBatchedUpdates';
 
 import type {ReactElement} from 'react';
-import type {TAddress} from '@yearn-finance/web-lib/types';
 
 function Timer(): ReactElement {
 	const {periods} = useBootstrap();
@@ -31,27 +28,8 @@ function Timer(): ReactElement {
 }
 
 function Phase1({variant}: {variant: string[]}): ReactElement {
-	const {selectedToken, set_selectedToken, updateApplicationStatus} = useBootstrap();
-	const [tokenReceiver, set_tokenReceiver] = useState('');
-	const [hasBeenConfirmed, set_hasBeenConfirmed] = useState(false);
-
-	const onConfirm = useCallback(async (newReceiver: TAddress): Promise<void> => {
-		performBatchedUpdates((): void => {
-			set_selectedToken(newReceiver);
-			set_tokenReceiver(newReceiver);
-			set_hasBeenConfirmed(true);
-		});
-		const {data, isSuccess} = await updateApplicationStatus();
-		const [applied, whitelisted] = data || [];
-		const hasValidInput = isSuccess && !isZeroAddress(newReceiver);
-		const hasApplied = hasValidInput ? applied?.status === 'success' && applied?.result : false;
-		const isWhitelisted = hasValidInput ? whitelisted?.status === 'success' && whitelisted?.result : false;
-		console.log({hasApplied, isWhitelisted});
-		// onProceed({hasApplied, isWhitelisted});
-	}, [set_selectedToken, updateApplicationStatus]);
-
 	return (
-		<section className={'absolute inset-x-0 grid grid-cols-12 gap-10 px-4 pt-10 md:gap-20 md:pt-12'}>
+		<section className={'absolute inset-x-0 grid grid-cols-12 gap-0 px-4 pt-10 md:gap-20 md:pt-12'}>
 			<div className={'col-span-12 mb-20 md:col-span-6 md:mb-0'}>
 				<div className={'mb-10 flex flex-col justify-center'}>
 					<motion.p
@@ -74,7 +52,7 @@ function Phase1({variant}: {variant: string[]}): ReactElement {
 					</motion.h1>
 					<motion.b
 						suppressHydrationWarning
-						className={'font-number mt-4 text-4xl text-purple-300'}
+						className={'font-number mt-4 text-3xl text-purple-300 md:text-4xl'}
 						variants={customVariants(0.04)}
 						custom={variant}
 						initial={'initial'}
@@ -114,34 +92,34 @@ function Phase1({variant}: {variant: string[]}): ReactElement {
 					initial={'initial'}
 					animate={'move'}
 					exit={'exit'}>
-					<p className={'mb-1 text-neutral-600'}>
-						{'My LSD Protocol Address'}
-					</p>
-					<AddressInput
-						value={tokenReceiver as TAddress}
-						onChangeValue={set_tokenReceiver}
-						shouldBeDisabled={hasBeenConfirmed && tokenReceiver === selectedToken}
-						onConfirm={onConfirm} />
-					<p className={'mt-1 text-xs text-neutral-600'}>
-						{'A 1 ETH fee is required to apply.'}
-					</p>
+					<a
+						href={'/'}
+						target={'_blank'}
+						rel={'noopener noreferrer'}>
+						<Button
+							className={'yearn--button w-full rounded-md !text-sm md:w-1/2'}>
+							{'Take me to the form'}
+						</Button>
+					</a>
 				</motion.div>
 			</div>
 
 			<motion.div
-				className={'col-span-12 hidden md:col-span-6 md:flex'}
+				className={'relative col-span-12 hidden h-screen md:col-span-6 md:flex'}
 				variants={customVariants(0.06)}
 				custom={variant}
 				initial={'initial'}
 				animate={'move'}
 				exit={'exit'}>
-				<div className={'flex h-full items-center justify-center'}>
-					<Image
-						loading={'eager'}
-						alt={''}
-						src={'/hero_yeth.png'}
-						width={420}
-						height={420} />
+				<div className={'absolute inset-0 top-20 flex h-full w-full justify-center'}>
+					<div>
+						<Image
+							loading={'eager'}
+							alt={''}
+							src={'/hero_yeth.png'}
+							width={420}
+							height={420} />
+					</div>
 				</div>
 			</motion.div>
 		</section>

@@ -2655,10 +2655,10 @@
   dependencies:
     lodash "^4"
 
-"@yearn-finance/web-lib@^0.20.70":
-  version "0.20.70"
-  resolved "https://registry.yarnpkg.com/@yearn-finance/web-lib/-/web-lib-0.20.70.tgz#37ed1969701ae81b35b90b38e676e7b4b45c3d3c"
-  integrity sha512-YpGzxBQK58OyBh5703oD9Xuovvh5oqwTshIuS8ZZzOkzjQ7jxzl4L9DeGkfhgW2ismYOXIH+Q/h2LQzAx1oqXg==
+"@yearn-finance/web-lib@^0.20.73":
+  version "0.20.73"
+  resolved "https://registry.yarnpkg.com/@yearn-finance/web-lib/-/web-lib-0.20.73.tgz#78bdd8477db6ef3bf40e5001621d193787055f9a"
+  integrity sha512-sURxzf3YgItgyuwLGXOC1mUe5lfXeK59youvDTQ9+ff16f5qcfbPBQD+/LapCvr96oFdpWVXD+FyWitb9B0jKg==
   dependencies:
     "@headlessui/react" "^1.7.15"
     "@ledgerhq/iframe-provider" "^0.4.3"

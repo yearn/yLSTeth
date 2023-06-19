@@ -34,14 +34,14 @@ export const BootstrapContextApp = ({children}: {children: React.ReactElement}):
 			{
 				address: toAddress(process.env.BOOTSTRAP_ADDRESS),
 				abi: BOOTSTRAP_ABI,
-				chainId: 250,
+				chainId: Number(process.env.DEFAULT_CHAINID || 1),
 				functionName: 'has_applied',
 				args: [toAddress(selectedToken)]
 			},
 			{
 				address: toAddress(process.env.BOOTSTRAP_ADDRESS),
 				abi: BOOTSTRAP_ABI,
-				chainId: 250,
+				chainId: Number(process.env.DEFAULT_CHAINID || 1),
 				functionName: 'is_whitelisted',
 				args: [toAddress(selectedToken)]
 			}

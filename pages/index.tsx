@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import IconArrow from 'components/icons/IconArrow';
 import Phase1 from 'components/views/Phase1';
 import Phase2 from 'components/views/Phase2';
@@ -46,7 +46,6 @@ function ProgressBar({page}: {page: number}): ReactElement {
 	};
 
 	const period = activePeriod();
-	console.log({period});
 
 	function renderPeriod(): ReactElement {
 		const activeClassName = 'font-bold text-purple-300';
@@ -128,10 +127,50 @@ function ProgressBar({page}: {page: number}): ReactElement {
 function YETH(): ReactElement {
 	const [page, set_page] = useState(0);
 	const [direction, set_direction] = useState(NO_DIRECTION);
-
 	const initialPosition = `-${direction * -1 * 100}vw`;
 	const toNextPageAnimation = `${direction * 100}vw`;
 	const toPreviousPageAnimation = `${-direction * 100}vw`;
+	const shouldDisplayNextArrow = useMemo((): boolean => page !== 1.1 && page < 3, [page]);
+
+	const onPrevious = useCallback((prevPage?: number): void => {
+		console.log(prevPage);
+		if (page === 0) {
+			return;
+		}
+		if (prevPage !== undefined) {
+			return performBatchedUpdates((): void => {
+				set_page(prevPage);
+				set_direction(1);
+			});
+		}
+		if (page === 1.1 || page === 1.2) {
+			return performBatchedUpdates((): void => {
+				set_page(1);
+				set_direction(1);
+			});
+		}
+		performBatchedUpdates((): void => {
+			set_page((s): number => s - 1);
+			set_direction(1);
+		});
+	}, [page]);
+
+	const onNext = useCallback((nextPage?: number): void => {
+		if (page === 3) {
+			return;
+		}
+		if (nextPage !== undefined) {
+			return performBatchedUpdates((): void => {
+				set_page(nextPage);
+				set_direction(-1);
+			});
+		}
+		performBatchedUpdates((): void => {
+			set_page((s): number => s + 1);
+			set_direction(-1);
+		});
+	}, [page]);
+
 
 	function renderElement(): ReactElement {
 		switch (page) {
@@ -173,36 +212,24 @@ function YETH(): ReactElement {
 	}
 
 	return (
-		<div className={'relative mx-auto w-screen max-w-6xl'}>
+		<div className={'relative mx-auto w-screen max-w-6xl !px-0'}>
 			<motion.div
 				transition={transition}
 				animate={{x: page > 0 ? '0vw' : '-100vw'}}
 				className={'absolute left-0 top-0 z-10 px-4'}>
-				<button
-					onClick={(): void => {
-						performBatchedUpdates((): void => {
-							set_page((s): number => s - 1);
-							set_direction(1);
-						});
-					}}>
+				<button onClick={(): void => onPrevious()}>
 					<IconArrow className={'h-6 w-6 rotate-180 cursor-pointer text-purple-300'} />
 				</button>
 			</motion.div>
 			<motion.div
 				transition={transition}
-				animate={{x: page < 3 ? '0vw' : '100vw'}}
+				animate={{x: shouldDisplayNextArrow ? '0vw' : '100vw'}}
 				className={'absolute right-0 top-0 z-10 block px-4 md:hidden'}>
-				<button
-					onClick={(): void => {
-						performBatchedUpdates((): void => {
-							set_page((s): number => s + 1);
-							set_direction(-1);
-						});
-					}}>
+				<button onClick={(): void => onNext()}>
 					<IconArrow className={'h-6 w-6 cursor-pointer text-purple-300'} />
 				</button>
 			</motion.div>
-			<div className={'flex flex-row'}>
+			<div className={'relative flex flex-row'} style={{height: 'calc(100vh - 80px)'}}>
 				<AnimatePresence
 					mode={'sync'}
 					custom={[
@@ -214,15 +241,10 @@ function YETH(): ReactElement {
 			</div>
 			<motion.div
 				transition={transition}
-				animate={{x: page < 3 ? '0vw' : '100vw'}}
+				animate={{x: shouldDisplayNextArrow ? '0vw' : '100vw'}}
 				className={'fixed inset-y-0 right-4 hidden h-full items-center md:flex'}>
 				<button
-					onClick={(): void => {
-						performBatchedUpdates((): void => {
-							set_page((s): number => s + 1);
-							set_direction(-1);
-						});
-					}}
+					onClick={(): void => onNext()}
 					className={'flex h-16 w-16 items-center justify-center rounded-full bg-[#DED0FE]/50 backdrop-blur-sm transition-colors hover:bg-[#DED0FE]'}>
 					<IconArrow className={'w-6 text-purple-300'} />
 				</button>
@@ -234,8 +256,10 @@ function YETH(): ReactElement {
 
 export default function Wrapper(): ReactElement {
 	return (
-		<UIStepContextApp>
-			<YETH />
-		</UIStepContextApp>
+		<div className={'relative mx-auto mb-0 flex min-h-screen w-full flex-col overflow-x-visible bg-neutral-0 pt-20 md:overflow-y-hidden'}>
+			<UIStepContextApp>
+				<YETH />
+			</UIStepContextApp>
+		</div>
 	);
 }

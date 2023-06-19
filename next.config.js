@@ -38,7 +38,8 @@ module.exports = (phase) => withTM(withPWA({
 		},
 		TELEGRAM_BOT: process.env.TELEGRAM_BOT,
 		TELEGRAM_CHAT: process.env.TELEGRAM_CHAT,
-		DEFAULT_CHAINID: 250,
+		BASE_CHAINID: 250, // Expected to work on this chain
+		DEFAULT_CHAINID: 1337, // The one we currently use
 		BASE_API_URI: 'http://localhost:8080',
 		YETH_ADDRESS: '0x0c75df7454d7594BbEBE09fD0CE0114c882b046d',
 		STYETH_ADDRESS: '0xDd27AC6041901daFA1a9674f80034F7693Bab9C0',
