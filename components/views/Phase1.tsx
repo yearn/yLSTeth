@@ -1,5 +1,5 @@
 import React, {useMemo} from 'react';
-import Image from 'next/image';
+import HeroAsLottie from 'components/common/HeroAsLottie';
 import useBootstrap from 'contexts/useBootstrap';
 import {useTimer} from 'hooks/useTimer';
 import {customVariants} from 'utils';
@@ -112,14 +112,7 @@ function Phase1({variant}: {variant: string[]}): ReactElement {
 				animate={'move'}
 				exit={'exit'}>
 				<div className={'absolute inset-0 top-20 flex h-full w-full justify-center'}>
-					<div>
-						<Image
-							loading={'eager'}
-							alt={''}
-							src={'/hero_yeth.png'}
-							width={420}
-							height={420} />
-					</div>
+					<HeroAsLottie />
 				</div>
 			</motion.div>
 		</section>
