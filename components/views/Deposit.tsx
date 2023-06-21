@@ -169,7 +169,7 @@ function DepositHistory({depositHistory}: {depositHistory: TDepositHistory[]}): 
 }
 
 function Deposit(): ReactElement {
-	const {address, isActive, provider} = useWeb3();
+	const {address, isActive, provider, chainID} = useWeb3();
 	const {balances, refresh} = useWallet();
 	const [amountToSend, set_amountToSend] = useState<TNormalizedBN>(toNormalizedBN(0));
 	const [depositStatus, set_depositStatus] = useState<TTxStatus>(defaultTxStatus);
@@ -180,7 +180,7 @@ function Deposit(): ReactElement {
 		address: toAddress(process.env.BOOTSTRAP_ADDRESS),
 		functionName: 'deposits',
 		args: [toAddress(address)],
-		chainId: Number(process.env.DEFAULT_CHAINID)
+		chainId: Number(chainID)
 	});
 
 	const filterEvents = useCallback(async (): Promise<void> => {
@@ -205,6 +205,7 @@ function Deposit(): ReactElement {
 				fromBlock: i,
 				toBlock: i + rangeLimit
 			});
+
 			for (const log of logs) {
 				if (!log.blockNumber) {
 					continue;

@@ -84,7 +84,6 @@ function useBootstrapIncentivizations(): [TIncentivesFor, VoidFunction] {
 			});
 			for (const log of logs) {
 				const {protocol, incentive, amount, depositor} = log.args;
-				console.log(`${depositor} has put ${amount} ${incentive} for ${protocol}`);
 				incentives.push({
 					blockNumber: toBigInt(log.blockNumber as bigint),
 					txHash: toHex(log.transactionHash || ''),
