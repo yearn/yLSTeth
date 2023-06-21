@@ -74,6 +74,9 @@
 				}
 			}
 		}
+		& .yearn--modal {
+			@apply inline-block overflow-hidden relative z-50 w-full text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-[400px] sm:align-middle bg-neutral-0;
+		}
 	}
 
 	/* 🔵 - Yearn Finance ******************************************************************************
@@ -511,4 +514,20 @@ details .chev {
 }
 details[open] .chev {
   @apply rotate-0
+}
+
+dialog:modal {
+    position: fixed;
+    inset-block-start: 0px;
+    inset-block-end: 0px;
+    max-width: calc((100% - 6px) - 2em);
+    max-height: calc((100% - 6px) - 2em);
+    user-select: text;
+    visibility: visible;
+    overflow: auto;
+}
+dialog::backdrop {
+    position: fixed;
+    inset: 0px;
+    background: rgba(0, 0, 0, 100);
 }

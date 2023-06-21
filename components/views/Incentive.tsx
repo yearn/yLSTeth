@@ -16,6 +16,7 @@ import {assertAddress, isValidAddress} from 'utils/toWagmiProvider';
 import {erc20ABI, useContractRead} from 'wagmi';
 import {useDeepCompareEffect} from '@react-hookz/web';
 import {Button} from '@yearn-finance/web-lib/components/Button';
+import {Modal} from '@yearn-finance/web-lib/components/Modal';
 import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
 import {useChainID} from '@yearn-finance/web-lib/hooks/useChainID';
 import IconChevronBottom from '@yearn-finance/web-lib/icons/IconChevronBottom';
@@ -380,6 +381,111 @@ function IncentiveHistory({isPending, incentives}: {isPending: boolean, incentiv
 	);
 }
 
+function IncentiveConfirmationModal({
+	lsdToIncentive, tokenToUse, amountToSend, balanceOf, onSuccess, onCancel
+}: {
+	lsdToIncentive: TTokenInfo | undefined,
+	tokenToUse: TTokenInfo | undefined,
+	amountToSend: TNormalizedBN,
+	balanceOf: TNormalizedBN,
+	onSuccess: VoidFunction,
+	onCancel: VoidFunction
+}): ReactElement {
+	const {isActive, provider} = useWeb3();
+	const [incentiveStatus, set_incentiveStatus] = useState<TTxStatus>(defaultTxStatus);
+
+	/* 🔵 - Yearn Finance **************************************************************************
+	** Web3 action to incentivize a given protocol with a given token and amount.
+	**********************************************************************************************/
+	const onIncentive = useCallback(async (): Promise<void> => {
+		assert(isActive, 'Wallet not connected');
+		assert(provider, 'Provider not connected');
+		assert(amountToSend.raw > 0n, 'Amount must be greater than 0');
+		assertAddress(tokenToUse?.address, 'Token to use not selected');
+		assertAddress(lsdToIncentive?.address, 'LSD to incentive not selected');
+
+		const result = await incentivize({
+			connector: provider,
+			contractAddress: toAddress(process.env.BOOTSTRAP_ADDRESS),
+			protocolAddress: lsdToIncentive.address,
+			incentiveAddress: tokenToUse.address,
+			amount: amountToSend.raw,
+			statusHandler: set_incentiveStatus
+		});
+		if (result.isSuccessful) {
+			onSuccess();
+		}
+	}, [amountToSend.raw, isActive, lsdToIncentive, provider, tokenToUse, onSuccess]);
+
+	return (
+		<div className={'w-full max-w-[400px] rounded-sm bg-neutral-0 p-6'}>
+			<b className={'text-xl'}>{'Confirm your submission'}</b>
+			<div className={'mt-6'}>
+				<p className={'pb-1 text-neutral-500'}>{'Incentivize LSD'}</p>
+				<div className={'flex flex-row rounded-sm border border-neutral-500 p-2'}>
+					<div className={'mr-2 h-6 w-6 min-w-[24px]'}>
+						<ImageWithFallback
+							alt={''}
+							unoptimized
+							key={lsdToIncentive?.logoURI || ''}
+							src={lsdToIncentive?.logoURI || ''}
+							width={24}
+							height={24} />
+					</div>
+					<p>{lsdToIncentive?.symbol || truncateHex(lsdToIncentive?.address, 6)}</p>
+				</div>
+				<small className={'pl-2 pt-1 text-xs'}>&nbsp;</small>
+			</div>
+			<div>
+				<p className={'pb-1 text-neutral-500'}>{'You give'}</p>
+				<div className={'flex flex-row rounded-sm border border-neutral-500 p-2'}>
+					<div className={'mr-2 h-6 w-6 min-w-[24px]'}>
+						<ImageWithFallback
+							alt={''}
+							unoptimized
+							key={tokenToUse?.logoURI || ''}
+							src={tokenToUse?.logoURI || ''}
+							width={24}
+							height={24} />
+					</div>
+					<p>{tokenToUse?.symbol || truncateHex(tokenToUse?.address, 6)}</p>
+				</div>
+				<small className={'pl-2 pt-1 text-xs'}>&nbsp;</small>
+			</div>
+			<div>
+				<p className={'pb-1 text-neutral-500'}>{'Amount'}</p>
+				<div className={'flex flex-row rounded-sm border border-neutral-500 p-2'}>
+					<p>{amountToSend?.normalized || '0'}</p>
+				</div>
+				<small
+					suppressHydrationWarning
+					className={'pl-2 pt-1 text-xs text-neutral-600'}>
+					{`You have ${formatAmount(balanceOf?.normalized || 0, 2, 6)} ${tokenToUse?.symbol || '-'}`}
+				</small>
+			</div>
+			<div className={'mt-6'}>
+				<Button
+					onClick={onIncentive}
+					isBusy={incentiveStatus.pending}
+					isDisabled={
+						amountToSend.raw === 0n
+						|| amountToSend.raw > balanceOf.raw
+						|| !isValidAddress(lsdToIncentive?.address)
+						|| !isValidAddress(tokenToUse?.address)
+					}
+					className={'yearn--button w-full rounded-md !text-sm'}>
+					{'Confirm'}
+				</Button>
+				<button
+					onClick={onCancel}
+					className={'mt-2 h-10 w-full text-center text-neutral-500 transition-colors hover:text-neutral-900'}>
+					{'Cancel'}
+				</button>
+			</div>
+		</div>
+	);
+}
+
 function ViewIncentive(): ReactElement {
 	const {address, isActive, provider} = useWeb3();
 	const {safeChainID} = useChainID(Number(process.env.BASE_CHAINID));
@@ -387,11 +493,11 @@ function ViewIncentive(): ReactElement {
 	const {whitelistedLSD} = useBootstrap();
 	const {tokenList} = useTokenList();
 	const [groupIncentiveHistory, isFetchingHistory, refreshIncentives] = useBootstrapIncentivizations();
+	const [isModalOpen, set_isModalOpen] = useState<boolean>(false);
 	const [amountToSend, set_amountToSend] = useState<TNormalizedBN>(toNormalizedBN(0));
 	const [possibleTokensToUse, set_possibleTokensToUse] = useState<TDict<TTokenInfo | undefined>>({});
 	const [lsdToIncentive, set_lsdToIncentive] = useState<TTokenInfo | undefined>();
 	const [tokenToUse, set_tokenToUse] = useState<TTokenInfo | undefined>();
-	const [incentiveStatus, set_incentiveStatus] = useState<TTxStatus>(defaultTxStatus);
 	const [approvalStatus, set_approvalStatus] = useState<TTxStatus>(defaultTxStatus);
 	const {data: allowanceOf, refetch: refetchAllowance} = useContractRead({
 		abi: erc20ABI,
@@ -480,38 +586,32 @@ function ViewIncentive(): ReactElement {
 	/* 🔵 - Yearn Finance **************************************************************************
 	** Web3 action to incentivize a given protocol with a given token and amount.
 	**********************************************************************************************/
-	const onIncentive = useCallback(async (): Promise<void> => {
-		assert(isActive, 'Wallet not connected');
-		assert(provider, 'Provider not connected');
-		assert(amountToSend.raw > 0n, 'Amount must be greater than 0');
-		assertAddress(tokenToUse?.address, 'Token to use not selected');
-		assertAddress(lsdToIncentive?.address, 'LSD to incentive not selected');
-
-		const result = await incentivize({
-			connector: provider,
-			contractAddress: toAddress(process.env.BOOTSTRAP_ADDRESS),
-			protocolAddress: lsdToIncentive.address,
-			incentiveAddress: tokenToUse.address,
-			amount: amountToSend.raw,
-			statusHandler: set_incentiveStatus
-		});
-		if (result.isSuccessful) {
-			set_amountToSend(toNormalizedBN(0));
+	const onIncentiveSuccess = useCallback(async (): Promise<void> => {
+		set_amountToSend(toNormalizedBN(0));
+		if (!tokenToUse) {
 			await Promise.all([
 				refreshIncentives(),
 				refetchAllowance(),
-				refresh([
-					{...ETH_TOKEN, token: ETH_TOKEN.address},
-					{
-						decimals: tokenToUse.decimals,
-						name: tokenToUse.name,
-						symbol: tokenToUse.symbol,
-						token: tokenToUse.address
-					}
-				])
+				refresh([{...ETH_TOKEN, token: ETH_TOKEN.address}])
 			]);
+			set_isModalOpen(false);
+			return;
 		}
-	}, [amountToSend.raw, isActive, lsdToIncentive, provider, refresh, tokenToUse, refreshIncentives, refetchAllowance]);
+		await Promise.all([
+			refreshIncentives(),
+			refetchAllowance(),
+			refresh([
+				{...ETH_TOKEN, token: ETH_TOKEN.address},
+				{
+					decimals: tokenToUse.decimals,
+					name: tokenToUse.name,
+					symbol: tokenToUse.symbol,
+					token: tokenToUse.address
+				}
+			])
+		]);
+		set_isModalOpen(false);
+	}, [refresh, refreshIncentives, refetchAllowance, tokenToUse]);
 
 
 	/* 🔵 - Yearn Finance **************************************************************************
@@ -615,18 +715,18 @@ function ViewIncentive(): ReactElement {
 
 							</div>
 						</div>
-						<p
+						<small
 							suppressHydrationWarning
 							className={'pl-2 pt-1 text-xs text-neutral-600'}>
 							{`You have ${formatAmount(balanceOf?.normalized || 0, 2, 6)} ${tokenToUse?.symbol || '-'}`}
-						</p>
+						</small>
 					</div>
 
 					<div className={'w-full'}>
 						<p className={'hidden pb-1 text-neutral-600 md:block'}>&nbsp;</p>
 						<Button
-							onClick={hasAllowance ? onIncentive : onApprove}
-							isBusy={hasAllowance ? incentiveStatus.pending : approvalStatus.pending}
+							onClick={(): unknown => hasAllowance ? set_isModalOpen(true) : onApprove()}
+							isBusy={approvalStatus.pending}
 							isDisabled={
 								amountToSend.raw === 0n
 									|| amountToSend.raw > balanceOf.raw
@@ -643,6 +743,17 @@ function ViewIncentive(): ReactElement {
 					isPending={isFetchingHistory}
 					incentives={groupIncentiveHistory} />
 			</div>
+			<Modal
+				isOpen={isModalOpen}
+				onClose={(): void => set_isModalOpen(false)}>
+				<IncentiveConfirmationModal
+					lsdToIncentive={lsdToIncentive}
+					tokenToUse={tokenToUse}
+					amountToSend={amountToSend}
+					balanceOf={balanceOf}
+					onSuccess={onIncentiveSuccess}
+					onCancel={(): void => set_isModalOpen(false)} />
+			</Modal>
 		</section>
 	);
 }
