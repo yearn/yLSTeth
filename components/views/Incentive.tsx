@@ -103,18 +103,18 @@ function IncentiveGroupBreakdownItem({item}: {item: TIncentives}): ReactElement 
 					</p>
 				</div>
 			</div>
-			<div className={'col-span-2 flex justify-end'}>
-				<p className={'pr-1 text-xs tabular-nums'}>
+			<div className={'col-span-2 flex items-center justify-end'}>
+				<p className={'pr-1 text-xxs tabular-nums md:text-xs'}>
 					{`${formatAmount(toNormalizedBN(item.amount, item.incentiveToken?.decimals)?.normalized || 0, 6, 6)}`}
 				</p>
 			</div>
-			<div className={'col-span-2 flex justify-end'}>
-				<p className={'pr-1 text-xs tabular-nums'}>
+			<div className={'col-span-2 flex items-center justify-end'}>
+				<p className={'pr-1 text-xxs tabular-nums md:text-xs'}>
 					{`${formatAmount(item.value, 6, 6)}`}
 				</p>
 			</div>
-			<div className={'col-span-2 flex justify-end'}>
-				<p className={'pr-1 text-xs tabular-nums'}>
+			<div className={'col-span-2 flex items-center justify-end'}>
+				<p className={'pr-1 text-xxs tabular-nums md:text-xs'}>
 					{`${formatPercent(item.estimatedAPR, 2)}`}
 				</p>
 			</div>
@@ -164,7 +164,7 @@ function IncentiveGroupBreakdown({incentives}: {incentives: TIncentives[]}): Rea
 	}, [sortDirection]);
 
 	return (
-		<div className={'border-t border-neutral-300 pb-2 pt-4'}>
+		<div className={'border-t border-neutral-300 bg-neutral-100 px-4 pb-2 pt-4'}>
 			<div className={'mb-4'}>
 				<b className={'text-xs'}>{'Incentives Breakdown'}</b>
 			</div>
@@ -188,7 +188,8 @@ function IncentiveGroupBreakdown({incentives}: {incentives: TIncentives[]}): Rea
 					<p
 						onClick={(): void => onSort('usdValue', toggleSortDirection('usdValue'))}
 						className={'group flex flex-row text-xs text-neutral-500'}>
-						{'USD Value'}
+						<span className={'hidden md:block'}>{'USD Value'}</span>
+						<span className={'block md:hidden'}>{'$ Value'}</span>
 						<span className={'pl-2'}>
 							{renderChevron(sortBy === 'usdValue')}
 						</span>
@@ -232,9 +233,9 @@ function IncentiveGroup({item}: {item: TGroupedIncentives}): ReactElement {
 	return (
 		<details
 			aria-label={'content'}
-			className={'my-2 rounded-sm bg-neutral-0 transition-colors open:bg-neutral-100 hover:bg-neutral-100'}>
+			className={'my-0.5 rounded-sm bg-neutral-100/50 transition-colors open:bg-neutral-100 hover:bg-neutral-100'}>
 			<summary className={'grid grid-cols-12 p-4'}>
-				<div className={'col-span-5 flex w-full flex-row items-center space-x-6'}>
+				<div className={'col-span-12 flex w-full flex-row items-center space-x-6 md:col-span-5'}>
 					<div className={'h-10 w-10 min-w-[40px]'}>
 						<ImageWithFallback
 							key={`https://assets.smold.app/api/token/${safeChainID}/${toAddress(item?.protocol)}/logo-128.png`}
@@ -248,27 +249,30 @@ function IncentiveGroup({item}: {item: TGroupedIncentives}): ReactElement {
 						<p>{item?.protocolName}</p>
 					</div>
 				</div>
-				<div className={'col-span-2 flex justify-end'}>
+				<div className={'col-span-12 mt-4 flex justify-between md:col-span-2 md:mt-0 md:justify-end'}>
+					<small className={'block text-neutral-500 md:hidden'}>{'Total incentive (USD)'}</small>
 					<p className={'tabular-nums'}>
 						{`${formatAmount(item.normalizedSum || 0, 6, 6)}`}
 					</p>
 				</div>
-				<div className={'col-span-2 flex justify-end'}>
+				<div className={'col-span-12 mt-2 flex justify-between md:col-span-2 md:mt-0 md:justify-end'}>
+					<small className={'block text-neutral-500 md:hidden'}>{'yETH Locks vAPR'}</small>
 					<p className={'tabular-nums'}>
 						{`${formatPercent(item.estimatedAPR, 2)}`}
 					</p>
 				</div>
-				<div className={'col-span-2 flex justify-end'}>
+				<div className={'col-span-12 mt-2 flex justify-between md:col-span-2 md:mt-0 md:justify-end'}>
+					<small className={'block text-neutral-500 md:hidden'}>{'USD/st-yETH'}</small>
 					<p className={'tabular-nums'}>
 						{`${formatAmount(item.usdPerStETH || 0, 6, 6)}`}
 					</p>
 				</div>
-				<div className={'col-span-1 flex justify-end'}>
+				<div className={'col-span-1 hidden justify-end md:flex'}>
 					<IconChevronBottom className={'chev h-6 w-6 text-neutral-900'} />
 				</div>
 			</summary>
 
-			<div className={'px-4'}>
+			<div>
 				<IncentiveGroupBreakdown incentives={item.incentives} />
 			</div>
 		</details>
@@ -313,7 +317,7 @@ function IncentiveHistory({isPending, incentives}: {isPending: boolean, incentiv
 				currentTab={currentTab}
 				set_currentTab={set_currentTab} />
 
-			<div aria-label={'header'} className={'mb-4 grid grid-cols-12 px-4'}>
+			<div aria-label={'header'} className={'mb-4 hidden grid-cols-12 px-4 md:grid'}>
 				<div className={'col-span-5'}>
 					<p className={'text-xs text-neutral-500'}>
 						{'LST'}
@@ -648,8 +652,8 @@ function ViewIncentive(): ReactElement {
 	return (
 		<section className={'grid grid-cols-1 pt-10 md:mb-20 md:pt-12'}>
 			<div className={'mb-20 md:mb-0'}>
-				<div className={'mb-10 flex w-1/2 flex-col justify-center'}>
-					<h1 className={'text-3xl md:text-8xl'}>
+				<div className={'mb-10 flex w-full flex-col justify-center md:w-1/2'}>
+					<h1 className={'text-3xl font-black md:text-8xl'}>
 						{'Incentive'}
 					</h1>
 					<b
@@ -657,13 +661,13 @@ function ViewIncentive(): ReactElement {
 						className={'font-number mt-4 text-4xl text-purple-300'}>
 						<Timer />
 					</b>
-					<p className={'pt-8'}>
+					<p className={'pt-8 text-neutral-700'}>
 						{'Pick which LST you are incentivizing for, and which token you’ll be posting the incentive in. Remember, if your token is not included in the final yETH basket you’ll be refunded the full amount of your incentive.'}
 					</p>
 				</div>
 				<div className={'mb-8 grid w-full grid-cols-1 gap-2 md:grid-cols-2 md:gap-2 lg:grid-cols-4 lg:gap-4'}>
 					<div>
-						<p className={'pb-1 text-neutral-600'}>{'Select LSD to incentivize'}</p>
+						<p className={'pb-1 text-sm text-neutral-600 md:text-base'}>{'Select LSD to incentivize'}</p>
 						<ComboboxAddressInput
 							value={lsdToIncentive?.address}
 							possibleValues={whitelistedLSD}
@@ -671,8 +675,8 @@ function ViewIncentive(): ReactElement {
 						<p className={'hidden pt-1 text-xs lg:block'}>&nbsp;</p>
 					</div>
 
-					<div>
-						<p className={'pb-1 text-neutral-600'}>{'Select token to incentivize with'}</p>
+					<div className={'pt-2 md:pt-0'}>
+						<p className={'pb-1 text-sm text-neutral-600 md:text-base'}>{'Select token to incentivize with'}</p>
 						<ComboboxAddressInput
 							value={tokenToUse?.address}
 							possibleValues={possibleTokensToUse}
@@ -681,8 +685,8 @@ function ViewIncentive(): ReactElement {
 						<p className={'hidden pt-1 text-xs lg:block'}>&nbsp;</p>
 					</div>
 
-					<div>
-						<p className={'pb-1 text-neutral-600'}>{'Amount'}</p>
+					<div className={'pt-2 md:pt-0'}>
+						<p className={'pb-1 text-sm text-neutral-600 md:text-base'}>{'Amount'}</p>
 						<div className={'box-500 grow-1 flex h-10 w-full items-center justify-center p-2'}>
 							<div className={'mr-2 h-6 w-6 min-w-[24px]'}>
 								<ImageWithFallback
@@ -722,7 +726,7 @@ function ViewIncentive(): ReactElement {
 						</small>
 					</div>
 
-					<div className={'w-full'}>
+					<div className={'w-full pt-4 md:pt-0'}>
 						<p className={'hidden pb-1 text-neutral-600 md:block'}>&nbsp;</p>
 						<Button
 							onClick={(): unknown => hasAllowance ? set_isModalOpen(true) : onApprove()}

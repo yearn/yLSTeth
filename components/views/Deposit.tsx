@@ -1,7 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import assert from 'assert';
 import {ImageWithFallback} from 'components/common/ImageWithFallback';
-import IconChevronPlain from 'components/icons/IconChevronPlain';
 import IconSpinner from 'components/icons/IconSpinner';
 import useBootstrap from 'contexts/useBootstrap';
 import {useWallet} from 'contexts/useWallet';
@@ -45,126 +44,50 @@ function Timer(): ReactElement {
 	return <>{hasEnded ? 'ended' : hasStarted ? time : 'coming soon'}</>;
 }
 
-type TSortDirection = '' | 'desc' | 'asc'
 type TDepositHistory = {
 	timestamp: bigint;
-	in16Weeks: bigint;
 	amount: bigint;
 	depositor: TAddress;
-	receiver: TAddress;
 }
 
 function DepositItem({item}: {item: TDepositHistory}): ReactElement {
 	return (
 		<div className={'grid grid-cols-12 py-3'}>
-			<div className={'col-span-2 flex w-full flex-row items-center space-x-6'}>
-				<div>
-					<p>{formatDate(Number(item.timestamp) * 1000)}</p>
-				</div>
+			<div className={'col-span-12 flex w-full flex-row items-center justify-between md:col-span-2 md:justify-start'}>
+				<small className={'block text-neutral-500 md:hidden'}>
+					{'Date'}
+				</small>
+				<p>{formatDate(Number(item.timestamp) * 1000)}</p>
 			</div>
-			<div className={'col-span-2 flex justify-end pr-1'}>
+			<div className={'col-span-12 flex justify-between pr-0 md:col-span-2 md:justify-end md:pr-1'}>
+				<small className={'block text-neutral-500 md:hidden'}>
+					{'Locked, st-yETH'}
+				</small>
 				<p className={'tabular-nums'}>
 					{`${formatAmount(toNormalizedBN(item.amount).normalized, 0, 6)}`}
 				</p>
-			</div>
-			<div className={'col-span-2 flex justify-end pr-1'}>
-				<p className={'tabular-nums'}>
-					{`${formatAmount(toNormalizedBN(item.amount).normalized, 0, 6)}`}
-				</p>
-			</div>
-			<div className={'col-span-2 flex justify-end pr-1'}>
-				<p>{formatDate(Number(item.in16Weeks) * 1000)}</p>
 			</div>
 		</div>
 	);
 }
 
-
 function DepositHistory({isPending, depositHistory}: {isPending: boolean, depositHistory: TDepositHistory[]}): ReactElement {
-	const [sortBy, set_sortBy] = useState<string>('');
-	const [sortDirection, set_sortDirection] = useState<TSortDirection>('');
-
-	/* 🔵 - Yearn Finance **************************************************************************
-	**	Callback method used to sort the vaults list.
-	**	The use of useCallback() is to prevent the method from being re-created on every render.
-	**********************************************************************************************/
-	const onSort = useCallback((newSortBy: string, newSortDirection: string): void => {
-		performBatchedUpdates((): void => {
-			set_sortBy(newSortBy);
-			set_sortDirection(newSortDirection as TSortDirection);
-		});
-	}, []);
-
-	const toggleSortDirection = (newSortBy: string): TSortDirection => {
-		return sortBy === newSortBy ? (
-			sortDirection === '' ? 'desc' : sortDirection === 'desc' ? 'asc' : 'desc'
-		) : 'desc';
-	};
-
-	const renderChevron = useCallback((shouldSortBy: boolean): ReactElement => {
-		if (shouldSortBy && sortDirection === 'desc') {
-			return <IconChevronPlain className={'yearn--sort-chevron transition-all'} />;
-		}
-		if (shouldSortBy && sortDirection === 'asc') {
-			return <IconChevronPlain className={'yearn--sort-chevron rotate-180 transition-all'} />;
-		}
-		return <IconChevronPlain className={'yearn--sort-chevron--off text-neutral-300 transition-all group-hover:text-neutral-500'} />;
-	}, [sortDirection]);
-
 	return (
 		<div className={'mt-8 border-t-2 border-neutral-300 pt-6'}>
-			<div aria-label={'header'} className={'mb-2 grid grid-cols-12'}>
+			<div aria-label={'header'} className={'mb-2 hidden grid-cols-12 md:grid'}>
 				<div className={'col-span-2'}>
 					<p className={'text-xs text-neutral-500'}>
 						{'Date'}
 					</p>
 				</div>
 				<div className={'col-span-2 flex justify-end'}>
-					<p
-						onClick={(): void => onSort('locked', toggleSortDirection('locked'))}
-						className={'group flex flex-row text-xs text-neutral-500'}>
+					<p className={'group flex flex-row text-xs text-neutral-500'}>
 						{'You locked, ETH'}
-						<span className={'pl-2'}>
-							{renderChevron(sortBy === 'locked')}
-						</span>
-					</p>
-				</div>
-				<div className={'col-span-2 flex justify-end'}>
-					<p
-						onClick={(): void => onSort('received', toggleSortDirection('received'))}
-						className={'group flex flex-row text-xs text-neutral-500'}>
-						{'You recieved, yETH'}
-						<span className={'pl-2'}>
-							{renderChevron(sortBy === 'received')}
-						</span>
-					</p>
-				</div>
-				<div className={'col-span-2 flex justify-end'}>
-					<p
-						onClick={(): void => onSort('unlock', toggleSortDirection('unlock'))}
-						className={'group flex flex-row text-xs text-neutral-500'}>
-						{'st-yETH unlocks on'}
-						<span className={'pl-2'}>
-							{renderChevron(sortBy === 'unlock')}
-						</span>
 					</p>
 				</div>
 			</div>
 
-			{depositHistory
-				.sort((a, b): number => {
-					let aValue = 0;
-					let bValue = 0;
-					if (sortBy === 'locked' || sortBy === 'received') {
-						aValue = Number(toNormalizedBN(a.amount).raw);
-						bValue = Number(toNormalizedBN(b.amount).raw);
-					} else if (sortBy === 'unlock') {
-						aValue = Number(a.in16Weeks);
-						bValue = Number(b.in16Weeks);
-					}
-					return sortDirection === 'desc' ? Number(bValue) - Number(aValue) : Number(aValue) - Number(bValue);
-				})
-				.map((item, index): ReactElement => <DepositItem key={index} item={item} />)}
+			{depositHistory.map((item, index): ReactElement => <DepositItem key={index} item={item} />)}
 			{isPending && (
 				<div className={'mt-6 flex flex-row items-center justify-center'}>
 					<IconSpinner className={'!h-6 !w-6 !text-neutral-400'} />
@@ -221,10 +144,8 @@ function Deposit(): ReactElement {
 				const blockData = await publicClient.getBlock({blockNumber: log.blockNumber});
 				history.push({
 					timestamp: blockData.timestamp,
-					in16Weeks: blockData.timestamp + toBigInt(60 * 60 * 24 * 7 * 16),
 					amount: toBigInt(log.args.amount),
-					depositor: toAddress(log.args.depositor),
-					receiver: toAddress(log.args.receiver)
+					depositor: toAddress(log.args.depositor)
 				});
 			}
 		}
@@ -308,8 +229,8 @@ function Deposit(): ReactElement {
 	return (
 		<section className={'grid grid-cols-1 pt-10 md:mb-20 md:pt-12'}>
 			<div className={'mb-20 md:mb-0'}>
-				<div className={'mb-10 flex w-1/2 flex-col justify-center'}>
-					<h1 className={'text-3xl md:text-8xl'}>
+				<div className={'mb-10 flex w-full flex-col justify-center md:w-1/2'}>
+					<h1 className={'text-3xl font-black md:text-8xl'}>
 						{'Deposit'}
 					</h1>
 					<b
@@ -317,13 +238,13 @@ function Deposit(): ReactElement {
 						className={'font-number mt-4 text-4xl text-purple-300'}>
 						<Timer />
 					</b>
-					<p className={'pt-8'}>
+					<p className={'pt-8 text-neutral-700'}>
 						{'Decide how much ETH you want to lock as st-yETH. Remember this ETH will be locked for 16 weeks, during which time period you’ll be able to receive bri... incentives for voting on which LSTs will be included in yETH.'}
 					</p>
 				</div>
 				<div className={'mb-8 grid w-full grid-cols-1 gap-2 md:grid-cols-2 md:gap-2 lg:grid-cols-4 lg:gap-4'}>
 					<div>
-						<p className={'pb-1 text-neutral-600'}>{'You’re locking, ETH'}</p>
+						<p className={'pb-1 text-sm text-neutral-600 md:text-base'}>{'You’re locking, ETH'}</p>
 						<div className={'box-500 grow-1 flex h-10 w-full items-center justify-center p-2'}>
 							<div className={'mr-2 h-6 w-6 min-w-[24px]'}>
 								<ImageWithFallback
@@ -376,8 +297,8 @@ function Deposit(): ReactElement {
 							{`You have ${formatAmount(balanceOf?.normalized || 0, 2, 6)} ${tokenToSend.symbol}`}
 						</p>
 					</div>
-					<div>
-						<p className={'pb-1 text-neutral-600'}>{'You’re getting, st-yETH'}</p>
+					<div className={'pt-2 md:pt-0'}>
+						<p className={'pb-1 text-sm text-neutral-600 md:text-base'}>{'You’re getting, st-yETH'}</p>
 						<div className={'box-500 grow-1 flex h-10 w-full items-center justify-center p-2'}>
 							<div className={'mr-2 h-6 w-6 min-w-[24px]'}>
 								<ImageWithFallback
@@ -400,7 +321,7 @@ function Deposit(): ReactElement {
 							{`You have ${formatAmount(balanceDeposited?.normalized || 0, 2, 6)} st-yETH`}
 						</p>
 					</div>
-					<div className={'w-full'}>
+					<div className={'w-full pt-4 md:pt-0'}>
 						<p className={'hidden pb-1 text-neutral-600 md:block'}>&nbsp;</p>
 						<Button
 							onClick={onDeposit}
