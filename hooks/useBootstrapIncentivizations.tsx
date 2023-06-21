@@ -47,9 +47,10 @@ export type TIncentivesFor = {
 	user: TDict<TGroupedIncentives>
 }
 
-function useBootstrapIncentivizations(): [TIncentivesFor, VoidFunction] {
+function useBootstrapIncentivizations(): [TIncentivesFor, boolean, VoidFunction] {
 	const {address} = useWeb3();
 	const [userIncentives, set_userIncentives] = useState<TIncentives[]>([]);
+	const [isFetchingHistory, set_isFetchingHistory] = useState(false);
 	const {yDaemonBaseUri} = useYDaemonBaseURI({chainID: Number(process.env.BASE_CHAINID)});
 	const {data: prices} = useFetch<TYDaemonPrices>({
 		endpoint: `${yDaemonBaseUri}/prices/all`,
@@ -67,6 +68,7 @@ function useBootstrapIncentivizations(): [TIncentivesFor, VoidFunction] {
 	* From that we will be able to create our mappings
 	**********************************************************************************************/
 	const filterEvents = useCallback(async (): Promise<void> => {
+		set_isFetchingHistory(true);
 		const publicClient = createPublicClient({
 			chain: fantom,
 			transport: http('https://rpc3.fantom.network')
@@ -145,6 +147,7 @@ function useBootstrapIncentivizations(): [TIncentivesFor, VoidFunction] {
 				}
 			});
 		}
+		set_isFetchingHistory(false);
 		return (incentiveList);
 	}, []);
 	const [{result: incentiveHistory}, fetchTokenData] = incentives;
@@ -253,7 +256,7 @@ function useBootstrapIncentivizations(): [TIncentivesFor, VoidFunction] {
 		return {protocols: groupByProtocol, user: groupForUser};
 	}, [address, incentiveHistory, prices, totalDepositedETH]);
 
-	return [groupIncentiveHistory, filterEvents];
+	return [groupIncentiveHistory, isFetchingHistory, filterEvents];
 }
 
 export default useBootstrapIncentivizations;

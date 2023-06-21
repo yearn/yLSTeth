@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import assert from 'assert';
 import {ImageWithFallback} from 'components/common/ImageWithFallback';
 import IconChevronPlain from 'components/icons/IconChevronPlain';
+import IconSpinner from 'components/icons/IconSpinner';
 import useBootstrap from 'contexts/useBootstrap';
 import {useWallet} from 'contexts/useWallet';
 import {useTimer} from 'hooks/useTimer';
@@ -79,7 +80,7 @@ function DepositItem({item}: {item: TDepositHistory}): ReactElement {
 }
 
 
-function DepositHistory({depositHistory}: {depositHistory: TDepositHistory[]}): ReactElement {
+function DepositHistory({isPending, depositHistory}: {isPending: boolean, depositHistory: TDepositHistory[]}): ReactElement {
 	const [sortBy, set_sortBy] = useState<string>('');
 	const [sortDirection, set_sortDirection] = useState<TSortDirection>('');
 
@@ -164,6 +165,11 @@ function DepositHistory({depositHistory}: {depositHistory: TDepositHistory[]}): 
 					return sortDirection === 'desc' ? Number(bValue) - Number(aValue) : Number(aValue) - Number(bValue);
 				})
 				.map((item, index): ReactElement => <DepositItem key={index} item={item} />)}
+			{isPending && (
+				<div className={'mt-6 flex flex-row items-center justify-center'}>
+					<IconSpinner className={'!h-6 !w-6 !text-neutral-400'} />
+				</div>
+			)}
 		</div>
 	);
 }
@@ -174,6 +180,7 @@ function Deposit(): ReactElement {
 	const [amountToSend, set_amountToSend] = useState<TNormalizedBN>(toNormalizedBN(0));
 	const [depositStatus, set_depositStatus] = useState<TTxStatus>(defaultTxStatus);
 	const [depositHistory, set_depositHistory] = useState<TDepositHistory[]>([]);
+	const [isFetchingHistory, set_isFetchingHistory] = useState<boolean>(false);
 	const tokenToSend = ETH_TOKEN;
 	const {data: tokensDeposited, refetch} = useContractRead({
 		abi: BOOTSTRAP_ABI,
@@ -187,6 +194,7 @@ function Deposit(): ReactElement {
 		if (!address) {
 			return;
 		}
+		set_isFetchingHistory(true);
 		const publicClient = createPublicClient({
 			chain: fantom,
 			transport: http('https://rpc3.fantom.network')
@@ -220,7 +228,10 @@ function Deposit(): ReactElement {
 				});
 			}
 		}
-		set_depositHistory(history);
+		performBatchedUpdates((): void => {
+			set_depositHistory(history);
+			set_isFetchingHistory(false);
+		});
 	}, [address]);
 	useEffect((): void => {
 		filterEvents();
@@ -405,7 +416,9 @@ function Deposit(): ReactElement {
 						<p className={'pl-2 pt-1 text-xs text-neutral-600'}>&nbsp;</p>
 					</div>
 				</div>
-				<DepositHistory depositHistory={depositHistory} />
+				<DepositHistory
+					isPending={isFetchingHistory}
+					depositHistory={depositHistory} />
 			</div>
 		</section>
 	);

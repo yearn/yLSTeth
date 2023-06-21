@@ -3,6 +3,7 @@ import assert from 'assert';
 import ComboboxAddressInput from 'components/common/ComboboxAddressInput';
 import {ImageWithFallback} from 'components/common/ImageWithFallback';
 import IconChevronPlain from 'components/icons/IconChevronPlain';
+import IconSpinner from 'components/icons/IconSpinner';
 import useBootstrap from 'contexts/useBootstrap';
 import {useTokenList} from 'contexts/useTokenList';
 import {useWallet} from 'contexts/useWallet';
@@ -273,7 +274,7 @@ function IncentiveGroup({item}: {item: TGroupedIncentives}): ReactElement {
 	);
 }
 
-function IncentiveHistory({incentives}: {incentives: TIncentivesFor}): ReactElement {
+function IncentiveHistory({isPending, incentives}: {isPending: boolean, incentives: TIncentivesFor}): ReactElement {
 	const [currentTab, set_currentTab] = useState<'all' | 'mine'>('all');
 	const [sortBy, set_sortBy] = useState<string>('');
 	const [sortDirection, set_sortDirection] = useState<TSortDirection>('');
@@ -369,6 +370,12 @@ function IncentiveHistory({incentives}: {incentives: TIncentivesFor}): ReactElem
 
 				})
 				.map((item, index): ReactElement => <IncentiveGroup key={index} item={item} />)}
+
+			{isPending && (
+				<div className={'mt-6 flex flex-row items-center justify-center'}>
+					<IconSpinner className={'!h-6 !w-6 !text-neutral-400'} />
+				</div>
+			)}
 		</div>
 	);
 }
@@ -379,7 +386,7 @@ function ViewIncentive(): ReactElement {
 	const {balances, refresh} = useWallet();
 	const {whitelistedLSD} = useBootstrap();
 	const {tokenList} = useTokenList();
-	const [groupIncentiveHistory, refreshIncentives] = useBootstrapIncentivizations();
+	const [groupIncentiveHistory, isFetchingHistory, refreshIncentives] = useBootstrapIncentivizations();
 	const [amountToSend, set_amountToSend] = useState<TNormalizedBN>(toNormalizedBN(0));
 	const [possibleTokensToUse, set_possibleTokensToUse] = useState<TDict<TTokenInfo | undefined>>({});
 	const [lsdToIncentive, set_lsdToIncentive] = useState<TTokenInfo | undefined>();
@@ -632,7 +639,9 @@ function ViewIncentive(): ReactElement {
 						<p className={'pl-2 pt-1 text-xs text-neutral-600'}>&nbsp;</p>
 					</div>
 				</div>
-				<IncentiveHistory incentives={groupIncentiveHistory} />
+				<IncentiveHistory
+					isPending={isFetchingHistory}
+					incentives={groupIncentiveHistory} />
 			</div>
 		</section>
 	);
