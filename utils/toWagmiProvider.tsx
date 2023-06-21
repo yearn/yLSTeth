@@ -59,6 +59,18 @@ export function assertAddress(addr: string | TAddress | undefined, name?: string
 	assert(toAddress(addr) !== ETH_TOKEN_ADDRESS, `${name || 'Address'} is 0xE`);
 }
 
+export function isValidAddress(address: TAddress | undefined): boolean {
+	if (!address) {
+		return false;
+	}
+	try {
+		assertAddress(address);
+		return true;
+	} catch (error) {
+		return false;
+	}
+}
+
 type TPrepareWriteContractConfig<
 	TAbi extends Abi | readonly unknown[] = Abi,
 	TFunctionName extends string = string

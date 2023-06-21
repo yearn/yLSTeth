@@ -32,6 +32,7 @@ function Phase4({variant}: {variant: string[]}): ReactElement {
 						{'Launching!'}
 					</motion.h1>
 					<motion.b
+						suppressHydrationWarning
 						className={'font-number mt-4 text-3xl text-purple-300 md:text-4xl'}
 						variants={customVariants(0.04)}
 						custom={variant}

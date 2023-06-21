@@ -100,9 +100,9 @@ const optimismOverride = {
 const {chains, publicClient, webSocketPublicClient} = configureChains(
 	[mainnet, optimismOverride, polygonOverride, gnosis, fantom, arbitrum, localhost],
 	[
-		publicProvider(),
 		alchemyProvider({apiKey: process.env.ALCHEMY_KEY || ''}),
-		infuraProvider({apiKey: process.env.INFURA_PROJECT_ID || ''})
+		infuraProvider({apiKey: process.env.INFURA_PROJECT_ID || ''}),
+		publicProvider()
 	]
 );
 const config = createConfig({

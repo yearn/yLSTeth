@@ -88,11 +88,10 @@ export async function approveERC20(props: TApproveERC20): Promise<TTxResponse> {
 }
 
 /* 🔵 - Yearn Finance **********************************************************
-** depositETH is a _WRITE_ function that deposits ETH into a vault accepting
-** wETH as collateral. Based on the chainId, it will use the appropriate
-** contract.
+** depositETH is a _WRITE_ function that deposits ETH into the bootstrap
+** contract in exchange for yETH.
 **
-** @app - Vaults
+** @app - yETH
 ** @param amount - The amount of collateral to deposit.
 ******************************************************************************/
 type TDepositEth = TWriteTransaction & {
@@ -108,5 +107,32 @@ export async function depositETH(props: TDepositEth): Promise<TTxResponse> {
 		abi: BOOTSTRAP_ABI,
 		functionName: 'deposit',
 		value: props.amount
+	});
+}
+
+/* 🔵 - Yearn Finance **********************************************************
+** Incentivize is a _WRITE_ function that incentivizes one of the LSD protocols
+** with some tokens to vote for it.
+**
+** @app - yETH
+** @param amount - The amount of collateral to deposit.
+******************************************************************************/
+type TIncentivize = TWriteTransaction & {
+	protocolAddress: TAddress;
+	incentiveAddress: TAddress;
+	amount: bigint;
+};
+export async function incentivize(props: TIncentivize): Promise<TTxResponse> {
+	assert(props.connector, 'No connector');
+	assert(props.amount > 0n, 'Amount is 0');
+	assertAddress(process.env.BOOTSTRAP_ADDRESS, 'BOOTSTRAP_ADDRESS');
+	assertAddress(props.protocolAddress, 'protocolAddress');
+	assertAddress(props.incentiveAddress, 'incentiveAddress');
+
+	return await handleTx(props, {
+		address: process.env.BOOTSTRAP_ADDRESS,
+		abi: BOOTSTRAP_ABI,
+		functionName: 'incentivize',
+		args: [props.protocolAddress, props.incentiveAddress, props.amount]
 	});
 }

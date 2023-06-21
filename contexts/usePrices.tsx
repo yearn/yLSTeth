@@ -32,7 +32,7 @@ export type TUsePriceProps = {prices: TNDict<TDict<number>>}
 const defaultProps: TUsePriceProps = {prices: {}};
 const Price = createContext<TUsePriceProps>(defaultProps);
 export const PriceContextApp = ({children}: {children: React.ReactElement}): React.ReactElement => {
-	const {safeChainID} = useChainID(Number(process.env.DEFAULT_CHAINID));
+	const {safeChainID} = useChainID(Number(process.env.BASE_CHAINID));
 	const [prices, set_prices] = useState<TNDict<TDict<number>>>({});
 
 	const onRefreshPrice = useCallback(async (): Promise<void> => {

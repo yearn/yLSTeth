@@ -42,14 +42,14 @@ export function handleInputChangeEventValue(e: React.ChangeEvent<HTMLInputElemen
 }
 
 export function	formatDate(value: number): string {
-	let		locale = 'fr-FR';
+	let locale = 'fr-FR';
 	if (typeof(navigator) !== 'undefined') {
 		locale = navigator.language || 'fr-FR';
 	}
 
 	const	formatedDate = new Intl.DateTimeFormat([locale, 'en-US'], {
-		dateStyle: 'full',
-		timeStyle: 'medium',
+		dateStyle: 'medium',
+		timeStyle: 'short',
 		hourCycle: 'h24'
 	}).format(value);
 	return formatedDate;

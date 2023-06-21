@@ -47,7 +47,7 @@ function	Navbar({nav, currentPathName}: TNavbar): ReactElement {
 
 function	NetworkSelector({supportedChainID}: {supportedChainID: number[]}): ReactElement {
 	const chains = useChain();
-	const {safeChainID} = useChainID(Number(process.env.DEFAULT_CHAINID));
+	const {safeChainID} = useChainID(Number(process.env.BASE_CHAINID));
 	const {onSwitchChain} = useWeb3();
 
 	const supportedNetworks = useMemo((): TNetwork[] => {
@@ -206,7 +206,7 @@ function	AppHeader(): ReactElement {
 			{path: 'https://yearn.finance', label: 'Home', target: '_blank'},
 			{path: '/', label: 'yETH'},
 			{path: '/deposit', label: 'Deposit'},
-			{path: '/incentivize', label: 'Incentivize'},
+			{path: '/incentive', label: 'Incentive'},
 			{path: '/#vote', label: 'Vote'},
 			{path: '/docs', label: 'Docs'}
 		];
@@ -215,7 +215,7 @@ function	AppHeader(): ReactElement {
 
 	return (
 		<div id={'head'} className={'fixed inset-x-0 top-0 z-50 w-full bg-neutral-0/95'}>
-			<div className={'mx-auto max-w-6xl'}>
+			<div className={'mx-auto max-w-5xl'}>
 				<header className={'yearn--header'}>
 					<Navbar currentPathName={pathname || ''} nav={nav} />
 					<div className={'flex w-1/3 items-center justify-center md:hidden'}>

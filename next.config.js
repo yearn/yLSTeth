@@ -38,6 +38,8 @@ module.exports = (phase) => withTM(withPWA({
 		},
 		TELEGRAM_BOT: process.env.TELEGRAM_BOT,
 		TELEGRAM_CHAT: process.env.TELEGRAM_CHAT,
+		ALCHEMY_KEY: process.env.ALCHEMY_KEY,
+		INFURA_PROJECT_ID: process.env.INFURA_PROJECT_ID,
 		BASE_CHAINID: 250, // Expected to work on this chain
 		DEFAULT_CHAINID: 1337, // The one we currently use
 		BASE_API_URI: 'http://localhost:8080',

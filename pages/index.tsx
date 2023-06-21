@@ -4,125 +4,15 @@ import Phase1 from 'components/views/Phase1';
 import Phase2 from 'components/views/Phase2';
 import Phase3 from 'components/views/Phase3';
 import Phase4 from 'components/views/Phase4';
-import useBootstrap from 'contexts/useBootstrap';
 import {UIStepContextApp} from 'contexts/useUI';
-import dayjs from 'dayjs';
 import {transition} from 'utils';
 import {AnimatePresence, motion} from 'framer-motion';
-import {toBigInt} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import performBatchedUpdates from '@yearn-finance/web-lib/utils/performBatchedUpdates';
 
 import type {ReactElement} from 'react';
 
 const TO_RIGHT = 1;
 const NO_DIRECTION = 0;
-
-function ProgressBar({page}: {page: number}): ReactElement {
-	const {periods} = useBootstrap();
-
-	const activePeriod = (): 'deposit' | 'vote' | 'whitelist' | '' => {
-		const now = dayjs().unix();
-		if (toBigInt(periods?.depositBegin?.result) > 0n && toBigInt(periods?.depositEnd?.result) > 0n) {
-			if (now > Number(periods?.depositBegin?.result) && now < Number(periods?.depositEnd?.result)) {
-				return 'deposit';
-			}
-		}
-		if (toBigInt(periods?.incentiveBegin?.result) > 0n && toBigInt(periods?.incentiveEnd?.result) > 0n) {
-			if (now > Number(periods?.incentiveBegin?.result) && now < Number(periods?.incentiveEnd?.result)) {
-				return 'vote';
-			}
-		}
-		if (toBigInt(periods?.voteBegin?.result) > 0n && toBigInt(periods?.voteEnd?.result) > 0n) {
-			if (now > Number(periods?.voteBegin?.result) && now < Number(periods?.voteEnd?.result)) {
-				return 'vote';
-			}
-		}
-		if (toBigInt(periods?.whitelistBegin?.result) > 0n && toBigInt(periods?.whitelistEnd?.result) > 0n) {
-			if (now > (Number(periods?.whitelistBegin?.result)) && now < (Number(periods?.whitelistEnd?.result))) {
-				return 'whitelist';
-			}
-		}
-		return 'whitelist';
-	};
-
-	const period = activePeriod();
-
-	function renderPeriod(): ReactElement {
-		const activeClassName = 'font-bold text-purple-300';
-		const inactiveClassName = 'text-neutral-400';
-		const currentPageClassName = 'font-bold text-neutral-900';
-		return (
-			<div className={'mx-auto grid w-full max-w-6xl grid-cols-7 gap-4'}>
-				<p className={page === 0 && period !== 'whitelist' ? currentPageClassName : period === 'whitelist' ? activeClassName : inactiveClassName}>
-					{'Whitelisting'}
-				</p>
-				<p />
-				<p className={page === 1 && period !== 'deposit' ? currentPageClassName : period === 'deposit' ? activeClassName : inactiveClassName}>
-					{'Deposit & Bribe'}
-				</p>
-				<p />
-				<p className={page === 2 && period !== 'vote' ? currentPageClassName : period === 'vote' ? activeClassName : inactiveClassName}>
-					{'Vote'}
-				</p>
-				<p className={page === 3 && period !== '' ? currentPageClassName : period === '' ? activeClassName : inactiveClassName}>
-					{'Launch'}
-				</p>
-				<p />
-			</div>
-		);
-	}
-
-	function renderWeek(): ReactElement {
-		const activeClassName = 'text-xs text-purple-300';
-		const inactiveClassName = 'text-neutral-400';
-		const currentPageClassName = 'text-neutral-900';
-		return (
-			<div className={'mx-auto grid w-full max-w-6xl grid-cols-7 gap-4 text-xs'}>
-				<small className={page === 0 && period !== 'whitelist' ? currentPageClassName : period === 'whitelist' ? activeClassName : inactiveClassName}>
-					{'Week 1'}
-				</small>
-				<small className={inactiveClassName}>
-					{'Week 2'}
-				</small>
-				<small className={page === 1 && period !== 'deposit' ? currentPageClassName : period === 'deposit' ? activeClassName : inactiveClassName}>
-					{'Week 3'}
-				</small>
-				<small className={inactiveClassName}>
-					{'Week 4'}
-				</small>
-				<small className={page === 2 && period !== 'vote' ? currentPageClassName : period === 'vote' ? activeClassName : inactiveClassName}>
-					{'Week 5'}
-				</small>
-				<small className={page === 3 && period !== '' ? currentPageClassName : period === '' ? activeClassName : inactiveClassName}>
-					{'Week 6'}
-				</small>
-				<small className={inactiveClassName}>
-					{'Week 7'}
-				</small>
-			</div>
-		);
-	}
-
-	return (
-		<div className={'bottom-0 left-0 hidden w-full py-4 md:fixed md:block md:pt-0'}>
-			{renderPeriod()}
-			<div className={'my-2 h-0.5 w-full bg-neutral-300'}>
-				<div className={'relative mx-auto grid w-full max-w-6xl grid-cols-7 gap-4'}>
-					<div className={'absolute mx-auto grid w-full max-w-6xl grid-cols-7 gap-4'}>
-						<div className={'h-0.5 w-10 bg-purple-300'} />
-						<div className={'h-0.5 w-10 bg-neutral-300'} />
-						<div className={'h-0.5 w-10 bg-neutral-300'} />
-						<div className={'h-0.5 w-10 bg-neutral-300'} />
-						<div className={'h-0.5 w-10 bg-neutral-300'} />
-						<div className={'h-0.5 w-10 bg-neutral-300'} />
-						<div className={'h-0.5 w-10 bg-neutral-300'} />
-					</div>
-				</div>
-			</div>
-			{renderWeek()}
-		</div>
-	);
-}
 
 function YETH(): ReactElement {
 	const [page, set_page] = useState(0);
@@ -212,7 +102,7 @@ function YETH(): ReactElement {
 	}
 
 	return (
-		<div className={'relative mx-auto w-screen max-w-6xl !px-0'}>
+		<div className={'relative mx-auto w-screen max-w-5xl !px-0'}>
 			<motion.div
 				transition={transition}
 				animate={{x: page > 0 ? '0vw' : '-100vw'}}
@@ -249,7 +139,6 @@ function YETH(): ReactElement {
 					<IconArrow className={'w-6 text-purple-300'} />
 				</button>
 			</motion.div>
-			<ProgressBar page={page} />
 		</div>
 	);
 }

@@ -54,6 +54,7 @@ function Phase2Started({variant}: {variant: string[]}): ReactElement {
 						{'Bootstraping'}
 					</motion.h1>
 					<motion.b
+						suppressHydrationWarning
 						className={'font-number mt-4 text-3xl text-purple-300 md:text-4xl'}
 						variants={customVariants(0.04)}
 						custom={variant}
@@ -116,10 +117,10 @@ function Phase2Started({variant}: {variant: string[]}): ReactElement {
 							initial={'initial'}
 							animate={'move'}
 							exit={'exit'}>
-							<Link href={currentTab === 0 ? '/deposit' : '/incentivize'}>
+							<Link href={currentTab === 0 ? '/deposit' : '/incentive'}>
 								<Button
 									className={'yearn--button w-full rounded-md !text-sm md:w-1/2'}>
-									{currentTab === 0 ? 'Deposit' : 'Incentivize'}
+									{currentTab === 0 ? 'Deposit' : 'Incentive'}
 								</Button>
 							</Link>
 						</motion.div>
@@ -166,6 +167,7 @@ function Phase2NotStarted({variant}: {variant: string[]}): ReactElement {
 						{'Bootstraping'}
 					</motion.h1>
 					<motion.b
+						suppressHydrationWarning
 						className={'font-number mt-4 text-4xl text-purple-300'}
 						variants={customVariants(0.04)}
 						custom={variant}

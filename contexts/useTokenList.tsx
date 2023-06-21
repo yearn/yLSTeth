@@ -1,6 +1,7 @@
-import React, {createContext, useContext, useMemo, useState} from 'react';
+import React, {createContext, useContext, useEffect, useMemo, useState} from 'react';
+import defaultTokenList from 'utils/tokenLists.json';
 import axios from 'axios';
-import {useMountEffect} from '@react-hookz/web';
+import {useChainID} from '@yearn-finance/web-lib/hooks/useChainID';
 import {toAddress} from '@yearn-finance/web-lib/utils/address';
 
 import type {Dispatch, SetStateAction} from 'react';
@@ -31,14 +32,19 @@ const	defaultProps: TTokenListProps = {
 
 const	TokenList = createContext<TTokenListProps>(defaultProps);
 export const TokenListContextApp = ({children}: {children: React.ReactElement}): React.ReactElement => {
-	const	[tokenList, set_tokenList] = useState<TDict<TTokenInfo>>({});
+	const [tokenList, set_tokenList] = useState<TDict<TTokenInfo>>({});
+	const {safeChainID} = useChainID(Number(process.env.BASE_CHAINID));
 
-	useMountEffect((): void => {
-		axios.all([
-			axios.get('https://raw.githubusercontent.com/Migratooor/tokenLists/main/lists/tokenlistooor.json'),
-			axios.get('https://raw.githubusercontent.com/Migratooor/tokenLists/main/lists/1/yearn.json')
-		]).then(axios.spread((...responses): void => {
-			const	tokenListTokens: TDict<TTokenInfo> = {};
+	useEffect((): void => {
+		axios.all([axios.get(`https://raw.githubusercontent.com/Migratooor/tokenLists/main/lists/${safeChainID}/yearn.json`)]).then(axios.spread((...responses): void => {
+			const tokenListTokens: TDict<TTokenInfo> = {};
+			const defaultList = defaultTokenList as TTokenList;
+			for (const eachToken of defaultList.tokens) {
+				if (!tokenListTokens[toAddress(eachToken.address)]) {
+					tokenListTokens[toAddress(eachToken.address)] = eachToken;
+				}
+			}
+
 			for (const eachResponse of responses) {
 				const	tokenListResponse: TTokenList = eachResponse.data;
 				for (const eachToken of tokenListResponse.tokens) {
@@ -47,7 +53,7 @@ export const TokenListContextApp = ({children}: {children: React.ReactElement}):
 			}
 			set_tokenList(tokenListTokens);
 		}));
-	});
+	}, [safeChainID]);
 
 	const	contextValue = useMemo((): TTokenListProps => ({
 		tokenList,
