@@ -227,8 +227,8 @@ function Deposit(): ReactElement {
 						{'Decide how much ETH you want to lock as st-yETH. Remember this ETH will be locked for 16 weeks, during which time period you’ll be able to receive bri... incentives for voting on which LSTs will be included in yETH.'}
 					</p>
 				</div>
-				<div className={'mb-8 grid w-full grid-cols-1 gap-2 md:grid-cols-2 md:gap-2 lg:grid-cols-4 lg:gap-4'}>
-					<div>
+				<div className={'mb-8 grid w-full grid-cols-1 gap-2 md:grid-cols-3 md:gap-2 lg:grid-cols-12 lg:gap-4'}>
+					<div className={'lg:col-span-4'}>
 						<p className={'pb-1 text-sm text-neutral-600 md:text-base'}>{'You’re locking, ETH'}</p>
 						<div className={'box-500 grow-1 flex h-10 w-full items-center justify-center p-2'}>
 							<div className={'mr-2 h-6 w-6 min-w-[24px]'}>
@@ -282,7 +282,7 @@ function Deposit(): ReactElement {
 							{`You have ${formatAmount(balanceOf?.normalized || 0, 2, 6)} ${tokenToSend.symbol}`}
 						</p>
 					</div>
-					<div className={'pt-2 md:pt-0'}>
+					<div className={'pt-2 md:pt-0 lg:col-span-3'}>
 						<p className={'pb-1 text-sm text-neutral-600 md:text-base'}>{'You’re getting, st-yETH'}</p>
 						<div className={'box-500 grow-1 flex h-10 w-full items-center justify-center p-2'}>
 							<div className={'mr-2 h-6 w-6 min-w-[24px]'}>
@@ -306,7 +306,7 @@ function Deposit(): ReactElement {
 							{`You have ${formatAmount(balanceDeposited?.normalized || 0, 2, 6)} st-yETH`}
 						</p>
 					</div>
-					<div className={'w-full pt-4 md:pt-0'}>
+					<div className={'w-full pt-4 md:pt-0 lg:col-span-3'}>
 						<p className={'hidden pb-1 text-neutral-600 md:block'}>&nbsp;</p>
 						<Button
 							onClick={onDeposit}
