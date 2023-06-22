@@ -1,37 +1,40 @@
-import React, {createContext, useContext, useMemo, useState} from 'react';
+import React, {createContext, useContext, useMemo} from 'react';
+import useBootstrapIncentives from 'hooks/useBootstrapIncentives';
 import useBootstrapPeriods from 'hooks/useBootstrapPeriods';
+import useBootstrapVoting from 'hooks/useBootstrapVoting';
 import useBootstrapWhitelistedLSD from 'hooks/useBootstrapWhitelistedLSD';
 
+import type {TUseBootstrapIncentivesResp} from 'hooks/useBootstrapIncentives';
 import type {TUseBootstrapPeriodsResp} from 'hooks/useBootstrapPeriods';
-import type {Dispatch, SetStateAction} from 'react';
-import type {TAddress, TDict} from '@yearn-finance/web-lib/types';
-import type {TTokenInfo} from './useTokenList';
+import type {TUseBootstrapVotingResp} from 'hooks/useBootstrapVoting';
+import type {TUseBootstrapWhitelistedLSDResp} from 'hooks/useBootstrapWhitelistedLSD';
 
 export type TUseBootstrapProps = {
-	periods: TUseBootstrapPeriodsResp | undefined,
-	whitelistedLSD: TDict<TTokenInfo>,
-	selectedToken: TAddress | undefined,
-	set_selectedToken: Dispatch<SetStateAction<TAddress | undefined>>,
+	periods: TUseBootstrapPeriodsResp,
+	whitelistedLSD: TUseBootstrapWhitelistedLSDResp,
+	voting: TUseBootstrapVotingResp,
+	incentives: TUseBootstrapIncentivesResp
 }
 const defaultProps: TUseBootstrapProps = {
-	periods: undefined,
-	whitelistedLSD: {},
-	selectedToken: undefined,
-	set_selectedToken: (): void => undefined
+	periods: {} as unknown as TUseBootstrapPeriodsResp,
+	whitelistedLSD: {} as unknown as TUseBootstrapWhitelistedLSDResp,
+	voting: {} as unknown as TUseBootstrapVotingResp,
+	incentives: [] as unknown as TUseBootstrapIncentivesResp
 };
 
 const Bootstrap = createContext<TUseBootstrapProps>(defaultProps);
 export const BootstrapContextApp = ({children}: {children: React.ReactElement}): React.ReactElement => {
 	const periods = useBootstrapPeriods();
-	const {whitelistedLSD} = useBootstrapWhitelistedLSD();
-	const [selectedToken, set_selectedToken] = useState<TAddress | undefined>();
+	const whitelistedLSD = useBootstrapWhitelistedLSD();
+	const voting = useBootstrapVoting();
+	const incentives = useBootstrapIncentives();
 
 	const contextValue = useMemo((): TUseBootstrapProps => ({
 		periods,
 		whitelistedLSD,
-		selectedToken,
-		set_selectedToken
-	}), [periods, whitelistedLSD, selectedToken]);
+		voting,
+		incentives
+	}), [periods, whitelistedLSD, voting, incentives]);
 
 	return (
 		<Bootstrap.Provider value={contextValue}>

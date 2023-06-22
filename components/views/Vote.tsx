@@ -4,8 +4,6 @@ import {ImageWithFallback} from 'components/common/ImageWithFallback';
 import IconChevronPlain from 'components/icons/IconChevronPlain';
 import IconSpinner from 'components/icons/IconSpinner';
 import useBootstrap from 'contexts/useBootstrap';
-import useBootstrapVoting from 'hooks/useBootstrapVoting';
-import useBootstrapWhitelistedLSD from 'hooks/useBootstrapWhitelistedLSD';
 import {useTimer} from 'hooks/useTimer';
 import {handleInputChangeEventValue} from 'utils';
 import {vote} from 'utils/actions';
@@ -132,7 +130,7 @@ function VoteListItem({
 	onChangeAmount,
 	updateToMax
 }: TVoteListItem): ReactElement {
-	const {voteData, isLoadingEvents} = useBootstrapVoting();
+	const {voting: {voteData, isLoadingEvents}} = useBootstrap();
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	** View function to round the amount and check if it is the max amount.
@@ -226,10 +224,12 @@ function VoteListItem({
 }
 
 function VoteList(): ReactElement {
-	const {voteData, onUpdate} = useBootstrapVoting();
+	const {
+		voting: {voteData, onUpdate},
+		whitelistedLSD: {whitelistedLSD, isLoading, onUpdate: onUpdateLSD}
+	} = useBootstrap();
 	const [sortBy, set_sortBy] = useState<string>('');
 	const [sortDirection, set_sortDirection] = useState<TSortDirection>('');
-	const {whitelistedLSD, isLoading, onUpdate: onUpdateLSD} = useBootstrapWhitelistedLSD();
 	const [voteToSend, set_voteToSend] = useState<TDict<TNormalizedBN>>({});
 	const [isModalOpen, set_isModalOpen] = useState<boolean>(false);
 	const [nonce, set_nonce] = useState<number>(0);
@@ -370,15 +370,16 @@ function VoteList(): ReactElement {
 				</div>
 			</div>
 
-			{Object.values(whitelistedLSD).map((item, index): ReactElement => (
-				<VoteListItem
-					key={`${index}_${nonce}`}
-					item={item}
-					totalVotesRemaining={totalVotesRemaining}
-					voteToSend={voteToSend[item.address]}
-					onChangeAmount={onChangeAmount}
-					updateToMax={updateToMax} />
-			))}
+			{Object.values(whitelistedLSD)
+				.map((item, index): ReactElement => (
+					<VoteListItem
+						key={`${index}_${nonce}`}
+						item={item}
+						totalVotesRemaining={totalVotesRemaining}
+						voteToSend={voteToSend[item.address]}
+						onChangeAmount={onChangeAmount}
+						updateToMax={updateToMax} />
+				))}
 			{isLoading && (
 				<div className={'mt-6 flex flex-row items-center justify-center'}>
 					<IconSpinner className={'!h-6 !w-6 !text-neutral-400'} />
@@ -422,7 +423,7 @@ function VoteList(): ReactElement {
 }
 
 function Vote(): ReactElement {
-	const {voteData, isLoading} = useBootstrapVoting();
+	const {voting: {voteData, isLoading}} = useBootstrap();
 
 	const totalVotePowerNormalized = useMemo((): number => {
 		return Number(voteData.votesAvailable.normalized) + Number(voteData.votesUsed.normalized);

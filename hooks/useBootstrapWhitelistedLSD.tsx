@@ -87,7 +87,6 @@ function useBootstrapWhitelistedLSD(): TUseBootstrapWhitelistedLSDResp {
 					continue;
 				}
 				whitelisted.push(address);
-				console.log(`${address} has been whitelisted on block ${log.blockNumber}`);
 			}
 		}
 		performBatchedUpdates((): void => {

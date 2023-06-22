@@ -7,7 +7,6 @@ import IconSpinner from 'components/icons/IconSpinner';
 import useBootstrap from 'contexts/useBootstrap';
 import {useTokenList} from 'contexts/useTokenList';
 import {useWallet} from 'contexts/useWallet';
-import useBootstrapIncentivizations from 'hooks/useBootstrapIncentivizations';
 import {useTimer} from 'hooks/useTimer';
 import {handleInputChangeEventValue} from 'utils';
 import {approveERC20, incentivize} from 'utils/actions';
@@ -29,7 +28,7 @@ import performBatchedUpdates from '@yearn-finance/web-lib/utils/performBatchedUp
 import {defaultTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 
 import type {TTokenInfo} from 'contexts/useTokenList';
-import type {TGroupedIncentives, TIncentives, TIncentivesFor} from 'hooks/useBootstrapIncentivizations';
+import type {TGroupedIncentives, TIncentives, TIncentivesFor} from 'hooks/useBootstrapIncentives';
 import type {ChangeEvent, ReactElement} from 'react';
 import type {TDict} from '@yearn-finance/web-lib/types';
 import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
@@ -490,9 +489,11 @@ function ViewIncentive(): ReactElement {
 	const {address, isActive, provider} = useWeb3();
 	const {safeChainID} = useChainID(Number(process.env.BASE_CHAINID));
 	const {balances, refresh} = useWallet();
-	const {whitelistedLSD} = useBootstrap();
 	const {tokenList} = useTokenList();
-	const [groupIncentiveHistory, isFetchingHistory, refreshIncentives] = useBootstrapIncentivizations();
+	const {
+		whitelistedLSD,
+		incentives: [groupIncentiveHistory, isFetchingHistory, refreshIncentives]
+	} = useBootstrap();
 	const [isModalOpen, set_isModalOpen] = useState<boolean>(false);
 	const [amountToSend, set_amountToSend] = useState<TNormalizedBN>(toNormalizedBN(0));
 	const [possibleTokensToUse, set_possibleTokensToUse] = useState<TDict<TTokenInfo | undefined>>({});
@@ -688,7 +689,7 @@ function ViewIncentive(): ReactElement {
 						<p className={'pb-1 text-sm text-neutral-600 md:text-base'}>{'Select LSD to incentivize'}</p>
 						<ComboboxAddressInput
 							value={lsdToIncentive?.address}
-							possibleValues={whitelistedLSD}
+							possibleValues={whitelistedLSD.whitelistedLSD}
 							onChangeValue={set_lsdToIncentive} />
 						<p className={'hidden pt-1 text-xs lg:block'}>&nbsp;</p>
 					</div>

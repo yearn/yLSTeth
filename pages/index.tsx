@@ -23,7 +23,6 @@ function YETH(): ReactElement {
 	const shouldDisplayNextArrow = useMemo((): boolean => page !== 1.1 && page < 3, [page]);
 
 	const onPrevious = useCallback((prevPage?: number): void => {
-		console.log(prevPage);
 		if (page === 0) {
 			return;
 		}

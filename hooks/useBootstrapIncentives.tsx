@@ -47,7 +47,12 @@ export type TIncentivesFor = {
 	user: TDict<TGroupedIncentives>
 }
 
-function useBootstrapIncentivizations(): [TIncentivesFor, boolean, VoidFunction] {
+export type TUseBootstrapIncentivesResp = [
+	TIncentivesFor,
+	boolean,
+	VoidFunction
+];
+function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 	const {address} = useWeb3();
 	const [userIncentives, set_userIncentives] = useState<TIncentives[]>([]);
 	const [isFetchingHistory, set_isFetchingHistory] = useState(false);
@@ -155,7 +160,6 @@ function useBootstrapIncentivizations(): [TIncentivesFor, boolean, VoidFunction]
 		);
 	}, [userIncentives]);
 
-
 	/* 🔵 - Yearn Finance **************************************************************************
 	* For the UI we will need two things:
 	* - The list of all the protocols that have been incentivized with the list of incentives they
@@ -164,10 +168,7 @@ function useBootstrapIncentivizations(): [TIncentivesFor, boolean, VoidFunction]
 	* To do that we will use the incentiveHistory object and group the data by protocol, then by
 	* depositor.
 	**********************************************************************************************/
-	const groupIncentiveHistory = useMemo((): {
-		protocols: TDict<TGroupedIncentives>,
-		user: TDict<TGroupedIncentives>
-	} => {
+	const groupIncentiveHistory = useMemo((): TIncentivesFor => {
 		if (!incentiveHistory) {
 			return {protocols: {}, user: {}};
 		}
@@ -259,4 +260,4 @@ function useBootstrapIncentivizations(): [TIncentivesFor, boolean, VoidFunction]
 	return [groupIncentiveHistory, isFetchingHistory, filterEvents];
 }
 
-export default useBootstrapIncentivizations;
+export default useBootstrapIncentives;
