@@ -38,7 +38,7 @@ function	MyApp(props: AppProps): ReactElement {
 				configOverwrite={config}
 				options={{
 					web3: {
-						supportedChainID: [1, 250, 1337]
+						supportedChainID: [250, 1337]
 					}
 				}}>
 				<PriceContextApp>
