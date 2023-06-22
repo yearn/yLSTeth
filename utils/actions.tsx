@@ -136,3 +136,34 @@ export async function incentivize(props: TIncentivize): Promise<TTxResponse> {
 		args: [props.protocolAddress, props.incentiveAddress, props.amount]
 	});
 }
+
+
+/* 🔵 - Yearn Finance **********************************************************
+** Vote is a _WRITE_ function that can be used to vote for a protocol. Multiple
+** votes can be made at the same time.
+**
+** @app - yETH
+** @param protocols - an array of protocols to vote for.
+** @param amounts - an array of amounts to vote for each protocol.
+******************************************************************************/
+type TVote = TWriteTransaction & {
+	protocols: TAddress[];
+	amounts: bigint[];
+};
+export async function vote(props: TVote): Promise<TTxResponse> {
+	assert(props.connector, 'No connector');
+	assert(props.amounts.length === props.protocols.length, 'Amount is 0');
+	assertAddress(process.env.BOOTSTRAP_ADDRESS, 'BOOTSTRAP_ADDRESS');
+	for (const protocol of props.protocols) {
+		assertAddress(protocol, protocol);
+	}
+	const sumAmount = props.amounts.reduce((a, b): bigint => a + b, 0n);
+	assert(sumAmount > 0n, 'Amount is 0');
+
+	return await handleTx(props, {
+		address: process.env.BOOTSTRAP_ADDRESS,
+		abi: BOOTSTRAP_ABI,
+		functionName: 'vote',
+		args: [props.protocols, props.amounts]
+	});
+}

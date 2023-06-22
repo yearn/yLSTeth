@@ -1,55 +1,72 @@
 import {useCallback, useState} from 'react';
-import {createPublicClient, http, parseAbiItem} from 'viem';
-import {fantom} from 'viem/chains';
+import {getClient} from 'utils';
+import BOOTSTRAP_ABI from 'utils/abi/bootstrap.abi';
+import {parseAbiItem} from 'viem';
 import {erc20ABI} from 'wagmi';
 import {useAsync, useMountEffect, useUpdateEffect} from '@react-hookz/web';
 import {multicall} from '@wagmi/core';
 import {toAddress} from '@yearn-finance/web-lib/utils/address';
-import {decodeAsNumber, decodeAsString} from '@yearn-finance/web-lib/utils/decoder';
+import {decodeAsBigInt, decodeAsNumber, decodeAsString} from '@yearn-finance/web-lib/utils/decoder';
 
 import type {TTokenInfo} from 'contexts/useTokenList';
 import type {TAddress, TDict} from '@yearn-finance/web-lib/types';
 
-function useBootstrapWhitelistedLSD(): TDict<TTokenInfo> {
+export type TUseBootstrapWhitelistedLSDResp = {
+	whitelistedLSD: TDict<TTokenInfo>,
+	isLoading: boolean,
+	onUpdate: VoidFunction
+}
+function useBootstrapWhitelistedLSD(): TUseBootstrapWhitelistedLSDResp {
 	const [whitelistedLSDAddr, set_whitelistedLSDAddr] = useState<TAddress[]>([]);
 
-	const [{result: whitelistedLSD}, fetchTokenData] = useAsync(async function fetchToken(
-		chainID: number,
-		addresses: TAddress[]
-	): Promise<TDict<TTokenInfo>> {
-		const calls = [];
-		for (const address of addresses) {
-			calls.push(...[
-				{address: address, abi: erc20ABI, functionName: 'name'},
-				{address: address, abi: erc20ABI, functionName: 'symbol'},
-				{address: address, abi: erc20ABI, functionName: 'decimals'}
-			]);
-		}
-		const results = await multicall({contracts: calls, chainId: chainID});
-
-		const tokens: TDict<TTokenInfo> = {};
-		let i = 0;
-		for (const address of addresses) {
-			const name = decodeAsString(results[i++]);
-			const symbol = decodeAsString(results[i++]);
-			const decimals = decodeAsNumber(results[i++]);
-			tokens[address] = {
-				address: address,
-				name: name,
-				symbol: symbol,
-				decimals: decimals,
-				chainId: chainID,
-				logoURI: `https://assets.smold.app/api/token/${chainID}/${address}/logo-128.png`
+	const [{result: whitelistedLSD}, fetchTokenData] = useAsync(
+		async function fetchToken(addresses: TAddress[]): Promise<TDict<TTokenInfo>> {
+			const calls = [];
+			const baseBootstrapContract = {
+				address: toAddress(process.env.BOOTSTRAP_ADDRESS),
+				abi: BOOTSTRAP_ABI
 			};
-		}
-		return (tokens);
-	}, {});
+			calls.push({...baseBootstrapContract, functionName: 'voted'});
+			for (const protocolAddress of addresses) {
+				calls.push(...[
+					{address: protocolAddress, abi: erc20ABI, functionName: 'name'},
+					{address: protocolAddress, abi: erc20ABI, functionName: 'symbol'},
+					{address: protocolAddress, abi: erc20ABI, functionName: 'decimals'},
+					{...baseBootstrapContract, functionName: 'votes', args: [protocolAddress]}
+				]);
+			}
+			const results = await multicall({
+				contracts: calls,
+				chainId: Number(process.env.DEFAULT_CHAINID)
+			});
+
+			const tokens: TDict<TTokenInfo> = {};
+			let i = 0;
+			const totalVotes = decodeAsBigInt(results[i++]);
+			for (const address of addresses) {
+				const name = decodeAsString(results[i++]);
+				const symbol = decodeAsString(results[i++]);
+				const decimals = decodeAsNumber(results[i++]);
+				const allVotesForThis = decodeAsBigInt(results[i++]);
+				tokens[address] = {
+					address: address,
+					name: name,
+					symbol: symbol,
+					decimals: decimals,
+					chainId: Number(process.env.DEFAULT_CHAINID),
+					logoURI: `https://assets.smold.app/api/token/${Number(process.env.BASE_CHAINID)}/${address}/logo-128.png`,
+					extra: {
+						votes: allVotesForThis,
+						totalVotes: totalVotes
+					}
+				};
+			}
+			return (tokens);
+		}, {}
+	);
 
 	const filterEvents = useCallback(async (): Promise<void> => {
-		const publicClient = createPublicClient({
-			chain: fantom,
-			transport: http('https://rpc3.fantom.network')
-		});
+		const publicClient = getClient();
 		const rangeLimit = 1_000_000n;
 		const deploymentBlockNumber = 62_856_231n;
 		const currentBlockNumber = await publicClient.getBlockNumber();
@@ -76,10 +93,10 @@ function useBootstrapWhitelistedLSD(): TDict<TTokenInfo> {
 
 	useMountEffect(filterEvents);
 	useUpdateEffect((): void => {
-		fetchTokenData.execute(250, whitelistedLSDAddr);
+		fetchTokenData.execute(whitelistedLSDAddr);
 	}, [whitelistedLSDAddr]);
 
-	return whitelistedLSD;
+	return {whitelistedLSD, isLoading: false, onUpdate: filterEvents};
 }
 
 export default useBootstrapWhitelistedLSD;

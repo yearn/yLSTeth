@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 import {useCallback, useMemo, useState} from 'react';
+import {getClient} from 'utils';
 import BOOTSTRAP_ABI from 'utils/abi/bootstrap.abi';
 import {useYDaemonBaseURI} from 'utils/getYDaemonBaseURI';
 import {yDaemonPricesSchema} from 'utils/schemas/yDaemonPricesSchema';
-import {createPublicClient, http, parseAbiItem, toHex} from 'viem';
-import {fantom} from 'viem/chains';
+import {parseAbiItem, toHex} from 'viem';
 import {erc20ABI, useContractRead} from 'wagmi';
 import {useAsync, useMountEffect, useUpdateEffect} from '@react-hookz/web';
 import {multicall} from '@wagmi/core';
@@ -69,10 +69,7 @@ function useBootstrapIncentivizations(): [TIncentivesFor, boolean, VoidFunction]
 	**********************************************************************************************/
 	const filterEvents = useCallback(async (): Promise<void> => {
 		set_isFetchingHistory(true);
-		const publicClient = createPublicClient({
-			chain: fantom,
-			transport: http('https://rpc3.fantom.network')
-		});
+		const publicClient = getClient();
 		const rangeLimit = 1_000_000n;
 		const deploymentBlockNumber = 62_856_231n;
 		const currentBlockNumber = await publicClient.getBlockNumber();
@@ -152,7 +149,10 @@ function useBootstrapIncentivizations(): [TIncentivesFor, boolean, VoidFunction]
 	}, []);
 	const [{result: incentiveHistory}, fetchTokenData] = incentives;
 	useUpdateEffect((): void => {
-		fetchTokenData.execute(250, userIncentives);
+		fetchTokenData.execute(
+			Number(process.env.DEFAULT_CHAINID),
+			userIncentives
+		);
 	}, [userIncentives]);
 
 

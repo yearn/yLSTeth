@@ -258,7 +258,7 @@
 	}
 }
 .box-500 {
-	@apply bg-neutral-0 border border-neutral-500 rounded;
+	@apply bg-neutral-0 border border-neutral-500 rounded-sm;
 }
 .box-900 {
 	@apply bg-neutral-900 border border-neutral-200 rounded-none text-neutral-0;

@@ -1,33 +1,24 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import HeroAsLottie from 'components/common/HeroAsLottie';
 import useBootstrap from 'contexts/useBootstrap';
 import {useTimer} from 'hooks/useTimer';
 import {customVariants} from 'utils';
 import {motion} from 'framer-motion';
 import {Button} from '@yearn-finance/web-lib/components/Button';
-import {toBigInt} from '@yearn-finance/web-lib/utils/format.bigNumber';
 
 import type {ReactElement} from 'react';
 
 function Timer(): ReactElement {
 	const {periods} = useBootstrap();
-	const {whitelistEnd, whitelistBegin} = periods || {};
+	const {whitelistEnd, whitelistStatus} = periods || {};
 	const time = useTimer({endTime: (Number(whitelistEnd?.result) * 1000 || 0)});
-	const hasStarted = useMemo((): boolean => (
-		(toBigInt(whitelistBegin?.result || 0) > 0n) //Not started
-		&&
-		(Number(whitelistBegin?.result) * 1000 || 0) < Date.now()
-	), [whitelistBegin]);
-	const hasEnded = useMemo((): boolean => ((
-		(toBigInt(whitelistEnd?.result || 0) > 0n) //Not started
-		&&
-		(Number(whitelistEnd?.result) * 1000 || 0) < Date.now())
-	), [whitelistEnd]);
-
-	return <>{hasEnded ? 'ended' : hasStarted ? time : 'coming soon'}</>;
+	return <>{whitelistStatus === 'ended' ? 'ended' : whitelistStatus === 'started' ? time : 'coming soon'}</>;
 }
 
 function Phase1({variant}: {variant: string[]}): ReactElement {
+	const {periods} = useBootstrap();
+	const {whitelistStatus} = periods || {};
+
 	return (
 		<section className={'absolute inset-x-0 grid grid-cols-12 gap-0 px-4 pt-10 md:gap-20 md:pt-12'}>
 			<div className={'col-span-12 mb-20 md:col-span-6 md:mb-0'}>
@@ -98,7 +89,7 @@ function Phase1({variant}: {variant: string[]}): ReactElement {
 						rel={'noopener noreferrer'}>
 						<Button
 							className={'yearn--button w-full rounded-md !text-sm md:w-1/2'}>
-							{'Take me to the form'}
+							{whitelistStatus === 'ended' ? 'Check whitelisted projects' : whitelistStatus === 'started' ? 'Take me to the form' : 'Coming soon'}
 						</Button>
 					</a>
 				</motion.div>

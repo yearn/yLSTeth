@@ -5,12 +5,11 @@ import IconSpinner from 'components/icons/IconSpinner';
 import useBootstrap from 'contexts/useBootstrap';
 import {useWallet} from 'contexts/useWallet';
 import {useTimer} from 'hooks/useTimer';
-import {formatDate, handleInputChangeEventValue} from 'utils';
+import {formatDate, getClient, handleInputChangeEventValue} from 'utils';
 import BOOTSTRAP_ABI from 'utils/abi/bootstrap.abi';
 import {depositETH} from 'utils/actions';
 import {ETH_TOKEN, STYETH_TOKEN, YETH_TOKEN} from 'utils/tokens';
-import {createPublicClient, http, parseAbiItem} from 'viem';
-import {fantom} from 'viem/chains';
+import {parseAbiItem} from 'viem';
 import {useContractRead} from 'wagmi';
 import {Button} from '@yearn-finance/web-lib/components/Button';
 import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
@@ -28,20 +27,9 @@ import type {TTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 
 function Timer(): ReactElement {
 	const {periods} = useBootstrap();
-	const {depositEnd, depositBegin} = periods || {};
+	const {depositEnd, depositStatus} = periods || {};
 	const time = useTimer({endTime: (Number(depositEnd?.result) * 1000 || 0)});
-	const hasStarted = useMemo((): boolean => (
-		(toBigInt(depositBegin?.result || 0) > 0n) //Not started
-		&&
-		(Number(depositBegin?.result) * 1000 || 0) < Date.now()
-	), [depositBegin]);
-	const hasEnded = useMemo((): boolean => ((
-		(toBigInt(depositEnd?.result || 0) > 0n) //Not started
-		&&
-		(Number(depositEnd?.result) * 1000 || 0) < Date.now())
-	), [depositEnd]);
-
-	return <>{hasEnded ? 'ended' : hasStarted ? time : 'coming soon'}</>;
+	return <>{depositStatus === 'ended' ? 'ended' : depositStatus === 'started' ? time : 'coming soon'}</>;
 }
 
 type TDepositHistory = {
@@ -118,10 +106,7 @@ function Deposit(): ReactElement {
 			return;
 		}
 		set_isFetchingHistory(true);
-		const publicClient = createPublicClient({
-			chain: fantom,
-			transport: http('https://rpc3.fantom.network')
-		});
+		const publicClient = getClient();
 		const rangeLimit = 1_000_000n;
 		const deploymentBlockNumber = 62_856_231n;
 		const currentBlockNumber = await publicClient.getBlockNumber();

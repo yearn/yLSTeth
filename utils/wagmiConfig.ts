@@ -14,7 +14,7 @@ import {getRPC} from '@yearn-finance/web-lib/utils/web3/providers';
 
 import type {Chain} from 'wagmi';
 
-const localhost = {
+export const localhost = {
 	id: 1_337,
 	name: 'Localhost',
 	network: 'localhost',

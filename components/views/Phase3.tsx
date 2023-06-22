@@ -1,28 +1,16 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import useBootstrap from 'contexts/useBootstrap';
 import {useTimer} from 'hooks/useTimer';
 import {customVariants} from 'utils';
 import {motion} from 'framer-motion';
-import {toBigInt} from '@yearn-finance/web-lib/utils/format.bigNumber';
 
 import type {ReactElement} from 'react';
 
 function Timer(): ReactElement {
 	const {periods} = useBootstrap();
-	const {voteEnd, voteBegin} = periods || {};
+	const {voteEnd, voteStatus} = periods || {};
 	const time = useTimer({endTime: (Number(voteEnd?.result) * 1000 || 0)});
-	const hasStarted = useMemo((): boolean => (
-		(toBigInt(voteBegin?.result || 0) > 0n) //Not started
-		&&
-		(Number(voteBegin?.result) * 1000 || 0) < Date.now()
-	), [voteBegin]);
-	const hasEnded = useMemo((): boolean => ((
-		(toBigInt(voteEnd?.result || 0) > 0n) //Not started
-		&&
-		(Number(voteEnd?.result) * 1000 || 0) < Date.now())
-	), [voteEnd]);
-
-	return <>{hasEnded ? 'ended' : hasStarted ? time : 'coming soon'}</>;
+	return <>{voteStatus === 'ended' ? 'ended' : voteStatus === 'started' ? time : 'coming soon'}</>;
 }
 
 function Phase3({variant}: {variant: string[]}): ReactElement {

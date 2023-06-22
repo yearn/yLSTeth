@@ -23,7 +23,7 @@ const defaultProps: TUseBootstrapProps = {
 const Bootstrap = createContext<TUseBootstrapProps>(defaultProps);
 export const BootstrapContextApp = ({children}: {children: React.ReactElement}): React.ReactElement => {
 	const periods = useBootstrapPeriods();
-	const whitelistedLSD = useBootstrapWhitelistedLSD();
+	const {whitelistedLSD} = useBootstrapWhitelistedLSD();
 	const [selectedToken, set_selectedToken] = useState<TAddress | undefined>();
 
 	const contextValue = useMemo((): TUseBootstrapProps => ({

@@ -1,6 +1,11 @@
+import {createPublicClient, http} from 'viem';
+import {fantom} from 'viem/chains';
 import {parseUnits} from '@yearn-finance/web-lib/utils/format.bigNumber';
 
+import {localhost} from './wagmiConfig';
+
 import type {Transition} from 'framer-motion';
+import type {PublicClient} from 'wagmi';
 import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 
 export const transition = {duration: 0.8, ease: 'easeInOut'};
@@ -53,4 +58,17 @@ export function	formatDate(value: number): string {
 		hourCycle: 'h24'
 	}).format(value);
 	return formatedDate;
+}
+
+export function getClient(): PublicClient {
+	if (Number(process.env.DEFAULT_CHAINID) === 1337) {
+		return createPublicClient({
+			chain: localhost,
+			transport: http('http://localhost:8545')
+		});
+	}
+	return createPublicClient({
+		chain: fantom,
+		transport: http('https://rpc3.fantom.network')
+	});
 }

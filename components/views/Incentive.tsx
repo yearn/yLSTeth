@@ -17,6 +17,7 @@ import {erc20ABI, useContractRead} from 'wagmi';
 import {useDeepCompareEffect} from '@react-hookz/web';
 import {Button} from '@yearn-finance/web-lib/components/Button';
 import {Modal} from '@yearn-finance/web-lib/components/Modal';
+import Renderable from '@yearn-finance/web-lib/components/Renderable';
 import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
 import {useChainID} from '@yearn-finance/web-lib/hooks/useChainID';
 import IconChevronBottom from '@yearn-finance/web-lib/icons/IconChevronBottom';
@@ -38,20 +39,9 @@ type TSortDirection = '' | 'desc' | 'asc'
 
 function Timer(): ReactElement {
 	const {periods} = useBootstrap();
-	const {depositEnd, depositBegin} = periods || {};
-	const time = useTimer({endTime: (Number(depositEnd?.result) * 1000 || 0)});
-	const hasStarted = useMemo((): boolean => (
-		(toBigInt(depositBegin?.result || 0) > 0n) //Not started
-		&&
-		(Number(depositBegin?.result) * 1000 || 0) < Date.now()
-	), [depositBegin]);
-	const hasEnded = useMemo((): boolean => ((
-		(toBigInt(depositEnd?.result || 0) > 0n) //Not started
-		&&
-		(Number(depositEnd?.result) * 1000 || 0) < Date.now())
-	), [depositEnd]);
-
-	return <>{hasEnded ? 'ended' : hasStarted ? time : 'coming soon'}</>;
+	const {incentiveEnd, incentiveStatus} = periods || {};
+	const time = useTimer({endTime: (Number(incentiveEnd?.result) * 1000 || 0)});
+	return <>{incentiveStatus === 'ended' ? 'ended' : incentiveStatus === 'started' ? time : 'coming soon'}</>;
 }
 
 function IncentiveMenuTabs({set_currentTab, currentTab}: {
@@ -250,21 +240,27 @@ function IncentiveGroup({item}: {item: TGroupedIncentives}): ReactElement {
 					</div>
 				</div>
 				<div className={'col-span-12 mt-4 flex justify-between md:col-span-2 md:mt-0 md:justify-end'}>
-					<small className={'block text-neutral-500 md:hidden'}>{'Total incentive (USD)'}</small>
+					<small className={'block text-neutral-500 md:hidden'}>
+						{'Total incentive (USD)'}
+					</small>
 					<p className={'tabular-nums'}>
 						{`${formatAmount(item.normalizedSum || 0, 6, 6)}`}
 					</p>
 				</div>
 				<div className={'col-span-12 mt-2 flex justify-between md:col-span-2 md:mt-0 md:justify-end'}>
-					<small className={'block text-neutral-500 md:hidden'}>{'yETH Locks vAPR'}</small>
+					<small className={'block text-neutral-500 md:hidden'}>
+						{'USD/st-yETH'}
+					</small>
 					<p className={'tabular-nums'}>
-						{`${formatPercent(item.estimatedAPR, 2)}`}
+						{`${formatAmount(item.usdPerStETH || 0, 6, 6)}`}
 					</p>
 				</div>
 				<div className={'col-span-12 mt-2 flex justify-between md:col-span-2 md:mt-0 md:justify-end'}>
-					<small className={'block text-neutral-500 md:hidden'}>{'USD/st-yETH'}</small>
+					<small className={'block text-neutral-500 md:hidden'}>
+						{'st-yETH vAPR'}
+					</small>
 					<p className={'tabular-nums'}>
-						{`${formatAmount(item.usdPerStETH || 0, 6, 6)}`}
+						{`${formatPercent(item.estimatedAPR, 2)}`}
 					</p>
 				</div>
 				<div className={'col-span-1 hidden justify-end md:flex'}>
@@ -335,21 +331,21 @@ function IncentiveHistory({isPending, incentives}: {isPending: boolean, incentiv
 				</div>
 				<div className={'col-span-2 flex justify-end'}>
 					<p
-						onClick={(): void => onSort('vapr', toggleSortDirection('vapr'))}
-						className={'group flex flex-row text-xs text-neutral-500'}>
-						{'yETH Locks vAPR'}
-						<span className={'pl-2'}>
-							{renderChevron(sortBy === 'vapr')}
-						</span>
-					</p>
-				</div>
-				<div className={'col-span-2 flex justify-end'}>
-					<p
 						onClick={(): void => onSort('usdPerStETH', toggleSortDirection('usdPerStETH'))}
 						className={'group flex flex-row text-xs text-neutral-500'}>
 						{'USD/st-yETH'}
 						<span className={'pl-2'}>
 							{renderChevron(sortBy === 'usdPerStETH')}
+						</span>
+					</p>
+				</div>
+				<div className={'col-span-2 flex justify-end'}>
+					<p
+						onClick={(): void => onSort('vapr', toggleSortDirection('vapr'))}
+						className={'group flex flex-row text-xs text-neutral-500'}>
+						{'st-yETH vAPR'}
+						<span className={'pl-2'}>
+							{renderChevron(sortBy === 'vapr')}
 						</span>
 					</p>
 				</div>
@@ -510,6 +506,14 @@ function ViewIncentive(): ReactElement {
 		args: [toAddress(address), toAddress(process.env.BOOTSTRAP_ADDRESS)]
 	});
 
+	const sumOfAllIncentives = useMemo((): number => {
+		let sum = 0;
+		for (const eachIncentive of Object.values(groupIncentiveHistory.protocols)) {
+			sum += eachIncentive.normalizedSum;
+		}
+		return sum;
+	}, [groupIncentiveHistory]);
+
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	** On mount, fetch the token list from the tokenlistooor repo for the cowswap token list, which
@@ -652,7 +656,7 @@ function ViewIncentive(): ReactElement {
 	return (
 		<section className={'grid grid-cols-1 pt-10 md:mb-20 md:pt-12'}>
 			<div className={'mb-20 md:mb-0'}>
-				<div className={'mb-10 flex w-full flex-col justify-center md:w-1/2'}>
+				<div className={'mb-10 flex w-full flex-col justify-center'}>
 					<h1 className={'text-3xl font-black md:text-8xl'}>
 						{'Incentive'}
 					</h1>
@@ -661,9 +665,23 @@ function ViewIncentive(): ReactElement {
 						className={'font-number mt-4 text-4xl text-purple-300'}>
 						<Timer />
 					</b>
-					<p className={'pt-8 text-neutral-700'}>
-						{'Pick which LST you are incentivizing for, and which token you’ll be posting the incentive in. Remember, if your token is not included in the final yETH basket you’ll be refunded the full amount of your incentive.'}
-					</p>
+					<div className={'grid w-full grid-cols-2 items-center'}>
+						<div className={'w-full'}>
+							<p className={'text-neutral-700'}>
+								{'Pick which LST you are incentivizing for, and which token you’ll be posting the incentive in. Remember, if your token is not included in the final yETH basket you’ll be refunded the full amount of your incentive.'}
+							</p>
+						</div>
+						<div className={'flex justify-end'}>
+							<div className={'w-72 bg-neutral-100 p-4'}>
+								<p className={'pb-2'}>{'Total incentives'}</p>
+								<b suppressHydrationWarning className={'text-3xl'}>
+									<Renderable shouldRender={true} fallback ={'-'}>
+										{`$ ${formatAmount(sumOfAllIncentives, 6, 6)}`}
+									</Renderable>
+								</b>
+							</div>
+						</div>
+					</div>
 				</div>
 				<div className={'mb-8 grid w-full grid-cols-1 gap-2 md:grid-cols-2 md:gap-2 lg:grid-cols-4 lg:gap-4'}>
 					<div>
