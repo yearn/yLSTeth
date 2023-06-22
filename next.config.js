@@ -41,7 +41,7 @@ module.exports = (phase) => withTM(withPWA({
 		ALCHEMY_KEY: process.env.ALCHEMY_KEY,
 		INFURA_PROJECT_ID: process.env.INFURA_PROJECT_ID,
 		BASE_CHAINID: 250, // Expected to work on this chain
-		DEFAULT_CHAINID: 1337, // The one we currently use
+		DEFAULT_CHAINID: 250, // The one we currently use
 		BASE_API_URI: 'http://localhost:8080',
 		YETH_ADDRESS: '0x0c75df7454d7594BbEBE09fD0CE0114c882b046d',
 		STYETH_ADDRESS: '0xDd27AC6041901daFA1a9674f80034F7693Bab9C0',
