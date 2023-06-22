@@ -43,7 +43,7 @@ const defaultProps = {
 const WalletContext = createContext<TWalletContext>(defaultProps);
 export const WalletContextApp = memo(function WalletContextApp({children}: {children: ReactElement}): ReactElement {
 	const {tokenList} = useTokenList();
-	const {chainID, isActive} = useWeb3();
+	const {isActive} = useWeb3();
 	const {safeChainID} = useChainID(Number(process.env.BASE_CHAINID));
 	const [walletProvider, set_walletProvider] = useState('NONE');
 	const {value: extraTokens, set: saveExtraTokens} = useLocalStorageValue<TUseBalancesTokens[]>('yeth/tokens', {defaultValue: []});
@@ -104,8 +104,8 @@ export const WalletContextApp = memo(function WalletContextApp({children}: {chil
 		if (tokensToFetch.length > 0) {
 			return await onRefresh(tokensToFetch);
 		}
-		return balances[chainID];
-	}, [balances, chainID, onRefresh, safeChainID, availableTokens]);
+		return balances[Number(process.env.BASE_CHAINID)];
+	}, [balances, onRefresh, safeChainID, availableTokens]);
 
 	const onLoadExtraTokens = useCallback(async (): Promise<void> => {
 		if (extraTokens) {
@@ -132,14 +132,14 @@ export const WalletContextApp = memo(function WalletContextApp({children}: {chil
 	**	Setup and render the Context provider to use in the app.
 	***************************************************************************/
 	const contextValue = useMemo((): TWalletContext => ({
-		balances: balances[chainID],
+		balances: balances[Number(process.env.BASE_CHAINID)],
 		balancesNonce: nonce,
 		isLoading: isLoading || false,
 		refresh: onRefresh,
 		refreshWithList: onRefreshWithList,
 		walletProvider,
 		set_walletProvider
-	}), [balances, isLoading, onRefresh, nonce, chainID, onRefreshWithList, walletProvider]);
+	}), [balances, isLoading, onRefresh, nonce, onRefreshWithList, walletProvider]);
 
 	return (
 		<WalletContext.Provider value={contextValue}>

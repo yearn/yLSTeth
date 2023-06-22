@@ -217,7 +217,7 @@ function IncentiveGroupBreakdown({incentives}: {incentives: TIncentives[]}): Rea
 }
 
 function IncentiveGroup({item}: {item: TGroupedIncentives}): ReactElement {
-	const {safeChainID} = useChainID();
+	const {safeChainID} = useChainID(Number(process.env.BASE_CHAINID));
 
 	return (
 		<details
