@@ -9,7 +9,7 @@ import type {ReactElement} from 'react';
 function Timer(): ReactElement {
 	const {periods} = useBootstrap();
 	const {voteEnd, voteStatus} = periods || {};
-	const time = useTimer({endTime: (Number(voteEnd?.result) * 1000 || 0)});
+	const time = useTimer({endTime: Number(voteEnd?.result)});
 	return <>{voteStatus === 'ended' ? 'ended' : voteStatus === 'started' ? time : 'coming soon'}</>;
 }
 

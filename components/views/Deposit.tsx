@@ -28,7 +28,7 @@ import type {TTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 function Timer(): ReactElement {
 	const {periods} = useBootstrap();
 	const {depositEnd, depositStatus} = periods || {};
-	const time = useTimer({endTime: (Number(depositEnd?.result) * 1000 || 0)});
+	const time = useTimer({endTime: Number(depositEnd?.result)});
 	return <>{depositStatus === 'ended' ? 'ended' : depositStatus === 'started' ? time : 'coming soon'}</>;
 }
 
