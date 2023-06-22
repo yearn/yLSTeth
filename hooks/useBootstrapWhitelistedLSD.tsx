@@ -7,6 +7,7 @@ import {useAsync, useMountEffect, useUpdateEffect} from '@react-hookz/web';
 import {multicall} from '@wagmi/core';
 import {toAddress} from '@yearn-finance/web-lib/utils/address';
 import {decodeAsBigInt, decodeAsNumber, decodeAsString} from '@yearn-finance/web-lib/utils/decoder';
+import performBatchedUpdates from '@yearn-finance/web-lib/utils/performBatchedUpdates';
 
 import type {TTokenInfo} from 'contexts/useTokenList';
 import type {TAddress, TDict} from '@yearn-finance/web-lib/types';
@@ -18,6 +19,7 @@ export type TUseBootstrapWhitelistedLSDResp = {
 }
 function useBootstrapWhitelistedLSD(): TUseBootstrapWhitelistedLSDResp {
 	const [whitelistedLSDAddr, set_whitelistedLSDAddr] = useState<TAddress[]>([]);
+	const [isLoading, set_isLoading] = useState<boolean>(false);
 
 	const [{result: whitelistedLSD}, fetchTokenData] = useAsync(
 		async function fetchToken(addresses: TAddress[]): Promise<TDict<TTokenInfo>> {
@@ -66,13 +68,13 @@ function useBootstrapWhitelistedLSD(): TUseBootstrapWhitelistedLSDResp {
 	);
 
 	const filterEvents = useCallback(async (): Promise<void> => {
+		set_isLoading(true);
 		const publicClient = getClient();
 		const rangeLimit = 1_000_000n;
 		const deploymentBlockNumber = 62_856_231n;
 		const currentBlockNumber = await publicClient.getBlockNumber();
 		const whitelisted: TAddress[] = [];
 		for (let i = deploymentBlockNumber; i < currentBlockNumber; i += rangeLimit) {
-			console.log(`Fetching logs from ${i} to ${i + rangeLimit} of ${currentBlockNumber}`);
 			const logs = await publicClient.getLogs({
 				address: toAddress(process.env.BOOTSTRAP_ADDRESS),
 				event: parseAbiItem('event Whitelist(address indexed)'),
@@ -88,7 +90,10 @@ function useBootstrapWhitelistedLSD(): TUseBootstrapWhitelistedLSDResp {
 				console.log(`${address} has been whitelisted on block ${log.blockNumber}`);
 			}
 		}
-		set_whitelistedLSDAddr(whitelisted);
+		performBatchedUpdates((): void => {
+			set_whitelistedLSDAddr(whitelisted);
+			set_isLoading(false);
+		});
 	}, []);
 
 	useMountEffect(filterEvents);
@@ -96,7 +101,7 @@ function useBootstrapWhitelistedLSD(): TUseBootstrapWhitelistedLSDResp {
 		fetchTokenData.execute(whitelistedLSDAddr);
 	}, [whitelistedLSDAddr]);
 
-	return {whitelistedLSD, isLoading: false, onUpdate: filterEvents};
+	return {whitelistedLSD, isLoading, onUpdate: filterEvents};
 }
 
 export default useBootstrapWhitelistedLSD;

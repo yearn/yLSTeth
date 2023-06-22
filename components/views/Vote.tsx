@@ -2,6 +2,7 @@ import React, {useCallback, useMemo, useState} from 'react';
 import assert from 'assert';
 import {ImageWithFallback} from 'components/common/ImageWithFallback';
 import IconChevronPlain from 'components/icons/IconChevronPlain';
+import IconSpinner from 'components/icons/IconSpinner';
 import useBootstrap from 'contexts/useBootstrap';
 import useBootstrapVoting from 'hooks/useBootstrapVoting';
 import useBootstrapWhitelistedLSD from 'hooks/useBootstrapWhitelistedLSD';
@@ -228,7 +229,7 @@ function VoteList(): ReactElement {
 	const {voteData, onUpdate} = useBootstrapVoting();
 	const [sortBy, set_sortBy] = useState<string>('');
 	const [sortDirection, set_sortDirection] = useState<TSortDirection>('');
-	const {whitelistedLSD, onUpdate: onUpdateLSD} = useBootstrapWhitelistedLSD();
+	const {whitelistedLSD, isLoading, onUpdate: onUpdateLSD} = useBootstrapWhitelistedLSD();
 	const [voteToSend, set_voteToSend] = useState<TDict<TNormalizedBN>>({});
 	const [isModalOpen, set_isModalOpen] = useState<boolean>(false);
 	const [nonce, set_nonce] = useState<number>(0);
@@ -378,6 +379,11 @@ function VoteList(): ReactElement {
 					onChangeAmount={onChangeAmount}
 					updateToMax={updateToMax} />
 			))}
+			{isLoading && (
+				<div className={'mt-6 flex flex-row items-center justify-center'}>
+					<IconSpinner className={'!h-6 !w-6 !text-neutral-400'} />
+				</div>
+			)}
 
 			<div
 				aria-label={'footer'}
