@@ -23,6 +23,11 @@ module.exports = (phase) => withTM(withPWA({
 				permanent: true
 			},
 			{
+				source: '/form',
+				destination: 'https://yearnfinance.typeform.com/yeth-test-wl',
+				permanent: true
+			},
+			{
 				source: '/favicon.ico',
 				destination: 'https://gib.to/favicons/favicon.ico',
 				permanent: true
@@ -40,16 +45,12 @@ module.exports = (phase) => withTM(withPWA({
 		TELEGRAM_CHAT: process.env.TELEGRAM_CHAT,
 		ALCHEMY_KEY: process.env.ALCHEMY_KEY,
 		INFURA_PROJECT_ID: process.env.INFURA_PROJECT_ID,
-		BASE_CHAINID: 250, // Expected to work on this chain
-		DEFAULT_CHAINID: 250, // The one we currently use
-		YETH_ADDRESS: '0x0c75df7454d7594BbEBE09fD0CE0114c882b046d',
-		STYETH_ADDRESS: '0xDd27AC6041901daFA1a9674f80034F7693Bab9C0',
-		BOOTSTRAP_ADDRESS: '0xd780324493CFf48fC61098cc989d32a0F0670C43',
+		BASE_CHAINID: 42161, // Expected to work on this chain
+		DEFAULT_CHAINID: 42161, // The one we currently use
+		YETH_ADDRESS: '0xcC7D64D4143CBc1CB9B6299680D4AD84f94268b2',
+		STYETH_ADDRESS: '0x3A7056a100222968E7EeFdfCa0389257fbB9bf7c',
+		BOOTSTRAP_ADDRESS: '0x17Ab6Ea4618c82b4ae52A239c2AEbb145915cd32',
 		CURRENT_PHASE: 'whitelisting', // 'whitelisting' | 'bootstraping' | 'voting' | 'launching',
-		WHITELISTED_PROTOCOLS: [
-			'RanD(A)Om',
-			'ApeFi',
-			'RiFifi finance'
-		]
+		WHITELISTED_PROTOCOLS: []
 	}
 }));

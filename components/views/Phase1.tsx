@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 import HeroAsLottie from 'components/common/HeroAsLottie';
 import useBootstrap from 'contexts/useBootstrap';
 import {useTimer} from 'hooks/useTimer';
@@ -83,8 +84,8 @@ function Phase1({variant}: {variant: string[]}): ReactElement {
 					initial={'initial'}
 					animate={'move'}
 					exit={'exit'}>
-					<a
-						href={'/'}
+					<Link
+						href={'/form'}
 						target={'_blank'}
 						rel={'noopener noreferrer'}>
 						<Button
@@ -92,7 +93,7 @@ function Phase1({variant}: {variant: string[]}): ReactElement {
 							className={'yearn--button w-full rounded-md !text-sm md:w-1/2'}>
 							{whitelistStatus === 'ended' ? 'Check whitelisted projects' : whitelistStatus === 'started' ? 'Take me to the form' : 'Coming soon'}
 						</Button>
-					</a>
+					</Link>
 				</motion.div>
 			</div>
 
