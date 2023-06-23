@@ -111,7 +111,7 @@ export async function depositETH(props: TDepositEth): Promise<TTxResponse> {
 }
 
 /* 🔵 - Yearn Finance **********************************************************
-** Incentivize is a _WRITE_ function that incentivizes one of the LSD protocols
+** Incentivize is a _WRITE_ function that incentivizes one of the LST protocols
 ** with some tokens to vote for it.
 **
 ** @app - yETH

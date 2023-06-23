@@ -34,8 +34,8 @@ function Timer(): ReactElement {
 }
 
 
-function VoteConfirmationModal({whitelistedLSD, voteToSend, onSuccess, onCancel}: {
-	whitelistedLSD: TDict<TTokenInfo>,
+function VoteConfirmationModal({whitelistedLST, voteToSend, onSuccess, onCancel}: {
+	whitelistedLST: TDict<TTokenInfo>,
 	voteToSend: TDict<TNormalizedBN>,
 	onSuccess: VoidFunction,
 	onCancel: VoidFunction
@@ -44,10 +44,10 @@ function VoteConfirmationModal({whitelistedLSD, voteToSend, onSuccess, onCancel}
 	const [voteStatus, set_voteStatus] = useState<TTxStatus>(defaultTxStatus);
 
 	const protocols = useMemo((): TAddress[] => (
-		Object.values(whitelistedLSD)
-			.filter((lsd): boolean => voteToSend[lsd.address]?.raw > 0n)
-			.map((lsd): TAddress => lsd.address)
-	), [whitelistedLSD, voteToSend]);
+		Object.values(whitelistedLST)
+			.filter((lst): boolean => voteToSend[lst.address]?.raw > 0n)
+			.map((lst): TAddress => lst.address)
+	), [whitelistedLST, voteToSend]);
 
 	const amounts = useMemo((): bigint[] => (
 		Object.values(voteToSend)
@@ -82,14 +82,14 @@ function VoteConfirmationModal({whitelistedLSD, voteToSend, onSuccess, onCancel}
 					<small className={'text-xs text-neutral-500'}>{'LST'}</small>
 					<small className={'text-xs text-neutral-500'}>{'Votes, st-yETH'}</small>
 				</div>
-				{Object.values(whitelistedLSD)
-					.filter((lsd): boolean => voteToSend[lsd.address]?.raw > 0n)
-					.map((lsd): ReactElement => (
+				{Object.values(whitelistedLST)
+					.filter((lst): boolean => voteToSend[lst.address]?.raw > 0n)
+					.map((lst): ReactElement => (
 						<div
-							key={lsd.address}
+							key={lst.address}
 							className={'flex flex-row items-center justify-between'}>
-							<p>{lsd.name || truncateHex(lsd.address, 6)}</p>
-							<b>{formatAmount(voteToSend[lsd.address]?.normalized, 6, 6)}</b>
+							<p>{lst.name || truncateHex(lst.address, 6)}</p>
+							<b>{formatAmount(voteToSend[lst.address]?.normalized, 6, 6)}</b>
 						</div>
 					))}
 			</div>
@@ -226,7 +226,7 @@ function VoteListItem({
 function VoteList(): ReactElement {
 	const {
 		voting: {voteData, onUpdate},
-		whitelistedLSD: {whitelistedLSD, isLoading, onUpdate: onUpdateLSD}
+		whitelistedLST: {whitelistedLST, isLoading, onUpdate: onUpdateLST}
 	} = useBootstrap();
 	const [sortBy, set_sortBy] = useState<string>('');
 	const [sortDirection, set_sortDirection] = useState<TSortDirection>('');
@@ -316,14 +316,14 @@ function VoteList(): ReactElement {
 	const onVoteSuccess = useCallback(async (): Promise<void> => {
 		await Promise.all([
 			onUpdate(),
-			onUpdateLSD()
+			onUpdateLST()
 		]);
 		performBatchedUpdates((): void => {
 			set_isModalOpen(false);
 			set_voteToSend({});
 			set_nonce((n): number => n + 1);
 		});
-	}, [onUpdate, onUpdateLSD]);
+	}, [onUpdate, onUpdateLST]);
 
 	return (
 		<div>
@@ -370,7 +370,7 @@ function VoteList(): ReactElement {
 				</div>
 			</div>
 
-			{Object.values(whitelistedLSD)
+			{Object.values(whitelistedLST)
 				.map((item, index): ReactElement => (
 					<VoteListItem
 						key={`${index}_${nonce}`}
@@ -413,7 +413,7 @@ function VoteList(): ReactElement {
 				isOpen={isModalOpen}
 				onClose={(): void => set_isModalOpen(false)}>
 				<VoteConfirmationModal
-					whitelistedLSD={whitelistedLSD}
+					whitelistedLST={whitelistedLST}
 					voteToSend={voteToSend}
 					onSuccess={onVoteSuccess}
 					onCancel={(): void => set_isModalOpen(false)} />

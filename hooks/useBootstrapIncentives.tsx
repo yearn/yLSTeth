@@ -186,7 +186,7 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 					return acc;
 				}
 				const key = cur.protocol;
-				const amount = toNormalizedBN(cur.amount, cur.incentiveToken?.decimals ?? 18).normalized;
+				const amount = toNormalizedBN(cur.amount, cur.incentiveToken?.decimals || 18).normalized;
 				const price = toNormalizedBN(prices?.[toAddress(cur.incentive)] || 0, 6).normalized;
 				const value = Number(amount) * Number(price);
 				const estimatedAPR = getAPR(value);

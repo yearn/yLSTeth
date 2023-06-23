@@ -12,16 +12,16 @@ import performBatchedUpdates from '@yearn-finance/web-lib/utils/performBatchedUp
 import type {TTokenInfo} from 'contexts/useTokenList';
 import type {TAddress, TDict} from '@yearn-finance/web-lib/types';
 
-export type TUseBootstrapWhitelistedLSDResp = {
-	whitelistedLSD: TDict<TTokenInfo>,
+export type TUseBootstrapWhitelistedLSTResp = {
+	whitelistedLST: TDict<TTokenInfo>,
 	isLoading: boolean,
 	onUpdate: VoidFunction
 }
-function useBootstrapWhitelistedLSD(): TUseBootstrapWhitelistedLSDResp {
-	const [whitelistedLSDAddr, set_whitelistedLSDAddr] = useState<TAddress[]>([]);
+function useBootstrapWhitelistedLST(): TUseBootstrapWhitelistedLSTResp {
+	const [whitelistedLSTAddr, set_whitelistedLSTAddr] = useState<TAddress[]>([]);
 	const [isLoading, set_isLoading] = useState<boolean>(false);
 
-	const [{result: whitelistedLSD}, fetchTokenData] = useAsync(
+	const [{result: whitelistedLST}, fetchTokenData] = useAsync(
 		async function fetchToken(addresses: TAddress[]): Promise<TDict<TTokenInfo>> {
 			const calls = [];
 			const baseBootstrapContract = {
@@ -90,17 +90,17 @@ function useBootstrapWhitelistedLSD(): TUseBootstrapWhitelistedLSDResp {
 			}
 		}
 		performBatchedUpdates((): void => {
-			set_whitelistedLSDAddr(whitelisted);
+			set_whitelistedLSTAddr(whitelisted);
 			set_isLoading(false);
 		});
 	}, []);
 
 	useMountEffect(filterEvents);
 	useUpdateEffect((): void => {
-		fetchTokenData.execute(whitelistedLSDAddr);
-	}, [whitelistedLSDAddr]);
+		fetchTokenData.execute(whitelistedLSTAddr);
+	}, [whitelistedLSTAddr]);
 
-	return {whitelistedLSD, isLoading, onUpdate: filterEvents};
+	return {whitelistedLST, isLoading, onUpdate: filterEvents};
 }
 
-export default useBootstrapWhitelistedLSD;
+export default useBootstrapWhitelistedLST;

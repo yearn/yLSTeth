@@ -380,16 +380,22 @@ function IncentiveHistory({isPending, incentives}: {isPending: boolean, incentiv
 	);
 }
 
-function IncentiveConfirmationModal({
-	lsdToIncentive, tokenToUse, amountToSend, balanceOf, onSuccess, onCancel
-}: {
-	lsdToIncentive: TTokenInfo | undefined,
+type TIncentiveConfirmationModalProps = {
+	lstToIncentive: TTokenInfo | undefined,
 	tokenToUse: TTokenInfo | undefined,
 	amountToSend: TNormalizedBN,
 	balanceOf: TNormalizedBN,
 	onSuccess: VoidFunction,
 	onCancel: VoidFunction
-}): ReactElement {
+}
+function IncentiveConfirmationModal({
+	lstToIncentive,
+	tokenToUse,
+	amountToSend,
+	balanceOf,
+	onSuccess,
+	onCancel
+}: TIncentiveConfirmationModalProps): ReactElement {
 	const {isActive, provider} = useWeb3();
 	const [incentiveStatus, set_incentiveStatus] = useState<TTxStatus>(defaultTxStatus);
 
@@ -401,12 +407,12 @@ function IncentiveConfirmationModal({
 		assert(provider, 'Provider not connected');
 		assert(amountToSend.raw > 0n, 'Amount must be greater than 0');
 		assertAddress(tokenToUse?.address, 'Token to use not selected');
-		assertAddress(lsdToIncentive?.address, 'LSD to incentive not selected');
+		assertAddress(lstToIncentive?.address, 'LST to incentive not selected');
 
 		const result = await incentivize({
 			connector: provider,
 			contractAddress: toAddress(process.env.BOOTSTRAP_ADDRESS),
-			protocolAddress: lsdToIncentive.address,
+			protocolAddress: lstToIncentive.address,
 			incentiveAddress: tokenToUse.address,
 			amount: amountToSend.raw,
 			statusHandler: set_incentiveStatus
@@ -414,24 +420,24 @@ function IncentiveConfirmationModal({
 		if (result.isSuccessful) {
 			onSuccess();
 		}
-	}, [amountToSend.raw, isActive, lsdToIncentive, provider, tokenToUse, onSuccess]);
+	}, [amountToSend.raw, isActive, lstToIncentive, provider, tokenToUse, onSuccess]);
 
 	return (
 		<div className={'w-full max-w-[400px] rounded-sm bg-neutral-0 p-6'}>
 			<b className={'text-xl'}>{'Confirm your submission'}</b>
 			<div className={'mt-6'}>
-				<p className={'pb-1 text-neutral-500'}>{'Incentivize LSD'}</p>
+				<p className={'pb-1 text-neutral-500'}>{'Incentivize LST'}</p>
 				<div className={'flex flex-row rounded-sm border border-neutral-500 p-2'}>
 					<div className={'mr-2 h-6 w-6 min-w-[24px]'}>
 						<ImageWithFallback
 							alt={''}
 							unoptimized
-							key={lsdToIncentive?.logoURI || ''}
-							src={lsdToIncentive?.logoURI || ''}
+							key={lstToIncentive?.logoURI || ''}
+							src={lstToIncentive?.logoURI || ''}
 							width={24}
 							height={24} />
 					</div>
-					<p>{lsdToIncentive?.symbol || truncateHex(lsdToIncentive?.address, 6)}</p>
+					<p>{lstToIncentive?.symbol || truncateHex(lstToIncentive?.address, 6)}</p>
 				</div>
 				<small className={'pl-2 pt-1 text-xs'}>&nbsp;</small>
 			</div>
@@ -469,7 +475,7 @@ function IncentiveConfirmationModal({
 					isDisabled={
 						amountToSend.raw === 0n
 						|| amountToSend.raw > balanceOf.raw
-						|| !isValidAddress(lsdToIncentive?.address)
+						|| !isValidAddress(lstToIncentive?.address)
 						|| !isValidAddress(tokenToUse?.address)
 					}
 					className={'yearn--button w-full rounded-md !text-sm'}>
@@ -491,13 +497,13 @@ function ViewIncentive(): ReactElement {
 	const {balances, refresh} = useWallet();
 	const {tokenList} = useTokenList();
 	const {
-		whitelistedLSD,
+		whitelistedLST,
 		incentives: [groupIncentiveHistory, isFetchingHistory, refreshIncentives]
 	} = useBootstrap();
 	const [isModalOpen, set_isModalOpen] = useState<boolean>(false);
 	const [amountToSend, set_amountToSend] = useState<TNormalizedBN>(toNormalizedBN(0));
 	const [possibleTokensToUse, set_possibleTokensToUse] = useState<TDict<TTokenInfo | undefined>>({});
-	const [lsdToIncentive, set_lsdToIncentive] = useState<TTokenInfo | undefined>();
+	const [lstToIncentive, set_lstToIncentive] = useState<TTokenInfo | undefined>();
 	const [tokenToUse, set_tokenToUse] = useState<TTokenInfo | undefined>();
 	const [approvalStatus, set_approvalStatus] = useState<TTxStatus>(defaultTxStatus);
 	const {data: allowanceOf, refetch: refetchAllowance} = useContractRead({
@@ -686,11 +692,11 @@ function ViewIncentive(): ReactElement {
 				</div>
 				<div className={'mb-8 grid w-full grid-cols-1 gap-2 md:grid-cols-2 md:gap-2 lg:grid-cols-4 lg:gap-4'}>
 					<div>
-						<p className={'pb-1 text-sm text-neutral-600 md:text-base'}>{'Select LSD to incentivize'}</p>
+						<p className={'pb-1 text-sm text-neutral-600 md:text-base'}>{'Select LST to incentivize'}</p>
 						<ComboboxAddressInput
-							value={lsdToIncentive?.address}
-							possibleValues={whitelistedLSD.whitelistedLSD}
-							onChangeValue={set_lsdToIncentive} />
+							value={lstToIncentive?.address}
+							possibleValues={whitelistedLST.whitelistedLST}
+							onChangeValue={set_lstToIncentive} />
 						<p className={'hidden pt-1 text-xs lg:block'}>&nbsp;</p>
 					</div>
 
@@ -753,7 +759,7 @@ function ViewIncentive(): ReactElement {
 							isDisabled={
 								amountToSend.raw === 0n
 									|| amountToSend.raw > balanceOf.raw
-									|| !isValidAddress(lsdToIncentive?.address)
+									|| !isValidAddress(lstToIncentive?.address)
 									|| !isValidAddress(tokenToUse?.address)
 							}
 							className={'yearn--button w-full rounded-md !text-sm'}>
@@ -770,7 +776,7 @@ function ViewIncentive(): ReactElement {
 				isOpen={isModalOpen}
 				onClose={(): void => set_isModalOpen(false)}>
 				<IncentiveConfirmationModal
-					lsdToIncentive={lsdToIncentive}
+					lstToIncentive={lstToIncentive}
 					tokenToUse={tokenToUse}
 					amountToSend={amountToSend}
 					balanceOf={balanceOf}

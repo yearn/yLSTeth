@@ -2,22 +2,22 @@ import React, {createContext, useContext, useMemo} from 'react';
 import useBootstrapIncentives from 'hooks/useBootstrapIncentives';
 import useBootstrapPeriods from 'hooks/useBootstrapPeriods';
 import useBootstrapVoting from 'hooks/useBootstrapVoting';
-import useBootstrapWhitelistedLSD from 'hooks/useBootstrapWhitelistedLSD';
+import useBootstrapWhitelistedLST from 'hooks/useBootstrapWhitelistedLST';
 
 import type {TUseBootstrapIncentivesResp} from 'hooks/useBootstrapIncentives';
 import type {TUseBootstrapPeriodsResp} from 'hooks/useBootstrapPeriods';
 import type {TUseBootstrapVotingResp} from 'hooks/useBootstrapVoting';
-import type {TUseBootstrapWhitelistedLSDResp} from 'hooks/useBootstrapWhitelistedLSD';
+import type {TUseBootstrapWhitelistedLSTResp} from 'hooks/useBootstrapWhitelistedLST';
 
 export type TUseBootstrapProps = {
 	periods: TUseBootstrapPeriodsResp,
-	whitelistedLSD: TUseBootstrapWhitelistedLSDResp,
+	whitelistedLST: TUseBootstrapWhitelistedLSTResp,
 	voting: TUseBootstrapVotingResp,
 	incentives: TUseBootstrapIncentivesResp
 }
 const defaultProps: TUseBootstrapProps = {
 	periods: {} as unknown as TUseBootstrapPeriodsResp,
-	whitelistedLSD: {} as unknown as TUseBootstrapWhitelistedLSDResp,
+	whitelistedLST: {} as unknown as TUseBootstrapWhitelistedLSTResp,
 	voting: {} as unknown as TUseBootstrapVotingResp,
 	incentives: [] as unknown as TUseBootstrapIncentivesResp
 };
@@ -25,16 +25,16 @@ const defaultProps: TUseBootstrapProps = {
 const Bootstrap = createContext<TUseBootstrapProps>(defaultProps);
 export const BootstrapContextApp = ({children}: {children: React.ReactElement}): React.ReactElement => {
 	const periods = useBootstrapPeriods();
-	const whitelistedLSD = useBootstrapWhitelistedLSD();
+	const whitelistedLST = useBootstrapWhitelistedLST();
 	const voting = useBootstrapVoting();
 	const incentives = useBootstrapIncentives();
 
 	const contextValue = useMemo((): TUseBootstrapProps => ({
 		periods,
-		whitelistedLSD,
+		whitelistedLST,
 		voting,
 		incentives
-	}), [periods, whitelistedLSD, voting, incentives]);
+	}), [periods, whitelistedLST, voting, incentives]);
 
 	return (
 		<Bootstrap.Provider value={contextValue}>
