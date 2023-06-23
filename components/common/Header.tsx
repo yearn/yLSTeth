@@ -3,7 +3,6 @@ import Link from 'next/link';
 import {useRouter} from 'next/router';
 import Logo from 'components/icons/Logo';
 import {Listbox, Transition} from '@headlessui/react';
-import {useMountEffect} from '@react-hookz/web';
 import {ModalMobileMenu} from '@yearn-finance/web-lib/components/ModalMobileMenu';
 import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
 import {useChain} from '@yearn-finance/web-lib/hooks/useChain';
@@ -24,12 +23,6 @@ export type THeader = {
 }
 
 function	Navbar({nav, currentPathName}: TNavbar): ReactElement {
-	const [isClient, set_isClient] = useState<boolean>(false);
-	useMountEffect((): void => set_isClient(true));
-
-	if (!isClient) {
-		return <Fragment />;
-	}
 	return (
 		<nav className={'yearn--nav'}>
 			{nav.map((option): ReactElement => (
