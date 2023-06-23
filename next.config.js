@@ -42,9 +42,14 @@ module.exports = (phase) => withTM(withPWA({
 		INFURA_PROJECT_ID: process.env.INFURA_PROJECT_ID,
 		BASE_CHAINID: 250, // Expected to work on this chain
 		DEFAULT_CHAINID: 250, // The one we currently use
-		BASE_API_URI: 'http://localhost:8080',
 		YETH_ADDRESS: '0x0c75df7454d7594BbEBE09fD0CE0114c882b046d',
 		STYETH_ADDRESS: '0xDd27AC6041901daFA1a9674f80034F7693Bab9C0',
-		BOOTSTRAP_ADDRESS: '0xd780324493CFf48fC61098cc989d32a0F0670C43'
+		BOOTSTRAP_ADDRESS: '0xd780324493CFf48fC61098cc989d32a0F0670C43',
+		CURRENT_PHASE: 'whitelisting', // 'whitelisting' | 'bootstraping' | 'voting' | 'launching',
+		WHITELISTED_PROTOCOLS: [
+			'RanD(A)Om',
+			'ApeFi',
+			'RiFifi finance'
+		]
 	}
 }));

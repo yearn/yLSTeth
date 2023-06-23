@@ -88,6 +88,7 @@ function Phase1({variant}: {variant: string[]}): ReactElement {
 						target={'_blank'}
 						rel={'noopener noreferrer'}>
 						<Button
+							suppressHydrationWarning
 							className={'yearn--button w-full rounded-md !text-sm md:w-1/2'}>
 							{whitelistStatus === 'ended' ? 'Check whitelisted projects' : whitelistStatus === 'started' ? 'Take me to the form' : 'Coming soon'}
 						</Button>

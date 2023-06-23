@@ -13,9 +13,23 @@ import type {ReactElement} from 'react';
 
 const TO_RIGHT = 1;
 const NO_DIRECTION = 0;
+const currentPhaseToStep = (): number => {
+	switch (process.env.CURRENT_PHASE) {
+		case 'whitelisting':
+			return 0;
+		case 'bootstraping':
+			return 1;
+		case 'voting':
+			return 2;
+		case 'launching':
+			return 3;
+		default:
+			return 0;
+	}
+};
 
 function YETH(): ReactElement {
-	const [page, set_page] = useState(0);
+	const [page, set_page] = useState(currentPhaseToStep());
 	const [direction, set_direction] = useState(NO_DIRECTION);
 	const initialPosition = `-${direction * -1 * 100}vw`;
 	const toNextPageAnimation = `${direction * 100}vw`;
@@ -118,7 +132,9 @@ function YETH(): ReactElement {
 					<IconArrow className={'h-6 w-6 cursor-pointer text-purple-300'} />
 				</button>
 			</motion.div>
-			<div className={'relative flex flex-row'} style={{height: 'calc(100vh - 80px)'}}>
+			<div
+				className={'relative flex flex-row'}
+				style={{height: 'calc(100vh - 80px)'}}>
 				<AnimatePresence
 					mode={'sync'}
 					custom={[

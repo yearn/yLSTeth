@@ -49,7 +49,7 @@ function Phase3({variant}: {variant: string[]}): ReactElement {
 				</div>
 
 				<motion.div
-					className={'grid w-full grid-cols-1 text-neutral-700 md:w-1/2'}
+					className={'grid w-full grid-cols-1 text-neutral-700 md:w-2/3 lg:w-1/2'}
 					variants={customVariants(0.05)}
 					custom={variant}
 					initial={'initial'}
@@ -64,7 +64,27 @@ function Phase3({variant}: {variant: string[]}): ReactElement {
 					<p>{'If only regular democracy came with incentives… sigh.'}</p>
 				</motion.div>
 
+				<motion.div
+					variants={customVariants(0.06)}
+					custom={variant}
+					initial={'initial'}
+					animate={'move'}
+					exit={'exit'}>
+					<div className={'mt-6'}>
+						<b>{'Current whitelisted Protocols'}</b>
+						<div className={'mt-4 flex flex-row flex-wrap gap-2'}>
+							{((process.env.WHITELISTED_PROTOCOLS || []) as string[]).map((protocolName, index): ReactElement => (
+								<div
+									key={`${protocolName}_${index}`}
+									className={'rounded-full bg-purple-300 px-4 py-2 text-xs font-bold text-neutral-0'}>
+									{protocolName}
+								</div>
+							))}
+						</div>
+					</div>
+				</motion.div>
 			</div>
+
 		</section>
 	);
 }
