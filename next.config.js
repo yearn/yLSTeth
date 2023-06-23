@@ -28,6 +28,11 @@ module.exports = (phase) => withTM(withPWA({
 				permanent: true
 			},
 			{
+				source: '/documentation',
+				destination: 'https://hackmd.io/Dx76wacMQa2Xp908s0aRbA',
+				permanent: true
+			},
+			{
 				source: '/support',
 				destination: 'https://t.me/+7KdEG8g_Xn01ZjU0',
 				permanent: true
