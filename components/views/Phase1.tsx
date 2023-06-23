@@ -85,10 +85,11 @@ function Phase1({variant}: {variant: string[]}): ReactElement {
 					animate={'move'}
 					exit={'exit'}>
 					<Link
-						href={'/form'}
+						href={whitelistStatus === 'ended' ? '/' : '/form'}
 						target={'_blank'}
 						rel={'noopener noreferrer'}>
 						<Button
+							isDisabled={whitelistStatus === 'ended'}
 							suppressHydrationWarning
 							className={'yearn--button w-full rounded-md !text-sm md:w-1/2'}>
 							{whitelistStatus === 'ended' ? 'Check whitelisted projects' : 'Take me to the form'}
