@@ -194,6 +194,17 @@ function	WalletSelector(): ReactElement {
 	);
 }
 
+const nav: TMenu[] = [
+	// {path: 'https://yearn.finance', label: 'Home', target: '_blank'},
+	{path: '/', label: 'Home'},
+	// {path: '/', label: 'yETH'},
+	{path: '/deposit', label: 'Deposit'},
+	{path: '/incentive', label: 'Incentive'},
+	{path: '/vote', label: 'Vote'},
+	{path: '/documentation', label: 'Docs'},
+	{path: '/support', label: 'Support'}
+];
+
 function	AppHeader(): ReactElement {
 	const {pathname} = useRouter();
 	const {options} = useWeb3();
@@ -202,20 +213,6 @@ function	AppHeader(): ReactElement {
 	const supportedChainID = useMemo((): number[] => (
 		options?.supportedChainID || [1]
 	), [options?.supportedChainID]);
-
-	const nav = useMemo((): TMenu[] => {
-		const nav: TMenu[] = [
-			// {path: 'https://yearn.finance', label: 'Home', target: '_blank'},
-			{path: '/', label: 'Home'},
-			// {path: '/', label: 'yETH'},
-			{path: '/deposit', label: 'Deposit'},
-			{path: '/incentive', label: 'Incentive'},
-			{path: '/vote', label: 'Vote'},
-			{path: '/documentation', label: 'Docs'},
-			{path: '/support', label: 'Support'}
-		];
-		return nav;
-	}, []);
 
 	return (
 		<div id={'head'} className={'fixed inset-x-0 top-0 z-50 w-full bg-neutral-0/95'}>
