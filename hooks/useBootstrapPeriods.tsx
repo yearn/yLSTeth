@@ -71,44 +71,42 @@ function useBootstrapPeriods(): TUseBootstrapPeriodsResp {
 	const [whitelistBegin, whitelistEnd, incentiveBegin, incentiveEnd, depositBegin, depositEnd, voteBegin, voteEnd] = data || [];
 
 	const nowBigInt = toBigInt(Math.round(new Date().getTime() / 1000));
-	return {
+	const periods = {
 		whitelistBegin: toTBaseReadContractResult(whitelistBegin),
 		whitelistEnd: toTBaseReadContractResult(whitelistEnd),
 		whitelistStatus: (
 			(toBigInt(whitelistBegin?.result) > BigInt(0) && toBigInt(whitelistEnd?.result) > BigInt(0))
 				?
-				toBigInt(whitelistBegin?.result) < nowBigInt && nowBigInt < toBigInt(whitelistEnd?.result) ? 'started' : 'ended'
-				:
-				'none'
+				toBigInt(whitelistBegin?.result) > nowBigInt ? 'none' :
+					toBigInt(whitelistBegin?.result) < nowBigInt && nowBigInt < toBigInt(whitelistEnd?.result) ? 'started' : 'ended' : 'none'
 		),
 		incentiveBegin: toTBaseReadContractResult(incentiveBegin),
 		incentiveEnd: toTBaseReadContractResult(incentiveEnd),
 		incentiveStatus: (
 			(toBigInt(incentiveBegin?.result) > BigInt(0) && toBigInt(incentiveEnd?.result) > BigInt(0))
 				?
-				toBigInt(incentiveBegin?.result) < nowBigInt && nowBigInt < toBigInt(incentiveEnd?.result) ? 'started' : 'ended'
-				:
-				'none'
+				toBigInt(incentiveBegin?.result) > nowBigInt ? 'none' :
+					toBigInt(incentiveBegin?.result) < nowBigInt && nowBigInt < toBigInt(incentiveEnd?.result) ? 'started' : 'ended' : 'none'
 		),
 		depositBegin: toTBaseReadContractResult(depositBegin),
 		depositEnd: toTBaseReadContractResult(depositEnd),
 		depositStatus: (
 			(toBigInt(depositBegin?.result) > BigInt(0) && toBigInt(depositEnd?.result) > BigInt(0))
 				?
-				toBigInt(depositBegin?.result) < nowBigInt && nowBigInt < toBigInt(depositEnd?.result) ? 'started' : 'ended'
-				:
-				'none'
+				toBigInt(depositBegin?.result) > nowBigInt ? 'none' :
+					toBigInt(depositBegin?.result) < nowBigInt && nowBigInt < toBigInt(depositEnd?.result) ? 'started' : 'ended' : 'none'
 		),
 		voteBegin: toTBaseReadContractResult(voteBegin),
 		voteEnd: toTBaseReadContractResult(voteEnd),
 		voteStatus: (
 			(toBigInt(voteBegin?.result) > BigInt(0) && toBigInt(voteEnd?.result) > BigInt(0))
 				?
-				toBigInt(voteBegin?.result) < nowBigInt && nowBigInt < toBigInt(voteEnd?.result) ? 'started' : 'ended'
-				:
-				'none'
+				toBigInt(voteBegin?.result) > nowBigInt ? 'none' :
+					toBigInt(voteBegin?.result) < nowBigInt && nowBigInt < toBigInt(voteEnd?.result) ? 'started' : 'ended' : 'none'
 		)
 	};
+	console.warn(periods, nowBigInt);
+	return periods;
 }
 
 export default useBootstrapPeriods;
