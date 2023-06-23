@@ -1,5 +1,5 @@
 import {createPublicClient, http} from 'viem';
-import {fantom} from 'viem/chains';
+import {arbitrum, fantom} from 'viem/chains';
 import {parseUnits} from '@yearn-finance/web-lib/utils/format.bigNumber';
 
 import {localhost} from './wagmiConfig';
@@ -67,8 +67,14 @@ export function getClient(): PublicClient {
 			transport: http('http://localhost:8545')
 		});
 	}
+	if (Number(process.env.DEFAULT_CHAINID) === 250) {
+		return createPublicClient({
+			chain: fantom,
+			transport: http('https://rpc3.fantom.network')
+		});
+	}
 	return createPublicClient({
-		chain: fantom,
-		transport: http('https://rpc3.fantom.network')
+		chain: arbitrum,
+		transport: http('https://arb1.croswap.com/rpc')
 	});
 }
