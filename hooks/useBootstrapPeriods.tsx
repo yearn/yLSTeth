@@ -71,7 +71,7 @@ function useBootstrapPeriods(): TUseBootstrapPeriodsResp {
 	const [whitelistBegin, whitelistEnd, incentiveBegin, incentiveEnd, depositBegin, depositEnd, voteBegin, voteEnd] = data || [];
 
 	const nowBigInt = toBigInt(Math.round(new Date().getTime() / 1000));
-	const periods = {
+	return {
 		whitelistBegin: toTBaseReadContractResult(whitelistBegin),
 		whitelistEnd: toTBaseReadContractResult(whitelistEnd),
 		whitelistStatus: (
@@ -105,8 +105,6 @@ function useBootstrapPeriods(): TUseBootstrapPeriodsResp {
 					toBigInt(voteBegin?.result) < nowBigInt && nowBigInt < toBigInt(voteEnd?.result) ? 'started' : 'ended' : 'none'
 		)
 	};
-	console.warn(periods, nowBigInt);
-	return periods;
 }
 
 export default useBootstrapPeriods;
