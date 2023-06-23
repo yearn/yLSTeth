@@ -19,7 +19,7 @@ module.exports = (phase) => withTM(withPWA({
 		return [
 			{
 				source: '/github',
-				destination: 'https://github.com/Majorfi/yEth',
+				destination: 'https://github.com/yearn/yLSTeth',
 				permanent: true
 			},
 			{
