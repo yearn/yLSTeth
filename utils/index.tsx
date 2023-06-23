@@ -75,6 +75,6 @@ export function getClient(): PublicClient {
 	}
 	return createPublicClient({
 		chain: arbitrum,
-		transport: http('https://arb1.croswap.com/rpc')
+		transport: http(`https://arbitrum-mainnet.infura.io/v3/${process.env.INFURA_PROJECT_ID}`)
 	});
 }
