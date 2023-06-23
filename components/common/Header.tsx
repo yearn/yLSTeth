@@ -209,7 +209,8 @@ function	AppHeader(): ReactElement {
 			{path: '/deposit', label: 'Deposit'},
 			{path: '/incentive', label: 'Incentive'},
 			{path: '/vote', label: 'Vote'},
-			{path: '/docs', label: 'Docs'}
+			{path: '/docs', label: 'Docs'},
+			{path: '/support', label: 'Support'}
 		];
 		return nav;
 	}, []);
