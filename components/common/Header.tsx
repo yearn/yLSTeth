@@ -211,7 +211,7 @@ function	AppHeader(): ReactElement {
 			{path: '/deposit', label: 'Deposit'},
 			{path: '/incentive', label: 'Incentive'},
 			{path: '/vote', label: 'Vote'},
-			{path: '/docs', label: 'Docs'},
+			{path: '/documentation', label: 'Docs'},
 			{path: '/support', label: 'Support'}
 		];
 		return nav;
@@ -238,11 +238,6 @@ function	AppHeader(): ReactElement {
 								<path d={'M2 20C1.44772 20 1 20.4477 1 21C1 21.5523 1.44772 22 2 22H14C14.5523 22 15 21.5523 15 21C15 20.4477 14.5523 20 14 20H2Z'} fill={'currentcolor'}/>
 							</svg>
 						</button>
-					</div>
-					<div className={'flex w-1/3 items-center justify-center md:hidden'}>
-						<Link href={'/'}>
-							<Logo className={'h-6 text-neutral-700'} />
-						</Link>
 					</div>
 					<div className={'flex w-1/3 justify-center'}>
 						<Link href={'/'}>
