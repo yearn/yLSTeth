@@ -93,17 +93,17 @@ function IncentiveGroupBreakdownItem({item}: {item: TIncentives}): ReactElement 
 				</div>
 			</div>
 			<div className={'col-span-2 flex items-center justify-end'}>
-				<p className={'pr-1 text-xxs tabular-nums md:text-xs'}>
+				<p className={'font-number pr-1 text-xxs md:text-xs'}>
 					{`${formatAmount(toNormalizedBN(item.amount, item.incentiveToken?.decimals)?.normalized || 0, 6, 6)}`}
 				</p>
 			</div>
 			<div className={'col-span-2 flex items-center justify-end'}>
-				<p className={'pr-1 text-xxs tabular-nums md:text-xs'}>
+				<p className={'font-number pr-1 text-xxs md:text-xs'}>
 					{`${formatAmount(item.value, 6, 6)}`}
 				</p>
 			</div>
 			<div className={'col-span-2 flex items-center justify-end'}>
-				<p className={'pr-1 text-xxs tabular-nums md:text-xs'}>
+				<p className={'font-number pr-1 text-xxs md:text-xs'}>
 					{`${formatPercent(item.estimatedAPR, 2)}`}
 				</p>
 			</div>
@@ -242,7 +242,7 @@ function IncentiveGroup({item}: {item: TGroupedIncentives}): ReactElement {
 					<small className={'block text-neutral-500 md:hidden'}>
 						{'Total incentive (USD)'}
 					</small>
-					<p className={'tabular-nums'}>
+					<p className={'font-number'}>
 						{`${formatAmount(item.normalizedSum || 0, 6, 6)}`}
 					</p>
 				</div>
@@ -250,7 +250,7 @@ function IncentiveGroup({item}: {item: TGroupedIncentives}): ReactElement {
 					<small className={'block text-neutral-500 md:hidden'}>
 						{'USD/st-yETH'}
 					</small>
-					<p className={'tabular-nums'}>
+					<p className={'font-number'}>
 						{`${formatAmount(item.usdPerStETH || 0, 6, 6)}`}
 					</p>
 				</div>
@@ -258,7 +258,7 @@ function IncentiveGroup({item}: {item: TGroupedIncentives}): ReactElement {
 					<small className={'block text-neutral-500 md:hidden'}>
 						{'st-yETH vAPR'}
 					</small>
-					<p className={'tabular-nums'}>
+					<p className={'font-number'}>
 						{`${formatPercent(item.estimatedAPR, 2)}`}
 					</p>
 				</div>
@@ -681,7 +681,7 @@ function ViewIncentive(): ReactElement {
 						<div className={'flex justify-end'}>
 							<div className={'w-72 bg-neutral-100 p-4'}>
 								<p className={'pb-2'}>{'Total incentives'}</p>
-								<b suppressHydrationWarning className={'text-3xl'}>
+								<b suppressHydrationWarning className={'font-number text-3xl'}>
 									<Renderable shouldRender={true} fallback ={'-'}>
 										{`$ ${formatAmount(sumOfAllIncentives, 6, 6)}`}
 									</Renderable>

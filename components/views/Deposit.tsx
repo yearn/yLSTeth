@@ -51,7 +51,7 @@ function DepositItem({item}: {item: TDepositHistory}): ReactElement {
 				<small className={'block text-neutral-500 md:hidden'}>
 					{'Locked, st-yETH'}
 				</small>
-				<p className={'tabular-nums'}>
+				<p className={'font-number'}>
 					{`${formatAmount(toNormalizedBN(item.amount).normalized, 0, 6)}`}
 				</p>
 			</div>

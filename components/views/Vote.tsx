@@ -130,7 +130,10 @@ function VoteListItem({
 	onChangeAmount,
 	updateToMax
 }: TVoteListItem): ReactElement {
-	const {voting: {voteData, isLoadingEvents}} = useBootstrap();
+	const {
+		voting: {voteData, isLoadingEvents},
+		incentives: [groupIncentiveHistory]
+	} = useBootstrap();
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	** View function to round the amount and check if it is the max amount.
@@ -152,6 +155,20 @@ function VoteListItem({
 		return itemVotes / totalVotes * 100;
 	}, [item.extra?.totalVotes, item.extra?.votes]);
 
+	/* 🔵 - Yearn Finance **************************************************************************
+	** Compute the sum of all incentives for this protocol.
+	**********************************************************************************************/
+	const sumOfAllIncentives = useMemo((): number => {
+		let sum = 0;
+		for (const eachIncentive of Object.values(groupIncentiveHistory.protocols)) {
+			if (eachIncentive.protocol !== item.address) {
+				continue;
+			}
+			sum += eachIncentive.normalizedSum;
+		}
+		return sum;
+	}, [groupIncentiveHistory, item]);
+
 	return (
 		<div className={'mb-4 grid grid-cols-12 gap-4 bg-neutral-100 p-4 md:mb-0 md:gap-10 md:bg-neutral-0 md:px-0'}>
 			<div className={'col-span-12 flex w-full flex-row items-center space-x-4 md:col-span-3 md:space-x-6'}>
@@ -165,36 +182,56 @@ function VoteListItem({
 						height={40} />
 				</div>
 				<div>
-					<p>{item.name || truncateHex(item.address, 6)}</p>
+					<p className={'whitespace-nowrap'}>
+						{item.name || truncateHex(item.address, 6)}
+					</p>
 				</div>
 			</div>
 
-			<div className={'col-span-12 flex h-auto items-center justify-between md:col-span-1 md:h-10 md:justify-end'}>
-				<small className={'block text-neutral-500 md:hidden'}>{'Weight'}</small>
-				<p suppressHydrationWarning className={'tabular-nums'}>
-					{formatPercent(weight, 2, 2)}
-				</p>
+			<div className={'col-span-12 grid grid-cols-12 gap-4 md:col-span-6'}>
+				<div className={'col-span-12 flex h-auto items-center justify-between pr-0 md:col-span-4 md:h-10 md:justify-end md:pr-1'}>
+					<small className={'block text-neutral-500 md:hidden'}>{'Total incentive'}</small>
+					<div className={'text-right'}>
+						<b suppressHydrationWarning className={'font-number'}>
+							<Renderable shouldRender={true} fallback ={'-'}>
+								{`$ ${formatAmount(sumOfAllIncentives, 6, 6)}`}
+							</Renderable>
+						</b>
+						<p suppressHydrationWarning className={'font-number whitespace-nowrap text-xs'}>
+							<Renderable shouldRender={true} fallback ={'-'}>
+								{`${formatAmount(groupIncentiveHistory.protocols[item.address]?.usdPerStETH || 0, 6, 6)} USD/st-yETH`}
+							</Renderable>
+						</p>
+					</div>
+				</div>
+
+				<div className={'col-span-12 flex h-auto items-center justify-between pr-0 md:col-span-2 md:h-10 md:justify-end md:pr-1'}>
+					<small className={'block text-neutral-500 md:hidden'}>{'Weight'}</small>
+					<p suppressHydrationWarning className={'font-number'}>
+						{formatPercent(weight, 2, 2)}
+					</p>
+				</div>
+
+				<div className={'col-span-12 flex h-auto items-center justify-between pr-0 md:col-span-3 md:h-10 md:justify-end md:pr-1'}>
+					<small className={'block text-neutral-500 md:hidden'}>
+						{'Total Votes, yETH'}
+					</small>
+					<p suppressHydrationWarning className={'font-number'}>
+						{`${formatAmount(toNormalizedBN(item.extra?.votes || 0).normalized, 6, 6)}`}
+					</p>
+				</div>
+
+				<div className={'col-span-12 flex h-10 items-center justify-between pr-0 md:col-span-3 md:justify-end md:pr-1'}>
+					<small className={'block text-neutral-500 md:hidden'}>{'Your Votes'}</small>
+					<p suppressHydrationWarning className={'font-number'}>
+						<Renderable shouldRender={!isLoadingEvents} fallback={'-'}>
+							{`${formatAmount(voteData.votesUsedPerProtocol[item.address]?.normalized || 0, 6, 6)}`}
+						</Renderable>
+					</p>
+				</div>
 			</div>
 
-			<div className={'col-span-12 flex h-auto items-center justify-between md:col-span-2 md:h-10 md:justify-end'}>
-				<small className={'block text-neutral-500 md:hidden'}>
-					{'Total Votes, yETH'}
-				</small>
-				<p suppressHydrationWarning className={'tabular-nums'}>
-					{`${formatAmount(toNormalizedBN(item.extra?.votes || 0).normalized, 6, 6)}`}
-				</p>
-			</div>
-
-			<div className={'col-span-12 flex h-10 items-center justify-between md:col-span-2 md:justify-end'}>
-				<small className={'block text-neutral-500 md:hidden'}>{'Your Votes'}</small>
-				<p suppressHydrationWarning className={'tabular-nums'}>
-					<Renderable shouldRender={!isLoadingEvents} fallback={'-'}>
-						{`${formatAmount(voteData.votesUsedPerProtocol[item.address]?.normalized || 0, 6, 6)}`}
-					</Renderable>
-				</p>
-			</div>
-
-			<div className={'col-span-12 mt-2 flex justify-between md:col-span-4 md:mt-0 md:justify-end'}>
+			<div className={'col-span-12 mt-2 flex justify-between md:col-span-3 md:mt-0 md:justify-end'}>
 				<div className={'box-500 grow-1 flex h-10 w-full items-center justify-center p-2'}>
 					<input
 						id={`vote-for-${item.address}`}
@@ -333,37 +370,49 @@ function VoteList(): ReactElement {
 						{'LST'}
 					</p>
 				</div>
-				<div className={'col-span-1 flex justify-end'}>
-					<p
-						onClick={(): void => onSort('weight', toggleSortDirection('weight'))}
-						className={'group flex flex-row text-xs text-neutral-500'}>
-						{'Weight'}
-						<span className={'pl-2'}>
-							{renderChevron(sortBy === 'weight')}
-						</span>
-					</p>
+				<div className={'col-span-12 grid grid-cols-12 gap-4 md:col-span-6'}>
+					<div className={'col-span-4 flex justify-end'}>
+						<p
+							onClick={(): void => onSort('totalIncentive', toggleSortDirection('totalIncentive'))}
+							className={'group flex flex-row text-xs text-neutral-500'}>
+							{'Total incentive'}
+							<span className={'pl-2'}>
+								{renderChevron(sortBy === 'totalIncentive')}
+							</span>
+						</p>
+					</div>
+					<div className={'col-span-2 flex justify-end'}>
+						<p
+							onClick={(): void => onSort('weight', toggleSortDirection('weight'))}
+							className={'group flex flex-row text-xs text-neutral-500'}>
+							{'Weight'}
+							<span className={'pl-2'}>
+								{renderChevron(sortBy === 'weight')}
+							</span>
+						</p>
+					</div>
+					<div className={'col-span-3 flex justify-end'}>
+						<p
+							onClick={(): void => onSort('totalVotes', toggleSortDirection('totalVotes'))}
+							className={'group flex flex-row text-xs text-neutral-500'}>
+							{'Total Votes'}
+							<span className={'pl-2'}>
+								{renderChevron(sortBy === 'totalVotes')}
+							</span>
+						</p>
+					</div>
+					<div className={'col-span-3 flex justify-end'}>
+						<p
+							onClick={(): void => onSort('yourVotes', toggleSortDirection('yourVotes'))}
+							className={'group flex flex-row text-xs text-neutral-500'}>
+							{'Your Votes'}
+							<span className={'pl-2'}>
+								{renderChevron(sortBy === 'yourVotes')}
+							</span>
+						</p>
+					</div>
 				</div>
-				<div className={'col-span-2 flex justify-end'}>
-					<p
-						onClick={(): void => onSort('totalVotes', toggleSortDirection('totalVotes'))}
-						className={'group flex flex-row text-xs text-neutral-500'}>
-						{'Total Votes, yETH'}
-						<span className={'pl-2'}>
-							{renderChevron(sortBy === 'totalVotes')}
-						</span>
-					</p>
-				</div>
-				<div className={'col-span-2 flex justify-end'}>
-					<p
-						onClick={(): void => onSort('yourVotes', toggleSortDirection('yourVotes'))}
-						className={'group flex flex-row text-xs text-neutral-500'}>
-						{'Your Votes'}
-						<span className={'pl-2'}>
-							{renderChevron(sortBy === 'yourVotes')}
-						</span>
-					</p>
-				</div>
-				<div className={'col-span-4 flex justify-start'}>
+				<div className={'col-span-3 flex justify-start'}>
 					<p className={'group flex flex-row text-xs text-neutral-500'}>
 						{'Vote with your st-yETH'}
 					</p>
@@ -397,7 +446,7 @@ function VoteList(): ReactElement {
 					</b>
 				</div>
 				<div className={'col-span-5 flex h-10 items-center justify-end md:col-span-2'}>
-					<b className={'text-neutral-900'}>
+					<b className={'font-number text-neutral-900'}>
 						{`${formatAmount(totalVotesUsed.normalized, 6, 6)}`}
 					</b>
 				</div>
@@ -448,7 +497,7 @@ function Vote(): ReactElement {
 				<div className={'mb-6 grid grid-cols-2 gap-4 md:grid-cols-8'}>
 					<div className={'col-span-2 bg-neutral-100 p-4'}>
 						<p className={'pb-2'}>{'Total Vote Power'}</p>
-						<b suppressHydrationWarning className={'text-3xl'}>
+						<b suppressHydrationWarning className={'font-number text-3xl'}>
 							<Renderable shouldRender={!isLoading} fallback ={'-'}>
 								{formatAmount(totalVotePowerNormalized, 6, 6)}
 							</Renderable>
@@ -456,7 +505,7 @@ function Vote(): ReactElement {
 					</div>
 					<div className={'col-span-2 bg-neutral-100 p-4'}>
 						<p className={'pb-2'}>{'Remaining Votes'}</p>
-						<b suppressHydrationWarning className={'text-3xl'}>
+						<b suppressHydrationWarning className={'font-number text-3xl'}>
 							<Renderable shouldRender={!isLoading} fallback ={'-'}>
 								{formatAmount(voteData.votesAvailable.normalized, 6, 6)}
 							</Renderable>
@@ -464,7 +513,7 @@ function Vote(): ReactElement {
 					</div>
 					<div className={'col-span-2 bg-neutral-100 p-4'}>
 						<p className={'pb-2'}>{'Used Votes'}</p>
-						<b suppressHydrationWarning className={'text-3xl'}>
+						<b suppressHydrationWarning className={'font-number text-3xl'}>
 							<Renderable shouldRender={!isLoading} fallback ={'-'}>
 								{formatAmount(voteData.votesUsed.normalized, 6, 6)}
 							</Renderable>
