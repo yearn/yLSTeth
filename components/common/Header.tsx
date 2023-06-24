@@ -2,11 +2,11 @@ import React, {Fragment, useEffect, useMemo, useState} from 'react';
 import Link from 'next/link';
 import {useRouter} from 'next/router';
 import Logo from 'components/icons/Logo';
+import {usePublicClient} from 'wagmi';
 import {Listbox, Transition} from '@headlessui/react';
 import {ModalMobileMenu} from '@yearn-finance/web-lib/components/ModalMobileMenu';
 import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
 import {useChain} from '@yearn-finance/web-lib/hooks/useChain';
-import {useChainID} from '@yearn-finance/web-lib/hooks/useChainID';
 import IconChevronBottom from '@yearn-finance/web-lib/icons/IconChevronBottom';
 import IconWallet from '@yearn-finance/web-lib/icons/IconWallet';
 import {truncateHex} from '@yearn-finance/web-lib/utils/address';
@@ -39,10 +39,18 @@ function	Navbar({nav, currentPathName}: TNavbar): ReactElement {
 	);
 }
 
-function	NetworkSelector({supportedChainID}: {supportedChainID: number[]}): ReactElement {
+const toSafeChainID = (chainID: number, fallback: number): number => {
+	if (chainID === 1337 || chainID === 31337) {
+		return fallback;
+	}
+	return chainID;
+};
+function NetworkSelector({supportedChainID}: {supportedChainID: number[]}): ReactElement {
 	const chains = useChain();
-	const {safeChainID} = useChainID(Number(process.env.BASE_CHAINID));
 	const {onSwitchChain} = useWeb3();
+	const publicClient = usePublicClient();
+	const safeChainID = toSafeChainID(publicClient?.chain.id, Number(process.env.BASE_CHAINID));
+
 
 	const supportedNetworks = useMemo((): TNetwork[] => {
 		const noTestnet = supportedChainID.filter((chainID: number): boolean => chainID !== 1337);
@@ -194,8 +202,8 @@ const nav: TMenu[] = [
 	{path: '/deposit', label: 'Deposit'},
 	{path: '/incentive', label: 'Incentive'},
 	{path: '/vote', label: 'Vote'},
-	{path: '/documentation', label: 'Docs'},
-	{path: '/support', label: 'Support'}
+	{path: 'https://yeth.yearn.farm/documentation', label: 'Docs'},
+	{path: 'https://yeth.yearn.farm/support', label: 'Support'}
 ];
 
 function	AppHeader(): ReactElement {

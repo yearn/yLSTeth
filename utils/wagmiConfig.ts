@@ -1,5 +1,5 @@
-import {arbitrum, fantom, gnosis, optimism, polygon} from 'viem/chains';
-import {configureChains, createConfig, mainnet} from 'wagmi';
+import {arbitrum} from 'viem/chains';
+import {configureChains, createConfig} from 'wagmi';
 import {CoinbaseWalletConnector} from 'wagmi/connectors/coinbaseWallet';
 import {InjectedConnector} from 'wagmi/connectors/injected';
 import {LedgerConnector} from 'wagmi/connectors/ledger';
@@ -42,63 +42,8 @@ export const localhost = {
 	}
 } as const satisfies Chain;
 
-const polygonOverride = {
-	...polygon,
-	rpcUrls: {
-		default: {
-			http: [
-				...polygon.rpcUrls.default.http,
-				'https://polygon.llamarpc.com',
-				process.env.RPC_URL_POLYGON_TENDERLY || 'https://1rpc.io/matic'
-			]
-		},
-		public: {
-			http: [
-				...polygon.rpcUrls.default.http,
-				'https://polygon.llamarpc.com',
-				process.env.RPC_URL_POLYGON_TENDERLY || 'https://1rpc.io/matic'
-			]
-		}
-	}
-
-};
-
-const optimismOverride = {
-	...optimism,
-	rpcUrls: {
-		default: {
-			http: [
-				...optimism.rpcUrls.default.http,
-				'https://opt-mainnet.g.alchemy.com/v2/demo',
-				'https://endpoints.omniatech.io/v1/op/mainnet/public',
-				'https://optimism-mainnet.public.blastapi.io',
-				'https://optimism.blockpi.network/v1/rpc/public',
-				'https://rpc.ankr.com/optimism',
-				'https://1rpc.io/op',
-				'https://optimism.api.onfinality.io/public',
-				'https://rpc.optimism.gateway.fm'
-
-			]
-		},
-		public: {
-			http: [
-				...optimism.rpcUrls.default.http,
-				'https://opt-mainnet.g.alchemy.com/v2/demo',
-				'https://endpoints.omniatech.io/v1/op/mainnet/public',
-				'https://optimism-mainnet.public.blastapi.io',
-				'https://optimism.blockpi.network/v1/rpc/public',
-				'https://rpc.ankr.com/optimism',
-				'https://1rpc.io/op',
-				'https://optimism.api.onfinality.io/public',
-				'https://rpc.optimism.gateway.fm'
-			]
-		}
-	}
-
-};
-
 const {chains, publicClient, webSocketPublicClient} = configureChains(
-	[mainnet, optimismOverride, polygonOverride, gnosis, fantom, arbitrum, localhost],
+	[arbitrum, localhost],
 	[
 		infuraProvider({apiKey: process.env.INFURA_PROJECT_ID || ''}),
 		alchemyProvider({apiKey: process.env.ALCHEMY_KEY || ''}),

@@ -74,8 +74,8 @@
 				}
 			}
 		}
-		& .yearn--modal {
-			@apply inline-block overflow-hidden relative z-50 w-full text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-[400px] sm:align-middle bg-neutral-0;
+		& .yearn--modal-alt {
+			@apply sm:w-[400px];
 		}
 	}
 

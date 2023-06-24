@@ -773,6 +773,7 @@ function ViewIncentive(): ReactElement {
 					incentives={groupIncentiveHistory} />
 			</div>
 			<Modal
+				style={{width: 400}}
 				isOpen={isModalOpen}
 				onClose={(): void => set_isModalOpen(false)}>
 				<IncentiveConfirmationModal

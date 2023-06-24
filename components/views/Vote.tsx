@@ -459,6 +459,7 @@ function VoteList(): ReactElement {
 				</div>
 			</div>
 			<Modal
+				style={{width: 400}}
 				isOpen={isModalOpen}
 				onClose={(): void => set_isModalOpen(false)}>
 				<VoteConfirmationModal
