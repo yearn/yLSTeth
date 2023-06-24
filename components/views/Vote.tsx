@@ -473,7 +473,10 @@ function VoteList(): ReactElement {
 }
 
 function Vote(): ReactElement {
-	const {voting: {voteData, isLoading}} = useBootstrap();
+	const {
+		periods: {voteStatus},
+		voting: {voteData, isLoading}
+	} = useBootstrap();
 
 	const totalVotePowerNormalized = useMemo((): number => {
 		return Number(voteData.votesAvailable.normalized) + Number(voteData.votesUsed.normalized);
@@ -495,34 +498,36 @@ function Vote(): ReactElement {
 						{'Decide how much ETH you want to lock as st-yETH. Remember this ETH will be locked for 16 weeks, during which time period you’ll be able to receive bri... incentives for voting on which LSTs will be included in yETH.'}
 					</p>
 				</div>
-				<div className={'mb-6 grid grid-cols-2 gap-4 md:grid-cols-8'}>
-					<div className={'col-span-2 bg-neutral-100 p-4'}>
-						<p className={'pb-2'}>{'Total Vote Power'}</p>
-						<b suppressHydrationWarning className={'font-number text-3xl'}>
-							<Renderable shouldRender={!isLoading} fallback ={'-'}>
-								{formatAmount(totalVotePowerNormalized, 6, 6)}
-							</Renderable>
-						</b>
+				<div className={voteStatus !== 'started' ? 'pointer-events-none opacity-40' : ''}>
+					<div className={'mb-6 grid grid-cols-2 gap-4 md:grid-cols-8'}>
+						<div className={'col-span-2 bg-neutral-100 p-4'}>
+							<p className={'pb-2'}>{'Total Vote Power'}</p>
+							<b suppressHydrationWarning className={'font-number text-3xl'}>
+								<Renderable shouldRender={!isLoading} fallback ={'-'}>
+									{formatAmount(totalVotePowerNormalized, 6, 6)}
+								</Renderable>
+							</b>
+						</div>
+						<div className={'col-span-2 bg-neutral-100 p-4'}>
+							<p className={'pb-2'}>{'Remaining Votes'}</p>
+							<b suppressHydrationWarning className={'font-number text-3xl'}>
+								<Renderable shouldRender={!isLoading} fallback ={'-'}>
+									{formatAmount(voteData.votesAvailable.normalized, 6, 6)}
+								</Renderable>
+							</b>
+						</div>
+						<div className={'col-span-2 bg-neutral-100 p-4'}>
+							<p className={'pb-2'}>{'Used Votes'}</p>
+							<b suppressHydrationWarning className={'font-number text-3xl'}>
+								<Renderable shouldRender={!isLoading} fallback ={'-'}>
+									{formatAmount(voteData.votesUsed.normalized, 6, 6)}
+								</Renderable>
+							</b>
+						</div>
 					</div>
-					<div className={'col-span-2 bg-neutral-100 p-4'}>
-						<p className={'pb-2'}>{'Remaining Votes'}</p>
-						<b suppressHydrationWarning className={'font-number text-3xl'}>
-							<Renderable shouldRender={!isLoading} fallback ={'-'}>
-								{formatAmount(voteData.votesAvailable.normalized, 6, 6)}
-							</Renderable>
-						</b>
+					<div className={'w-full border-t-2 border-neutral-300 pb-4 pt-6'}>
+						<VoteList />
 					</div>
-					<div className={'col-span-2 bg-neutral-100 p-4'}>
-						<p className={'pb-2'}>{'Used Votes'}</p>
-						<b suppressHydrationWarning className={'font-number text-3xl'}>
-							<Renderable shouldRender={!isLoading} fallback ={'-'}>
-								{formatAmount(voteData.votesUsed.normalized, 6, 6)}
-							</Renderable>
-						</b>
-					</div>
-				</div>
-				<div className={'w-full border-t-2 border-neutral-300 pb-4 pt-6'}>
-					<VoteList />
 				</div>
 			</div>
 		</section>

@@ -51,7 +51,6 @@ function NetworkSelector({supportedChainID}: {supportedChainID: number[]}): Reac
 	const publicClient = usePublicClient();
 	const safeChainID = toSafeChainID(publicClient?.chain.id, Number(process.env.BASE_CHAINID));
 
-
 	const supportedNetworks = useMemo((): TNetwork[] => {
 		const noTestnet = supportedChainID.filter((chainID: number): boolean => chainID !== 1337);
 		return noTestnet.map((chainID: number): TNetwork => (

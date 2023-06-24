@@ -498,6 +498,7 @@ function ViewIncentive(): ReactElement {
 	const {tokenList} = useTokenList();
 	const {
 		whitelistedLST,
+		periods: {incentiveStatus},
 		incentives: [groupIncentiveHistory, isFetchingHistory, refreshIncentives]
 	} = useBootstrap();
 	const [isModalOpen, set_isModalOpen] = useState<boolean>(false);
@@ -690,87 +691,90 @@ function ViewIncentive(): ReactElement {
 						</div>
 					</div>
 				</div>
-				<div className={'mb-8 grid w-full grid-cols-1 gap-2 md:grid-cols-2 md:gap-2 lg:grid-cols-4 lg:gap-4'}>
-					<div>
-						<p className={'pb-1 text-sm text-neutral-600 md:text-base'}>{'Select LST to incentivize'}</p>
-						<ComboboxAddressInput
-							value={lstToIncentive?.address}
-							possibleValues={whitelistedLST.whitelistedLST}
-							onChangeValue={set_lstToIncentive} />
-						<p className={'hidden pt-1 text-xs lg:block'}>&nbsp;</p>
-					</div>
 
-					<div className={'pt-2 md:pt-0'}>
-						<p className={'pb-1 text-sm text-neutral-600 md:text-base'}>{'Select token to incentivize with'}</p>
-						<ComboboxAddressInput
-							value={tokenToUse?.address}
-							possibleValues={possibleTokensToUse}
-							onAddValue={set_possibleTokensToUse}
-							onChangeValue={set_tokenToUse} />
-						<p className={'hidden pt-1 text-xs lg:block'}>&nbsp;</p>
-					</div>
-
-					<div className={'pt-2 md:pt-0'}>
-						<p className={'pb-1 text-sm text-neutral-600 md:text-base'}>{'Amount'}</p>
-						<div className={'box-500 grow-1 flex h-10 w-full items-center justify-center p-2'}>
-							<div className={'mr-2 h-6 w-6 min-w-[24px]'}>
-								<ImageWithFallback
-									alt={''}
-									unoptimized
-									key={tokenToUse?.logoURI || ''}
-									src={tokenToUse?.logoURI || ''}
-									width={24}
-									height={24} />
-							</div>
-							<input
-								id={'amountToSend'}
-								className={'w-full overflow-x-scroll border-none bg-transparent px-0 py-4 font-mono text-sm outline-none scrollbar-none'}
-								type={'number'}
-								min={0}
-								maxLength={20}
-								max={balanceOf?.normalized || 0}
-								step={1 / 10 ** (tokenToUse?.decimals || 18)}
-								inputMode={'numeric'}
-								placeholder={'0'}
-								pattern={'^((?:0|[1-9]+)(?:.(?:d+?[1-9]|[1-9]))?)$'}
-								value={amountToSend?.normalized || ''}
-								onChange={onChangeAmount} />
-							<div className={'ml-2 flex flex-row space-x-1'}>
-								<button
-									onClick={(): void => updateToPercent(100)}
-									className={cl('p-1 text-xs rounded-sm border border-purple-300 transition-colors', amountPercentage === 100 ? 'bg-purple-300 text-white' : 'text-purple-300 hover:bg-purple-300 hover:text-white')}>
-									{'max'}
-								</button>
-
-							</div>
+				<div className={incentiveStatus !== 'started' ? 'pointer-events-none opacity-40' : ''}>
+					<div className={'mb-8 grid w-full grid-cols-1 gap-2 md:grid-cols-2 md:gap-2 lg:grid-cols-4 lg:gap-4'}>
+						<div>
+							<p className={'pb-1 text-sm text-neutral-600 md:text-base'}>{'Select LST to incentivize'}</p>
+							<ComboboxAddressInput
+								value={lstToIncentive?.address}
+								possibleValues={whitelistedLST.whitelistedLST}
+								onChangeValue={set_lstToIncentive} />
+							<p className={'hidden pt-1 text-xs lg:block'}>&nbsp;</p>
 						</div>
-						<small
-							suppressHydrationWarning
-							className={'pl-2 pt-1 text-xs text-neutral-600'}>
-							{`You have ${formatAmount(balanceOf?.normalized || 0, 2, 6)} ${tokenToUse?.symbol || '-'}`}
-						</small>
-					</div>
 
-					<div className={'w-full pt-4 md:pt-0'}>
-						<p className={'hidden pb-1 text-neutral-600 md:block'}>&nbsp;</p>
-						<Button
-							onClick={(): unknown => hasAllowance ? set_isModalOpen(true) : onApprove()}
-							isBusy={approvalStatus.pending}
-							isDisabled={
-								amountToSend.raw === 0n
+						<div className={'pt-2 md:pt-0'}>
+							<p className={'pb-1 text-sm text-neutral-600 md:text-base'}>{'Select token to incentivize with'}</p>
+							<ComboboxAddressInput
+								value={tokenToUse?.address}
+								possibleValues={possibleTokensToUse}
+								onAddValue={set_possibleTokensToUse}
+								onChangeValue={set_tokenToUse} />
+							<p className={'hidden pt-1 text-xs lg:block'}>&nbsp;</p>
+						</div>
+
+						<div className={'pt-2 md:pt-0'}>
+							<p className={'pb-1 text-sm text-neutral-600 md:text-base'}>{'Amount'}</p>
+							<div className={'box-500 grow-1 flex h-10 w-full items-center justify-center p-2'}>
+								<div className={'mr-2 h-6 w-6 min-w-[24px]'}>
+									<ImageWithFallback
+										alt={''}
+										unoptimized
+										key={tokenToUse?.logoURI || ''}
+										src={tokenToUse?.logoURI || ''}
+										width={24}
+										height={24} />
+								</div>
+								<input
+									id={'amountToSend'}
+									className={'w-full overflow-x-scroll border-none bg-transparent px-0 py-4 font-mono text-sm outline-none scrollbar-none'}
+									type={'number'}
+									min={0}
+									maxLength={20}
+									max={balanceOf?.normalized || 0}
+									step={1 / 10 ** (tokenToUse?.decimals || 18)}
+									inputMode={'numeric'}
+									placeholder={'0'}
+									pattern={'^((?:0|[1-9]+)(?:.(?:d+?[1-9]|[1-9]))?)$'}
+									value={amountToSend?.normalized || ''}
+									onChange={onChangeAmount} />
+								<div className={'ml-2 flex flex-row space-x-1'}>
+									<button
+										onClick={(): void => updateToPercent(100)}
+										className={cl('p-1 text-xs rounded-sm border border-purple-300 transition-colors', amountPercentage === 100 ? 'bg-purple-300 text-white' : 'text-purple-300 hover:bg-purple-300 hover:text-white')}>
+										{'max'}
+									</button>
+
+								</div>
+							</div>
+							<small
+								suppressHydrationWarning
+								className={'pl-2 pt-1 text-xs text-neutral-600'}>
+								{`You have ${formatAmount(balanceOf?.normalized || 0, 2, 6)} ${tokenToUse?.symbol || '-'}`}
+							</small>
+						</div>
+
+						<div className={'w-full pt-4 md:pt-0'}>
+							<p className={'hidden pb-1 text-neutral-600 md:block'}>&nbsp;</p>
+							<Button
+								onClick={(): unknown => hasAllowance ? set_isModalOpen(true) : onApprove()}
+								isBusy={approvalStatus.pending}
+								isDisabled={
+									amountToSend.raw === 0n
 									|| amountToSend.raw > balanceOf.raw
 									|| !isValidAddress(lstToIncentive?.address)
 									|| !isValidAddress(tokenToUse?.address)
-							}
-							className={'yearn--button w-full rounded-md !text-sm'}>
-							{hasAllowance ? 'Submit' : 'Approve'}
-						</Button>
-						<p className={'pl-2 pt-1 text-xs text-neutral-600'}>&nbsp;</p>
+								}
+								className={'yearn--button w-full rounded-md !text-sm'}>
+								{hasAllowance ? 'Submit' : 'Approve'}
+							</Button>
+							<p className={'pl-2 pt-1 text-xs text-neutral-600'}>&nbsp;</p>
+						</div>
 					</div>
+					<IncentiveHistory
+						isPending={isFetchingHistory}
+						incentives={groupIncentiveHistory} />
 				</div>
-				<IncentiveHistory
-					isPending={isFetchingHistory}
-					incentives={groupIncentiveHistory} />
 			</div>
 			<Modal
 				style={{width: 400}}

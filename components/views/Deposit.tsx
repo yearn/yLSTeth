@@ -86,10 +86,11 @@ function DepositHistory({isPending, depositHistory}: {isPending: boolean, deposi
 }
 
 function Deposit(): ReactElement {
+	const {periods: {depositStatus}} = useBootstrap();
 	const {address, isActive, provider, chainID} = useWeb3();
 	const {balances, refresh} = useWallet();
 	const [amountToSend, set_amountToSend] = useState<TNormalizedBN>(toNormalizedBN(0));
-	const [depositStatus, set_depositStatus] = useState<TTxStatus>(defaultTxStatus);
+	const [depositTxStatus, set_depositTxStatus] = useState<TTxStatus>(defaultTxStatus);
 	const [depositHistory, set_depositHistory] = useState<TDepositHistory[]>([]);
 	const [isFetchingHistory, set_isFetchingHistory] = useState<boolean>(false);
 	const tokenToSend = ETH_TOKEN;
@@ -143,7 +144,6 @@ function Deposit(): ReactElement {
 		filterEvents();
 	}, [filterEvents]);
 
-
 	const balanceOf = useMemo((): TNormalizedBN => {
 		return toNormalizedBN((balances?.[tokenToSend.address]?.raw || 0) || 0);
 	}, [balances, tokenToSend.address]);
@@ -194,7 +194,7 @@ function Deposit(): ReactElement {
 			connector: provider,
 			contractAddress: toAddress(process.env.BOOTSTRAP_ADDRESS),
 			amount: amountToSend.raw,
-			statusHandler: set_depositStatus
+			statusHandler: set_depositTxStatus
 		});
 		if (result.isSuccessful) {
 			set_amountToSend(toNormalizedBN(0));
@@ -209,7 +209,6 @@ function Deposit(): ReactElement {
 			]);
 		}
 	}, [amountToSend.raw, isActive, provider, refresh, refetch, filterEvents]);
-
 
 	return (
 		<section className={'grid grid-cols-1 pt-10 md:mb-20 md:pt-12'}>
@@ -227,104 +226,107 @@ function Deposit(): ReactElement {
 						{'Decide how much ETH you want to lock as st-yETH. Remember this ETH will be locked for 16 weeks, during which time period you’ll be able to receive bri... incentives for voting on which LSTs will be included in yETH.'}
 					</p>
 				</div>
-				<div className={'mb-8 grid w-full grid-cols-1 gap-2 md:grid-cols-3 md:gap-2 lg:grid-cols-12 lg:gap-4'}>
-					<div className={'lg:col-span-4'}>
-						<p className={'pb-1 text-sm text-neutral-600 md:text-base'}>{'You’re locking, ETH'}</p>
-						<div className={'box-500 grow-1 flex h-10 w-full items-center justify-center p-2'}>
-							<div className={'mr-2 h-6 w-6 min-w-[24px]'}>
-								<ImageWithFallback
-									alt={''}
-									unoptimized
-									src={ETH_TOKEN.logoURI}
-									width={24}
-									height={24} />
-							</div>
-							<input
-								id={'amountToSend'}
-								className={'w-full overflow-x-scroll border-none bg-transparent px-0 py-4 font-mono text-sm outline-none scrollbar-none'}
-								type={'number'}
-								min={0}
-								maxLength={20}
-								max={safeMaxValue?.normalized || 0}
-								step={1 / 10 ** (tokenToSend?.decimals || 18)}
-								inputMode={'numeric'}
-								placeholder={'0'}
-								pattern={'^((?:0|[1-9]+)(?:.(?:d+?[1-9]|[1-9]))?)$'}
-								value={amountToSend?.normalized || ''}
-								onChange={onChangeAmount} />
-							<div className={'ml-2 flex flex-row space-x-1'}>
-								<button
-									onClick={(): void => updateToPercent(20)}
-									className={cl('p-1 text-xs rounded-sm border border-purple-300 transition-colors', amountPercentage === 20 ? 'bg-purple-300 text-white' : 'text-purple-300 hover:bg-purple-300 hover:text-white')}>
-									{'20%'}
-								</button>
-								<button
-									onClick={(): void => updateToPercent(40)}
-									className={cl('p-1 text-xs rounded-sm border border-purple-300 transition-colors', amountPercentage === 40 ? 'bg-purple-300 text-white' : 'text-purple-300 hover:bg-purple-300 hover:text-white')}>
-									{'40%'}
-								</button>
-								<button
-									onClick={(): void => updateToPercent(60)}
-									className={cl('p-1 text-xs rounded-sm border border-purple-300 transition-colors', amountPercentage === 60 ? 'bg-purple-300 text-white' : 'text-purple-300 hover:bg-purple-300 hover:text-white')}>
-									{'60%'}
-								</button>
-								<button
-									onClick={(): void => updateToPercent(80)}
-									className={cl('p-1 text-xs rounded-sm border border-purple-300 transition-colors', amountPercentage === 80 ? 'bg-purple-300 text-white' : 'text-purple-300 hover:bg-purple-300 hover:text-white')}>
-									{'80%'}
-								</button>
 
+				<div className={depositStatus !== 'started' ? 'pointer-events-none opacity-40' : ''}>
+					<div className={'mb-8 grid w-full grid-cols-1 gap-2 md:grid-cols-3 md:gap-2 lg:grid-cols-12 lg:gap-4'}>
+						<div className={'lg:col-span-4'}>
+							<p className={'pb-1 text-sm text-neutral-600 md:text-base'}>{'You’re locking, ETH'}</p>
+							<div className={'box-500 grow-1 flex h-10 w-full items-center justify-center p-2'}>
+								<div className={'mr-2 h-6 w-6 min-w-[24px]'}>
+									<ImageWithFallback
+										alt={''}
+										unoptimized
+										src={ETH_TOKEN.logoURI}
+										width={24}
+										height={24} />
+								</div>
+								<input
+									id={'amountToSend'}
+									className={'w-full overflow-x-scroll border-none bg-transparent px-0 py-4 font-mono text-sm outline-none scrollbar-none'}
+									type={'number'}
+									min={0}
+									maxLength={20}
+									max={safeMaxValue?.normalized || 0}
+									step={1 / 10 ** (tokenToSend?.decimals || 18)}
+									inputMode={'numeric'}
+									placeholder={'0'}
+									pattern={'^((?:0|[1-9]+)(?:.(?:d+?[1-9]|[1-9]))?)$'}
+									value={amountToSend?.normalized || ''}
+									onChange={onChangeAmount} />
+								<div className={'ml-2 flex flex-row space-x-1'}>
+									<button
+										onClick={(): void => updateToPercent(20)}
+										className={cl('p-1 text-xs rounded-sm border border-purple-300 transition-colors', amountPercentage === 20 ? 'bg-purple-300 text-white' : 'text-purple-300 hover:bg-purple-300 hover:text-white')}>
+										{'20%'}
+									</button>
+									<button
+										onClick={(): void => updateToPercent(40)}
+										className={cl('p-1 text-xs rounded-sm border border-purple-300 transition-colors', amountPercentage === 40 ? 'bg-purple-300 text-white' : 'text-purple-300 hover:bg-purple-300 hover:text-white')}>
+										{'40%'}
+									</button>
+									<button
+										onClick={(): void => updateToPercent(60)}
+										className={cl('p-1 text-xs rounded-sm border border-purple-300 transition-colors', amountPercentage === 60 ? 'bg-purple-300 text-white' : 'text-purple-300 hover:bg-purple-300 hover:text-white')}>
+										{'60%'}
+									</button>
+									<button
+										onClick={(): void => updateToPercent(80)}
+										className={cl('p-1 text-xs rounded-sm border border-purple-300 transition-colors', amountPercentage === 80 ? 'bg-purple-300 text-white' : 'text-purple-300 hover:bg-purple-300 hover:text-white')}>
+										{'80%'}
+									</button>
+
+								</div>
 							</div>
+							<p
+								suppressHydrationWarning
+								className={'pl-2 pt-1 text-xs text-neutral-600'}>
+								{`You have ${formatAmount(balanceOf?.normalized || 0, 2, 6)} ${tokenToSend.symbol}`}
+							</p>
 						</div>
-						<p
-							suppressHydrationWarning
-							className={'pl-2 pt-1 text-xs text-neutral-600'}>
-							{`You have ${formatAmount(balanceOf?.normalized || 0, 2, 6)} ${tokenToSend.symbol}`}
-						</p>
-					</div>
-					<div className={'pt-2 md:pt-0 lg:col-span-3'}>
-						<p className={'pb-1 text-sm text-neutral-600 md:text-base'}>{'You’re getting, st-yETH'}</p>
-						<div className={'box-500 grow-1 flex h-10 w-full items-center justify-center p-2'}>
-							<div className={'mr-2 h-6 w-6 min-w-[24px]'}>
-								<ImageWithFallback
-									alt={''}
-									src={'/favicons/favicon.png'}
-									width={24}
-									height={24} />
+						<div className={'pt-2 md:pt-0 lg:col-span-3'}>
+							<p className={'pb-1 text-sm text-neutral-600 md:text-base'}>{'You’re getting, st-yETH'}</p>
+							<div className={'box-500 grow-1 flex h-10 w-full items-center justify-center p-2'}>
+								<div className={'mr-2 h-6 w-6 min-w-[24px]'}>
+									<ImageWithFallback
+										alt={''}
+										src={'/favicons/favicon.png'}
+										width={24}
+										height={24} />
+								</div>
+								<input
+									className={'w-full overflow-x-scroll border-none bg-transparent px-0 py-4 font-mono text-sm text-neutral-400 outline-none scrollbar-none'}
+									readOnly
+									type={'number'}
+									inputMode={'numeric'}
+									placeholder={'0'}
+									value={amountToSend?.normalized || ''} />
 							</div>
-							<input
-								className={'w-full overflow-x-scroll border-none bg-transparent px-0 py-4 font-mono text-sm text-neutral-400 outline-none scrollbar-none'}
-								readOnly
-								type={'number'}
-								inputMode={'numeric'}
-								placeholder={'0'}
-								value={amountToSend?.normalized || ''} />
+							<p
+								suppressHydrationWarning
+								className={'pl-2 pt-1 text-xs text-neutral-600'}>
+								{`You have ${formatAmount(balanceDeposited?.normalized || 0, 2, 6)} st-yETH`}
+							</p>
 						</div>
-						<p
-							suppressHydrationWarning
-							className={'pl-2 pt-1 text-xs text-neutral-600'}>
-							{`You have ${formatAmount(balanceDeposited?.normalized || 0, 2, 6)} st-yETH`}
-						</p>
-					</div>
-					<div className={'w-full pt-4 md:pt-0 lg:col-span-3'}>
-						<p className={'hidden pb-1 text-neutral-600 md:block'}>&nbsp;</p>
-						<Button
-							onClick={onDeposit}
-							isBusy={depositStatus.pending}
-							isDisabled={
-								amountToSend.raw === 0n
+						<div className={'w-full pt-4 md:pt-0 lg:col-span-3'}>
+							<p className={'hidden pb-1 text-neutral-600 md:block'}>&nbsp;</p>
+							<Button
+								onClick={onDeposit}
+								isBusy={depositTxStatus.pending}
+								isDisabled={
+									amountToSend.raw === 0n
 									|| amountToSend.raw > balanceOf.raw
-									|| !depositStatus.none
-							}
-							className={'yearn--button w-full rounded-md !text-sm'}>
-							{'Submit'}
-						</Button>
-						<p className={'pl-2 pt-1 text-xs text-neutral-600'}>&nbsp;</p>
+									|| !depositTxStatus.none
+								}
+								className={'yearn--button w-full rounded-md !text-sm'}>
+								{'Submit'}
+							</Button>
+							<p className={'pl-2 pt-1 text-xs text-neutral-600'}>&nbsp;</p>
+						</div>
 					</div>
+					<DepositHistory
+						isPending={isFetchingHistory}
+						depositHistory={depositHistory} />
 				</div>
-				<DepositHistory
-					isPending={isFetchingHistory}
-					depositHistory={depositHistory} />
 			</div>
 		</section>
 	);
