@@ -7,6 +7,7 @@ import {useAsync, useMountEffect, useUpdateEffect} from '@react-hookz/web';
 import {multicall} from '@wagmi/core';
 import {toAddress} from '@yearn-finance/web-lib/utils/address';
 import {decodeAsBigInt, decodeAsNumber, decodeAsString} from '@yearn-finance/web-lib/utils/decoder';
+import {toBigInt} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import performBatchedUpdates from '@yearn-finance/web-lib/utils/performBatchedUpdates';
 
 import type {TTokenInfo} from 'contexts/useTokenList';
@@ -71,7 +72,7 @@ function useBootstrapWhitelistedLST(): TUseBootstrapWhitelistedLSTResp {
 		set_isLoading(true);
 		const publicClient = getClient();
 		const rangeLimit = 1_000_000n;
-		const deploymentBlockNumber = 62_856_231n;
+		const deploymentBlockNumber = toBigInt(process.env.INIT_BLOCK_NUMBER);
 		const currentBlockNumber = await publicClient.getBlockNumber();
 		const whitelisted: TAddress[] = [];
 		for (let i = deploymentBlockNumber; i < currentBlockNumber; i += rangeLimit) {

@@ -54,7 +54,7 @@ function useBootstrapVoting(): TUseBootstrapVotingResp {
 		set_isLoadingEvents(hasAlreadyBeLoaded.current ? false : true);
 		const publicClient = getClient();
 		const rangeLimit = 1_000_000n;
-		const deploymentBlockNumber = 62_856_231n;
+		const deploymentBlockNumber = toBigInt(process.env.INIT_BLOCK_NUMBER);
 		const currentBlockNumber = await publicClient.getBlockNumber();
 		const userVotes: TDict<TNormalizedBN> = {};
 		for (let i = deploymentBlockNumber; i < currentBlockNumber; i += rangeLimit) {

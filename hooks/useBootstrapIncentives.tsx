@@ -76,7 +76,7 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 		set_isFetchingHistory(true);
 		const publicClient = getClient();
 		const rangeLimit = 1_000_000n;
-		const deploymentBlockNumber = 62_856_231n;
+		const deploymentBlockNumber = toBigInt(process.env.INIT_BLOCK_NUMBER);
 		const currentBlockNumber = await publicClient.getBlockNumber();
 		const incentives: TIncentives[] = [];
 		for (let i = deploymentBlockNumber; i < currentBlockNumber; i += rangeLimit) {
