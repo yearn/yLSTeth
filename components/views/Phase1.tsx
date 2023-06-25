@@ -22,7 +22,7 @@ function Phase1({variant}: {variant: string[]}): ReactElement {
 
 	return (
 		<section className={'absolute inset-x-0 grid grid-cols-12 gap-0 px-4 pt-10 md:gap-20 md:pt-12'}>
-			<div className={'col-span-12 mb-20 md:col-span-6 md:mb-0'}>
+			<div className={'col-span-12 md:col-span-6 md:mb-0'}>
 				<div className={'mb-10 flex flex-col justify-center'}>
 					<motion.p
 						className={'text-lg'}
@@ -99,7 +99,7 @@ function Phase1({variant}: {variant: string[]}): ReactElement {
 			</div>
 
 			<motion.div
-				className={'relative col-span-12 hidden h-screen md:col-span-6 md:flex'}
+				className={'relative col-span-12 hidden h-[100%] md:col-span-6 md:flex'}
 				variants={customVariants(0.06)}
 				custom={variant}
 				initial={'initial'}
