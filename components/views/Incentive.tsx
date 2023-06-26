@@ -494,7 +494,7 @@ function IncentiveConfirmationModal({
 function ViewIncentive(): ReactElement {
 	const {address, isActive, provider} = useWeb3();
 	const {safeChainID} = useChainID(Number(process.env.BASE_CHAINID));
-	const {balances, balancesNonce, refresh} = useWallet();
+	const {balances, refresh} = useWallet();
 	const {tokenList} = useTokenList();
 	const {
 		whitelistedLST,
