@@ -133,7 +133,7 @@ function YETH(): ReactElement {
 				</button>
 			</motion.div>
 			<div
-				className={'relative flex flex-row overflow-scroll'}
+				className={'relative flex flex-row'}
 				style={{height: 'calc(100vh - 80px)'}}>
 				<AnimatePresence
 					mode={'sync'}
