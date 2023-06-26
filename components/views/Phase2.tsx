@@ -74,9 +74,9 @@ function Phase2Started({variant}: {variant: string[]}): ReactElement {
 								onClick={(): void => set_currentTab(1)}
 								className={cl('text-lg border-b-2 pb-2 transition-colors px-4', currentTab === 1 ? 'border-neutral-900 text-neutral-900 font-bold' : 'border-neutral-500 text-neutral-500')}>
 								<p
-									title={'Incentive'}
+									title={'Incentivise'}
 									className={'hover-fix'}>
-									{'Incentive'}
+									{'Incentivise'}
 								</p>
 							</button>
 						</div>
@@ -108,7 +108,7 @@ function Phase2Started({variant}: {variant: string[]}): ReactElement {
 							<Link href={currentTab === 0 ? '/deposit' : '/incentive'}>
 								<Button
 									className={'yearn--button w-full rounded-md !text-sm md:w-1/2'}>
-									{currentTab === 0 ? 'Deposit' : 'Incentive'}
+									{currentTab === 0 ? 'Deposit' : 'Incentivise'}
 								</Button>
 							</Link>
 						</motion.div>
