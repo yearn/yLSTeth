@@ -775,7 +775,8 @@ function ViewIncentive(): ReactElement {
 								onClick={(): unknown => hasAllowance ? set_isModalOpen(true) : onApprove()}
 								isBusy={approvalStatus.pending}
 								isDisabled={
-									amountToSend.raw === 0n
+									!approvalStatus.none
+									|| amountToSend.raw === 0n
 									|| amountToSend.raw > balanceOf.raw
 									|| !isValidAddress(lstToIncentive?.address)
 									|| !isValidAddress(tokenToUse?.address)
