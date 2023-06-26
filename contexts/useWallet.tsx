@@ -70,8 +70,12 @@ export const WalletContextApp = memo(function WalletContextApp({children}: {chil
 		});
 		if (safeChainID === 1) {
 			tokens.push({token: toAddress(ETH_TOKEN_ADDRESS), decimals: 18, name: 'Ether', symbol: 'ETH'});
+		} else if (safeChainID === 10) {
+			tokens.push({token: toAddress(ETH_TOKEN_ADDRESS), decimals: 18, name: 'Ether', symbol: 'ETH'});
 		} else if (safeChainID === 250) {
 			tokens.push({token: toAddress(ETH_TOKEN_ADDRESS), decimals: 18, name: 'Fantom', symbol: 'FTM'});
+		} else if (safeChainID === 42161) {
+			tokens.push({token: toAddress(ETH_TOKEN_ADDRESS), decimals: 18, name: 'Ether', symbol: 'ETH'});
 		}
 		return tokens;
 	}, [safeChainID, tokenList]);
