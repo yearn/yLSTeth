@@ -1,7 +1,6 @@
 import React from 'react';
 import AppWrapper from 'components/common/AppWrapper';
 import {BootstrapContextApp} from 'contexts/useBootstrap';
-import {PriceContextApp} from 'contexts/usePrices';
 import {TokenListContextApp} from 'contexts/useTokenList';
 import {WalletContextApp} from 'contexts/useWallet';
 import config from 'utils/wagmiConfig';
@@ -41,17 +40,15 @@ function	MyApp(props: AppProps): ReactElement {
 						supportedChainID: [42161, 1337]
 					}
 				}}>
-				<PriceContextApp>
-					<BootstrapContextApp>
-						<TokenListContextApp>
-							<WalletContextApp>
-								<main className={cl('flex flex-col', aeonik.className)}>
-									<AppWrapper {...props} />
-								</main>
-							</WalletContextApp>
-						</TokenListContextApp>
-					</BootstrapContextApp>
-				</PriceContextApp>
+				<BootstrapContextApp>
+					<TokenListContextApp>
+						<WalletContextApp>
+							<main className={cl('flex flex-col', aeonik.className)}>
+								<AppWrapper {...props} />
+							</main>
+						</WalletContextApp>
+					</TokenListContextApp>
+				</BootstrapContextApp>
 			</WithYearn>
 		</>
 	);

@@ -55,6 +55,7 @@ module.exports = (phase) => withTM(withPWA({
 		TELEGRAM_CHAT: process.env.TELEGRAM_CHAT,
 		ALCHEMY_KEY: process.env.ALCHEMY_KEY,
 		INFURA_PROJECT_ID: process.env.INFURA_PROJECT_ID,
+		YDAEMON_BASE_URI: 'https://ydaemon.ycorpo.com',
 		BASE_CHAINID: 42161, // Expected to work on this chain
 		DEFAULT_CHAINID: 42161, // The one we currently use
 		YETH_ADDRESS: '0xcC7D64D4143CBc1CB9B6299680D4AD84f94268b2',
