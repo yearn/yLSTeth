@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import assert from 'assert';
 import ComboboxAddressInput from 'components/common/ComboboxAddressInput';
 import {ImageWithFallback} from 'components/common/ImageWithFallback';
@@ -507,6 +507,7 @@ function ViewIncentive(): ReactElement {
 	const [lstToIncentive, set_lstToIncentive] = useState<TTokenInfo | undefined>();
 	const [tokenToUse, set_tokenToUse] = useState<TTokenInfo | undefined>();
 	const [approvalStatus, set_approvalStatus] = useState<TTxStatus>(defaultTxStatus);
+	const [className, set_className] = useState<string>('pointer-events-none opacity-40');
 	const {data: allowanceOf, refetch: refetchAllowance} = useContractRead({
 		abi: erc20ABI,
 		address: tokenToUse?.address,
@@ -514,6 +515,18 @@ function ViewIncentive(): ReactElement {
 		args: [toAddress(address), toAddress(process.env.BOOTSTRAP_ADDRESS)]
 	});
 
+	useEffect((): void => {
+		if (incentiveStatus !== 'started') {
+			set_className('pointer-events-none opacity-40');
+		} else {
+			set_className('');
+		}
+
+	}, [incentiveStatus, className]);
+
+	/* 🔵 - Yearn Finance **************************************************************************
+	** Calculate the sum of all the incentives for all the protocols.
+	**********************************************************************************************/
 	const sumOfAllIncentives = useMemo((): number => {
 		let sum = 0;
 		for (const eachIncentive of Object.values(groupIncentiveHistory.protocols)) {
@@ -692,7 +705,9 @@ function ViewIncentive(): ReactElement {
 					</div>
 				</div>
 
-				<div className={incentiveStatus !== 'started' ? 'pointer-events-none opacity-40' : ''}>
+				<div
+					key={incentiveStatus}
+					className={className}>
 					<div className={'mb-8 grid w-full grid-cols-1 gap-2 md:grid-cols-2 md:gap-2 lg:grid-cols-4 lg:gap-4'}>
 						<div>
 							<p className={'pb-1 text-sm text-neutral-600 md:text-base'}>{'Select LST to incentivize'}</p>

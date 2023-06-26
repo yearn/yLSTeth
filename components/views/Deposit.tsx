@@ -93,6 +93,7 @@ function Deposit(): ReactElement {
 	const [depositTxStatus, set_depositTxStatus] = useState<TTxStatus>(defaultTxStatus);
 	const [depositHistory, set_depositHistory] = useState<TDepositHistory[]>([]);
 	const [isFetchingHistory, set_isFetchingHistory] = useState<boolean>(false);
+	const [className, set_className] = useState<string>('pointer-events-none opacity-40');
 	const tokenToSend = ETH_TOKEN;
 	const {data: tokensDeposited, refetch} = useContractRead({
 		abi: BOOTSTRAP_ABI,
@@ -143,6 +144,15 @@ function Deposit(): ReactElement {
 	useEffect((): void => {
 		filterEvents();
 	}, [filterEvents]);
+
+	useEffect((): void => {
+		if (depositStatus !== 'started') {
+			set_className('pointer-events-none opacity-40');
+		} else {
+			set_className('');
+		}
+
+	}, [depositStatus, className]);
 
 	const balanceOf = useMemo((): TNormalizedBN => {
 		return toNormalizedBN((balances?.[tokenToSend.address]?.raw || 0) || 0);
@@ -227,7 +237,9 @@ function Deposit(): ReactElement {
 					</p>
 				</div>
 
-				<div className={depositStatus !== 'started' ? 'pointer-events-none opacity-40' : ''}>
+				<div
+					key={depositStatus}
+					className={className}>
 					<div className={'mb-8 grid w-full grid-cols-1 gap-2 md:grid-cols-3 md:gap-2 lg:grid-cols-12 lg:gap-4'}>
 						<div className={'lg:col-span-4'}>
 							<p className={'pb-1 text-sm text-neutral-600 md:text-base'}>{'You’re locking, ETH'}</p>

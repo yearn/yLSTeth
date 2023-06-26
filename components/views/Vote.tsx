@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import assert from 'assert';
 import {ImageWithFallback} from 'components/common/ImageWithFallback';
 import IconChevronPlain from 'components/icons/IconChevronPlain';
@@ -477,10 +477,21 @@ function Vote(): ReactElement {
 		periods: {voteStatus},
 		voting: {voteData, isLoading}
 	} = useBootstrap();
+	const [className, set_className] = useState('pointer-events-none opacity-40');
 
 	const totalVotePowerNormalized = useMemo((): number => {
 		return Number(voteData.votesAvailable.normalized) + Number(voteData.votesUsed.normalized);
 	}, [voteData]);
+
+
+	useEffect((): void => {
+		if (voteStatus !== 'started') {
+			set_className('pointer-events-none opacity-40');
+		} else {
+			set_className('');
+		}
+
+	}, [voteStatus, className]);
 
 	return (
 		<section className={'grid grid-cols-1 pt-10 md:mb-20 md:pt-12'}>
@@ -498,7 +509,9 @@ function Vote(): ReactElement {
 						{'Decide how much ETH you want to lock as st-yETH. Remember this ETH will be locked for 16 weeks, during which time period you’ll be able to receive bri... incentives for voting on which LSTs will be included in yETH.'}
 					</p>
 				</div>
-				<div className={voteStatus !== 'started' ? 'pointer-events-none opacity-40' : ''}>
+				<div
+					key={voteStatus}
+					className={className}>
 					<div className={'mb-6 grid grid-cols-2 gap-4 md:grid-cols-8'}>
 						<div className={'col-span-2 bg-neutral-100 p-4'}>
 							<p className={'pb-2'}>{'Total Vote Power'}</p>
