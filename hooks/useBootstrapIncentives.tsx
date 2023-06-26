@@ -210,6 +210,7 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 					acc[key].estimatedAPR = getAPR(acc[key].normalizedSum);
 					acc[key].incentives.push({...cur, value, estimatedAPR});
 				} else {
+					acc[key].normalizedSum += value;
 					acc[key].incentives[incentiveIndex].amount += cur.amount;
 					acc[key].incentives[incentiveIndex].value += value;
 					acc[key].incentives[incentiveIndex].estimatedAPR = getAPR(acc[key].incentives[incentiveIndex].value);
@@ -248,6 +249,7 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 					acc[key].estimatedAPR = getAPR(acc[key].normalizedSum);
 					acc[key].incentives.push({...cur, value, estimatedAPR});
 				} else {
+					acc[key].normalizedSum += value;
 					acc[key].incentives[incentiveIndex].amount += cur.amount;
 					acc[key].incentives[incentiveIndex].value += value;
 					acc[key].incentives[incentiveIndex].estimatedAPR = getAPR(acc[key].incentives[incentiveIndex].value);
