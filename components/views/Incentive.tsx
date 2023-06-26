@@ -38,9 +38,9 @@ type TSortDirection = '' | 'desc' | 'asc'
 
 function Timer(): ReactElement {
 	const {periods} = useBootstrap();
-	const {incentiveEnd, incentiveStatus} = periods || {};
-	const time = useTimer({endTime: Number(incentiveEnd?.result)});
-	return <>{incentiveStatus === 'ended' ? 'ended' : incentiveStatus === 'started' ? time : 'coming soon'}</>;
+	const {incentiveBegin, incentiveEnd, incentiveStatus} = periods || {};
+	const time = useTimer({endTime: incentiveStatus === 'started' ? Number(incentiveEnd?.result) : Number(incentiveBegin?.result)});
+	return <>{incentiveStatus === 'ended' ? 'ended' : incentiveStatus === 'started' ? time : `in ${time}`}</>;
 }
 
 function IncentiveMenuTabs({set_currentTab, currentTab}: {

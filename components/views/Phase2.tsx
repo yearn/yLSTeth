@@ -12,9 +12,9 @@ import type {ReactElement} from 'react';
 
 function Timer(): ReactElement {
 	const {periods} = useBootstrap();
-	const {depositEnd, depositStatus} = periods || {};
-	const time = useTimer({endTime: Number(depositEnd?.result)});
-	return <>{depositStatus === 'ended' ? 'ended' : depositStatus === 'started' ? time : 'coming soon'}</>;
+	const {depositBegin, depositEnd, depositStatus} = periods || {};
+	const time = useTimer({endTime: depositStatus === 'started' ? Number(depositEnd?.result) : Number(depositBegin?.result)});
+	return <>{depositStatus === 'ended' ? 'ended' : depositStatus === 'started' ? time : `in ${time}`}</>;
 }
 
 function Phase2Started({variant}: {variant: string[]}): ReactElement {

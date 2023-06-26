@@ -94,7 +94,6 @@ async function getBatchBalances({
 				};
 			}
 		} catch (error) {
-			// console.log(error);
 			continue;
 		}
 	}
