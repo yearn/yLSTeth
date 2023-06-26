@@ -535,7 +535,6 @@ function ViewIncentive(): ReactElement {
 		return sum;
 	}, [groupIncentiveHistory]);
 
-
 	/* 🔵 - Yearn Finance **************************************************************************
 	** On mount, fetch the token list from the tokenlistooor repo for the cowswap token list, which
 	** will be used to populate the token combobox.
@@ -575,7 +574,10 @@ function ViewIncentive(): ReactElement {
 			if (element?.value) {
 				element.value = formatAmount(balances?.[tokenToUse.address]?.normalized, 0, 18);
 			}
-			return set_amountToSend(toNormalizedBN(balances?.[tokenToUse.address]?.raw || 0));
+			return set_amountToSend(toNormalizedBN(
+				balances?.[tokenToUse.address]?.raw || 0,
+				tokenToUse.decimals || 18
+			));
 		}
 		set_amountToSend(newAmount);
 	}, [balances, tokenToUse]);
@@ -588,12 +590,19 @@ function ViewIncentive(): ReactElement {
 			return;
 		}
 		const element = document.getElementById('amountToSend') as HTMLInputElement;
-		const newAmount = toNormalizedBN((balanceOf.raw * BigInt(percent)) / 100n);
+		const newAmount = toNormalizedBN(
+			(balanceOf.raw * BigInt(percent)) / 100n,
+			tokenToUse.decimals || 18
+		);
 		if (newAmount.raw > balances?.[tokenToUse.address]?.raw) {
 			if (element?.value) {
-				element.value = formatAmount(balances?.[tokenToUse.address]?.normalized, 0, 18);
+				element.value = formatAmount(
+					balances?.[tokenToUse.address]?.normalized, 0, 18);
 			}
-			return set_amountToSend(toNormalizedBN(balances?.[tokenToUse.address]?.raw || 0));
+			return set_amountToSend(toNormalizedBN(
+				balances?.[tokenToUse.address]?.raw || 0,
+				tokenToUse.decimals || 18
+			));
 		}
 		set_amountToSend(newAmount);
 	}, [balanceOf, balances, tokenToUse]);

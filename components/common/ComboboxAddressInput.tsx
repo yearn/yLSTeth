@@ -127,7 +127,8 @@ function ComboboxAddressInput({
 						symbol: _tokenData?.symbol || '',
 						decimals: _tokenData?.decimals || 18,
 						chainId: safeChainID,
-						logoURI: ''
+						logoURI: `https://assets.smold.app/api/token/${safeChainID}/${toAddress(_selected)}/logo-128.png`
+
 					}
 				});
 			});
@@ -137,7 +138,7 @@ function ComboboxAddressInput({
 				symbol: _tokenData?.symbol || '',
 				decimals: _tokenData?.decimals || 18,
 				chainId: safeChainID,
-				logoURI: possibleValues[toAddress(_selected)]?.logoURI || ''
+				logoURI: possibleValues[toAddress(_selected)]?.logoURI || `https://assets.smold.app/api/token/${safeChainID}/${toAddress(_selected)}/logo-128.png`
 			});
 			set_isOpen(false);
 		});
