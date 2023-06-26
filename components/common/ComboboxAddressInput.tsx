@@ -1,4 +1,4 @@
-import React, {Fragment, useCallback, useMemo, useState} from 'react';
+import React, {Fragment, useCallback, useEffect, useMemo, useState} from 'react';
 import {ImageWithFallback} from 'components/common/ImageWithFallback';
 import IconCheck from 'components/icons/IconCheck';
 import IconChevronBoth from 'components/icons/IconChevronBoth';
@@ -7,7 +7,7 @@ import {useWallet} from 'contexts/useWallet';
 import {isAddress} from 'viem';
 import {erc20ABI} from 'wagmi';
 import {Combobox, Transition} from '@headlessui/react';
-import {useAsync, useThrottledState, useUpdateEffect} from '@react-hookz/web';
+import {useAsync, useThrottledState} from '@react-hookz/web';
 import {multicall} from '@wagmi/core';
 import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
 import {useChainID} from '@yearn-finance/web-lib/hooks/useChainID';
@@ -77,15 +77,16 @@ function ComboboxAddressInput({
 	onAddValue
 }: TComboboxAddressInput): ReactElement {
 	const {provider} = useWeb3();
-	const {balances} = useWallet();
+	const {balances, refresh} = useWallet();
 	const {safeChainID} = useChainID(Number(process.env.BASE_CHAINID));
 	const [query, set_query] = useState('');
 	const [isOpen, set_isOpen] = useThrottledState(false, 400);
+	const [isLoadingTokenData, set_isLoadingTokenData] = useState(false);
 
-	const [{result: tokenData}, fetchTokenData] = useAsync(async function fetchToken(
+	const fetchToken = useCallback(async (
 		_safeChainID: number,
 		_query: TAddress
-	): Promise<{name: string, symbol: string, decimals: number} | undefined> {
+	): Promise<{name: string, symbol: string, decimals: number} | undefined> => {
 		if (!isAddress(_query)) {
 			return (undefined);
 		}
@@ -100,40 +101,49 @@ function ComboboxAddressInput({
 		const name = decodeAsString(results[0]);
 		const symbol = decodeAsString(results[1]);
 		const decimals = decodeAsNumber(results[2]);
+		await refresh([{decimals, name, symbol, token: _query}]);
 		return ({name, symbol, decimals});
-	}, undefined);
+	}, [refresh]);
 
-	const onChange = useCallback((_selected: TAddress): void => {
-		onAddValue?.((prev: TDict<TTokenInfo | undefined>): TDict<TTokenInfo | undefined> => {
-			if (prev[_selected]) {
-				return (prev);
-			}
-			return ({
-				...prev,
-				[toAddress(_selected)]: {
-					address: toAddress(_selected),
-					name: tokenData?.name || '',
-					symbol: tokenData?.symbol || '',
-					decimals: tokenData?.decimals || 18,
-					chainId: safeChainID,
-					logoURI: ''
-				}
-			});
-		});
+	const [{result: tokenData}, fetchTokenData] = useAsync(fetchToken);
+
+	const onChange = useCallback(async (_selected: TAddress): Promise<void> => {
+		let _tokenData = tokenData;
+		if (!tokenData || (!tokenData.name && !tokenData.symbol && !tokenData.decimals)) {
+			set_isLoadingTokenData(true);
+			_tokenData = await fetchToken(safeChainID, _selected);
+			set_isLoadingTokenData(false);
+		}
 		performBatchedUpdates((): void => {
+			onAddValue?.((prev: TDict<TTokenInfo | undefined>): TDict<TTokenInfo | undefined> => {
+				if (prev[_selected]) {
+					return (prev);
+				}
+				return ({
+					...prev,
+					[toAddress(_selected)]: {
+						address: toAddress(_selected),
+						name: _tokenData?.name || '',
+						symbol: _tokenData?.symbol || '',
+						decimals: _tokenData?.decimals || 18,
+						chainId: safeChainID,
+						logoURI: ''
+					}
+				});
+			});
 			onChangeValue({
 				address: toAddress(_selected),
-				name: possibleValues[toAddress(_selected)]?.name || '',
-				symbol: possibleValues[toAddress(_selected)]?.symbol || '',
-				decimals: possibleValues[toAddress(_selected)]?.decimals || 18,
-				chainId: possibleValues[toAddress(_selected)]?.chainId || safeChainID,
+				name: _tokenData?.name || '',
+				symbol: _tokenData?.symbol || '',
+				decimals: _tokenData?.decimals || 18,
+				chainId: safeChainID,
 				logoURI: possibleValues[toAddress(_selected)]?.logoURI || ''
 			});
 			set_isOpen(false);
 		});
-	}, [onAddValue, onChangeValue, possibleValues, safeChainID, set_isOpen, tokenData?.decimals, tokenData?.name, tokenData?.symbol]);
+	}, [fetchToken, onAddValue, onChangeValue, possibleValues, safeChainID, set_isOpen, tokenData]);
 
-	useUpdateEffect((): void => {
+	useEffect((): void => {
 		fetchTokenData.execute(safeChainID, toAddress(query));
 	}, [fetchTokenData, provider, safeChainID, query]);
 
@@ -172,7 +182,9 @@ function ComboboxAddressInput({
 						set_isOpen(false);
 					}} />
 			) : null}
-			<Combobox<any> value={value} onChange={onChange}>
+			<Combobox<any>
+				value={value}
+				onChange={onChange}>
 				<div className={'relative'}>
 					<Combobox.Button
 						onClick={(): void => set_isOpen((o: boolean): boolean => !o)}
@@ -207,6 +219,11 @@ function ComboboxAddressInput({
 									}} />
 							</p>
 						</div>
+						{isLoadingTokenData && (
+							<div className={'absolute right-8'}>
+								<IconSpinner className={'h-4 w-4 text-neutral-500 transition-colors group-hover:text-neutral-900'} />
+							</div>
+						)}
 						<div className={'absolute right-2 md:right-3'}>
 							<IconChevronBoth className={'h-4 w-4 text-neutral-500 transition-colors group-hover:text-neutral-900'} />
 						</div>

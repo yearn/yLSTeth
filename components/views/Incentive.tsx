@@ -494,7 +494,7 @@ function IncentiveConfirmationModal({
 function ViewIncentive(): ReactElement {
 	const {address, isActive, provider} = useWeb3();
 	const {safeChainID} = useChainID(Number(process.env.BASE_CHAINID));
-	const {balances, refresh} = useWallet();
+	const {balances, balancesNonce, refresh} = useWallet();
 	const {tokenList} = useTokenList();
 	const {
 		whitelistedLST,
@@ -558,8 +558,9 @@ function ViewIncentive(): ReactElement {
 		if (!tokenToUse) {
 			return toNormalizedBN(0);
 		}
-		return toNormalizedBN((balances?.[tokenToUse.address]?.raw || 0) || 0);
-	}, [balances, tokenToUse]);
+		return toNormalizedBN((balances?.[tokenToUse.address]?.raw || 0) || 0, tokenToUse.decimals || 18);
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [balances, tokenToUse, tokenToUse?.address]);
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	** Change the inputed amount when the user types something in the input field.
