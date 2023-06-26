@@ -199,7 +199,7 @@ const nav: TMenu[] = [
 	{path: '/', label: 'Home'},
 	// {path: '/', label: 'yETH'},
 	{path: '/deposit', label: 'Deposit'},
-	{path: '/incentive', label: 'Incentive'},
+	{path: '/incentive', label: 'Incentivize'},
 	{path: '/vote', label: 'Vote'},
 	{path: 'https://yeth.yearn.farm/documentation', label: 'Docs'},
 	{path: 'https://yeth.yearn.farm/support', label: 'Support'}

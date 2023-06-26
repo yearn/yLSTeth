@@ -194,7 +194,7 @@ function VoteListItem({
 					<div className={'text-right'}>
 						<b suppressHydrationWarning className={'font-number'}>
 							<Renderable shouldRender={true} fallback ={'-'}>
-								{`$ ${formatAmount(sumOfAllIncentives, 6, 6)}`}
+								{`$ ${formatAmount(sumOfAllIncentives, 2, 2)}`}
 							</Renderable>
 						</b>
 						<p suppressHydrationWarning className={'font-number whitespace-nowrap text-xs'}>

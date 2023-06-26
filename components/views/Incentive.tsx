@@ -99,7 +99,7 @@ function IncentiveGroupBreakdownItem({item}: {item: TIncentives}): ReactElement 
 			</div>
 			<div className={'col-span-2 flex items-center justify-end'}>
 				<p className={'font-number pr-1 text-xxs md:text-xs'}>
-					{`${formatAmount(item.value, 6, 6)}`}
+					{`$${formatAmount(item.value, 2, 2)}`}
 				</p>
 			</div>
 			<div className={'col-span-2 flex items-center justify-end'}>
@@ -243,7 +243,7 @@ function IncentiveGroup({item}: {item: TGroupedIncentives}): ReactElement {
 						{'Total incentive (USD)'}
 					</small>
 					<p className={'font-number'}>
-						{`${formatAmount(item.normalizedSum || 0, 6, 6)}`}
+						{`$${formatAmount(item.normalizedSum || 0, 2, 2)}`}
 					</p>
 				</div>
 				<div className={'col-span-12 mt-2 flex justify-between md:col-span-2 md:mt-0 md:justify-end'}>
@@ -251,7 +251,7 @@ function IncentiveGroup({item}: {item: TGroupedIncentives}): ReactElement {
 						{'USD/st-yETH'}
 					</small>
 					<p className={'font-number'}>
-						{`${formatAmount(item.usdPerStETH || 0, 6, 6)}`}
+						{`${formatAmount(item.usdPerStETH || 0, 2, 2)}`}
 					</p>
 				</div>
 				<div className={'col-span-12 mt-2 flex justify-between md:col-span-2 md:mt-0 md:justify-end'}>
@@ -697,7 +697,7 @@ function ViewIncentive(): ReactElement {
 								<p className={'pb-2'}>{'Total incentives'}</p>
 								<b suppressHydrationWarning className={'font-number text-3xl'}>
 									<Renderable shouldRender={true} fallback ={'-'}>
-										{`$ ${formatAmount(sumOfAllIncentives, 6, 6)}`}
+										{`$ ${formatAmount(sumOfAllIncentives, 2, 2)}`}
 									</Renderable>
 								</b>
 							</div>
