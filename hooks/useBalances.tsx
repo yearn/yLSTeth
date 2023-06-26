@@ -1,7 +1,6 @@
-import {useCallback, useMemo, useRef, useState} from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {erc20ABI} from 'wagmi';
 import axios from 'axios';
-import {useUpdateEffect} from '@react-hookz/web';
 import {deserialize, multicall} from '@wagmi/core';
 import {useUI} from '@yearn-finance/web-lib/contexts/useUI';
 import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
@@ -286,7 +285,7 @@ export function useBalances(props?: TUseBalancesReq): TUseBalancesRes {
 	** This is the main hook and is optimized for performance, using a worker
 	** to fetch the balances, preventing the UI to freeze.
 	**************************************************************************/
-	useUpdateEffect((): void => {
+	useEffect((): void => {
 		if (!isActive || !web3Address || !provider) {
 			return;
 		}
@@ -305,7 +304,7 @@ export function useBalances(props?: TUseBalancesReq): TUseBalancesRes {
 				onUpdateSome(tokens);
 			});
 
-	}, [stringifiedTokens, isActive, web3Address]);
+	}, [stringifiedTokens, isActive, web3Address, provider, onLoadStart, props?.chainID, web3ChainID, updateBalancesCall, onLoadDone, onUpdateSome]);
 
 	const contextValue = useMemo((): TUseBalancesRes => ({
 		data: balances,

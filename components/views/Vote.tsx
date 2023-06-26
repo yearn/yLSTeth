@@ -88,7 +88,7 @@ function VoteConfirmationModal({whitelistedLST, voteToSend, onSuccess, onCancel}
 						<div
 							key={lst.address}
 							className={'flex flex-row items-center justify-between'}>
-							<p>{lst.name || truncateHex(lst.address, 6)}</p>
+							<p>{lst.symbol || truncateHex(lst.address, 6)}</p>
 							<b>{formatAmount(voteToSend[lst.address]?.normalized, 6, 6)}</b>
 						</div>
 					))}
@@ -183,7 +183,7 @@ function VoteListItem({
 				</div>
 				<div>
 					<p className={'whitespace-nowrap'}>
-						{item.name || truncateHex(item.address, 6)}
+						{item.symbol || truncateHex(item.address, 6)}
 					</p>
 				</div>
 			</div>

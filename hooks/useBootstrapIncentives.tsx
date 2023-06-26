@@ -114,7 +114,7 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 		const calls = [];
 		for (const {incentive, protocol} of incentives) {
 			calls.push(...[
-				{address: protocol, abi: erc20ABI, functionName: 'name'},
+				{address: protocol, abi: erc20ABI, functionName: 'symbol'},
 				{address: incentive, abi: erc20ABI, functionName: 'name'},
 				{address: incentive, abi: erc20ABI, functionName: 'symbol'},
 				{address: incentive, abi: erc20ABI, functionName: 'decimals'}
