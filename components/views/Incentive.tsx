@@ -23,7 +23,7 @@ import IconChevronBottom from '@yearn-finance/web-lib/icons/IconChevronBottom';
 import {toAddress, truncateHex} from '@yearn-finance/web-lib/utils/address';
 import {cl} from '@yearn-finance/web-lib/utils/cl';
 import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
-import {formatAmount, formatPercent} from '@yearn-finance/web-lib/utils/format.number';
+import {formatAmount, formatNumberOver10K, formatPercent} from '@yearn-finance/web-lib/utils/format.number';
 import performBatchedUpdates from '@yearn-finance/web-lib/utils/performBatchedUpdates';
 import {defaultTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 
@@ -696,26 +696,26 @@ function ViewIncentive(): ReactElement {
 						className={'font-number mt-4 text-4xl text-purple-300'}>
 						<Timer />
 					</b>
-					<div className={'grid w-full grid-cols-2 items-center gap-4 md:gap-6'}>
+					<div className={'grid w-full items-center gap-4 md:grid-cols-1 md:gap-6 lg:grid-cols-2'}>
 						<div className={'w-full'}>
 							<p className={'text-neutral-700'}>
 								{'Pick which LST you are incentivizing for, and which token you’ll be posting the incentive in. Remember, if your token is not included in the final yETH basket you’ll be refunded the full amount of your incentive.'}
 							</p>
 						</div>
 						<div className={'flex justify-end space-x-4'}>
-							<div className={'w-72 bg-neutral-100 p-4'}>
+							<div className={'w-full bg-neutral-100 p-4 lg:w-72'}>
 								<p className={'pb-2'}>{'Current total deposits, USD'}</p>
 								<b suppressHydrationWarning className={'font-number text-3xl'}>
 									<Renderable shouldRender={true} fallback ={'-'}>
-										{`$${formatAmount(totalDepositedETH, 2, 2)}`}
+										{`$${formatNumberOver10K(totalDepositedETH * 100000)}`}
 									</Renderable>
 								</b>
 							</div>
-							<div className={'w-72 bg-neutral-100 p-4'}>
+							<div className={'w-full bg-neutral-100 p-4 lg:w-72'}>
 								<p className={'pb-2'}>{'Current total incentives, USD'}</p>
 								<b suppressHydrationWarning className={'font-number text-3xl'}>
 									<Renderable shouldRender={true} fallback ={'-'}>
-										{`$${formatAmount(sumOfAllIncentives, 2, 2)}`}
+										{`$${formatNumberOver10K(sumOfAllIncentives)}`}
 									</Renderable>
 								</b>
 							</div>
