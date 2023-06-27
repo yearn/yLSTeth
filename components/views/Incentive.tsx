@@ -707,7 +707,7 @@ function ViewIncentive(): ReactElement {
 								<p className={'pb-2'}>{'Current total deposits, USD'}</p>
 								<b suppressHydrationWarning className={'font-number text-3xl'}>
 									<Renderable shouldRender={true} fallback ={'-'}>
-										{`$${formatNumberOver10K(totalDepositedETH * 100000)}`}
+										{`$${formatNumberOver10K(totalDepositedETH)}`}
 									</Renderable>
 								</b>
 							</div>
