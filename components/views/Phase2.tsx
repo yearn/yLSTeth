@@ -87,7 +87,7 @@ function Phase2Started({variant}: {variant: string[]}): ReactElement {
 									&nbsp;
 									<p>{'This ETH is locked for the 16 week duration of the Bootstrapping period in which time you can vote on LSTs to include in yETH in exchange for bri...incentives.'}</p>
 									&nbsp;
-									<p>{'You’ll get incentives from the LSTs that end up in the yETH basket, whether or not you voted from them. So no need for clever games, vote however you want.'}</p>
+									<p>{'You’ll get incentives from the LSTs that end up in the yETH basket, whether or not you voted from them. So no need for clever games, vote however you want. Plus you’ll be receiving the yield from the LSTs during the lock up period. Win win. '}</p>
 								</div>
 							) : (
 								<div className={'text-neutral-700'}>
@@ -124,7 +124,7 @@ function Phase2Started({variant}: {variant: string[]}): ReactElement {
 				animate={'move'}
 				exit={'exit'}>
 				<div className={'absolute inset-0 top-20 flex h-full w-full justify-center'}>
-					<HeroAsLottie />
+					<HeroAsLottie id={'bribe'}/>
 				</div>
 			</motion.div>
 		</section>
@@ -266,7 +266,7 @@ function Phase2Ended({variant}: {variant: string[]}): ReactElement {
 				animate={'move'}
 				exit={'exit'}>
 				<div className={'absolute inset-0 top-20 flex h-full w-full justify-center'}>
-					<HeroAsLottie />
+					<HeroAsLottie id={'bribe'}/>
 				</div>
 			</motion.div>
 		</section>

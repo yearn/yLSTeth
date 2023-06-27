@@ -1,4 +1,5 @@
 import React from 'react';
+import HeroAsLottie from 'components/common/HeroAsLottie';
 import {customVariants} from 'utils';
 import {motion} from 'framer-motion';
 
@@ -10,8 +11,8 @@ function Timer(): ReactElement {
 
 function Phase4({variant}: {variant: string[]}): ReactElement {
 	return (
-		<section className={'absolute inset-x-0 grid grid-cols-1 px-4 pt-10 md:pt-12'}>
-			<div className={'mb-20 md:mb-0'}>
+		<section className={'absolute inset-x-0 grid grid-cols-12 gap-0 px-4 pt-10 md:gap-20 md:pt-12'}>
+			<div className={'col-span-12 mb-20 md:col-span-6 md:mb-0'}>
 				<div className={'mb-10 flex flex-col justify-center'}>
 					<motion.p
 						className={'text-lg'}
@@ -44,7 +45,7 @@ function Phase4({variant}: {variant: string[]}): ReactElement {
 				</div>
 
 				<motion.div
-					className={'grid w-full grid-cols-1 text-neutral-700 md:w-1/2'}
+					className={'grid w-full text-neutral-700'}
 					variants={customVariants(0.05)}
 					custom={variant}
 					initial={'initial'}
@@ -58,8 +59,18 @@ function Phase4({variant}: {variant: string[]}): ReactElement {
 					&nbsp;
 					<p>{'One token, multiple benefits. LFG.'}</p>
 				</motion.div>
-
 			</div>
+			<motion.div
+				className={'relative col-span-12 hidden h-screen md:col-span-6 md:flex'}
+				variants={customVariants(0.06)}
+				custom={variant}
+				initial={'initial'}
+				animate={'move'}
+				exit={'exit'}>
+				<div className={'absolute inset-0 top-20 flex h-full w-full justify-center'}>
+					<HeroAsLottie id={'launch'}/>
+				</div>
+			</motion.div>
 		</section>
 	);
 }

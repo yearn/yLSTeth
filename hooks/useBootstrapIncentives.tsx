@@ -50,7 +50,8 @@ export type TIncentivesFor = {
 export type TUseBootstrapIncentivesResp = [
 	TIncentivesFor,
 	boolean,
-	VoidFunction
+	VoidFunction,
+	number
 ];
 function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 	const {address} = useWeb3();
@@ -65,6 +66,17 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 	const {data: totalDepositedETH} = useContractRead({
 		address: toAddress(process.env.BOOTSTRAP_ADDRESS), abi: BOOTSTRAP_ABI, functionName: 'deposited'
 	});
+
+	const totalDepositedValue = useMemo((): number => {
+		if (!prices || !totalDepositedETH) {
+			return 0;
+		}
+		return (
+			Number(toNormalizedBN(totalDepositedETH).normalized)
+			*
+			Number(toNormalizedBN(prices[ETH_TOKEN_ADDRESS] || 0, 6).normalized)
+		);
+	}, [prices, totalDepositedETH]);
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	* Connect to the node and listen for all the events since the deployment of the contracts.
@@ -261,7 +273,7 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 		return {protocols: groupByProtocol, user: groupForUser};
 	}, [address, incentiveHistory, prices, totalDepositedETH]);
 
-	return [groupIncentiveHistory, isFetchingHistory, filterEvents];
+	return [groupIncentiveHistory, isFetchingHistory, filterEvents, totalDepositedValue];
 }
 
 export default useBootstrapIncentives;

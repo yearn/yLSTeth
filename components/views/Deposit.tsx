@@ -223,7 +223,7 @@ function Deposit(): ReactElement {
 	return (
 		<section className={'grid grid-cols-1 pt-10 md:mb-20 md:pt-12'}>
 			<div className={'mb-20 md:mb-0'}>
-				<div className={'mb-10 flex w-full flex-col justify-center md:w-1/2'}>
+				<div className={'mb-10 flex w-full flex-col justify-center md:w-[56%]'}>
 					<h1 className={'text-3xl font-black md:text-8xl'}>
 						{'Deposit'}
 					</h1>
@@ -232,9 +232,13 @@ function Deposit(): ReactElement {
 						className={'font-number mt-4 text-4xl text-purple-300'}>
 						<Timer />
 					</b>
-					<p className={'pt-8 text-neutral-700'}>
-						{'Decide how much ETH you want to lock as st-yETH. Remember this ETH will be locked for 16 weeks, during which time period you’ll be able to receive bri... incentives for voting on which LSTs will be included in yETH.'}
-					</p>
+					<span className={'pt-8 text-neutral-700'}>
+						<p>{'Decide how much ETH you want to lock as st-yETH.'}</p>
+						<p>{'Remember this ETH will be locked for 16 weeks, but by holding st-yETH:'}</p>
+						<div className={'pt-4'}>
+							<b>{'You’ll receive incentives for voting on which LSTs will be included in yETH. Ka-ching.'}</b>
+						</div>
+					</span>
 				</div>
 
 				<div

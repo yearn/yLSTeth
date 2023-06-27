@@ -499,7 +499,7 @@ function ViewIncentive(): ReactElement {
 	const {
 		whitelistedLST,
 		periods: {incentiveStatus},
-		incentives: [groupIncentiveHistory, isFetchingHistory, refreshIncentives]
+		incentives: [groupIncentiveHistory, isFetchingHistory, refreshIncentives, totalDepositedETH]
 	} = useBootstrap();
 	const [isModalOpen, set_isModalOpen] = useState<boolean>(false);
 	const [amountToSend, set_amountToSend] = useState<TNormalizedBN>(toNormalizedBN(0));
@@ -696,18 +696,26 @@ function ViewIncentive(): ReactElement {
 						className={'font-number mt-4 text-4xl text-purple-300'}>
 						<Timer />
 					</b>
-					<div className={'grid w-full grid-cols-2 items-center'}>
+					<div className={'grid w-full grid-cols-2 items-center gap-4 md:gap-6'}>
 						<div className={'w-full'}>
 							<p className={'text-neutral-700'}>
 								{'Pick which LST you are incentivizing for, and which token you’ll be posting the incentive in. Remember, if your token is not included in the final yETH basket you’ll be refunded the full amount of your incentive.'}
 							</p>
 						</div>
-						<div className={'flex justify-end'}>
+						<div className={'flex justify-end space-x-4'}>
 							<div className={'w-72 bg-neutral-100 p-4'}>
-								<p className={'pb-2'}>{'Total incentives'}</p>
+								<p className={'pb-2'}>{'Current total deposits, USD'}</p>
 								<b suppressHydrationWarning className={'font-number text-3xl'}>
 									<Renderable shouldRender={true} fallback ={'-'}>
-										{`$ ${formatAmount(sumOfAllIncentives, 2, 2)}`}
+										{`$${formatAmount(totalDepositedETH, 2, 2)}`}
+									</Renderable>
+								</b>
+							</div>
+							<div className={'w-72 bg-neutral-100 p-4'}>
+								<p className={'pb-2'}>{'Current total incentives, USD'}</p>
+								<b suppressHydrationWarning className={'font-number text-3xl'}>
+									<Renderable shouldRender={true} fallback ={'-'}>
+										{`$${formatAmount(sumOfAllIncentives, 2, 2)}`}
 									</Renderable>
 								</b>
 							</div>

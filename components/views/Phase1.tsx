@@ -65,7 +65,7 @@ function Phase1({variant}: {variant: string[]}): ReactElement {
 					&nbsp;
 					<ul className={'list-outside list-disc pl-4'}>
 						<li className={'font-bold'}>
-							{'Pay a non refundable 1 ETH fee (to prevent spam)'}
+							{'Pay a non refundable 1 ETH fee (to prevent spam).'}
 						</li>
 						<li className={'font-bold'}>
 							{'Fill in the form.'}
@@ -106,7 +106,7 @@ function Phase1({variant}: {variant: string[]}): ReactElement {
 				animate={'move'}
 				exit={'exit'}>
 				<div className={'absolute inset-0 top-20 flex h-full w-full justify-center'}>
-					<HeroAsLottie />
+					<HeroAsLottie id={'tokens'} />
 				</div>
 			</motion.div>
 		</section>
