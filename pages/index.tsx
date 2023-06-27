@@ -17,7 +17,7 @@ const currentPhaseToStep = (): number => {
 	switch (process.env.CURRENT_PHASE) {
 		case 'whitelisting':
 			return 0;
-		case 'bootstraping':
+		case 'bootstrapping':
 			return 1;
 		case 'voting':
 			return 2;

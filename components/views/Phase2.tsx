@@ -39,7 +39,7 @@ function Phase2Started({variant}: {variant: string[]}): ReactElement {
 						initial={'initial'}
 						animate={'move'}
 						exit={'exit'}>
-						{'Bootstraping'}
+						{'Bootstrapping'}
 					</motion.h1>
 					<motion.b
 						suppressHydrationWarning
@@ -152,7 +152,7 @@ function Phase2NotStarted({variant}: {variant: string[]}): ReactElement {
 						initial={'initial'}
 						animate={'move'}
 						exit={'exit'}>
-						{'Bootstraping'}
+						{'Bootstrapping'}
 					</motion.h1>
 					<motion.b
 						suppressHydrationWarning
@@ -220,7 +220,7 @@ function Phase2Ended({variant}: {variant: string[]}): ReactElement {
 						initial={'initial'}
 						animate={'move'}
 						exit={'exit'}>
-						{'Bootstraping'}
+						{'Bootstrapping'}
 					</motion.h1>
 					<motion.b
 						suppressHydrationWarning

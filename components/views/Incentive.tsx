@@ -689,7 +689,7 @@ function ViewIncentive(): ReactElement {
 			<div className={'mb-20 md:mb-0'}>
 				<div className={'mb-10 flex w-full flex-col justify-center'}>
 					<h1 className={'text-3xl font-black md:text-8xl'}>
-						{'Incentive'}
+						{'Incentivize'}
 					</h1>
 					<b
 						suppressHydrationWarning

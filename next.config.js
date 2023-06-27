@@ -62,7 +62,7 @@ module.exports = (phase) => withTM(withPWA({
 		STYETH_ADDRESS: '0x3A7056a100222968E7EeFdfCa0389257fbB9bf7c',
 		BOOTSTRAP_ADDRESS: '0x17Ab6Ea4618c82b4ae52A239c2AEbb145915cd32',
 		INIT_BLOCK_NUMBER: 104072789,
-		CURRENT_PHASE: 'bootstraping', // 'whitelisting' | 'bootstraping' | 'voting' | 'launching',
+		CURRENT_PHASE: 'bootstrapping', // 'whitelisting' | 'bootstrapping' | 'voting' | 'launching',
 		WHITELISTED_PROTOCOLS: []
 	}
 }));
