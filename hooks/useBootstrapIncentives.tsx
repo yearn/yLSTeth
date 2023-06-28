@@ -270,6 +270,18 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 				return acc;
 			}, {} as TDict<TGroupedIncentives>);
 
+		// let sum = 0;
+		// for (const eachIncentive of Object.values(groupIncentiveHistory.protocols)) {
+		// 	if (eachIncentive.protocol !== item.address) {
+		// 		continue;
+		// 	}
+		// 	sum += eachIncentive.normalizedSum;
+		// }
+
+		// for (const group of Object.values(groupByProtocol)) {
+		// 	group.
+		// }
+
 		return {protocols: groupByProtocol, user: groupForUser};
 	}, [address, incentiveHistory, prices, totalDepositedETH]);
 

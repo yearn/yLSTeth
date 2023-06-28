@@ -367,7 +367,6 @@ function IncentiveHistory({isPending, incentives}: {isPending: boolean, incentiv
 						bValue = b.usdPerStETH;
 					}
 					return sortDirection === 'desc' ? Number(bValue) - Number(aValue) : Number(aValue) - Number(bValue);
-
 				})
 				.map((item, index): ReactElement => <IncentiveGroup key={index} item={item} />)}
 

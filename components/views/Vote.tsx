@@ -155,20 +155,6 @@ function VoteListItem({
 		return itemVotes / totalVotes * 100;
 	}, [item.extra?.totalVotes, item.extra?.votes]);
 
-	/* 🔵 - Yearn Finance **************************************************************************
-	** Compute the sum of all incentives for this protocol.
-	**********************************************************************************************/
-	const sumOfAllIncentives = useMemo((): number => {
-		let sum = 0;
-		for (const eachIncentive of Object.values(groupIncentiveHistory.protocols)) {
-			if (eachIncentive.protocol !== item.address) {
-				continue;
-			}
-			sum += eachIncentive.normalizedSum;
-		}
-		return sum;
-	}, [groupIncentiveHistory, item]);
-
 	return (
 		<div className={'mb-4 grid grid-cols-12 gap-4 bg-neutral-100 p-4 md:mb-0 md:gap-10 md:bg-neutral-0 md:px-0'}>
 			<div className={'col-span-12 flex w-full flex-row items-center space-x-4 md:col-span-3 md:space-x-6'}>
@@ -194,12 +180,12 @@ function VoteListItem({
 					<div className={'text-right'}>
 						<b suppressHydrationWarning className={'font-number'}>
 							<Renderable shouldRender={true} fallback ={'-'}>
-								{`$ ${formatAmount(sumOfAllIncentives, 2, 2)}`}
+								{`$ ${formatAmount(groupIncentiveHistory.protocols[item.address]?.normalizedSum, 2, 2)}`}
 							</Renderable>
 						</b>
 						<p suppressHydrationWarning className={'font-number whitespace-nowrap text-xs'}>
 							<Renderable shouldRender={true} fallback ={'-'}>
-								{`${formatAmount(groupIncentiveHistory.protocols[item.address]?.usdPerStETH || 0, 6, 6)} USD/st-yETH`}
+								{`${formatAmount(groupIncentiveHistory.protocols[item.address]?.usdPerStETH || 0, 2, 2)} USD/st-yETH`}
 							</Renderable>
 						</p>
 					</div>
@@ -263,7 +249,8 @@ function VoteListItem({
 function VoteList(): ReactElement {
 	const {
 		voting: {voteData, onUpdate},
-		whitelistedLST: {whitelistedLST, isLoading, onUpdate: onUpdateLST}
+		whitelistedLST: {whitelistedLST, isLoading, onUpdate: onUpdateLST},
+		incentives: [groupIncentiveHistory]
 	} = useBootstrap();
 	const [sortBy, set_sortBy] = useState<string>('');
 	const [sortDirection, set_sortDirection] = useState<TSortDirection>('');
@@ -420,6 +407,30 @@ function VoteList(): ReactElement {
 			</div>
 
 			{Object.values(whitelistedLST)
+				.sort((a, b): number => {
+					let aValue = 0;
+					let bValue = 0;
+					if (sortBy === 'totalIncentive') {
+						aValue = groupIncentiveHistory.protocols[a.address]?.normalizedSum || 0;
+						bValue = groupIncentiveHistory.protocols[b.address]?.normalizedSum || 0;
+					} else if (sortBy === 'weight') {
+						const totalVotes = Number(toNormalizedBN(toBigInt(a.extra?.totalVotes)).normalized);
+						const aVotes = Number(toNormalizedBN(toBigInt(a.extra?.votes)).normalized);
+						const bVotes = Number(toNormalizedBN(toBigInt(b.extra?.votes)).normalized);
+						if (totalVotes === 0) {
+							return 0;
+						}
+						aValue = aVotes / totalVotes * 100;
+						bValue = bVotes / totalVotes * 100;
+					} else if (sortBy === 'totalVotes') {
+						aValue = Number(toNormalizedBN(toBigInt(a.extra?.votes)).normalized);
+						bValue = Number(toNormalizedBN(toBigInt(b.extra?.votes)).normalized);
+					} else if (sortBy === 'yourVotes') {
+						aValue = Number(voteData.votesUsedPerProtocol[a.address]?.normalized || 0);
+						bValue = Number(voteData.votesUsedPerProtocol[b.address]?.normalized || 0);
+					}
+					return sortDirection === 'desc' ? Number(bValue) - Number(aValue) : Number(aValue) - Number(bValue);
+				})
 				.map((item, index): ReactElement => (
 					<VoteListItem
 						key={`${index}_${nonce}`}
@@ -475,6 +486,7 @@ function VoteList(): ReactElement {
 function Vote(): ReactElement {
 	const {
 		periods: {voteStatus},
+		whitelistedLST: {whitelistedLST},
 		voting: {voteData, isLoading}
 	} = useBootstrap();
 	const [className, set_className] = useState('pointer-events-none opacity-40');
@@ -483,6 +495,14 @@ function Vote(): ReactElement {
 		return Number(voteData.votesAvailable.normalized) + Number(voteData.votesUsed.normalized);
 	}, [voteData]);
 
+	const totalVotesNormalized = useMemo((): number => {
+		let sum = 0n;
+		for (const item of Object.values(whitelistedLST)) {
+			console.warn(item.extra?.votes);
+			sum += item.extra?.votes || 0n;
+		}
+		return Number(toNormalizedBN(sum).normalized);
+	}, [whitelistedLST]);
 
 	useEffect((): void => {
 		if (voteStatus !== 'started') {
@@ -512,7 +532,15 @@ function Vote(): ReactElement {
 				<div
 					key={voteStatus}
 					className={className}>
-					<div className={'mb-6 grid grid-cols-2 gap-4 md:grid-cols-8'}>
+					<div className={'mb-6 grid grid-cols-2 gap-0 md:grid-cols-8'}>
+						<div className={'col-span-2 mr-4 bg-neutral-100 p-4'}>
+							<p className={'pb-2'}>{'Total Votes'}</p>
+							<b suppressHydrationWarning className={'font-number text-3xl'}>
+								<Renderable shouldRender={!isLoading} fallback ={'-'}>
+									{formatAmount(totalVotesNormalized, 6, 6)}
+								</Renderable>
+							</b>
+						</div>
 						<div className={'col-span-2 bg-neutral-100 p-4'}>
 							<p className={'pb-2'}>{'Total Vote Power'}</p>
 							<b suppressHydrationWarning className={'font-number text-3xl'}>
