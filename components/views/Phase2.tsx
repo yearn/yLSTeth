@@ -240,9 +240,9 @@ function Phase2Ended({variant}: {variant: string[]}): ReactElement {
 					initial={'initial'}
 					animate={'move'}
 					exit={'exit'}>
-					<p>{'Ok folks. So you brib... incentivized some protocols, now it’s time to vote! Ok folks. So you brib... incentivized some protocols, now it’s time to vote! Ok folks. So you brib... incentivized some protocols, now it’s time to vote! Ok folks.'}</p>
+					<p>{'Good times were shared, laughs were had, financial incentives were posted... but now the bootstrapping phases has ended.'}</p>
 					&nbsp;
-					<p>{'So you brib... incentivized some protocols, now it’s time to vote! Ok folks. So you brib... incentivized some protocols, now it’s time to vote! Ok folks. So you brib... incentivized some protocols, now it’s time to vote!'}</p>
+					<p>{'But worry not, that means it’s time to vote on which LSTs you want to see included in yETH. yETH holders - head over to Vote in order to vote and receive incentives for doing so (whether the LST you voted for ends up in yETH or not).'}</p>
 				</motion.div>
 				<motion.div
 					variants={customVariants(0.06)}
