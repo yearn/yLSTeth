@@ -18,7 +18,7 @@ import {formatAmount, formatPercent} from '@yearn-finance/web-lib/utils/format.n
 import performBatchedUpdates from '@yearn-finance/web-lib/utils/performBatchedUpdates';
 import {defaultTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 
-import type {TTokenInfo} from 'contexts/useTokenList';
+import type {TTokenInfo, TWhitelistedLST} from 'contexts/useTokenList';
 import type {ChangeEvent, ReactElement} from 'react';
 import type {TAddress, TDict} from '@yearn-finance/web-lib/types';
 import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
@@ -117,11 +117,11 @@ function VoteConfirmationModal({whitelistedLST, voteToSend, onSuccess, onCancel}
 
 
 type TVoteListItem = {
-	item: TTokenInfo
+	item: TWhitelistedLST
 	totalVotesRemaining: TNormalizedBN
 	voteToSend: TNormalizedBN
-	onChangeAmount: (e: ChangeEvent<HTMLInputElement>, item: TTokenInfo) => void
-	updateToMax: (item: TTokenInfo) => void
+	onChangeAmount: (e: ChangeEvent<HTMLInputElement>, item: TWhitelistedLST) => void
+	updateToMax: (item: TWhitelistedLST) => void
 }
 function VoteListItem({
 	item,
@@ -142,18 +142,6 @@ function VoteListItem({
 		const percent = Number(voteToSend?.normalized || 0n) / Number(voteData.votesAvailable.normalized) * 100;
 		return (Math.round(percent * 100) / 100) === 100;
 	}, [voteToSend?.normalized, voteData.votesAvailable.normalized]);
-
-	/* 🔵 - Yearn Finance **************************************************************************
-	** Calculate the current weight of the vote for this protocol.
-	**********************************************************************************************/
-	const weight = useMemo((): number => {
-		const totalVotes = Number(toNormalizedBN(toBigInt(item.extra?.totalVotes)).normalized);
-		const itemVotes = Number(toNormalizedBN(toBigInt(item.extra?.votes)).normalized);
-		if (totalVotes === 0) {
-			return 0;
-		}
-		return itemVotes / totalVotes * 100;
-	}, [item.extra?.totalVotes, item.extra?.votes]);
 
 	return (
 		<div className={'mb-4 grid grid-cols-12 gap-4 bg-neutral-100 p-4 md:mb-0 md:gap-10 md:bg-neutral-0 md:px-0'}>
@@ -194,7 +182,7 @@ function VoteListItem({
 				<div className={'col-span-12 flex h-auto items-center justify-between pr-0 md:col-span-2 md:h-10 md:justify-end md:pr-1'}>
 					<small className={'block text-neutral-500 md:hidden'}>{'Weight'}</small>
 					<p suppressHydrationWarning className={'font-number'}>
-						{formatPercent(weight, 2, 2)}
+						{formatPercent(item.extra.weight, 2, 2)}
 					</p>
 				</div>
 
@@ -203,7 +191,7 @@ function VoteListItem({
 						{'Total Votes, yETH'}
 					</small>
 					<p suppressHydrationWarning className={'font-number'}>
-						{`${formatAmount(toNormalizedBN(item.extra?.votes || 0).normalized, 6, 6)}`}
+						{`${formatAmount(toNormalizedBN(item.extra.votes || 0).normalized, 6, 6)}`}
 					</p>
 				</div>
 
@@ -498,8 +486,8 @@ function Vote(): ReactElement {
 	const totalVotesNormalized = useMemo((): number => {
 		let sum = 0n;
 		for (const item of Object.values(whitelistedLST)) {
-			console.warn(item.extra?.votes);
-			sum += item.extra?.votes || 0n;
+			console.warn(item.extra.votes);
+			sum += item.extra.votes || 0n;
 		}
 		return Number(toNormalizedBN(sum).normalized);
 	}, [whitelistedLST]);

@@ -7,6 +7,14 @@ import {toAddress} from '@yearn-finance/web-lib/utils/address';
 import type {Dispatch, SetStateAction} from 'react';
 import type {TAddress, TDict} from '@yearn-finance/web-lib/types';
 
+export type TWhitelistedLST = TTokenInfo & {
+	extra: {
+		totalVotes: bigint;
+		votes: bigint;
+		weight: number;
+	};
+};
+
 export type TTokenInfo = {
 	chainId: number,
 	address: TAddress,
@@ -17,6 +25,7 @@ export type TTokenInfo = {
 	extra?: {
 		totalVotes?: bigint;
 		votes?: bigint;
+		weight?: number;
 	};
 };
 export type TTokenList = {
