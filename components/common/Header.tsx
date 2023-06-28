@@ -151,9 +151,17 @@ function NetworkSelector({supportedChainID}: {supportedChainID: number[]}): Reac
 	);
 }
 
-function	WalletSelector(): ReactElement {
+function	WalletSelector({supportedChainID}: {supportedChainID: number[]}): ReactElement {
 	const {options, isActive, address, ens, lensProtocolHandle, openLoginModal, onDesactivate, onSwitchChain} = useWeb3();
 	const [walletIdentity, set_walletIdentity] = useState<string | undefined>(undefined);
+	const chains = useChain();
+
+	const supportedNetworks = useMemo((): TNetwork[] => {
+		const noTestnet = supportedChainID.filter((chainID: number): boolean => chainID !== 1337);
+		return noTestnet.map((chainID: number): TNetwork => (
+			{value: chainID, label: chains.get(chainID)?.displayName || `Chain ${chainID}`}
+		));
+	}, [chains, supportedChainID]);
 
 	useEffect((): void => {
 		if (!isActive && address) {
@@ -175,6 +183,7 @@ function	WalletSelector(): ReactElement {
 					onDesactivate();
 				} else if (!isActive && address) {
 					onSwitchChain(options?.defaultChainID || 1);
+					onSwitchChain(supportedNetworks[0].value);
 				} else {
 					openLoginModal();
 				}
@@ -243,7 +252,7 @@ function	AppHeader(): ReactElement {
 					</div>
 					<div className={'flex w-1/3 items-center justify-end'}>
 						<NetworkSelector supportedChainID={supportedChainID} />
-						<WalletSelector />
+						<WalletSelector supportedChainID={supportedChainID} />
 					</div>
 				</header>
 			</div>
