@@ -545,7 +545,7 @@ function Vote(): ReactElement {
 							<p className={'pb-2'}>{'Your votes, yETH'}</p>
 							<b suppressHydrationWarning className={'font-number text-3xl'}>
 								<Renderable shouldRender={!isLoading} fallback ={'-'}>
-									{totalVotePowerNormalized === 0 ? formatAmount(0, 4, 4) : `${formatAmount(voteData.votesUsed.normalized, 4, 4)}/${formatAmount(totalVotePowerNormalized, 4, 4)}`}
+									{totalVotePowerNormalized === 0 ? formatAmount(0, 4, 4) : `${formatAmount(voteData.votesAvailable.normalized, 4, 4)}/${formatAmount(totalVotePowerNormalized, 4, 4)}`}
 								</Renderable>
 							</b>
 						</div>
