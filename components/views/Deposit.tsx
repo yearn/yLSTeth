@@ -146,7 +146,7 @@ function Deposit(): ReactElement {
 	}, [filterEvents]);
 
 	useEffect((): void => {
-		if (depositStatus !== 'started') {
+		if (depositStatus === 'none') {
 			set_className('pointer-events-none opacity-40');
 		} else {
 			set_className('');
@@ -330,6 +330,7 @@ function Deposit(): ReactElement {
 								isBusy={depositTxStatus.pending}
 								isDisabled={
 									amountToSend.raw === 0n
+									|| depositStatus !== 'started'
 									|| amountToSend.raw > balanceOf.raw
 									|| !depositTxStatus.none
 								}

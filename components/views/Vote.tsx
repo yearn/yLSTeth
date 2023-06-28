@@ -76,7 +76,7 @@ function VoteConfirmationModal({whitelistedLST, voteToSend, onSuccess, onCancel}
 
 	return (
 		<div className={'w-full max-w-[400px] rounded-sm bg-neutral-0 p-6'}>
-			<b className={'text-xl'}>{'Confirm your Voting'}</b>
+			<b className={'text-xl'}>{'Confirm votes'}</b>
 			<div className={'mt-8 grid grid-cols-1 gap-4'}>
 				<div className={'flex flex-row items-center justify-between'}>
 					<small className={'text-xs text-neutral-500'}>{'LST'}</small>
@@ -100,7 +100,7 @@ function VoteConfirmationModal({whitelistedLST, voteToSend, onSuccess, onCancel}
 					isBusy={voteStatus.pending}
 					isDisabled={
 						protocols.length !== amounts.length
-						// ||
+						|| protocols.length === 0
 					}
 					className={'yearn--button w-full rounded-md !text-sm'}>
 					{'Confirm'}
@@ -459,7 +459,7 @@ function VoteList(): ReactElement {
 				</div>
 			</div>
 			<Modal
-				style={{width: 400}}
+				className={'small-modal'}
 				isOpen={isModalOpen}
 				onClose={(): void => set_isModalOpen(false)}>
 				<VoteConfirmationModal

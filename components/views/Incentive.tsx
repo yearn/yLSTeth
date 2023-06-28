@@ -516,7 +516,7 @@ function ViewIncentive(): ReactElement {
 	});
 
 	useEffect((): void => {
-		if (incentiveStatus !== 'started') {
+		if (incentiveStatus === 'none') {
 			set_className('pointer-events-none opacity-40');
 		} else {
 			set_className('');
@@ -794,6 +794,7 @@ function ViewIncentive(): ReactElement {
 								isBusy={approvalStatus.pending}
 								isDisabled={
 									!approvalStatus.none
+									|| incentiveStatus !== 'started'
 									|| amountToSend.raw === 0n
 									|| amountToSend.raw > balanceOf.raw
 									|| !isValidAddress(lstToIncentive?.address)
@@ -811,7 +812,7 @@ function ViewIncentive(): ReactElement {
 				</div>
 			</div>
 			<Modal
-				style={{width: 400}}
+				className={'small-modal'}
 				isOpen={isModalOpen}
 				onClose={(): void => set_isModalOpen(false)}>
 				<IncentiveConfirmationModal

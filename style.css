@@ -531,3 +531,7 @@ dialog::backdrop {
     inset: 0px;
     background: rgba(0, 0, 0, 100);
 }
+
+.small-modal.yearn--modal {
+	width: 400px;
+}
