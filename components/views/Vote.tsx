@@ -533,35 +533,19 @@ function Vote(): ReactElement {
 					key={voteStatus}
 					className={className}>
 					<div className={'mb-6 grid grid-cols-2 gap-0 md:grid-cols-8'}>
-						<div className={'col-span-2 mr-4 bg-neutral-100 p-4'}>
-							<p className={'pb-2'}>{'Total Votes'}</p>
+						<div className={'col-span-3 mr-4 bg-neutral-100 p-4'}>
+							<p className={'pb-2'}>{'Total Votes, yETH'}</p>
 							<b suppressHydrationWarning className={'font-number text-3xl'}>
 								<Renderable shouldRender={!isLoading} fallback ={'-'}>
 									{formatAmount(totalVotesNormalized, 6, 6)}
 								</Renderable>
 							</b>
 						</div>
-						<div className={'col-span-2 bg-neutral-100 p-4'}>
-							<p className={'pb-2'}>{'Total Vote Power'}</p>
+						<div className={'col-span-3 bg-neutral-100 p-4'}>
+							<p className={'pb-2'}>{'Your votes, yETH'}</p>
 							<b suppressHydrationWarning className={'font-number text-3xl'}>
 								<Renderable shouldRender={!isLoading} fallback ={'-'}>
-									{formatAmount(totalVotePowerNormalized, 6, 6)}
-								</Renderable>
-							</b>
-						</div>
-						<div className={'col-span-2 bg-neutral-100 p-4'}>
-							<p className={'pb-2'}>{'Remaining Votes'}</p>
-							<b suppressHydrationWarning className={'font-number text-3xl'}>
-								<Renderable shouldRender={!isLoading} fallback ={'-'}>
-									{formatAmount(voteData.votesAvailable.normalized, 6, 6)}
-								</Renderable>
-							</b>
-						</div>
-						<div className={'col-span-2 bg-neutral-100 p-4'}>
-							<p className={'pb-2'}>{'Used Votes'}</p>
-							<b suppressHydrationWarning className={'font-number text-3xl'}>
-								<Renderable shouldRender={!isLoading} fallback ={'-'}>
-									{formatAmount(voteData.votesUsed.normalized, 6, 6)}
+									{totalVotePowerNormalized === 0 ? formatAmount(0, 4, 4) : `${formatAmount(voteData.votesUsed.normalized, 4, 4)}/${formatAmount(totalVotePowerNormalized, 4, 4)}`}
 								</Renderable>
 							</b>
 						</div>
