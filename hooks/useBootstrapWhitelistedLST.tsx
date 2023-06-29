@@ -74,7 +74,6 @@ function useBootstrapWhitelistedLST(): TUseBootstrapWhitelistedLSTResp {
 				const votes = Number(toNormalizedBN(token.extra.votes).normalized);
 				const total = Number(toNormalizedBN(totalVotes).normalized);
 				const weight = votes / total * 100;
-				console.log({weight: weight});
 				if (weight > maxWeight) {
 					token.extra.weight = maxWeight;
 					totalWeightAfterScaling += maxWeight;
@@ -87,7 +86,6 @@ function useBootstrapWhitelistedLST(): TUseBootstrapWhitelistedLSTResp {
 			// if the total weight after scaling is less than 100%, scale up the tokens
 			if (totalWeightAfterScaling < 100n) {
 				const diff = 100 - totalWeightAfterScaling;
-				console.warn({diff, totalWeightAfterScaling});
 				const nonZeroTokensLen = Object.values(tokens)
 					.filter((token): boolean => token.extra.weight > 0)
 					.filter((token): boolean => token.extra.weight !== 40)

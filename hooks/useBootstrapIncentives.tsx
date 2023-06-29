@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
-import {useCallback, useMemo, useState} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 import {getClient} from 'utils';
 import BOOTSTRAP_ABI from 'utils/abi/bootstrap.abi';
 import {useYDaemonBaseURI} from 'utils/getYDaemonBaseURI';
@@ -8,18 +8,26 @@ import {parseAbiItem, toHex} from 'viem';
 import {erc20ABI, useContractRead} from 'wagmi';
 import {useAsync, useMountEffect, useUpdateEffect} from '@react-hookz/web';
 import {multicall} from '@wagmi/core';
-import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
+import useWeb3 from '@yearn-finance/web-lib/contexts/useWeb3';
 import {toAddress, truncateHex} from '@yearn-finance/web-lib/utils/address';
 import {ETH_TOKEN_ADDRESS} from '@yearn-finance/web-lib/utils/constants';
 import {decodeAsNumber, decodeAsString} from '@yearn-finance/web-lib/utils/decoder';
 import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 
+import useBootstrapPeriods from './useBootstrapPeriods';
 import {useFetch} from './useFetch';
 
 import type {TTokenInfo} from 'contexts/useTokenList';
 import type {TYDaemonPrices} from 'utils/schemas/yDaemonPricesSchema';
 import type {Hex} from 'viem';
 import type {TAddress, TDict} from '@yearn-finance/web-lib/types';
+
+export type TIncentivesClaimed = {
+	id: string,
+	protocol: TAddress,
+	incentive: TAddress,
+	claimer: TAddress,
+}
 
 export type TIncentives = {
 	protocol: TAddress,
@@ -47,15 +55,19 @@ export type TIncentivesFor = {
 	user: TDict<TGroupedIncentives>
 }
 
-export type TUseBootstrapIncentivesResp = [
-	TIncentivesFor,
-	boolean,
-	VoidFunction,
-	number
-];
+export type TUseBootstrapIncentivesResp = {
+	groupIncentiveHistory: TIncentivesFor,
+	claimedIncentives: TIncentivesClaimed[] | undefined,
+	isFetchingHistory: boolean,
+	refreshIncentives: VoidFunction,
+	refreshClaimedIncentives: VoidFunction
+	totalDepositedETH: number
+};
 function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 	const {address} = useWeb3();
+	const {voteStatus} = useBootstrapPeriods();
 	const [userIncentives, set_userIncentives] = useState<TIncentives[]>([]);
+	const [claimedIncentives, set_claimedIncentives] = useState<TIncentivesClaimed[] | undefined>(undefined);
 	const [isFetchingHistory, set_isFetchingHistory] = useState(false);
 	const {yDaemonBaseUri} = useYDaemonBaseURI({chainID: Number(process.env.BASE_CHAINID)});
 	const {data: prices} = useFetch<TYDaemonPrices>({
@@ -84,7 +96,7 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 	* depositor and incentive token.
 	* From that we will be able to create our mappings
 	**********************************************************************************************/
-	const filterEvents = useCallback(async (): Promise<void> => {
+	const filterIncentivizeEvents = useCallback(async (): Promise<void> => {
 		set_isFetchingHistory(true);
 		const publicClient = getClient();
 		const rangeLimit = 1_000_000n;
@@ -115,7 +127,46 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 		}
 		set_userIncentives(incentives);
 	}, []);
-	useMountEffect(filterEvents);
+	useMountEffect(filterIncentivizeEvents);
+
+	/* 🔵 - Yearn Finance **************************************************************************
+	* Connect to the node and listen for all the events since the deployment of the contracts.
+	* We need to filter the ClaimIncentive event to be able to know which incentives were already
+	* claimed by the user.
+	* From that we will be able to create our mappings
+	**********************************************************************************************/
+	const filterClaimIncentiveEvents = useCallback(async (): Promise<void> => {
+		if (!address || voteStatus !== 'ended') {
+			return;
+		}
+		const publicClient = getClient();
+		const rangeLimit = 1_000_000n;
+		const deploymentBlockNumber = toBigInt(process.env.INIT_BLOCK_NUMBER);
+		const currentBlockNumber = await publicClient.getBlockNumber();
+		const incentivesClaimed: TIncentivesClaimed[] = [];
+		for (let i = deploymentBlockNumber; i < currentBlockNumber; i += rangeLimit) {
+			const logs = await publicClient.getLogs({
+				address: toAddress(process.env.BOOTSTRAP_ADDRESS),
+				event: parseAbiItem('event ClaimIncentive(address indexed protocol, address indexed incentive, address indexed claimer, uint256 amount)'),
+				args: {claimer: address},
+				fromBlock: i,
+				toBlock: i + rangeLimit
+			});
+			for (const log of logs) {
+				const {protocol, incentive, claimer} = log.args;
+				incentivesClaimed.push({
+					id: `${toAddress(protocol)}-${toAddress(incentive)}-${toAddress(claimer)}`,
+					protocol: toAddress(protocol),
+					incentive: toAddress(incentive),
+					claimer: toAddress(claimer)
+				});
+			}
+		}
+		set_claimedIncentives(incentivesClaimed);
+	}, [address, voteStatus]);
+	useEffect((): void => {
+		filterClaimIncentiveEvents();
+	}, [filterClaimIncentiveEvents]);
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	* The filtered events are only a bunch of addresses and amounts. Because we are an UI we want
@@ -270,22 +321,17 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 				return acc;
 			}, {} as TDict<TGroupedIncentives>);
 
-		// let sum = 0;
-		// for (const eachIncentive of Object.values(groupIncentiveHistory.protocols)) {
-		// 	if (eachIncentive.protocol !== item.address) {
-		// 		continue;
-		// 	}
-		// 	sum += eachIncentive.normalizedSum;
-		// }
-
-		// for (const group of Object.values(groupByProtocol)) {
-		// 	group.
-		// }
-
 		return {protocols: groupByProtocol, user: groupForUser};
 	}, [address, incentiveHistory, prices, totalDepositedETH]);
 
-	return [groupIncentiveHistory, isFetchingHistory, filterEvents, totalDepositedValue];
+	return ({
+		groupIncentiveHistory,
+		isFetchingHistory,
+		refreshIncentives: filterIncentivizeEvents,
+		totalDepositedETH: totalDepositedValue,
+		claimedIncentives: claimedIncentives,
+		refreshClaimedIncentives: filterClaimIncentiveEvents
+	});
 }
 
 export default useBootstrapIncentives;

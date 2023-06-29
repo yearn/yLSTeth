@@ -1,14 +1,17 @@
 import assert from 'assert';
 import BOOTSTRAP_ABI from 'utils/abi/bootstrap.abi';
 import {erc20ABI, readContract} from '@wagmi/core';
+import {toAddress} from '@yearn-finance/web-lib/utils/address';
 import {MAX_UINT_256} from '@yearn-finance/web-lib/utils/constants';
 
-import {assertAddress, handleTx, toWagmiProvider} from './toWagmiProvider';
+import {assertAddress, handleTx, toWagmiProvider} from './wagmiUtils';
+import {MULTICALL_ABI} from './abi/multicall3.abi';
 
+import type {Hex} from 'viem';
 import type {Connector} from 'wagmi';
 import type {TAddress} from '@yearn-finance/web-lib/types';
 import type {TTxResponse} from '@yearn-finance/web-lib/utils/web3/transaction';
-import type {TWriteTransaction} from './toWagmiProvider';
+import type {TWriteTransaction} from './wagmiUtils';
 
 //Because USDT do not return a boolean on approve, we need to use this ABI
 const ALTERNATE_ERC20_APPROVE_ABI = [{'constant': false, 'inputs': [{'name': '_spender', 'type': 'address'}, {'name': '_value', 'type': 'uint256'}], 'name': 'approve', 'outputs': [], 'payable': false, 'stateMutability': 'nonpayable', 'type': 'function'}] as const;
@@ -165,5 +168,30 @@ export async function vote(props: TVote): Promise<TTxResponse> {
 		abi: BOOTSTRAP_ABI,
 		functionName: 'vote',
 		args: [props.protocols, props.amounts]
+	});
+}
+
+
+/* 🔵 - Yearn Finance **********************************************************
+** multicall is a _WRITE_ function that can be used to cast a multicall
+**
+** @app - common
+** @param protocols - an array of protocols to vote for.
+** @param amounts - an array of amounts to vote for each protocol.
+******************************************************************************/
+type TMulticall = TWriteTransaction & {
+	multicallData: {target: TAddress, callData: Hex}[];
+};
+export async function multicall(props: TMulticall): Promise<TTxResponse> {
+	assert(props.connector, 'No connector');
+	assert(props.multicallData.length > 0, 'Nothing to do');
+	const multicallAddress = toAddress('0xcA11bde05977b3631167028862bE2a173976CA11');
+
+	return await handleTx(props, {
+		address: multicallAddress,
+		abi: MULTICALL_ABI,
+		functionName: 'tryAggregate',
+		args: [true, props.multicallData],
+		value: 0n
 	});
 }

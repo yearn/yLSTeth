@@ -2,16 +2,16 @@ import React, {Fragment, useEffect, useMemo, useState} from 'react';
 import Link from 'next/link';
 import {useRouter} from 'next/router';
 import Logo from 'components/icons/Logo';
-import {usePublicClient} from 'wagmi';
+import {useConnect, usePublicClient} from 'wagmi';
 import {Listbox, Transition} from '@headlessui/react';
 import {ModalMobileMenu} from '@yearn-finance/web-lib/components/ModalMobileMenu';
 import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
-import {useChain} from '@yearn-finance/web-lib/hooks/useChain';
 import IconChevronBottom from '@yearn-finance/web-lib/icons/IconChevronBottom';
 import IconWallet from '@yearn-finance/web-lib/icons/IconWallet';
 import {truncateHex} from '@yearn-finance/web-lib/utils/address';
 
 import type {ReactElement} from 'react';
+import type {Chain} from 'wagmi';
 
 type TMenu = {path: string, label: string | ReactElement, target?: string};
 type TNavbar = {nav: TMenu[], currentPathName: string};
@@ -45,18 +45,23 @@ const toSafeChainID = (chainID: number, fallback: number): number => {
 	}
 	return chainID;
 };
-function NetworkSelector({supportedChainID}: {supportedChainID: number[]}): ReactElement {
-	const chains = useChain();
+function NetworkSelector(): ReactElement {
 	const {onSwitchChain} = useWeb3();
 	const publicClient = usePublicClient();
-	const safeChainID = toSafeChainID(publicClient?.chain.id, Number(process.env.BASE_CHAINID));
+	const {connectors} = useConnect();
+	const safeChainID = toSafeChainID(publicClient?.chain.id, 1);
 
 	const supportedNetworks = useMemo((): TNetwork[] => {
-		const noTestnet = supportedChainID.filter((chainID: number): boolean => chainID !== 1337);
-		return noTestnet.map((chainID: number): TNetwork => (
-			{value: chainID, label: chains.get(chainID)?.displayName || `Chain ${chainID}`}
+		const injectedConnector = connectors.find((e): boolean => e.id === 'injected');
+		if (!injectedConnector) {
+			return [];
+		}
+		const chainsForInjected = injectedConnector.chains;
+		const noTestnet = chainsForInjected.filter(({id}): boolean => id !== 1337);
+		return noTestnet.map((network: Chain): TNetwork => (
+			{value: network.id, label: network.name}
 		));
-	}, [chains, supportedChainID]);
+	}, [connectors]);
 
 	const currentNetwork = useMemo((): TNetwork | undefined => (
 		supportedNetworks.find((network): boolean => network.value === safeChainID)
@@ -151,17 +156,22 @@ function NetworkSelector({supportedChainID}: {supportedChainID: number[]}): Reac
 	);
 }
 
-function	WalletSelector({supportedChainID}: {supportedChainID: number[]}): ReactElement {
-	const {options, isActive, address, ens, lensProtocolHandle, openLoginModal, onDesactivate, onSwitchChain} = useWeb3();
+function	WalletSelector(): ReactElement {
+	const {isActive, address, ens, lensProtocolHandle, openLoginModal, onDesactivate, onSwitchChain} = useWeb3();
 	const [walletIdentity, set_walletIdentity] = useState<string | undefined>(undefined);
-	const chains = useChain();
+	const {connectors} = useConnect();
 
 	const supportedNetworks = useMemo((): TNetwork[] => {
-		const noTestnet = supportedChainID.filter((chainID: number): boolean => chainID !== 1337);
-		return noTestnet.map((chainID: number): TNetwork => (
-			{value: chainID, label: chains.get(chainID)?.displayName || `Chain ${chainID}`}
+		const injectedConnector = connectors.find((e): boolean => e.id === 'injected');
+		if (!injectedConnector) {
+			return [];
+		}
+		const chainsForInjected = injectedConnector.chains;
+		const noTestnet = chainsForInjected.filter(({id}): boolean => id !== 1337);
+		return noTestnet.map((network: Chain): TNetwork => (
+			{value: network.id, label: network.name}
 		));
-	}, [chains, supportedChainID]);
+	}, [connectors]);
 
 	useEffect((): void => {
 		if (!isActive && address) {
@@ -176,13 +186,13 @@ function	WalletSelector({supportedChainID}: {supportedChainID: number[]}): React
 			set_walletIdentity(undefined);
 		}
 	}, [ens, lensProtocolHandle, address, isActive]);
+
 	return (
 		<div
 			onClick={(): void => {
 				if (isActive) {
 					onDesactivate();
 				} else if (!isActive && address) {
-					onSwitchChain(options?.defaultChainID || 1);
 					onSwitchChain(supportedNetworks[0].value);
 				} else {
 					openLoginModal();
@@ -210,18 +220,14 @@ const nav: TMenu[] = [
 	{path: '/deposit', label: 'Deposit'},
 	{path: '/incentive', label: 'Incentivize'},
 	{path: '/vote', label: 'Vote'},
-	{path: 'https://yeth.yearn.farm/documentation', label: 'Docs'},
-	{path: 'https://yeth.yearn.farm/support', label: 'Support'}
+	{path: '/claim', label: 'Claim'},
+	{path: 'https://yeth.yearn.farm/documentation', label: 'Docs'}
+	// {path: 'https://yeth.yearn.farm/support', label: 'Support'}
 ];
 
 function	AppHeader(): ReactElement {
 	const {pathname} = useRouter();
-	const {options} = useWeb3();
 	const [isMenuOpen, set_isMenuOpen] = useState<boolean>(false);
-
-	const supportedChainID = useMemo((): number[] => (
-		options?.supportedChainID || [1]
-	), [options?.supportedChainID]);
 
 	return (
 		<div id={'head'} className={'fixed inset-x-0 top-0 z-50 w-full bg-neutral-0/95'}>
@@ -251,8 +257,8 @@ function	AppHeader(): ReactElement {
 						</Link>
 					</div>
 					<div className={'flex w-1/3 items-center justify-end'}>
-						<NetworkSelector supportedChainID={supportedChainID} />
-						<WalletSelector supportedChainID={supportedChainID} />
+						<NetworkSelector />
+						<WalletSelector />
 					</div>
 				</header>
 			</div>

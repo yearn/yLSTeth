@@ -11,7 +11,7 @@ import {useTimer} from 'hooks/useTimer';
 import {handleInputChangeEventValue} from 'utils';
 import {approveERC20, incentivize} from 'utils/actions';
 import {ETH_TOKEN} from 'utils/tokens';
-import {assertAddress, isValidAddress} from 'utils/toWagmiProvider';
+import {assertAddress, isValidAddress} from 'utils/wagmiUtils';
 import {erc20ABI, useContractRead} from 'wagmi';
 import {useDeepCompareEffect} from '@react-hookz/web';
 import {Button} from '@yearn-finance/web-lib/components/Button';
@@ -498,7 +498,7 @@ function ViewIncentive(): ReactElement {
 	const {
 		whitelistedLST,
 		periods: {incentiveStatus},
-		incentives: [groupIncentiveHistory, isFetchingHistory, refreshIncentives, totalDepositedETH]
+		incentives: {groupIncentiveHistory, isFetchingHistory, refreshIncentives, totalDepositedETH}
 	} = useBootstrap();
 	const [isModalOpen, set_isModalOpen] = useState<boolean>(false);
 	const [amountToSend, set_amountToSend] = useState<TNormalizedBN>(toNormalizedBN(0));

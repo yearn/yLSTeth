@@ -33,7 +33,6 @@ function Timer(): ReactElement {
 	return <>{voteStatus === 'ended' ? 'ended' : voteStatus === 'started' ? time : `in ${time}`}</>;
 }
 
-
 function VoteConfirmationModal({whitelistedLST, voteToSend, onSuccess, onCancel}: {
 	whitelistedLST: TDict<TTokenInfo>,
 	voteToSend: TDict<TNormalizedBN>,
@@ -115,7 +114,6 @@ function VoteConfirmationModal({whitelistedLST, voteToSend, onSuccess, onCancel}
 	);
 }
 
-
 type TVoteListItem = {
 	item: TWhitelistedLST
 	totalVotesRemaining: TNormalizedBN
@@ -132,7 +130,7 @@ function VoteListItem({
 }: TVoteListItem): ReactElement {
 	const {
 		voting: {voteData, isLoadingEvents},
-		incentives: [groupIncentiveHistory]
+		incentives: {groupIncentiveHistory}
 	} = useBootstrap();
 
 	/* 🔵 - Yearn Finance **************************************************************************
@@ -238,7 +236,7 @@ function VoteList(): ReactElement {
 	const {
 		voting: {voteData, onUpdate},
 		whitelistedLST: {whitelistedLST, isLoading, onUpdate: onUpdateLST},
-		incentives: [groupIncentiveHistory]
+		incentives: {groupIncentiveHistory}
 	} = useBootstrap();
 	const [sortBy, set_sortBy] = useState<string>('');
 	const [sortDirection, set_sortDirection] = useState<TSortDirection>('');
@@ -486,7 +484,6 @@ function Vote(): ReactElement {
 	const totalVotesNormalized = useMemo((): number => {
 		let sum = 0n;
 		for (const item of Object.values(whitelistedLST)) {
-			console.warn(item.extra.votes);
 			sum += item.extra.votes || 0n;
 		}
 		return Number(toNormalizedBN(sum).normalized);

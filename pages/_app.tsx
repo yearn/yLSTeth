@@ -33,13 +33,7 @@ function	MyApp(props: AppProps): ReactElement {
 	return (
 		<>
 			<style jsx global>{`html {font-family: ${aeonik.style.fontFamily};}`}</style>
-			<WithYearn
-				configOverwrite={config}
-				options={{
-					web3: {
-						supportedChainID: [42161, 1337]
-					}
-				}}>
+			<WithYearn config={config}>
 				<BootstrapContextApp>
 					<TokenListContextApp>
 						<WalletContextApp>

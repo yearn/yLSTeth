@@ -19,7 +19,7 @@ const defaultProps: TUseBootstrapProps = {
 	periods: {} as unknown as TUseBootstrapPeriodsResp,
 	whitelistedLST: {} as unknown as TUseBootstrapWhitelistedLSTResp,
 	voting: {} as unknown as TUseBootstrapVotingResp,
-	incentives: [] as unknown as TUseBootstrapIncentivesResp
+	incentives: {} as unknown as TUseBootstrapIncentivesResp
 };
 
 const Bootstrap = createContext<TUseBootstrapProps>(defaultProps);

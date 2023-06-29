@@ -5,7 +5,7 @@ import {InjectedConnector} from 'wagmi/connectors/injected';
 import {LedgerConnector} from 'wagmi/connectors/ledger';
 import {MetaMaskConnector} from 'wagmi/connectors/metaMask';
 import {SafeConnector} from 'wagmi/connectors/safe';
-import {WalletConnectLegacyConnector} from 'wagmi/connectors/walletConnectLegacy';
+import {WalletConnectConnector} from 'wagmi/connectors/walletConnect';
 import {alchemyProvider} from 'wagmi/providers/alchemy';
 import {infuraProvider} from 'wagmi/providers/infura';
 import {publicProvider} from 'wagmi/providers/public';
@@ -59,8 +59,8 @@ const config = createConfig({
 		new IFrameEthereumConnector({chains, options: {}}),
 		new InjectedConnector({chains}),
 		new MetaMaskConnector(),
-		new LedgerConnector({chains}),
-		new WalletConnectLegacyConnector({options: {qrcode: true}}),
+		new LedgerConnector({chains, options: {}}),
+		new WalletConnectConnector({chains, options: {projectId: process.env.WALLETCONNECT_PROJECT_ID || ''}}),
 		new CoinbaseWalletConnector({
 			options: {
 				jsonRpcUrl: getRPC(1),

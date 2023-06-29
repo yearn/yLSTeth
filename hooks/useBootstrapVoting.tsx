@@ -1,15 +1,15 @@
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {getClient} from 'utils';
 import BOOTSTRAP_ABI from 'utils/abi/bootstrap.abi';
 import {parseAbiItem} from 'viem';
 import {useContractReads} from 'wagmi';
 import {useDeepCompareMemo} from '@react-hookz/web';
-import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
+import useWeb3 from '@yearn-finance/web-lib/contexts/useWeb3';
 import {toAddress} from '@yearn-finance/web-lib/utils/address';
 import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import performBatchedUpdates from '@yearn-finance/web-lib/utils/performBatchedUpdates';
 
-import type {TAddressWagmi, TDict} from '@yearn-finance/web-lib/types';
+import type {TAddress, TAddressWagmi, TDict} from '@yearn-finance/web-lib/types';
 import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 
 type TBaseReadContractData = {
@@ -20,9 +20,10 @@ type TBaseReadContractData = {
 
 export type TUseBootstrapVotingResp = {
 	voteData: {
-		votesAvailable: TNormalizedBN,
-		votesUsed: TNormalizedBN,
-		votesUsedPerProtocol: TDict<TNormalizedBN>
+		votesAvailable: TNormalizedBN, //Available votes for user
+		votesUsed: TNormalizedBN, //Votes used by user
+		votesUsedPerProtocol: TDict<TNormalizedBN> //map[protocol]votesUsed
+		winners: TDict<TAddress> //map[protocol]voter
 	},
 	isLoading: boolean,
 	isLoadingEvents: boolean,
@@ -37,15 +38,36 @@ const bootstrapContractReadData: TBaseReadContractData = ({
 
 function useBootstrapVoting(): TUseBootstrapVotingResp {
 	const {address} = useWeb3();
-	const [votesUsedPerProtocol, set_votesUsedPerProtocol] = useState<TDict<TNormalizedBN>>({});
+	const [votesUsedPerProtocol, set_votesUsedPerProtocol] = useState<TDict<TNormalizedBN>>({}); // map[protocol]votesUsed
+	const [votedForProtocol, set_votedForProtocol] = useState<TDict<TAddress>>({}); // map[protocol]voter
 	const [isLoadingEvents, set_isLoadingEvents] = useState<boolean>(false);
 	const hasAlreadyBeLoaded = useRef<boolean>(false);
 	const {data, isLoading, refetch} = useContractReads({
 		contracts: [
 			{...bootstrapContractReadData, functionName: 'votes_available', args: [toAddress(address)]},
-			{...bootstrapContractReadData, functionName: 'votes_used', args: [toAddress(address)]}
+			{...bootstrapContractReadData, functionName: 'votes_used', args: [toAddress(address)]},
+			{...bootstrapContractReadData, functionName: 'winners_list', args: [0n]},
+			{...bootstrapContractReadData, functionName: 'winners_list', args: [1n]},
+			{...bootstrapContractReadData, functionName: 'winners_list', args: [2n]},
+			{...bootstrapContractReadData, functionName: 'winners_list', args: [3n]},
+			{...bootstrapContractReadData, functionName: 'winners_list', args: [4n]}
 		]
 	});
+
+	const determineWinners = useMemo((): TDict<TAddress> => {
+		const winnerProtocols = [
+			toAddress(data?.[2]?.result),
+			toAddress(data?.[3]?.result),
+			toAddress(data?.[4]?.result),
+			toAddress(data?.[5]?.result),
+			toAddress(data?.[6]?.result)
+		];
+		const _winners: TDict<TAddress> = {};
+		for (const winnerProtocol of winnerProtocols) {
+			_winners[winnerProtocol] = votedForProtocol[winnerProtocol];
+		}
+		return _winners;
+	}, [data, votedForProtocol]);
 
 	const filterEvents = useCallback(async (): Promise<void> => {
 		if (!address) {
@@ -57,6 +79,7 @@ function useBootstrapVoting(): TUseBootstrapVotingResp {
 		const deploymentBlockNumber = toBigInt(process.env.INIT_BLOCK_NUMBER);
 		const currentBlockNumber = await publicClient.getBlockNumber();
 		const userVotes: TDict<TNormalizedBN> = {};
+		const votedForProtocol: TDict<TAddress> = {};
 		for (let i = deploymentBlockNumber; i < currentBlockNumber; i += rangeLimit) {
 			const logs = await publicClient.getLogs({
 				address: toAddress(process.env.BOOTSTRAP_ADDRESS),
@@ -68,17 +91,17 @@ function useBootstrapVoting(): TUseBootstrapVotingResp {
 				toBlock: i + rangeLimit
 			});
 			for (const log of logs) {
-				const {protocol, amount} = log.args;
+				const {protocol, voter, amount} = log.args;
+				votedForProtocol[toAddress(protocol)] = toAddress(voter);
 				if (!userVotes[toAddress(protocol)]) {
 					userVotes[toAddress(protocol)] = toNormalizedBN(0n);
 				}
-				userVotes[toAddress(protocol)] = toNormalizedBN(
-					userVotes[toAddress(protocol)].raw + toBigInt(amount)
-				);
+				userVotes[toAddress(protocol)] = toNormalizedBN(userVotes[toAddress(protocol)].raw + toBigInt(amount));
 			}
 		}
 		performBatchedUpdates((): void => {
 			set_votesUsedPerProtocol(userVotes);
+			set_votedForProtocol(votedForProtocol);
 			set_isLoadingEvents(false);
 		});
 		hasAlreadyBeLoaded.current = true;
@@ -98,7 +121,8 @@ function useBootstrapVoting(): TUseBootstrapVotingResp {
 	const voteData = useDeepCompareMemo((): TUseBootstrapVotingResp['voteData'] => ({
 		votesAvailable: toNormalizedBN(data?.[0]?.result || 0n),
 		votesUsed: toNormalizedBN(data?.[1]?.result || 0n),
-		votesUsedPerProtocol: votesUsedPerProtocol
+		votesUsedPerProtocol: votesUsedPerProtocol,
+		winners: determineWinners
 	}), [data, votesUsedPerProtocol]);
 	return {voteData, isLoading, isLoadingEvents, onUpdate};
 }

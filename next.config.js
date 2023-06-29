@@ -55,6 +55,7 @@ module.exports = (phase) => withTM(withPWA({
 		TELEGRAM_CHAT: process.env.TELEGRAM_CHAT,
 		ALCHEMY_KEY: process.env.ALCHEMY_KEY,
 		INFURA_PROJECT_ID: process.env.INFURA_PROJECT_ID,
+		WALLETCONNECT_PROJECT_ID: process.env.WALLETCONNECT_PROJECT_ID,
 		YDAEMON_BASE_URI: 'https://ydaemon.ycorpo.com',
 		BASE_CHAINID: 42161, // Expected to work on this chain
 		DEFAULT_CHAINID: 42161, // The one we currently use
@@ -62,7 +63,7 @@ module.exports = (phase) => withTM(withPWA({
 		STYETH_ADDRESS: '0x3A7056a100222968E7EeFdfCa0389257fbB9bf7c',
 		BOOTSTRAP_ADDRESS: '0x17Ab6Ea4618c82b4ae52A239c2AEbb145915cd32',
 		INIT_BLOCK_NUMBER: 104072789,
-		CURRENT_PHASE: 'voting', // 'whitelisting' | 'bootstrapping' | 'voting' | 'launching',
+		CURRENT_PHASE: 'launching', // 'whitelisting' | 'bootstrapping' | 'voting' | 'launching',
 		WHITELISTED_PROTOCOLS: []
 	}
 }));
