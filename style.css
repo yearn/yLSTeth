@@ -531,7 +531,22 @@ dialog::backdrop {
     inset: 0px;
     background: rgba(0, 0, 0, 100);
 }
-
+.small-modal {
+	overflow: hidden;
+}
 .small-modal.yearn--modal {
 	width: 400px;
+}
+.isolate.overflow-y-auto {
+	@apply md:overflow-hidden;
+}
+
+.scrollbar-show::-webkit-scrollbar {
+  -webkit-appearance: none;
+  width: 6px;
+}
+.scrollbar-show::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  background-color: rgba(0, 0, 0, .3);
+  -webkit-box-shadow: 0 0 1px rgba(255, 255, 255, .3);
 }

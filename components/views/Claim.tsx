@@ -73,48 +73,52 @@ function ClaimConfirmationModal({claimableIncentive, onUpdateIncentive, onSucces
 	}
 
 	return (
-		<div className={'w-full max-w-[400px] rounded-sm bg-neutral-0 p-6'}>
-			<b className={'text-xl'}>{'Confirm claim'}</b>
+		<div className={'w-full max-w-[400px] rounded-sm bg-neutral-0 py-6'}>
+			<b className={'px-6 text-xl'}>{'Confirm claim'}</b>
 			<div className={'mt-8 grid grid-cols-1 gap-4'}>
-				<div className={'grid grid-cols-3 gap-4'}>
+				<div className={'grid grid-cols-3 gap-4 px-6'}>
 					<small className={'text-xs text-neutral-500'}>{'Token'}</small>
 					<small className={'text-right text-xs text-neutral-500'}>{'Amount'}</small>
 					<small className={'text-right text-xs text-neutral-500'}>{'Value, USD'}</small>
 				</div>
-				{Object.values(claimableIncentiveByProtocol).map((protocol): ReactElement => {
-					return (
-						<div key={protocol[0].protocolName}>
-							<p className={'mb-1 border-b border-neutral-300 pb-1 font-bold text-neutral-900'}>
-								{protocol[0].protocolName}
-							</p>
-							{
-								protocol.map((incentive): ReactElement => (
-									<div
-										key={incentive.id}
-										className={'grid grid-cols-3 gap-4'}>
-										<label className={'flex cursor-pointer items-center'}>
-											<input
-												onChange={(e): void => onUpdateIncentive(incentive.id, e.target.checked)}
-												checked={incentive.isSelected}
-												type={'checkbox'}
-												className={'focus:ring-purple-300 mr-2 h-3 w-3 rounded-sm border-0 border-neutral-400 bg-neutral-200 text-purple-300 indeterminate:ring-2 focus:bg-neutral-200 focus:ring-2 focus:ring-offset-neutral-100'} />
-											<p>{incentive.token.symbol || truncateHex(incentive.token.address, 6)}</p>
-										</label>
-										<b className={'text-right'}>
-											{formatAmount(incentive.amount.normalized, 6, 6)}
-										</b>
-										<b className={'text-right'}>
-											{`$${formatAmount(incentive.value, 2, 2)}`}
-										</b>
-									</div>
-								))
-							}
-						</div>
-					);
-				})}
+				<div className={'scrollbar-show max-h-[400px] overflow-y-scroll border-y border-neutral-200 bg-neutral-100/60'}>
+					<div className={'grid grid-cols-1 gap-4 px-6 py-4'}>
+						{Object.values(claimableIncentiveByProtocol).map((protocol): ReactElement => {
+							return (
+								<div key={protocol[0].protocolName}>
+									<p className={'mb-1 border-b border-neutral-300 pb-1 font-bold text-neutral-900'}>
+										{protocol[0].protocolName}
+									</p>
+									{
+										protocol.map((incentive): ReactElement => (
+											<div
+												key={incentive.id}
+												className={'grid grid-cols-3 gap-4'}>
+												<label className={'flex cursor-pointer items-center'}>
+													<input
+														onChange={(e): void => onUpdateIncentive(incentive.id, e.target.checked)}
+														checked={incentive.isSelected}
+														type={'checkbox'}
+														className={'focus:ring-purple-300 mr-2 h-3 w-3 rounded-sm border-0 border-neutral-400 bg-neutral-200 text-purple-300 indeterminate:ring-2 focus:bg-neutral-200 focus:ring-2 focus:ring-offset-neutral-100'} />
+													<p>{incentive.token.symbol || truncateHex(incentive.token.address, 6)}</p>
+												</label>
+												<b className={'text-right'}>
+													{formatAmount(incentive.amount.normalized, 6, 6)}
+												</b>
+												<b className={'text-right'}>
+													{`$${formatAmount(incentive.value, 2, 2)}`}
+												</b>
+											</div>
+										))
+									}
+								</div>
+							);
+						})}
+					</div>
+				</div>
 			</div>
 
-			<div className={'mt-20'}>
+			<div className={'mt-20 px-6'}>
 				<Button
 					onClick={onClaim}
 					isBusy={claimStatus.pending}
