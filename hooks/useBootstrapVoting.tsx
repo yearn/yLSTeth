@@ -23,7 +23,7 @@ export type TUseBootstrapVotingResp = {
 		votesAvailable: TNormalizedBN, //Available votes for user
 		votesUsed: TNormalizedBN, //Votes used by user
 		votesUsedPerProtocol: TDict<TNormalizedBN> //map[protocol]votesUsed
-		winners: TDict<TAddress> //map[protocol]voter
+		winners: TAddress[] //[protocols]
 	},
 	isLoading: boolean,
 	isLoadingEvents: boolean,
@@ -39,7 +39,6 @@ const bootstrapContractReadData: TBaseReadContractData = ({
 function useBootstrapVoting(): TUseBootstrapVotingResp {
 	const {address} = useWeb3();
 	const [votesUsedPerProtocol, set_votesUsedPerProtocol] = useState<TDict<TNormalizedBN>>({}); // map[protocol]votesUsed
-	const [votedForProtocol, set_votedForProtocol] = useState<TDict<TAddress>>({}); // map[protocol]voter
 	const [isLoadingEvents, set_isLoadingEvents] = useState<boolean>(false);
 	const hasAlreadyBeLoaded = useRef<boolean>(false);
 	const {data, isLoading, refetch} = useContractReads({
@@ -54,7 +53,7 @@ function useBootstrapVoting(): TUseBootstrapVotingResp {
 		]
 	});
 
-	const determineWinners = useMemo((): TDict<TAddress> => {
+	const determineWinners = useMemo((): TAddress[] => {
 		const winnerProtocols = [
 			toAddress(data?.[2]?.result),
 			toAddress(data?.[3]?.result),
@@ -62,12 +61,8 @@ function useBootstrapVoting(): TUseBootstrapVotingResp {
 			toAddress(data?.[5]?.result),
 			toAddress(data?.[6]?.result)
 		];
-		const _winners: TDict<TAddress> = {};
-		for (const winnerProtocol of winnerProtocols) {
-			_winners[winnerProtocol] = votedForProtocol[winnerProtocol];
-		}
-		return _winners;
-	}, [data, votedForProtocol]);
+		return winnerProtocols;
+	}, [data]);
 
 	const filterEvents = useCallback(async (): Promise<void> => {
 		if (!address) {
@@ -79,7 +74,6 @@ function useBootstrapVoting(): TUseBootstrapVotingResp {
 		const deploymentBlockNumber = toBigInt(process.env.INIT_BLOCK_NUMBER);
 		const currentBlockNumber = await publicClient.getBlockNumber();
 		const userVotes: TDict<TNormalizedBN> = {};
-		const votedForProtocol: TDict<TAddress> = {};
 		for (let i = deploymentBlockNumber; i < currentBlockNumber; i += rangeLimit) {
 			const logs = await publicClient.getLogs({
 				address: toAddress(process.env.BOOTSTRAP_ADDRESS),
@@ -91,8 +85,7 @@ function useBootstrapVoting(): TUseBootstrapVotingResp {
 				toBlock: i + rangeLimit
 			});
 			for (const log of logs) {
-				const {protocol, voter, amount} = log.args;
-				votedForProtocol[toAddress(protocol)] = toAddress(voter);
+				const {protocol, amount} = log.args;
 				if (!userVotes[toAddress(protocol)]) {
 					userVotes[toAddress(protocol)] = toNormalizedBN(0n);
 				}
@@ -101,7 +94,6 @@ function useBootstrapVoting(): TUseBootstrapVotingResp {
 		}
 		performBatchedUpdates((): void => {
 			set_votesUsedPerProtocol(userVotes);
-			set_votedForProtocol(votedForProtocol);
 			set_isLoadingEvents(false);
 		});
 		hasAlreadyBeLoaded.current = true;

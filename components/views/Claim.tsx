@@ -133,6 +133,7 @@ function ClaimConfirmationModal({claimableIncentive, onUpdateIncentive, onSucces
 }
 
 function Claim(): ReactElement {
+	const {address} = useWeb3();
 	const {
 		whitelistedLST: {whitelistedLST},
 		voting: {voteData, onUpdate: refreshVoteData},
@@ -155,10 +156,7 @@ function Claim(): ReactElement {
 		}
 		let _totalIncentiveValue = 0;
 		const claimData: TClaimDetails[] = [];
-		for (const [protocol, voter] of Object.entries(voteData.winners)) {
-			if (!voter) {
-				continue;
-			}
+		for (const protocol of voteData.winners) {
 			const incentivesForThisProtocol = groupIncentiveHistory.protocols[protocol];
 			if (!incentivesForThisProtocol) {
 				continue;
@@ -166,7 +164,7 @@ function Claim(): ReactElement {
 			for (const incentive of incentivesForThisProtocol.incentives) {
 				const valueOfThis = (incentive.value * Number(voteData.votesUsed.normalized || 0) / Number(totalVotes.normalized));
 				const amountOfThis = toNormalizedBN((incentive.amount * voteData.votesUsed.raw / totalVotes.raw), incentive?.incentiveToken?.decimals || 18);
-				const id = `${protocol}-${incentive.incentive}-${voter}`;
+				const id = `${protocol}-${incentive.incentive}-${toAddress(address)}`;
 
 				if (claimData.find((item): boolean => item.id === id)) {
 					continue;
@@ -187,7 +185,7 @@ function Claim(): ReactElement {
 						callData: encodeFunctionData({
 							abi: BOOTSTRAP_ABI,
 							functionName: 'claim_incentive',
-							args: [toAddress(protocol), toAddress(incentive.incentive), toAddress(voter)]
+							args: [toAddress(protocol), toAddress(incentive.incentive), toAddress(address)]
 						})
 					}
 				});
@@ -200,7 +198,7 @@ function Claim(): ReactElement {
 			set_totalIncentiveValue(_totalIncentiveValue);
 		});
 
-	}, [voteData.winners, groupIncentiveHistory.protocols, voteData.votesUsedPerProtocol, totalVotes, voteData.votesUsed.normalized, voteData.votesUsed.raw, claimedIncentives]);
+	}, [voteData.winners, groupIncentiveHistory.protocols, voteData.votesUsedPerProtocol, totalVotes, voteData.votesUsed.normalized, voteData.votesUsed.raw, claimedIncentives, address]);
 
 	const totalToClaim = useMemo((): number => (
 		claimableIncentive.reduce((total, incentive): number => total + incentive.value, 0)
