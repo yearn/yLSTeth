@@ -15,14 +15,14 @@ export type TUseBootstrapPeriodsResp = {
 	voteStatus: 'started' | 'ended' | 'none';
 }
 export type TPeriods = {
-	WHITELIST_BEGIN: number;
-	WHITELIST_END: number;
-	INCENTIVE_BEGIN: number;
-	INCENTIVE_END: number;
-	DEPOSIT_BEGIN: number;
-	DEPOSIT_END: number;
-	VOTE_BEGIN: number;
-	VOTE_END: number;
+	WHITELIST_BEGIN: string;
+	WHITELIST_END: string;
+	INCENTIVE_BEGIN: string;
+	INCENTIVE_END: string;
+	DEPOSIT_BEGIN: string;
+	DEPOSIT_END: string;
+	VOTE_BEGIN: string;
+	VOTE_END: string;
 }
 
 function useBootstrapPeriods(): TUseBootstrapPeriodsResp {
