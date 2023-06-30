@@ -18,13 +18,13 @@ const NO_DIRECTION = 0;
 const currentPhaseToStep = (): number => {
 	const nowBigInt = toBigInt(Math.round(new Date().getTime() / 1000));
 	const whitelistEnd = toBigInt((process.env.PERIODS as unknown as TPeriods).WHITELIST_END);
-	const incentiveEnd = toBigInt((process.env.PERIODS as unknown as TPeriods).INCENTIVE_END);
+	const incentiveBegin = toBigInt((process.env.PERIODS as unknown as TPeriods).INCENTIVE_BEGIN);
 	const voteEnd = toBigInt((process.env.PERIODS as unknown as TPeriods).VOTE_END);
 
 	if (nowBigInt < whitelistEnd) {
 		return 0; // whitelist
 	}
-	if (nowBigInt < incentiveEnd) {
+	if (nowBigInt < incentiveBegin) {
 		return 1; // bootstrap
 	}
 	if (nowBigInt < voteEnd) {
