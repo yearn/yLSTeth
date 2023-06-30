@@ -1,8 +1,7 @@
+import {localhost} from 'utils/wagmiConfig';
 import {createPublicClient, http} from 'viem';
-import {arbitrum, fantom} from 'viem/chains';
+import {arbitrum, fantom, mainnet} from 'viem/chains';
 import {parseUnits} from '@yearn-finance/web-lib/utils/format.bigNumber';
-
-import {localhost} from './wagmiConfig';
 
 import type {Transition} from 'framer-motion';
 import type {PublicClient} from 'wagmi';
@@ -73,8 +72,14 @@ export function getClient(): PublicClient {
 			transport: http('https://rpc3.fantom.network')
 		});
 	}
+	if (Number(process.env.DEFAULT_CHAINID) === 42161) {
+		return createPublicClient({
+			chain: arbitrum,
+			transport: http(`https://arbitrum-mainnet.infura.io/v3/${process.env.INFURA_PROJECT_ID}`)
+		});
+	}
 	return createPublicClient({
-		chain: arbitrum,
-		transport: http(`https://arbitrum-mainnet.infura.io/v3/${process.env.INFURA_PROJECT_ID}`)
+		chain: mainnet,
+		transport: http(`https://mainnet.infura.io/v3/${process.env.INFURA_PROJECT_ID}`)
 	});
 }

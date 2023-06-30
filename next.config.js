@@ -24,7 +24,7 @@ module.exports = (phase) => withTM(withPWA({
 			},
 			{
 				source: '/form',
-				destination: 'https://yearnfinance.typeform.com/yeth-test-wl',
+				destination: 'https://yearnfinance.typeform.com/apply-for-yeth',
 				permanent: true
 			},
 			{
@@ -56,14 +56,14 @@ module.exports = (phase) => withTM(withPWA({
 		ALCHEMY_KEY: process.env.ALCHEMY_KEY,
 		INFURA_PROJECT_ID: process.env.INFURA_PROJECT_ID,
 		WALLETCONNECT_PROJECT_ID: process.env.WALLETCONNECT_PROJECT_ID,
-		YDAEMON_BASE_URI: 'https://ydaemon.ycorpo.com',
-		BASE_CHAINID: 42161, // Expected to work on this chain
-		DEFAULT_CHAINID: 42161, // The one we currently use
-		YETH_ADDRESS: '0xcC7D64D4143CBc1CB9B6299680D4AD84f94268b2',
-		STYETH_ADDRESS: '0x3A7056a100222968E7EeFdfCa0389257fbB9bf7c',
+		YDAEMON_BASE_URI: 'https://ydaemon.yearn.finance',
+		BASE_CHAINID: 1, // Expected to work on this chain
+		DEFAULT_CHAINID: 1, // The one we currently use
+		YETH_ADDRESS: '0x1BED97CBC3c24A4fb5C069C6E311a967386131f7',
+		STYETH_ADDRESS: '0x11a2b400Fc864a70D42675b85cEE644458383BD9',
 		BOOTSTRAP_ADDRESS: '0x17Ab6Ea4618c82b4ae52A239c2AEbb145915cd32',
-		INIT_BLOCK_NUMBER: 104072789,
-		CURRENT_PHASE: 'launching', // 'whitelisting' | 'bootstrapping' | 'voting' | 'launching',
+		INIT_BLOCK_NUMBER: 17_583_880,
+		CURRENT_PHASE: 'whitelisting', // 'whitelisting' | 'bootstrapping' | 'voting' | 'launching',
 		WHITELISTED_PROTOCOLS: []
 	}
 }));
