@@ -4,7 +4,7 @@ import BOOTSTRAP_ABI from 'utils/abi/bootstrap.abi';
 import {parseAbiItem} from 'viem';
 import {useContractReads} from 'wagmi';
 import {useDeepCompareMemo} from '@react-hookz/web';
-import useWeb3 from '@yearn-finance/web-lib/contexts/useWeb3';
+import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
 import {toAddress} from '@yearn-finance/web-lib/utils/address';
 import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import performBatchedUpdates from '@yearn-finance/web-lib/utils/performBatchedUpdates';
@@ -30,41 +30,32 @@ export type TUseBootstrapVotingResp = {
 	onUpdate: VoidFunction
 }
 
+type TUseVoteEventsResp = {
+	votesUsedPerProtocol: TDict<TNormalizedBN>, // map[protocol]votesUsed
+	isLoading: boolean,
+	onUpdate: VoidFunction
+}
+
 const bootstrapContractReadData: TBaseReadContractData = ({
 	address: toAddress(process.env.BOOTSTRAP_ADDRESS),
 	abi: BOOTSTRAP_ABI,
 	chainId: Number(process.env.DEFAULT_CHAINID || 1)
 });
 
-function useBootstrapVoting(): TUseBootstrapVotingResp {
+function useVoteEvents(): TUseVoteEventsResp {
 	const {address} = useWeb3();
 	const [votesUsedPerProtocol, set_votesUsedPerProtocol] = useState<TDict<TNormalizedBN>>({}); // map[protocol]votesUsed
 	const [isLoadingEvents, set_isLoadingEvents] = useState<boolean>(false);
 	const hasAlreadyBeLoaded = useRef<boolean>(false);
-	const {data, isLoading, refetch} = useContractReads({
-		contracts: [
-			{...bootstrapContractReadData, functionName: 'votes_available', args: [toAddress(address)]},
-			{...bootstrapContractReadData, functionName: 'votes_used', args: [toAddress(address)]},
-			{...bootstrapContractReadData, functionName: 'winners_list', args: [0n]},
-			{...bootstrapContractReadData, functionName: 'winners_list', args: [1n]},
-			{...bootstrapContractReadData, functionName: 'winners_list', args: [2n]},
-			{...bootstrapContractReadData, functionName: 'winners_list', args: [3n]},
-			{...bootstrapContractReadData, functionName: 'winners_list', args: [4n]}
-		]
-	});
 
-	const determineWinners = useMemo((): TAddress[] => {
-		const winnerProtocols = [
-			toAddress(data?.[2]?.result),
-			toAddress(data?.[3]?.result),
-			toAddress(data?.[4]?.result),
-			toAddress(data?.[5]?.result),
-			toAddress(data?.[6]?.result)
-		];
-		return winnerProtocols;
-	}, [data]);
-
-	const filterEvents = useCallback(async (): Promise<void> => {
+	/* 🔵 - Yearn Finance **************************************************************************
+	** For the connected user, we need to know the casted vote to be able to correctly display the
+	** status of vote/bribe/incentives. In order to do that, we need to fetch the vote events from
+	** the bootstrap contract from init to now, with a filter on the voter (user) address.
+	**
+	** @deps: address - the connected user address.
+	**********************************************************************************************/
+	const filterVoteEvents = useCallback(async (): Promise<void> => {
 		if (!address) {
 			return;
 		}
@@ -99,24 +90,87 @@ function useBootstrapVoting(): TUseBootstrapVotingResp {
 		hasAlreadyBeLoaded.current = true;
 	}, [address]);
 
+	/* 🔵 - Yearn Finance **************************************************************************
+	** Effect to trigger the vote events filtering when it's dependencies change (aka address)
+	**********************************************************************************************/
+	useEffect((): void => {
+		filterVoteEvents();
+	}, [filterVoteEvents]);
+
+	return ({
+		votesUsedPerProtocol,
+		isLoading: isLoadingEvents,
+		onUpdate: filterVoteEvents
+	});
+}
+
+function useBootstrapVoting(): TUseBootstrapVotingResp {
+	const {address} = useWeb3();
+	const {votesUsedPerProtocol, isLoading: isLoadingVoteEvents, onUpdate: onUpdateVoteEvents} = useVoteEvents();
+
+	/* 🔵 - Yearn Finance **************************************************************************
+	** Perform a multicall via `useContractReads` to get various data from the bootstrap contract.
+	**
+	** @returns: votes_available - the number of votes available for the connected user (bigint)
+	** @returns: votes_used - the number of votes used by the connected user (bigint)
+	** @returns: winners_list - the list of the 5 protocols with the most votes (address[])
+	**********************************************************************************************/
+	const {data, isLoading, refetch} = useContractReads({
+		contracts: [
+			{...bootstrapContractReadData, functionName: 'votes_available', args: [toAddress(address)]},
+			{...bootstrapContractReadData, functionName: 'votes_used', args: [toAddress(address)]},
+			{...bootstrapContractReadData, functionName: 'winners_list', args: [0n]},
+			{...bootstrapContractReadData, functionName: 'winners_list', args: [1n]},
+			{...bootstrapContractReadData, functionName: 'winners_list', args: [2n]},
+			{...bootstrapContractReadData, functionName: 'winners_list', args: [3n]},
+			{...bootstrapContractReadData, functionName: 'winners_list', args: [4n]}
+		]
+	});
+
+	/* 🔵 - Yearn Finance **************************************************************************
+	** Simple function to group the winners addresses into an array.
+	**
+	** @deps: data - the data we fetched from the bootstrap contract via the multicall
+	** @returns: winners - the list of the 5 protocols with the most votes (address[])
+	**********************************************************************************************/
+	const winners = useMemo((): TAddress[] => {
+		const winnerProtocols = [
+			toAddress(data?.[2]?.result),
+			toAddress(data?.[3]?.result),
+			toAddress(data?.[4]?.result),
+			toAddress(data?.[5]?.result),
+			toAddress(data?.[6]?.result)
+		];
+		return winnerProtocols;
+	}, [data]);
+
+	/* 🔵 - Yearn Finance **************************************************************************
+	** Function to trigger a refetch of both the multicall data and the vote events from the
+	** useVoteEvents hook.
+	**
+	** @deps: refetch - the refetch function from the useContractReads hook
+	** @deps: onUpdateVoteEvents - the onUpdate function from the useVoteEvents hook
+	**********************************************************************************************/
 	const onUpdate = useCallback(async (): Promise<void> => {
 		await Promise.all([
 			refetch(),
-			filterEvents()
+			onUpdateVoteEvents()
 		]);
-	}, [refetch, filterEvents]);
-
-	useEffect((): void => {
-		filterEvents();
-	}, [filterEvents]);
+	}, [refetch, onUpdateVoteEvents]);
 
 	const voteData = useDeepCompareMemo((): TUseBootstrapVotingResp['voteData'] => ({
 		votesAvailable: toNormalizedBN(data?.[0]?.result || 0n),
 		votesUsed: toNormalizedBN(data?.[1]?.result || 0n),
 		votesUsedPerProtocol: votesUsedPerProtocol,
-		winners: determineWinners
+		winners: winners
 	}), [data, votesUsedPerProtocol]);
-	return {voteData, isLoading, isLoadingEvents, onUpdate};
+
+	return ({
+		voteData,
+		isLoading,
+		isLoadingEvents: isLoadingVoteEvents,
+		onUpdate
+	});
 }
 
 export default useBootstrapVoting;
