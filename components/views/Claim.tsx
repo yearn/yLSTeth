@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import useBootstrap from 'contexts/useBootstrap';
+import {useTimer} from 'hooks/useTimer';
 import BOOTSTRAP_ABI from 'utils/abi/bootstrap.abi';
 import {multicall} from 'utils/actions';
 import {encodeFunctionData} from 'viem';
@@ -38,6 +39,12 @@ function ClaimConfirmationModal({claimableIncentive, onUpdateIncentive, onSucces
 	const [claimStatus, set_claimStatus] = useState<TTxStatus>(defaultTxStatus);
 	const hasSelected = useMemo((): boolean => claimableIncentive.some((incentive): boolean => incentive.isSelected), [claimableIncentive]);
 
+	/* 🔵 - Yearn Finance **************************************************************************
+	** Group, for each protocol, the list of incentives you can claim.
+	**
+	** @deps: claimableIncentive - the list of all claimable incentives.
+	** @returns: {protocolName: [incentives]} - a dictionary of protocolName to incentives.
+	**********************************************************************************************/
 	const claimableIncentiveByProtocol = useMemo((): TDict<TClaimDetails[]> => {
 		const result: TDict<TClaimDetails[]> = {};
 		claimableIncentive.forEach((incentive): void => {
@@ -50,12 +57,22 @@ function ClaimConfirmationModal({claimableIncentive, onUpdateIncentive, onSucces
 		return result;
 	}, [claimableIncentive]);
 
+	/* 🔵 - Yearn Finance **************************************************************************
+	** Calculate the total amount of incentives you asked to claim, excluding the one you didn't
+	** select.
+	**
+	** @deps: claimableIncentive - the list of all claimable incentives.
+	** @returns: number - the total amount of incentives you asked to claim.
+	**********************************************************************************************/
 	const totalToClaim = useMemo((): number => (
 		claimableIncentive
 			.filter((incentive): boolean => incentive.isSelected)
 			.reduce((total, incentive): number => total + incentive.value, 0)
 	), [claimableIncentive]);
 
+	/* 🔵 - Yearn Finance **************************************************************************
+	** Web3 actions to claim the incentives you selected. This is triggered via a multicall3.
+	**********************************************************************************************/
 	async function onClaim(): Promise<void> {
 		const result = await multicall({
 			connector: provider,
@@ -136,6 +153,46 @@ function ClaimConfirmationModal({claimableIncentive, onUpdateIncentive, onSucces
 	);
 }
 
+function Timer(): ReactElement {
+	const {periods} = useBootstrap();
+	const {voteEnd} = periods || {};
+	const time = useTimer({endTime: Number(voteEnd?.result)});
+	return <>{`in ${time}`}</>;
+}
+
+function ClaimHeading(): ReactElement {
+	const {periods: {voteStatus}} = useBootstrap();
+	if (voteStatus === 'ended') {
+		return (
+			<div className={'mb-10 flex w-[52%] flex-col justify-center'}>
+				<h1 className={'text-3xl font-black md:text-8xl'}>
+					{'Claim'}
+				</h1>
+				<p className={'pt-8 text-neutral-700'}>{'You did your democratic duty beautifully anon.'}</p>
+				<p className={'text-neutral-700'}>{'And now it’s time to claim your ‘good on chain citizen’ rewards. Enjoy!'}</p>
+			</div>
+		);
+	}
+
+	return (
+		<div className={'mb-10 flex w-3/4 flex-col justify-center'}>
+			<h1 className={'text-3xl font-black md:text-8xl'}>
+				{'Claim'}
+				<span suppressHydrationWarning className={'text-xs font-normal italic text-neutral-400'}>
+					{'Soon ™️'}
+				</span>
+			</h1>
+			<b
+				suppressHydrationWarning
+				className={'font-number mt-4 text-4xl text-purple-300'}>
+				<Timer />
+			</b>
+			<p className={'pt-8 text-neutral-700'}>{'If you voted for any LSTs you’d like to see included in yETH, you’re eligble to recieve incentives from the top 5 protocols (even if you didn’t vote for them).'}</p>
+			<p className={'text-neutral-700'}>{' But hold your horses anon, you can claim soon.'}</p>
+		</div>
+	);
+}
+
 function Claim(): ReactElement {
 	const {address} = useWeb3();
 	const {
@@ -146,6 +203,14 @@ function Claim(): ReactElement {
 	const [claimableIncentive, set_claimableIncentive] = useState<TClaimDetails[]>([]);
 	const [totalIncentiveValue, set_totalIncentiveValue] = useState<number>(0);
 	const [isModalOpen, set_isModalOpen] = useState<boolean>(false);
+
+	/* 🔵 - Yearn Finance **************************************************************************
+	** Compute the totalVotes you did for all the whitelistedLSTs you voted for.
+	** It will be 0 if you didn't vote for any whitelistedLSTs.
+	**
+	** @deps: whitelistedLST - The list of whitelistedLSTs.
+	** @returns: {raw: bigint, normalized: number} - The total number of votes you did.
+	**********************************************************************************************/
 	const totalVotes = useMemo((): TNormalizedBN => {
 		let sum = 0n;
 		for (const item of Object.values(whitelistedLST)) {
@@ -154,22 +219,61 @@ function Claim(): ReactElement {
 		return toNormalizedBN(sum);
 	}, [whitelistedLST]);
 
+	/* 🔵 - Yearn Finance **************************************************************************
+	** Once the data are loaded, we need to compute the total incentives you can claim. The
+	** incentives are rewards you got for voting to the yEth composition. The rewards are the ones
+	** in the top 5 protocols (winners), even if you didn't vote for them.
+	** It will not run of you didn't vote for any whitelistedLSTs.
+	**
+	** @deps: winners - The top 5 protocols that won the vote.
+	** @deps: protocols - The list of all protocols, including the winners, with the incentives.
+	** @deps: votesUsedPerProtocol - The number of votes you did for each protocol.
+	** @deps: totalVotes - The total number of votes casted for all the lst.
+	** @deps: votesUsed - The total number of votes you casted for the winners.
+	** @deps: claimedIncentives - The list of all the incentives you already claimed.
+	** @deps: address - The connected wallet address.
+	**********************************************************************************************/
 	useEffect((): void => {
 		if (totalVotes.raw === 0n || !claimedIncentives) {
 			return;
 		}
 		let _totalIncentiveValue = 0;
 		const claimData: TClaimDetails[] = [];
+
+		/* 🔵 - Yearn Finance **********************************************************************
+		** As only the winner are giving incentives, we need to loop through the winners only.
+		** As all winners are giving incentives, none should be skipped.
+		******************************************************************************************/
 		for (const protocol of voteData.winners) {
 			const incentivesForThisProtocol = groupIncentiveHistory.protocols[protocol];
 			if (!incentivesForThisProtocol) {
 				continue;
 			}
 			for (const incentive of incentivesForThisProtocol.incentives) {
-				const valueOfThis = (incentive.value * Number(voteData.votesUsed.normalized || 0) / Number(totalVotes.normalized));
-				const amountOfThis = toNormalizedBN((incentive.amount * voteData.votesUsed.raw / totalVotes.raw), incentive?.incentiveToken?.decimals || 18);
+				/* 🔵 - Yearn Finance **************************************************************
+				** We compute:
+				** - the value of the incentive you can claim. The value is the total usd amount
+				**   you should get when claiming this specific incentive.
+				** - the amount of the incentive you can claim. The amount is the total amount of
+				**   tokens you should get when claiming this specific incentive.
+				** - the id of the incentive you can claim. The id is the unique identifier of the
+				**   incentive you can claim.
+				**********************************************************************************/
+				const valueOfThis = (
+					incentive.value
+					* Number(voteData.votesUsed.normalized || 0)
+					/ Number(totalVotes.normalized)
+				);
+				const amountOfThis = toNormalizedBN(
+					(incentive.amount * voteData.votesUsed.raw / totalVotes.raw),
+					incentive?.incentiveToken?.decimals || 18
+				);
 				const id = `${protocol}-${incentive.incentive}-${toAddress(address)}`;
 
+				/* 🔵 - Yearn Finance **************************************************************
+				** If we already have this incentive in the list, we skip it.
+				** If we already claimed this incentive, we skip it.
+				**********************************************************************************/
 				if (claimData.find((item): boolean => item.id === id)) {
 					continue;
 				}
@@ -177,6 +281,10 @@ function Claim(): ReactElement {
 					_totalIncentiveValue += valueOfThis;
 					continue;
 				}
+
+				/* 🔵 - Yearn Finance **************************************************************
+				** Add the incentive to the list of claimable incentives.
+				**********************************************************************************/
 				claimData.push({
 					id: id,
 					protocolName: incentive.protocolName,
@@ -197,17 +305,34 @@ function Claim(): ReactElement {
 			}
 		}
 
+		/* 🔵 - Yearn Finance **********************************************************************
+		** Perform a batched update to avoid multiple re-renders, updating both the list of
+		** claimable incentives and the total value of the incentives you can claim.
+		******************************************************************************************/
 		performBatchedUpdates((): void => {
 			set_claimableIncentive(claimData);
 			set_totalIncentiveValue(_totalIncentiveValue);
 		});
-
 	}, [voteData.winners, groupIncentiveHistory.protocols, voteData.votesUsedPerProtocol, totalVotes, voteData.votesUsed.normalized, voteData.votesUsed.raw, claimedIncentives, address]);
 
+	/* 🔵 - Yearn Finance **************************************************************************
+	** Compute the total amount of incentives you already claimed.
+	**
+	** @deps: claimableIncentive - The list of all the incentives you can claim.
+	** @returns: number - The total amount of incentives you can claim.
+	**********************************************************************************************/
 	const totalToClaim = useMemo((): number => (
 		claimableIncentive.reduce((total, incentive): number => total + incentive.value, 0)
 	), [claimableIncentive]);
 
+	/* 🔵 - Yearn Finance **************************************************************************
+	** Function triggered when the user clicks a checkbox in the confirmation modal. This will mark
+	** the incentive as selected or not.
+	**
+	** @params: id - The id of the incentive.
+	** @params: isSelected - Whether the incentive should be selected or not.
+	** @deps: claimableIncentive - The list of all the incentives you can claim.
+	**********************************************************************************************/
 	const onUpdateIncentive = useCallback((id: string, isSelected: boolean): void => {
 		const newClaimableIncentive = [...claimableIncentive];
 		const index = newClaimableIncentive.findIndex((item): boolean => item.id === id);
@@ -218,6 +343,13 @@ function Claim(): ReactElement {
 		set_claimableIncentive(newClaimableIncentive);
 	}, [claimableIncentive]);
 
+	/* 🔵 - Yearn Finance **************************************************************************
+	** Function triggered when the user has successfully claimed an incentive. This will close the
+	** modal and refresh the list of claimed incentives and the vote data.
+	**
+	** @deps: refreshClaimedIncentives - The function to refresh the list of claimed incentives.
+	** @deps: refreshVoteData - The function to refresh the vote data.
+	**********************************************************************************************/
 	const onClaimedSuccess = useCallback(async (): Promise<void> => {
 		set_isModalOpen(false);
 		await Promise.all([
@@ -229,13 +361,7 @@ function Claim(): ReactElement {
 	return (
 		<section className={'grid grid-cols-1 pt-10 md:mb-20 md:pt-12'}>
 			<div className={'mb-20 md:mb-0'}>
-				<div className={'mb-10 flex w-[52%] flex-col justify-center'}>
-					<h1 className={'text-3xl font-black md:text-8xl'}>
-						{'Claim'}
-					</h1>
-					<p className={'pt-8 text-neutral-700'}>{'You did your democratic duty beautifully anon.'}</p>
-					<p className={'text-neutral-700'}>{'And now it’s time to claim your ‘good on chain citizen’ rewards. Enjoy!'}</p>
-				</div>
+				<ClaimHeading />
 				<div className={'flex flex-col md:w-1/2 lg:w-[352px]'}>
 					<div className={'mb-4 w-full bg-neutral-100 p-4'}>
 						<p className={'pb-2'}>{'Unclaimed incentives, $'}</p>

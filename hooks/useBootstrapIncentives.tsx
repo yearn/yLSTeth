@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 import {useCallback, useEffect, useMemo, useState} from 'react';
+import {useYDaemonBaseURI} from 'hooks/useYDaemonBaseURI';
 import {getClient} from 'utils';
 import BOOTSTRAP_ABI from 'utils/abi/bootstrap.abi';
-import {useYDaemonBaseURI} from 'utils/getYDaemonBaseURI';
 import {yDaemonPricesSchema} from 'utils/schemas/yDaemonPricesSchema';
 import {parseAbiItem, toHex} from 'viem';
 import {erc20ABI, useContractRead} from 'wagmi';
 import {useAsync, useMountEffect, useUpdateEffect} from '@react-hookz/web';
 import {multicall} from '@wagmi/core';
-import useWeb3 from '@yearn-finance/web-lib/contexts/useWeb3';
+import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
 import {toAddress, truncateHex} from '@yearn-finance/web-lib/utils/address';
 import {ETH_TOKEN_ADDRESS} from '@yearn-finance/web-lib/utils/constants';
 import {decodeAsNumber, decodeAsString} from '@yearn-finance/web-lib/utils/decoder';
@@ -41,6 +41,7 @@ export type TIncentives = {
 	txHash: Hex,
 	incentiveToken?: TTokenInfo
 }
+
 export type TGroupedIncentives = {
 	protocol: TAddress,
 	protocolName: string,
@@ -66,7 +67,7 @@ export type TUseBootstrapIncentivesResp = {
 function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 	const {address} = useWeb3();
 	const {voteStatus} = useBootstrapPeriods();
-	const [userIncentives, set_userIncentives] = useState<TIncentives[]>([]);
+	const [incentives, set_incentives] = useState<TIncentives[]>([]);
 	const [claimedIncentives, set_claimedIncentives] = useState<TIncentivesClaimed[] | undefined>(undefined);
 	const [isFetchingHistory, set_isFetchingHistory] = useState(false);
 	const {yDaemonBaseUri} = useYDaemonBaseURI({chainID: Number(process.env.BASE_CHAINID)});
@@ -75,10 +76,27 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 		schema: yDaemonPricesSchema
 	});
 
+	/* 🔵 - Yearn Finance **************************************************************************
+	** useContractRead calling the `deposited` method from the bootstrap contract to get the total
+	** deposited ETH from the contract.
+	**
+	** @returns: bigint - total deposited eth
+	**********************************************************************************************/
 	const {data: totalDepositedETH} = useContractRead({
-		address: toAddress(process.env.BOOTSTRAP_ADDRESS), abi: BOOTSTRAP_ABI, functionName: 'deposited'
+		address: toAddress(process.env.BOOTSTRAP_ADDRESS),
+		abi: BOOTSTRAP_ABI,
+		functionName: 'deposited'
 	});
 
+
+	/* 🔵 - Yearn Finance **************************************************************************
+	** Memoize the total deposited value in USD, using the prices from the yDaemon API and the
+	** total deposited ETH from the contract.
+	**
+	** @deps: prices - list of prices from the yDaemon API
+	** @deps: totalDepositedETH - total deposited ETH from the contract
+	** @returns: number - total deposited value in USD
+	**********************************************************************************************/
 	const totalDepositedValue = useMemo((): number => {
 		if (!prices || !totalDepositedETH) {
 			return 0;
@@ -90,11 +108,14 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 		);
 	}, [prices, totalDepositedETH]);
 
+
 	/* 🔵 - Yearn Finance **************************************************************************
-	* Connect to the node and listen for all the events since the deployment of the contracts.
-	* We need to filter the Incentivize even to get the objects with protocol incentived, amound,
-	* depositor and incentive token.
-	* From that we will be able to create our mappings
+	** Connect to the node and listen for all the events since the deployment of the contracts.
+	** We need to filter the Incentivize even to get the objects with protocol incentived, amount,
+	** depositor and incentive token.
+	** From that we will be able to create our mappings
+	**
+	** @deps: none
 	**********************************************************************************************/
 	const filterIncentivizeEvents = useCallback(async (): Promise<void> => {
 		set_isFetchingHistory(true);
@@ -125,15 +146,19 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 				});
 			}
 		}
-		set_userIncentives(incentives);
+		set_incentives(incentives);
 	}, []);
 	useMountEffect(filterIncentivizeEvents);
 
+
 	/* 🔵 - Yearn Finance **************************************************************************
-	* Connect to the node and listen for all the events since the deployment of the contracts.
-	* We need to filter the ClaimIncentive event to be able to know which incentives were already
-	* claimed by the user.
-	* From that we will be able to create our mappings
+	** Connect to the node and listen for all the events since the deployment of the contracts.
+	** We need to filter the ClaimIncentive event to be able to know which incentives were already
+	** claimed by the user.
+	** From that we will be able to create our mappings
+	**
+	** @deps: address - The address of the user
+	** @deps: voteStatus - The status of the vote
 	**********************************************************************************************/
 	const filterClaimIncentiveEvents = useCallback(async (): Promise<void> => {
 		if (!address || voteStatus !== 'ended') {
@@ -168,12 +193,15 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 		filterClaimIncentiveEvents();
 	}, [filterClaimIncentiveEvents]);
 
+
 	/* 🔵 - Yearn Finance **************************************************************************
-	* The filtered events are only a bunch of addresses and amounts. Because we are an UI we want
-	* to make this easy for users to understand. We will fetch the token information from the
-	* blockchain and the logo from the API, then store it in an intermediate object.
+	** The filtered events are only a bunch of addresses and amounts. Because we are an UI we want
+	** to make this easy for users to understand. We will fetch the token information from the
+	** blockchain and the logo from the API, then store it in an intermediate object.
+	**
+	** @deps: incentives - list of all the incentives
 	**********************************************************************************************/
-	const incentives = useAsync(async function fetchToken(chainID: number, incentives: TIncentives[]): Promise<TIncentives[]> {
+	const incentiveDetails = useAsync(async function fetchToken(chainID: number, incentives: TIncentives[]): Promise<TIncentives[]> {
 		const calls = [];
 		for (const {incentive, protocol} of incentives) {
 			calls.push(...[
@@ -215,21 +243,27 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 		set_isFetchingHistory(false);
 		return (incentiveList);
 	}, []);
-	const [{result: incentiveHistory}, fetchTokenData] = incentives;
+	const [{result: incentiveHistory}, fetchTokenData] = incentiveDetails;
 	useUpdateEffect((): void => {
 		fetchTokenData.execute(
 			Number(process.env.DEFAULT_CHAINID),
-			userIncentives
+			incentives
 		);
-	}, [userIncentives]);
+	}, [incentives]);
+
 
 	/* 🔵 - Yearn Finance **************************************************************************
-	* For the UI we will need two things:
-	* - The list of all the protocols that have been incentivized with the list of incentives they
-	*   have received.
-	* - The list of all the incentives that have been distributed by the current user.
-	* To do that we will use the incentiveHistory object and group the data by protocol, then by
-	* depositor.
+	** For the UI we will need two things:
+	** - The list of all the protocols that have been incentivized with the list of incentives they
+	**   have received.
+	** - The list of all the incentives that have been distributed by the current user.
+	** To do that we will use the incentiveHistory object and group the data by protocol, then by
+	** depositor.
+	**
+	** @deps: address - address of the user
+	** @deps: incentiveHistory - list of all the incentives that have been distributed
+	** @deps: prices - list of all the prices of the tokens
+	** @deps: totalDepositedETH - total amount of ETH deposited
 	**********************************************************************************************/
 	const groupIncentiveHistory = useMemo((): TIncentivesFor => {
 		if (!incentiveHistory) {
@@ -237,10 +271,10 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 		}
 		const getAPR = (USDValue: number): number => (
 			USDValue
-			* 12
+			** 12
 			/ Number(toNormalizedBN(toBigInt(totalDepositedETH)).normalized)
 			/ Number(toNormalizedBN(prices?.[ETH_TOKEN_ADDRESS] || 0, 6).normalized)
-			* 100
+			** 100
 		);
 
 		const groupByProtocol = incentiveHistory
