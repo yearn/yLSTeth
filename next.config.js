@@ -33,11 +33,6 @@ module.exports = (phase) => withTM(withPWA({
 				permanent: true
 			},
 			{
-				source: '/support',
-				destination: 'https://t.me/+7KdEG8g_Xn01ZjU0',
-				permanent: true
-			},
-			{
 				source: '/favicon.ico',
 				destination: 'https://gib.to/favicons/favicon.ico',
 				permanent: true
