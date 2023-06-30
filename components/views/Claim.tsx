@@ -156,7 +156,7 @@ function ClaimConfirmationModal({claimableIncentive, onUpdateIncentive, onSucces
 function Timer(): ReactElement {
 	const {periods} = useBootstrap();
 	const {voteEnd} = periods || {};
-	const time = useTimer({endTime: Number(voteEnd?.result)});
+	const time = useTimer({endTime: Number(voteEnd)});
 	return <>{`in ${time}`}</>;
 }
 

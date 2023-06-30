@@ -7,25 +7,33 @@ import Phase4 from 'components/views/Phase4';
 import {UIStepContextApp} from 'contexts/useUI';
 import {transition} from 'utils';
 import {AnimatePresence, motion} from 'framer-motion';
+import {toBigInt} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import performBatchedUpdates from '@yearn-finance/web-lib/utils/performBatchedUpdates';
 
+import type {TPeriods} from 'hooks/useBootstrapPeriods';
 import type {ReactElement} from 'react';
 
 const TO_RIGHT = 1;
 const NO_DIRECTION = 0;
 const currentPhaseToStep = (): number => {
-	switch (process.env.CURRENT_PHASE) {
-		case 'whitelisting':
-			return 0;
-		case 'bootstrapping':
-			return 1;
-		case 'voting':
-			return 2;
-		case 'launching':
-			return 3;
-		default:
-			return 0;
+	const nowBigInt = toBigInt(Math.round(new Date().getTime() / 1000));
+	const whitelistEnd = toBigInt((process.env.PERIODS as unknown as TPeriods).WHITELIST_END);
+	const incentiveEnd = toBigInt((process.env.PERIODS as unknown as TPeriods).INCENTIVE_END);
+	const voteEnd = toBigInt((process.env.PERIODS as unknown as TPeriods).VOTE_END);
+
+	if (nowBigInt < whitelistEnd) {
+		return 0; // whitelist
 	}
+	if (nowBigInt < incentiveEnd) {
+		return 1; // bootstrap
+	}
+	if (nowBigInt < voteEnd) {
+		return 2; // vote
+	}
+	if (nowBigInt > voteEnd) {
+		return 3; // launch
+	}
+	return 0;
 };
 
 function YETH(): ReactElement {

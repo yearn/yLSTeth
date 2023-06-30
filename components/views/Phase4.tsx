@@ -1,12 +1,17 @@
 import React from 'react';
 import HeroAsLottie from 'components/common/HeroAsLottie';
+import useBootstrap from 'contexts/useBootstrap';
+import {useTimer} from 'hooks/useTimer';
 import {customVariants} from 'utils';
 import {motion} from 'framer-motion';
 
 import type {ReactElement} from 'react';
 
 function Timer(): ReactElement {
-	return <>{'coming soon'}</>;
+	const {periods} = useBootstrap();
+	const {voteEnd, voteStatus} = periods || {};
+	const time = useTimer({endTime: Number(voteEnd)});
+	return <>{voteStatus === 'ended' ? 'launched' : `in ${time}`}</>;
 }
 
 function Phase4({variant}: {variant: string[]}): ReactElement {
