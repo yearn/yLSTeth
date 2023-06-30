@@ -1,7 +1,7 @@
 {
 	"name": "yEth",
 	"short_name": "yEth",
-	"description": "yEth",
+	"description": "A basket of LSTs in a single token. Simple, straight forward, risk adjusted liquid staking yield.",
 	"locale": "en-US",
 	"uri": "https://yeth.yearn.farm/",
 	"og": "https://yeth.yearn.farm/og.png",
