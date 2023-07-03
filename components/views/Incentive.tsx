@@ -39,7 +39,7 @@ type TSortDirection = '' | 'desc' | 'asc'
 function Timer(): ReactElement {
 	const {periods} = useBootstrap();
 	const {incentiveBegin, incentiveEnd, incentiveStatus} = periods || {};
-	const time = useTimer({endTime: incentiveStatus === 'started' ? Number(incentiveEnd?.result) : Number(incentiveBegin?.result)});
+	const time = useTimer({endTime: incentiveStatus === 'started' ? Number(incentiveEnd) : Number(incentiveBegin)});
 	return <>{incentiveStatus === 'ended' ? 'ended' : incentiveStatus === 'started' ? time : `in ${time}`}</>;
 }
 

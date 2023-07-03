@@ -1,11 +1,11 @@
 {
 	"name": "yEth",
 	"short_name": "yEth",
-	"description": "yEth",
+	"description": "A basket of LSTs in a single token. Simple, straight forward, risk adjusted liquid staking yield.",
 	"locale": "en-US",
-	"uri": "https://yeth.ycorpo.com/",
-	"og": "https://yeth.ycorpo.com/og.png",
-	"iconPath": "https://yeth.ycorpo.com/favicons/favicon.svg",
+	"uri": "https://yeth.yearn.farm/",
+	"og": "https://yeth.yearn.farm/og.png",
+	"iconPath": "https://yeth.yearn.farm/favicons/favicon.svg",
 	"twitter": "@yearnfi",
 	"icons": [
 		{

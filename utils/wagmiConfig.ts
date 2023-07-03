@@ -1,4 +1,4 @@
-import {arbitrum} from 'viem/chains';
+import {mainnet} from 'viem/chains';
 import {configureChains, createConfig} from 'wagmi';
 import {CoinbaseWalletConnector} from 'wagmi/connectors/coinbaseWallet';
 import {InjectedConnector} from 'wagmi/connectors/injected';
@@ -43,7 +43,7 @@ export const localhost = {
 } as const satisfies Chain;
 
 const {chains, publicClient, webSocketPublicClient} = configureChains(
-	[arbitrum, localhost],
+	[mainnet, localhost],
 	[
 		infuraProvider({apiKey: process.env.INFURA_PROJECT_ID || ''}),
 		alchemyProvider({apiKey: process.env.ALCHEMY_KEY || ''}),

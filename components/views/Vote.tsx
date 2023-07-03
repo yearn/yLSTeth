@@ -29,7 +29,7 @@ type TSortDirection = '' | 'desc' | 'asc'
 function Timer(): ReactElement {
 	const {periods} = useBootstrap();
 	const {voteBegin, voteEnd, voteStatus} = periods || {};
-	const time = useTimer({endTime: voteStatus === 'started' ? Number(voteEnd?.result) : Number(voteBegin?.result)});
+	const time = useTimer({endTime: voteStatus === 'started' ? Number(voteEnd) : Number(voteBegin)});
 	return <>{voteStatus === 'ended' ? 'ended' : voteStatus === 'started' ? time : `in ${time}`}</>;
 }
 

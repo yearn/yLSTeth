@@ -8,6 +8,7 @@ import {Button} from '@yearn-finance/web-lib/components/Button';
 import {Modal} from '@yearn-finance/web-lib/components/Modal';
 import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
 import {toAddress, truncateHex} from '@yearn-finance/web-lib/utils/address';
+import {cl} from '@yearn-finance/web-lib/utils/cl';
 import {toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
 import performBatchedUpdates from '@yearn-finance/web-lib/utils/performBatchedUpdates';
@@ -156,7 +157,7 @@ function ClaimConfirmationModal({claimableIncentive, onUpdateIncentive, onSucces
 function Timer(): ReactElement {
 	const {periods} = useBootstrap();
 	const {voteEnd} = periods || {};
-	const time = useTimer({endTime: Number(voteEnd?.result)});
+	const time = useTimer({endTime: Number(voteEnd)});
 	return <>{`in ${time}`}</>;
 }
 
@@ -196,6 +197,7 @@ function ClaimHeading(): ReactElement {
 function Claim(): ReactElement {
 	const {address} = useWeb3();
 	const {
+		periods: {voteStatus},
 		whitelistedLST: {whitelistedLST},
 		voting: {voteData, onUpdate: refreshVoteData},
 		incentives: {groupIncentiveHistory, claimedIncentives, refreshClaimedIncentives}
@@ -203,6 +205,15 @@ function Claim(): ReactElement {
 	const [claimableIncentive, set_claimableIncentive] = useState<TClaimDetails[]>([]);
 	const [totalIncentiveValue, set_totalIncentiveValue] = useState<number>(0);
 	const [isModalOpen, set_isModalOpen] = useState<boolean>(false);
+	const [className, set_className] = useState('pointer-events-none opacity-40');
+
+	useEffect((): void => {
+		if (voteStatus !== 'ended') {
+			set_className('pointer-events-none opacity-40');
+		} else {
+			set_className('');
+		}
+	}, [voteStatus, className]);
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	** Compute the totalVotes you did for all the whitelistedLSTs you voted for.
@@ -362,7 +373,9 @@ function Claim(): ReactElement {
 		<section className={'grid grid-cols-1 pt-10 md:mb-20 md:pt-12'}>
 			<div className={'mb-20 md:mb-0'}>
 				<ClaimHeading />
-				<div className={'flex flex-col md:w-1/2 lg:w-[352px]'}>
+				<div
+					key={voteStatus}
+					className={cl('flex flex-col md:w-1/2 lg:w-[352px]', className)}>
 					<div className={'mb-4 w-full bg-neutral-100 p-4'}>
 						<p className={'pb-2'}>{'Unclaimed incentives, $'}</p>
 						<b suppressHydrationWarning className={'font-number text-3xl'}>

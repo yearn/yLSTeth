@@ -12,7 +12,7 @@ import type {ReactElement} from 'react';
 function Timer(): ReactElement {
 	const {periods} = useBootstrap();
 	const {whitelistEnd, whitelistStatus} = periods || {};
-	const time = useTimer({endTime: Number(whitelistEnd?.result)});
+	const time = useTimer({endTime: Number(whitelistEnd)});
 	return <>{whitelistStatus === 'ended' ? 'ended' : whitelistStatus === 'started' ? time : 'coming soon'}</>;
 }
 

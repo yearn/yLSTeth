@@ -13,7 +13,7 @@ import type {ReactElement} from 'react';
 function Timer(): ReactElement {
 	const {periods} = useBootstrap();
 	const {depositBegin, depositEnd, depositStatus} = periods || {};
-	const time = useTimer({endTime: depositStatus === 'started' ? Number(depositEnd?.result) : Number(depositBegin?.result)});
+	const time = useTimer({endTime: depositStatus === 'started' ? Number(depositEnd) : Number(depositBegin)});
 	return <>{depositStatus === 'ended' ? 'ended' : depositStatus === 'started' ? time : `in ${time}`}</>;
 }
 
