@@ -221,7 +221,7 @@ const nav: TMenu[] = [
 	{path: '/incentive', label: 'Incentivize'},
 	{path: '/vote', label: 'Vote'},
 	{path: '/claim', label: 'Claim'},
-	{path: 'https://yeth.yearn.farm/documentation', label: 'Docs'}
+	{path: 'https://docs.yearn.finance/getting-started/products/yeth/overview', label: 'Docs'}
 	// {path: 'https://yeth.yearn.farm/support', label: 'Support'}
 ];
 
