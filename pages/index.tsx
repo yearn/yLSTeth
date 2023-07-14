@@ -17,14 +17,14 @@ const TO_RIGHT = 1;
 const NO_DIRECTION = 0;
 const currentPhaseToStep = (): number => {
 	const nowBigInt = toBigInt(Math.round(new Date().getTime() / 1000));
-	const whitelistEnd = toBigInt((process.env.PERIODS as unknown as TPeriods).WHITELIST_END);
 	const incentiveBegin = toBigInt((process.env.PERIODS as unknown as TPeriods).INCENTIVE_BEGIN);
+	const voteBegin = toBigInt((process.env.PERIODS as unknown as TPeriods).VOTE_BEGIN);
 	const voteEnd = toBigInt((process.env.PERIODS as unknown as TPeriods).VOTE_END);
 
-	if (nowBigInt < whitelistEnd) {
+	if (nowBigInt < incentiveBegin) {
 		return 0; // whitelist
 	}
-	if (nowBigInt < incentiveBegin) {
+	if (nowBigInt < voteBegin) {
 		return 1; // bootstrap
 	}
 	if (nowBigInt < voteEnd) {
