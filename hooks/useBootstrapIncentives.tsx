@@ -21,6 +21,7 @@ import type {TTokenInfo} from 'contexts/useTokenList';
 import type {TYDaemonPrices} from 'utils/schemas/yDaemonPricesSchema';
 import type {Hex} from 'viem';
 import type {TAddress, TDict} from '@yearn-finance/web-lib/types';
+import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 
 export type TIncentivesClaimed = {
 	id: string,
@@ -62,7 +63,8 @@ export type TUseBootstrapIncentivesResp = {
 	isFetchingHistory: boolean,
 	refreshIncentives: VoidFunction,
 	refreshClaimedIncentives: VoidFunction
-	totalDepositedETH: number
+	totalDepositedETH: TNormalizedBN
+	totalDepositedUSD: number
 };
 function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 	const {address} = useWeb3();
@@ -362,7 +364,8 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 		groupIncentiveHistory,
 		isFetchingHistory,
 		refreshIncentives: filterIncentivizeEvents,
-		totalDepositedETH: totalDepositedValue,
+		totalDepositedETH: toNormalizedBN(totalDepositedETH || 0n),
+		totalDepositedUSD: totalDepositedValue,
 		claimedIncentives: claimedIncentives,
 		refreshClaimedIncentives: filterClaimIncentiveEvents
 	});

@@ -89,10 +89,10 @@ function Phase1({variant}: {variant: string[]}): ReactElement {
 						target={'_blank'}
 						rel={'noopener noreferrer'}>
 						<Button
-							// isDisabled={whitelistStatus === 'ended'}
+							isDisabled={whitelistStatus === 'ended'}
 							suppressHydrationWarning
 							className={'yearn--button w-full rounded-md !text-sm md:w-1/2'}>
-							{/* {whitelistStatus === 'ended' ? 'Check whitelisted projects' :  */'Take me to the form'}
+							{whitelistStatus === 'ended' ? 'Check whitelisted projects' : 'Take me to the form'}
 						</Button>
 					</Link>
 				</motion.div>

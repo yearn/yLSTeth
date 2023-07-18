@@ -498,7 +498,7 @@ function ViewIncentive(): ReactElement {
 	const {
 		whitelistedLST,
 		periods: {incentiveStatus},
-		incentives: {groupIncentiveHistory, isFetchingHistory, refreshIncentives, totalDepositedETH}
+		incentives: {groupIncentiveHistory, isFetchingHistory, refreshIncentives, totalDepositedUSD}
 	} = useBootstrap();
 	const [isModalOpen, set_isModalOpen] = useState<boolean>(false);
 	const [amountToSend, set_amountToSend] = useState<TNormalizedBN>(toNormalizedBN(0));
@@ -706,7 +706,7 @@ function ViewIncentive(): ReactElement {
 								<p className={'pb-2'}>{'Current total deposits, USD'}</p>
 								<b suppressHydrationWarning className={'font-number text-3xl'}>
 									<Renderable shouldRender={true} fallback ={'-'}>
-										{`$${formatNumberOver10K(totalDepositedETH)}`}
+										{`$${formatNumberOver10K(totalDepositedUSD)}`}
 									</Renderable>
 								</b>
 							</div>

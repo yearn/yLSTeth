@@ -153,10 +153,13 @@ function VoteListItem({
 						width={40}
 						height={40} />
 				</div>
-				<div>
+				<div className={'flex flex-col'}>
 					<p className={'whitespace-nowrap'}>
 						{item.symbol || truncateHex(item.address, 6)}
 					</p>
+					<small className={'whitespace-nowrap text-xs'}>
+						{item.name}
+					</small>
 				</div>
 			</div>
 

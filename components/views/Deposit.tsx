@@ -12,11 +12,12 @@ import {ETH_TOKEN, STYETH_TOKEN, YETH_TOKEN} from 'utils/tokens';
 import {parseAbiItem} from 'viem';
 import {useContractRead} from 'wagmi';
 import {Button} from '@yearn-finance/web-lib/components/Button';
+import Renderable from '@yearn-finance/web-lib/components/Renderable';
 import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
 import {toAddress} from '@yearn-finance/web-lib/utils/address';
 import {cl} from '@yearn-finance/web-lib/utils/cl';
 import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
-import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
+import {formatAmount, formatNumberOver10K} from '@yearn-finance/web-lib/utils/format.number';
 import performBatchedUpdates from '@yearn-finance/web-lib/utils/performBatchedUpdates';
 import {defaultTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 
@@ -85,8 +86,8 @@ function DepositHistory({isPending, depositHistory}: {isPending: boolean, deposi
 	);
 }
 
-function Deposit(): ReactElement {
-	const {periods: {depositStatus}} = useBootstrap();
+function ViewDeposit(): ReactElement {
+	const {periods: {depositStatus}, incentives: {totalDepositedETH}} = useBootstrap();
 	const {address, isActive, provider, chainID} = useWeb3();
 	const {balances, refresh} = useWallet();
 	const [amountToSend, set_amountToSend] = useState<TNormalizedBN>(toNormalizedBN(0));
@@ -223,7 +224,7 @@ function Deposit(): ReactElement {
 	return (
 		<section className={'grid grid-cols-1 pt-10 md:mb-20 md:pt-12'}>
 			<div className={'mb-20 md:mb-0'}>
-				<div className={'mb-10 flex w-full flex-col justify-center md:w-[56%]'}>
+				<div className={'mb-10 flex w-full flex-col justify-center'}>
 					<h1 className={'text-3xl font-black md:text-8xl'}>
 						{'Deposit'}
 					</h1>
@@ -232,13 +233,36 @@ function Deposit(): ReactElement {
 						className={'font-number mt-4 text-4xl text-purple-300'}>
 						<Timer />
 					</b>
-					<span className={'pt-8 text-neutral-700'}>
-						<p>{'Decide how much ETH you want to lock as st-yETH.'}</p>
-						<p>{'Remember this ETH will be locked for 16 weeks, but by holding st-yETH:'}</p>
-						<div className={'pt-4'}>
-							<b>{'You’ll receive incentives for voting on which LSTs will be included in yETH. Ka-ching.'}</b>
+					<div className={'grid w-full items-center gap-4 pt-8 md:grid-cols-1 md:gap-6 lg:grid-cols-2'}>
+						<div className={'w-full'}>
+							<span className={'text-neutral-700'}>
+								<p>{'Decide how much ETH you want to lock as st-yETH.'}</p>
+								<p>{'Remember this ETH will be locked for 16 weeks, but by holding st-yETH:'}</p>
+								<div className={'pt-4'}>
+									<b>{'You’ll receive incentives for voting on which LSTs will be included in yETH. Ka-ching.'}</b>
+								</div>
+							</span>
 						</div>
-					</span>
+
+						<div className={'flex justify-end space-x-4'}>
+							<div className={'w-full bg-neutral-100 p-4 lg:w-72'}>
+								<p className={'pb-2'}>{'Current total deposits, ETH'}</p>
+								<b suppressHydrationWarning className={'font-number text-3xl'}>
+									<Renderable shouldRender={true} fallback ={'-'}>
+										{formatAmount(totalDepositedETH.normalized, 6, 6)}
+									</Renderable>
+								</b>
+							</div>
+							<div className={'w-full bg-neutral-100 p-4 lg:w-72'}>
+								<p className={'pb-2'}>{'Your deposit, ETH'}</p>
+								<b suppressHydrationWarning className={'font-number text-3xl'}>
+									<Renderable shouldRender={true} fallback ={'-'}>
+										{formatAmount(Number(balanceDeposited.normalized), 6, 6)}
+									</Renderable>
+								</b>
+							</div>
+						</div>
+					</div>
 				</div>
 
 				<div
@@ -349,4 +373,4 @@ function Deposit(): ReactElement {
 	);
 }
 
-export default Deposit;
+export default ViewDeposit;
