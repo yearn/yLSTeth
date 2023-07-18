@@ -3,10 +3,9 @@ const withPWA = require('next-pwa')({
 	dest: 'public',
 	disable: process.env.NODE_ENV !== 'production'
 });
-const withTM = require('next-transpile-modules')(['@yearn-finance/web-lib'], {resolveSymlinks: false});
 const {PHASE_EXPORT} = require('next/constants');
 
-module.exports = (phase) => withTM(withPWA({
+module.exports = (phase) => withPWA({
 	assetPrefix: process.env.IPFS_BUILD === 'true' || phase === PHASE_EXPORT ? './' : '/',
 	images: {
 		unoptimized: process.env.IPFS_BUILD === 'true' || phase === PHASE_EXPORT,
@@ -71,4 +70,4 @@ module.exports = (phase) => withTM(withPWA({
 		},
 		WHITELISTED_PROTOCOLS: []
 	}
-}));
+});
