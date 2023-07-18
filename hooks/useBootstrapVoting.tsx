@@ -135,11 +135,11 @@ function useBootstrapVoting(): TUseBootstrapVotingResp {
 	**********************************************************************************************/
 	const winners = useMemo((): TAddress[] => {
 		const winnerProtocols = [
-			toAddress(data?.[2]?.result),
-			toAddress(data?.[3]?.result),
-			toAddress(data?.[4]?.result),
-			toAddress(data?.[5]?.result),
-			toAddress(data?.[6]?.result)
+			toAddress(data?.[2]?.result as string),
+			toAddress(data?.[3]?.result as string),
+			toAddress(data?.[4]?.result as string),
+			toAddress(data?.[5]?.result as string),
+			toAddress(data?.[6]?.result as string)
 		];
 		return winnerProtocols;
 	}, [data]);
@@ -159,8 +159,8 @@ function useBootstrapVoting(): TUseBootstrapVotingResp {
 	}, [refetch, onUpdateVoteEvents]);
 
 	const voteData = useDeepCompareMemo((): TUseBootstrapVotingResp['voteData'] => ({
-		votesAvailable: toNormalizedBN(data?.[0]?.result || 0n),
-		votesUsed: toNormalizedBN(data?.[1]?.result || 0n),
+		votesAvailable: toNormalizedBN((data?.[0]?.result as bigint) || 0n),
+		votesUsed: toNormalizedBN((data?.[1]?.result as bigint) || 0n),
 		votesUsedPerProtocol: votesUsedPerProtocol,
 		winners: winners
 	}), [data, votesUsedPerProtocol]);
