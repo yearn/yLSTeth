@@ -239,7 +239,7 @@ function ComboboxAddressInput({
 						leaveFrom={'transform scale-100 opacity-100'}
 						leaveTo={'transform scale-95 opacity-0'}
 						afterLeave={(): void => set_query('')}>
-						<Combobox.Options className={'box-500 absolute left-0 z-50 mt-1 flex max-h-60 w-full min-w-fit flex-col overflow-y-auto scrollbar-none md:min-w-[400px]'}>
+						<Combobox.Options className={'box-500 absolute left-0 z-50 mt-1 flex max-h-52 w-full min-w-fit flex-col overflow-y-scroll md:min-w-[400px] scrollbar-show'}>
 							{Object.values(possibleValues || []).length === 0 ? (
 								<div className={'relative flex cursor-default select-none items-center justify-center px-4 py-2 text-neutral-500'}>
 									<IconSpinner />
