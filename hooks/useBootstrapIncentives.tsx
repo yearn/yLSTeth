@@ -33,6 +33,7 @@ export type TIncentivesClaimed = {
 export type TIncentives = {
 	protocol: TAddress,
 	protocolName: string,
+	protocolSymbol: string,
 	incentive: TAddress,
 	depositor: TAddress,
 	amount: bigint,
@@ -46,6 +47,7 @@ export type TIncentives = {
 export type TGroupedIncentives = {
 	protocol: TAddress,
 	protocolName: string,
+	protocolSymbol: string,
 	normalizedSum: number,
 	estimatedAPR: number,
 	usdPerStETH: number,
@@ -140,6 +142,7 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 					txHash: toHex(log.transactionHash || ''),
 					protocol: toAddress(protocol),
 					protocolName: truncateHex(protocol, 6),
+					protocolSymbol: truncateHex(protocol, 6),
 					incentive: toAddress(incentive),
 					depositor: toAddress(depositor),
 					amount: toBigInt(amount),
@@ -207,6 +210,7 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 		const calls = [];
 		for (const {incentive, protocol} of incentives) {
 			calls.push(...[
+				{address: protocol, abi: erc20ABI, functionName: 'name'},
 				{address: protocol, abi: erc20ABI, functionName: 'symbol'},
 				{address: incentive, abi: erc20ABI, functionName: 'name'},
 				{address: incentive, abi: erc20ABI, functionName: 'symbol'},
@@ -219,12 +223,14 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 		let i = 0;
 		for (const args of incentives) {
 			const protocolName = decodeAsString(results[i++]);
+			const protocolSymbol = decodeAsString(results[i++]);
 			const name = decodeAsString(results[i++]);
 			const symbol = decodeAsString(results[i++]);
 			const decimals = decodeAsNumber(results[i++]);
 			incentiveList.push({
 				protocol: args.protocol,
 				protocolName: protocolName,
+				protocolSymbol: protocolSymbol,
 				incentive: args.incentive,
 				depositor: args.depositor,
 				amount: args.amount,
@@ -294,6 +300,7 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 						protocol: cur.protocol,
 						estimatedAPR: estimatedAPR,
 						protocolName: cur.protocolName || truncateHex(cur.protocol, 6),
+						protocolSymbol: cur.protocolSymbol || truncateHex(cur.protocol, 6),
 						normalizedSum: value,
 						usdPerStETH: value / Number(toNormalizedBN(toBigInt(totalDepositedETH)).normalized),
 						incentives: [{...cur, value, estimatedAPR}]
@@ -332,6 +339,7 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 					acc[key] = {
 						protocol: cur.protocol,
 						protocolName: cur.protocolName || truncateHex(cur.protocol, 6),
+						protocolSymbol: cur.protocolSymbol || truncateHex(cur.protocol, 6),
 						normalizedSum: value,
 						estimatedAPR: estimatedAPR,
 						usdPerStETH: value / Number(toNormalizedBN(toBigInt(totalDepositedETH)).normalized),

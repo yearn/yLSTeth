@@ -234,8 +234,13 @@ function IncentiveGroup({item}: {item: TGroupedIncentives}): ReactElement {
 							width={40}
 							height={40} />
 					</div>
-					<div>
-						<p>{item?.protocolName}</p>
+					<div className={'flex flex-col'}>
+						<p className={'whitespace-nowrap'}>
+							{item?.protocolSymbol || truncateHex(item.protocol, 6)}
+						</p>
+						<small className={'whitespace-nowrap text-xs'}>
+							{item.protocolName}
+						</small>
 					</div>
 				</div>
 				<div className={'col-span-12 mt-4 flex justify-between md:col-span-2 md:mt-0 md:justify-end'}>
