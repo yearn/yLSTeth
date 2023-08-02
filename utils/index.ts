@@ -4,7 +4,7 @@ import type {Transition} from 'framer-motion';
 import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 
 export const transition = {duration: 0.8, ease: 'easeInOut'};
-export const customVariants = (delay: number): any => ({
+export const customVariants = (delay: number): unknown => ({
 	initial: ([x]: number[]): Transition => ({x}),
 	move: ({transition: {...transition, delay}, x: '0vw'}),
 	exit: ([,x]: number[]): Transition => ({
