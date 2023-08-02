@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import {useYDaemonBaseURI} from 'hooks/useYDaemonBaseURI';
-import {getClient} from 'utils';
 import BOOTSTRAP_ABI from 'utils/abi/bootstrap.abi';
 import {yDaemonPricesSchema} from 'utils/schemas/yDaemonPricesSchema';
 import {parseAbiItem, toHex} from 'viem';
@@ -13,6 +12,7 @@ import {toAddress, truncateHex} from '@yearn-finance/web-lib/utils/address';
 import {ETH_TOKEN_ADDRESS} from '@yearn-finance/web-lib/utils/constants';
 import {decodeAsNumber, decodeAsString} from '@yearn-finance/web-lib/utils/decoder';
 import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
+import {getClient} from '@yearn-finance/web-lib/utils/wagmi/utils';
 
 import useBootstrapPeriods from './useBootstrapPeriods';
 import {useFetch} from './useFetch';
@@ -123,7 +123,7 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 	**********************************************************************************************/
 	const filterIncentivizeEvents = useCallback(async (): Promise<void> => {
 		set_isFetchingHistory(true);
-		const publicClient = getClient();
+		const publicClient = getClient(Number(process.env.DEFAULT_CHAINID));
 		const rangeLimit = 1_000_000n;
 		const deploymentBlockNumber = toBigInt(process.env.INIT_BLOCK_NUMBER);
 		const currentBlockNumber = await publicClient.getBlockNumber();
@@ -169,7 +169,7 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 		if (!address || voteStatus !== 'ended') {
 			return;
 		}
-		const publicClient = getClient();
+		const publicClient = getClient(Number(process.env.DEFAULT_CHAINID));
 		const rangeLimit = 1_000_000n;
 		const deploymentBlockNumber = toBigInt(process.env.INIT_BLOCK_NUMBER);
 		const currentBlockNumber = await publicClient.getBlockNumber();
@@ -279,10 +279,9 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 		}
 		const getAPR = (USDValue: number): number => (
 			USDValue
-			** 12
-			/ Number(toNormalizedBN(toBigInt(totalDepositedETH)).normalized)
-			/ Number(toNormalizedBN(prices?.[ETH_TOKEN_ADDRESS] || 0, 6).normalized)
-			** 100
+			* 12
+			/ (Number(toNormalizedBN(toBigInt(totalDepositedETH)).normalized) * Number(toNormalizedBN(prices?.[ETH_TOKEN_ADDRESS] || 0, 6).normalized))
+			* 100
 		);
 
 		const groupByProtocol = incentiveHistory

@@ -1,12 +1,13 @@
 import React from 'react';
+import localFont from 'next/font/local';
 import AppWrapper from 'components/common/AppWrapper';
 import {BootstrapContextApp} from 'contexts/useBootstrap';
 import {TokenListContextApp} from 'contexts/useTokenList';
 import {WalletContextApp} from 'contexts/useWallet';
-import config from 'utils/wagmiConfig';
-import localFont from '@next/font/local';
+import {mainnet} from 'wagmi';
 import {WithYearn} from '@yearn-finance/web-lib/contexts/WithYearn';
 import {cl} from '@yearn-finance/web-lib/utils/cl';
+import {localhost} from '@yearn-finance/web-lib/utils/wagmi/networks';
 
 import type {AppProps} from 'next/app';
 import type {ReactElement} from 'react';
@@ -33,7 +34,7 @@ function	MyApp(props: AppProps): ReactElement {
 	return (
 		<>
 			<style jsx global>{`html {font-family: ${aeonik.style.fontFamily};}`}</style>
-			<WithYearn config={config}>
+			<WithYearn supportedChains={[mainnet, localhost]}>
 				<BootstrapContextApp>
 					<TokenListContextApp>
 						<WalletContextApp>

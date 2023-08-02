@@ -5,7 +5,7 @@ import IconSpinner from 'components/icons/IconSpinner';
 import useBootstrap from 'contexts/useBootstrap';
 import {useWallet} from 'contexts/useWallet';
 import {useTimer} from 'hooks/useTimer';
-import {formatDate, getClient, handleInputChangeEventValue} from 'utils';
+import {formatDate, handleInputChangeEventValue} from 'utils';
 import BOOTSTRAP_ABI from 'utils/abi/bootstrap.abi';
 import {depositETH} from 'utils/actions';
 import {ETH_TOKEN, STYETH_TOKEN, YETH_TOKEN} from 'utils/tokens';
@@ -19,6 +19,7 @@ import {cl} from '@yearn-finance/web-lib/utils/cl';
 import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
 import performBatchedUpdates from '@yearn-finance/web-lib/utils/performBatchedUpdates';
+import {getClient} from '@yearn-finance/web-lib/utils/wagmi/utils';
 import {defaultTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 
 import type {ChangeEvent, ReactElement} from 'react';
@@ -109,7 +110,7 @@ function ViewDeposit(): ReactElement {
 			return;
 		}
 		set_isFetchingHistory(true);
-		const publicClient = getClient();
+		const publicClient = getClient(Number(process.env.DEFAULT_CHAINID));
 		const rangeLimit = 1_000_000n;
 		const deploymentBlockNumber = toBigInt(process.env.INIT_BLOCK_NUMBER);
 		const currentBlockNumber = await publicClient.getBlockNumber();

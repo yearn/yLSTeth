@@ -1,22 +1,23 @@
 import React, {createContext, memo, useCallback, useContext, useMemo, useState} from 'react';
 import {useTokenList} from 'contexts/useTokenList';
-import {useBalances} from 'hooks/useBalances';
 import defaultTokenList from 'utils/tokenLists.json';
-import {STYETH_TOKEN, YETH_TOKEN} from 'utils/tokens';
 import {useLocalStorageValue, useMountEffect, useUpdateEffect} from '@react-hookz/web';
 import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
+import {useBalances} from '@yearn-finance/web-lib/hooks/useBalances';
 import {useChainID} from '@yearn-finance/web-lib/hooks/useChainID';
 import {toAddress} from '@yearn-finance/web-lib/utils/address';
 import {ETH_TOKEN_ADDRESS} from '@yearn-finance/web-lib/utils/constants';
 import performBatchedUpdates from '@yearn-finance/web-lib/utils/performBatchedUpdates';
+import {getNetwork} from '@yearn-finance/web-lib/utils/wagmi/utils';
 
-import type {TUseBalancesTokens} from 'hooks/useBalances';
 import type {Dispatch, ReactElement, SetStateAction} from 'react';
+import type {TUseBalancesTokens} from '@yearn-finance/web-lib/hooks/useBalances';
 import type {TDict} from '@yearn-finance/web-lib/types';
 import type {TBalanceData} from '@yearn-finance/web-lib/types/hooks';
 import type {TTokenInfo} from './useTokenList';
 
-export type	TWalletContext = {
+
+export type TWalletContext = {
 	balances: TDict<TBalanceData>,
 	balancesNonce: number,
 	isLoading: boolean,
@@ -44,7 +45,7 @@ const WalletContext = createContext<TWalletContext>(defaultProps);
 export const WalletContextApp = memo(function WalletContextApp({children}: {children: ReactElement}): ReactElement {
 	const {tokenList} = useTokenList();
 	const {isActive} = useWeb3();
-	const {safeChainID} = useChainID(Number(process.env.BASE_CHAINID));
+	const {safeChainID} = useChainID();
 	const [walletProvider, set_walletProvider] = useState('NONE');
 	const {value: extraTokens, set: saveExtraTokens} = useLocalStorageValue<TUseBalancesTokens[]>('yeth/tokens', {defaultValue: []});
 
@@ -54,28 +55,16 @@ export const WalletContextApp = memo(function WalletContextApp({children}: {chil
 		withDefaultTokens
 			.filter((token): boolean => token.chainId === safeChainID)
 			.forEach((token): void => {
-				tokens.push({token: toAddress(token.address), decimals: token.decimals, name: token.name, symbol: token.symbol});
+				tokens.push({token: toAddress(token.address), decimals: Number(token.decimals), name: token.name, symbol: token.symbol});
 			});
-		tokens.push({
-			token: toAddress(STYETH_TOKEN.address),
-			decimals: 18,
-			name: 'Staked Yearn ETH',
-			symbol: 'stYETH'
-		});
-		tokens.push({
-			token: toAddress(YETH_TOKEN.address),
-			decimals: 18,
-			name: 'Yearn ETH',
-			symbol: 'yETH'
-		});
-		if (safeChainID === 1) {
-			tokens.push({token: toAddress(ETH_TOKEN_ADDRESS), decimals: 18, name: 'Ether', symbol: 'ETH'});
-		} else if (safeChainID === 10) {
-			tokens.push({token: toAddress(ETH_TOKEN_ADDRESS), decimals: 18, name: 'Ether', symbol: 'ETH'});
-		} else if (safeChainID === 250) {
-			tokens.push({token: toAddress(ETH_TOKEN_ADDRESS), decimals: 18, name: 'Fantom', symbol: 'FTM'});
-		} else if (safeChainID === 42161) {
-			tokens.push({token: toAddress(ETH_TOKEN_ADDRESS), decimals: 18, name: 'Ether', symbol: 'ETH'});
+		const {wrappedToken} = getNetwork(safeChainID).contracts;
+		if (wrappedToken) {
+			tokens.push({
+				token: toAddress(ETH_TOKEN_ADDRESS),
+				decimals: wrappedToken.decimals,
+				name: wrappedToken.coinName,
+				symbol: wrappedToken.coinSymbol
+			});
 		}
 		return tokens;
 	}, [safeChainID, tokenList]);
@@ -108,7 +97,7 @@ export const WalletContextApp = memo(function WalletContextApp({children}: {chil
 		if (tokensToFetch.length > 0) {
 			return await onRefresh(tokensToFetch);
 		}
-		return balances[Number(process.env.BASE_CHAINID)];
+		return balances;
 	}, [balances, onRefresh, safeChainID, availableTokens]);
 
 	const onLoadExtraTokens = useCallback(async (): Promise<void> => {
@@ -116,7 +105,6 @@ export const WalletContextApp = memo(function WalletContextApp({children}: {chil
 			await updateSome(extraTokens);
 		}
 	}, [extraTokens, updateSome]);
-
 
 	useMountEffect((): void => {
 		if (!isActive) {
@@ -136,7 +124,7 @@ export const WalletContextApp = memo(function WalletContextApp({children}: {chil
 	**	Setup and render the Context provider to use in the app.
 	***************************************************************************/
 	const contextValue = useMemo((): TWalletContext => ({
-		balances: balances[Number(process.env.BASE_CHAINID)],
+		balances: balances,
 		balancesNonce: nonce,
 		isLoading: isLoading || false,
 		refresh: onRefresh,

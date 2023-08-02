@@ -11,7 +11,6 @@ import {useTimer} from 'hooks/useTimer';
 import {handleInputChangeEventValue} from 'utils';
 import {approveERC20, incentivize} from 'utils/actions';
 import {ETH_TOKEN} from 'utils/tokens';
-import {assertAddress, isValidAddress} from 'utils/wagmiUtils';
 import {erc20ABI, useContractRead} from 'wagmi';
 import {useDeepCompareEffect} from '@react-hookz/web';
 import {Button} from '@yearn-finance/web-lib/components/Button';
@@ -25,14 +24,27 @@ import {cl} from '@yearn-finance/web-lib/utils/cl';
 import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import {formatAmount, formatNumberOver10K, formatPercent} from '@yearn-finance/web-lib/utils/format.number';
 import performBatchedUpdates from '@yearn-finance/web-lib/utils/performBatchedUpdates';
+import {assertAddress} from '@yearn-finance/web-lib/utils/wagmi/utils';
 import {defaultTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 
 import type {TTokenInfo} from 'contexts/useTokenList';
 import type {TGroupedIncentives, TIncentives, TIncentivesFor} from 'hooks/useBootstrapIncentives';
 import type {ChangeEvent, ReactElement} from 'react';
-import type {TDict} from '@yearn-finance/web-lib/types';
+import type {TAddress, TDict} from '@yearn-finance/web-lib/types';
 import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import type {TTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
+
+function isValidAddress(address: TAddress | undefined): boolean {
+	if (!address) {
+		return false;
+	}
+	try {
+		assertAddress(address);
+		return true;
+	} catch (error) {
+		return false;
+	}
+}
 
 type TSortDirection = '' | 'desc' | 'asc'
 
@@ -281,8 +293,8 @@ function IncentiveGroup({item}: {item: TGroupedIncentives}): ReactElement {
 
 function IncentiveHistory({isPending, incentives}: {isPending: boolean, incentives: TIncentivesFor}): ReactElement {
 	const [currentTab, set_currentTab] = useState<'all' | 'mine'>('all');
-	const [sortBy, set_sortBy] = useState<string>('');
-	const [sortDirection, set_sortDirection] = useState<TSortDirection>('');
+	const [sortBy, set_sortBy] = useState<string>('totalIncentive');
+	const [sortDirection, set_sortDirection] = useState<TSortDirection>('desc');
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	**	Callback method used to sort the vaults list.

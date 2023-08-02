@@ -1,17 +1,17 @@
 import assert from 'assert';
 import BOOTSTRAP_ABI from 'utils/abi/bootstrap.abi';
+import {MULTICALL_ABI} from 'utils/abi/multicall3.abi';
 import {erc20ABI, readContract} from '@wagmi/core';
 import {toAddress} from '@yearn-finance/web-lib/utils/address';
 import {MAX_UINT_256} from '@yearn-finance/web-lib/utils/constants';
-
-import {assertAddress, handleTx, toWagmiProvider} from './wagmiUtils';
-import {MULTICALL_ABI} from './abi/multicall3.abi';
+import {handleTx, toWagmiProvider} from '@yearn-finance/web-lib/utils/wagmi/provider';
+import {assertAddress} from '@yearn-finance/web-lib/utils/wagmi/utils';
 
 import type {Hex} from 'viem';
 import type {Connector} from 'wagmi';
 import type {TAddress} from '@yearn-finance/web-lib/types';
+import type {TWriteTransaction} from '@yearn-finance/web-lib/utils/wagmi/provider';
 import type {TTxResponse} from '@yearn-finance/web-lib/utils/web3/transaction';
-import type {TWriteTransaction} from './wagmiUtils';
 
 //Because USDT do not return a boolean on approve, we need to use this ABI
 const ALTERNATE_ERC20_APPROVE_ABI = [{'constant': false, 'inputs': [{'name': '_spender', 'type': 'address'}, {'name': '_value', 'type': 'uint256'}], 'name': 'approve', 'outputs': [], 'payable': false, 'stateMutability': 'nonpayable', 'type': 'function'}] as const;

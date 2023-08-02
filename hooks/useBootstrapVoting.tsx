@@ -1,5 +1,4 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {getClient} from 'utils';
 import BOOTSTRAP_ABI from 'utils/abi/bootstrap.abi';
 import {parseAbiItem} from 'viem';
 import {useContractReads} from 'wagmi';
@@ -8,6 +7,7 @@ import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
 import {toAddress} from '@yearn-finance/web-lib/utils/address';
 import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import performBatchedUpdates from '@yearn-finance/web-lib/utils/performBatchedUpdates';
+import {getClient} from '@yearn-finance/web-lib/utils/wagmi/utils';
 
 import type {TAddress, TAddressWagmi, TDict} from '@yearn-finance/web-lib/types';
 import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
@@ -60,7 +60,7 @@ function useVoteEvents(): TUseVoteEventsResp {
 			return;
 		}
 		set_isLoadingEvents(hasAlreadyBeLoaded.current ? false : true);
-		const publicClient = getClient();
+		const publicClient = getClient(Number(process.env.DEFAULT_CHAINID));
 		const rangeLimit = 1_000_000n;
 		const deploymentBlockNumber = toBigInt(process.env.INIT_BLOCK_NUMBER);
 		const currentBlockNumber = await publicClient.getBlockNumber();

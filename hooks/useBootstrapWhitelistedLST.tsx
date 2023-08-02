@@ -1,5 +1,4 @@
 import {useCallback, useState} from 'react';
-import {getClient} from 'utils';
 import BOOTSTRAP_ABI from 'utils/abi/bootstrap.abi';
 import {parseAbiItem} from 'viem';
 import {erc20ABI} from 'wagmi';
@@ -9,6 +8,7 @@ import {toAddress} from '@yearn-finance/web-lib/utils/address';
 import {decodeAsBigInt, decodeAsNumber, decodeAsString} from '@yearn-finance/web-lib/utils/decoder';
 import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import performBatchedUpdates from '@yearn-finance/web-lib/utils/performBatchedUpdates';
+import {getClient} from '@yearn-finance/web-lib/utils/wagmi/utils';
 
 import type {TWhitelistedLST} from 'contexts/useTokenList';
 import type {TAddress, TDict} from '@yearn-finance/web-lib/types';
@@ -29,7 +29,7 @@ function useFilterWhitelistedLST(): TUseFilterWhitelistedLSTResp {
 	**********************************************************************************************/
 	const filterWhitelistEvents = useCallback(async (): Promise<void> => {
 		set_isLoading(true);
-		const publicClient = getClient();
+		const publicClient = getClient(Number(process.env.DEFAULT_CHAINID));
 		const rangeLimit = 1_000_000n;
 		const deploymentBlockNumber = toBigInt(process.env.INIT_BLOCK_NUMBER);
 		const currentBlockNumber = await publicClient.getBlockNumber();

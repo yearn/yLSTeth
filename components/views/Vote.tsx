@@ -241,8 +241,8 @@ function VoteList(): ReactElement {
 		whitelistedLST: {whitelistedLST, isLoading, onUpdate: onUpdateLST},
 		incentives: {groupIncentiveHistory}
 	} = useBootstrap();
-	const [sortBy, set_sortBy] = useState<string>('');
-	const [sortDirection, set_sortDirection] = useState<TSortDirection>('');
+	const [sortBy, set_sortBy] = useState<string>('weight');
+	const [sortDirection, set_sortDirection] = useState<TSortDirection>('desc');
 	const [voteToSend, set_voteToSend] = useState<TDict<TNormalizedBN>>({});
 	const [isModalOpen, set_isModalOpen] = useState<boolean>(false);
 	const [nonce, set_nonce] = useState<number>(0);
