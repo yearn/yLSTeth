@@ -532,7 +532,7 @@ function ViewIncentive(): ReactElement {
 	});
 
 	useEffect((): void => {
-		if (incentiveStatus === 'none') {
+		if (incentiveStatus !== 'started') {
 			set_className('pointer-events-none opacity-40');
 		} else {
 			set_className('');

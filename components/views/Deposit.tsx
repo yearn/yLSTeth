@@ -148,7 +148,7 @@ function ViewDeposit(): ReactElement {
 	}, [filterEvents]);
 
 	useEffect((): void => {
-		if (depositStatus === 'none') {
+		if (depositStatus !== 'started') {
 			set_className('pointer-events-none opacity-40');
 		} else {
 			set_className('');
