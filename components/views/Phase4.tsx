@@ -11,7 +11,7 @@ function Timer(): ReactElement {
 	const {periods} = useBootstrap();
 	const {voteEnd, voteStatus} = periods || {};
 	const time = useTimer({endTime: Number(voteEnd)});
-	return <>{voteStatus === 'ended' ? 'launched' : `in ${time}`}</>;
+	return <>{voteStatus === 'ended' ? 'Soooooon' : `in ${time}`}</>;
 }
 
 function Phase4({variant}: {variant: string[]}): ReactElement {
@@ -56,13 +56,11 @@ function Phase4({variant}: {variant: string[]}): ReactElement {
 					initial={'initial'}
 					animate={'move'}
 					exit={'exit'}>
-					<p>{'Aaaaaah, we’re launchingggggg.'}</p>
+					<p>{'The votes have been counted, the launch roster has been chosen. Now all that’s left to do is deploy the contracts, build the launch composition with the constituent LSTs and write a 100 tweet launch thread.'}</p>
 					&nbsp;
-					<p>{'The votes have been counted, the basket has been constructed, contracts are deployed and the deposited ETH has been swapped for the constituent LSTs.'}</p>
+					<p>{'Stay tuned anon, soon the yETH basket of risk adjusted epically yielding LSTs will launch into the cryptosphere.'}</p>
 					&nbsp;
-					<p>{'yETH, a basket of risk adjusted epically yielding LSTs is ready for lift off.'}</p>
-					&nbsp;
-					<p>{'One token, multiple benefits. LFG.'}</p>
+					<p>{'One token, many benefits. LFG.'}</p>
 				</motion.div>
 			</div>
 			<motion.div
