@@ -92,14 +92,9 @@ function ViewSelectedTokens(): ReactElement {
 				</div>
 			</div>
 			<div className={cl(SHOULD_USE_ALTERNATE_DESIGN ? 'mt-6 flex justify-end' : 'absolute bottom-6 right-6')}>
-				<div className={'flex flex-row space-x-4'}>
-					<Button variant={'outlined'} className={'w-[184px]'}>
-						{'Deposit'}
-					</Button>
-					<Button className={'w-[184px]'}>
-						{'Deposit and Stake'}
-					</Button>
-				</div>
+				<Button className={'w-[184px]'}>
+					{'Withdraw'}
+				</Button>
 			</div>
 		</div>
 	);
@@ -110,17 +105,14 @@ function ViewDetails(): ReactElement {
 		<div className={cl(SHOULD_USE_ALTERNATE_DESIGN ? 'col-span-5' : '')}>
 			<div className={cl(SHOULD_USE_ALTERNATE_DESIGN ? 'mb-10 flex w-full flex-col !rounded-md bg-neutral-100 p-4' : 'mb-10 flex w-full flex-col')}>
 				<h2 className={'text-xl font-black'}>
-					{'Details & Info'}
+					{'Details'}
 				</h2>
 				<dl className={cl('grid grid-cols-3 pt-4', SHOULD_USE_ALTERNATE_DESIGN ? 'gap-2' : 'gap-4')}>
 					<dt className={'col-span-2'}>{'Est. deposit Bonus/Penalties'}</dt>
 					<dd className={'text-right font-bold'}>{'0.00%'}</dd>
+
 					<dt className={'col-span-2'}>{'Minimum LP Tokens'}</dt>
 					<dd className={'text-right font-bold'}>{'-'}</dd>
-					<dt className={'col-span-2'}>{'Slippage'}</dt>
-					<dd className={'text-right font-bold'}>{'0.00%'}</dd>
-					<dt className={'col-span-2'}>{'Est. TX cost'}</dt>
-					<dd className={'text-right font-bold'}>{'4.20 gwei'}</dd>
 				</dl>
 				{SHOULD_USE_ALTERNATE_DESIGN ? (
 					<>
@@ -153,7 +145,7 @@ function ViewInfo(): ReactElement {
 	);
 }
 
-function ViewDeposit(): ReactElement {
+function ViewWithdraw(): ReactElement {
 	return (
 		<section className={cl(SHOULD_USE_ALTERNATE_DESIGN ? 'relative' : 'relative px-8 py-6')}>
 			<div className={cl(SHOULD_USE_ALTERNATE_DESIGN ? 'grid grid-cols-12 gap-4 pt-4' : 'grid grid-cols-3 gap-8')}>
@@ -165,4 +157,4 @@ function ViewDeposit(): ReactElement {
 	);
 }
 
-export default ViewDeposit;
+export default ViewWithdraw;

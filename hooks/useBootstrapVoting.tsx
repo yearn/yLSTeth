@@ -127,6 +127,8 @@ function useBootstrapVoting(): TUseBootstrapVotingResp {
 		]
 	});
 
+	console.warn('data', data);
+
 	/* 🔵 - Yearn Finance **************************************************************************
 	** Simple function to group the winners addresses into an array.
 	**

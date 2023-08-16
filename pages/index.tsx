@@ -1,174 +1,195 @@
-import React, {useCallback, useMemo, useState} from 'react';
-import IconArrow from 'components/icons/IconArrow';
-import Phase1 from 'components/views/Phase1';
-import Phase2 from 'components/views/Phase2';
-import Phase3 from 'components/views/Phase3';
-import Phase4 from 'components/views/Phase4';
+import React, {Fragment, useState} from 'react';
+import {useRouter} from 'next/router';
+import Phase1 from 'components/bootstrapViews/Phase1';
+import {ImageWithFallback} from 'components/common/ImageWithFallback';
+import IconChevronBoth from 'components/icons/IconChevronBoth';
+import ViewDeposit from 'components/views/Deposit';
+import ViewStake from 'components/views/Stake';
+import ViewSwap from 'components/views/Swap';
+import ViewWithdraw from 'components/views/Withdraw';
 import {UIStepContextApp} from 'contexts/useUI';
-import {transition} from 'utils';
-import {AnimatePresence, motion} from 'framer-motion';
-import {toBigInt} from '@yearn-finance/web-lib/utils/format.bigNumber';
-import {performBatchedUpdates} from '@yearn-finance/web-lib/utils/performBatchedUpdates';
+import {LST, SHOULD_USE_ALTERNATE_DESIGN} from 'utils/constants';
+import {Listbox, Transition} from '@headlessui/react';
+import {cl} from '@yearn-finance/web-lib/utils/cl';
 
-import type {TPeriods} from 'hooks/useBootstrapPeriods';
 import type {ReactElement} from 'react';
 
-const TO_RIGHT = 1;
-const NO_DIRECTION = 0;
-const currentPhaseToStep = (): number => {
-	const nowBigInt = toBigInt(Math.round(new Date().getTime() / 1000));
-	const whitelistEnd = toBigInt((process.env.PERIODS as unknown as TPeriods).WHITELIST_END);
-	const incentiveBegin = toBigInt((process.env.PERIODS as unknown as TPeriods).INCENTIVE_BEGIN);
-	const voteEnd = toBigInt((process.env.PERIODS as unknown as TPeriods).VOTE_END);
+const tabs = [
+	{value: 0, label: 'Deposit', slug: 'deposit'},
+	{value: 1, label: 'Withdraw', slug: 'withdraw'},
+	{value: 2, label: 'Stake/Unstake', slug: 'stake-unstake'},
+	{value: 3, label: 'Swap', slug: 'swap'},
+	{value: 4, label: 'LP yETH', slug: 'lp-yeth'}
+];
 
-	if (nowBigInt < whitelistEnd) {
-		return 0; // whitelist
-	}
-	if (nowBigInt < incentiveBegin) {
-		return 1; // bootstrap
-	}
-	if (nowBigInt < voteEnd) {
-		return 2; // vote
-	}
-	if (nowBigInt > voteEnd) {
-		return 3; // launch
-	}
-	return 0;
-};
+function Composition(): ReactElement {
+	return (
+		<div className={'flex flex-row space-x-2'}>
+			{LST.map((token, index): ReactElement => {
+				return (
+					<div key={index} className={'flex flex-row justify-center rounded-md bg-neutral-200 p-2'}>
+						<div className={'h-6 w-6 min-w-[24px]'}>
+							<ImageWithFallback
+								alt={token.name}
+								unoptimized
+								src={token.logoURI}
+								width={24}
+								height={24} />
+						</div>
+						<p className={'px-2'}>{token.symbol}</p>
+						<b>{'20%'}</b>
+					</div>
+				);
+			})}
+		</div>
+	);
+}
 
 function YETH(): ReactElement {
-	const [page, set_page] = useState(currentPhaseToStep());
-	const [direction, set_direction] = useState(NO_DIRECTION);
-	const initialPosition = `-${direction * -1 * 100}vw`;
-	const toNextPageAnimation = `${direction * 100}vw`;
-	const toPreviousPageAnimation = `${-direction * 100}vw`;
-	const shouldDisplayNextArrow = useMemo((): boolean => page !== 1.1 && page < 3, [page]);
+	const router = useRouter();
+	const [currentTab, set_currentTab] = useState<typeof tabs[0]>(tabs[0]);
 
-	const onPrevious = useCallback((prevPage?: number): void => {
-		if (page === 0) {
-			return;
-		}
-		if (prevPage !== undefined) {
-			return performBatchedUpdates((): void => {
-				set_page(prevPage);
-				set_direction(1);
-			});
-		}
-		if (page === 1.1 || page === 1.2) {
-			return performBatchedUpdates((): void => {
-				set_page(1);
-				set_direction(1);
-			});
-		}
-		performBatchedUpdates((): void => {
-			set_page((s): number => s - 1);
-			set_direction(1);
-		});
-	}, [page]);
-
-	const onNext = useCallback((nextPage?: number): void => {
-		if (page === 3) {
-			return;
-		}
-		if (nextPage !== undefined) {
-			return performBatchedUpdates((): void => {
-				set_page(nextPage);
-				set_direction(-1);
-			});
-		}
-		performBatchedUpdates((): void => {
-			set_page((s): number => s + 1);
-			set_direction(-1);
-		});
-	}, [page]);
-
-
-	function renderElement(): ReactElement {
-		switch (page) {
+	function renderTab(): ReactElement {
+		switch (currentTab.value) {
 			case 0:
-				return <Phase1
-					key={'phase-1'}
-					variant={[
-						direction === TO_RIGHT ? '-100vw' : direction === NO_DIRECTION ? '0vw' : '100vw', // initial
-						direction === TO_RIGHT ? '100vw' : '-100vw' // onExit
-					]} />;
+				return <ViewDeposit />;
 			case 1:
-				return <Phase2
-					key={'phase-2'}
-					variant={[
-						direction === TO_RIGHT ? '-100vw' : direction === NO_DIRECTION ? '0vw' : '100vw', // initial
-						direction === TO_RIGHT ? '100vw' : '-100vw' // onExit
-					]} />;
+				return <ViewWithdraw />;
 			case 2:
-				return <Phase3
-					key={'phase-3'}
-					variant={[
-						direction === TO_RIGHT ? '-100vw' : direction === NO_DIRECTION ? '0vw' : '100vw', // initial
-						direction === TO_RIGHT ? '100vw' : '-100vw' // onExit
-					]} />;
-
+				return <ViewStake />;
 			case 3:
-				return <Phase4
-					key={'phase-4'}
-					variant={[
-						direction === TO_RIGHT ? '-100vw' : direction === NO_DIRECTION ? '0vw' : '100vw', // initial
-						direction === TO_RIGHT ? '100vw' : '-100vw' // onExit
-					]} />;
+				return <ViewSwap />;
 
 			default:
 				return <Phase1
 					key={'phase-1'}
-					variant={[initialPosition, direction === -1 ? toNextPageAnimation : toPreviousPageAnimation]} />;
+					variant={[]} />;
 		}
 	}
 
 	return (
-		<div className={'relative mx-auto w-screen max-w-5xl !px-0'}>
-			<motion.div
-				transition={transition}
-				animate={{x: page > 0 ? '0vw' : '-100vw'}}
-				className={'absolute left-0 top-0 z-10 px-4'}>
-				<button onClick={(): void => onPrevious()}>
-					<IconArrow className={'h-6 w-6 rotate-180 cursor-pointer text-purple-300'} />
-				</button>
-			</motion.div>
-			<motion.div
-				transition={transition}
-				animate={{x: shouldDisplayNextArrow ? '0vw' : '100vw'}}
-				className={'absolute right-0 top-0 z-10 block px-4 md:hidden'}>
-				<button onClick={(): void => onNext()}>
-					<IconArrow className={'h-6 w-6 cursor-pointer text-purple-300'} />
-				</button>
-			</motion.div>
-			<div
-				className={'relative flex flex-row'}
-				style={{height: 'calc(100vh - 80px)'}}>
-				<AnimatePresence
-					mode={'sync'}
-					custom={[
-						direction === TO_RIGHT ? '-100vw' : direction === NO_DIRECTION ? '0vw' : '100vw', // initial
-						direction === TO_RIGHT ? '100vw' : '-100vw' // onExit
-					]}>
-					{renderElement()}
-				</AnimatePresence>
+		<div className={'relative mx-auto mt-6 w-screen max-w-5xl'}>
+			<div className={'flex flex-col justify-center'}>
+				<h1 className={'pb-8 text-3xl font-black md:text-8xl'}>
+					{'yETH Pool'}
+				</h1>
+				<div className={'flex flex-row space-x-10'}>
+					<div>
+						<small className={'text-xs text-neutral-600'}>{'Daily Volume, USD'}</small>
+						<b className={'block text-3xl text-neutral-900'}>{'35 234.05'}</b>
+					</div>
+
+					<div>
+						<small className={'text-xs text-neutral-600'}>{'Net APY'}</small>
+						<b className={'block text-3xl text-purple-300'}>{'37.32 %'}</b>
+					</div>
+
+					<div>
+						<small className={'text-xs text-neutral-600'}>{'Swap Fee'}</small>
+						<b className={'block text-3xl text-neutral-900'}>{'0.69 %'}</b>
+					</div>
+
+					<div>
+						<small className={'text-xs text-neutral-600'}>{'Virtual Price, USD'}</small>
+						<b className={'block text-3xl text-neutral-900'}>{'6348.0185'}</b>
+					</div>
+				</div>
+
+				<div className={'mt-6 flex flex-col space-y-2'}>
+					<small className={'text-xs text-neutral-600'}>{'Composition'}</small>
+					<Composition />
+				</div>
 			</div>
-			<motion.div
-				transition={transition}
-				animate={{x: shouldDisplayNextArrow ? '0vw' : '100vw'}}
-				className={'fixed inset-y-0 right-4 hidden h-full items-center md:flex'}>
-				<button
-					onClick={(): void => onNext()}
-					className={'flex h-16 w-16 items-center justify-center rounded-full bg-[#DED0FE]/50 backdrop-blur-sm transition-colors hover:bg-[#DED0FE]'}>
-					<IconArrow className={'w-6 text-purple-300'} />
-				</button>
-			</motion.div>
+
+			<div className={'relative mt-[72px] !min-h-screen'}>
+				<div className={'col-span-12 mb-4 flex w-full flex-col'}>
+					<div className={'relative flex w-full flex-row items-center justify-between rounded-md bg-neutral-100 px-4 pt-4 md:px-8'}>
+						<nav className={'z-30 hidden flex-row items-center space-x-10 md:flex'}>
+							{tabs.map((tab): ReactElement => (
+								<button
+									key={`desktop-${tab.value}`}
+									onClick={(): void => {
+										set_currentTab(tab);
+										router.replace(
+											{
+												query: {
+													...router.query,
+													action: tab.slug
+												}
+											},
+											undefined,
+											{shallow: true}
+										);
+									}}>
+									<p
+										title={tab.label}
+										aria-selected={currentTab.value === tab.value}
+										className={'hover-fix tab'}>
+										{tab.label}
+									</p>
+								</button>
+							))}
+						</nav>
+						<div className={'relative z-50'}>
+							<Listbox
+								value={currentTab.label}
+								onChange={(value): void => {
+									const newTab = tabs.find((tab): boolean => tab.value === Number(value));
+									if (!newTab) {
+										return;
+									}
+									set_currentTab(newTab);
+								}}>
+								{({open}): ReactElement => (
+									<>
+										<Listbox.Button
+											className={'flex h-10 w-40 flex-row items-center border-0 border-b-2 border-neutral-900 bg-neutral-100 p-0 font-bold focus:border-neutral-900 md:hidden'}>
+											<div className={'relative flex flex-row items-center'}>
+												{currentTab?.label || 'Menu'}
+											</div>
+											<div className={'absolute right-0'}>
+												<IconChevronBoth
+													className={`h-6 w-6 transition-transform ${open ? '-rotate-180' : 'rotate-0'}`} />
+											</div>
+										</Listbox.Button>
+										<Transition
+											as={Fragment}
+											show={open}
+											enter={'transition duration-100 ease-out'}
+											enterFrom={'transform scale-95 opacity-0'}
+											enterTo={'transform scale-100 opacity-100'}
+											leave={'transition duration-75 ease-out'}
+											leaveFrom={'transform scale-100 opacity-100'}
+											leaveTo={'transform scale-95 opacity-0'}>
+											<Listbox.Options className={'yearn--listbox-menu'}>
+												{tabs.map((tab): ReactElement => (
+													<Listbox.Option
+														className={'yearn--listbox-menu-item'}
+														key={tab.value}
+														value={tab.value}>
+														{tab.label}
+													</Listbox.Option>
+												))}
+											</Listbox.Options>
+										</Transition>
+									</>
+								)}
+							</Listbox>
+						</div>
+					</div>
+					<div className={cl(SHOULD_USE_ALTERNATE_DESIGN ? 'hidden' : 'z-10 -mt-0.5 h-0.5 w-full bg-neutral-300')} />
+					<div className={cl(SHOULD_USE_ALTERNATE_DESIGN ? 'relative col-span-12 bg-neutral-0' : 'relative col-span-12 bg-neutral-100')}>
+						{renderTab()}
+					</div>
+				</div>
+			</div>
 		</div>
 	);
 }
 
 export default function Wrapper(): ReactElement {
 	return (
-		<div className={'relative mx-auto mb-0 flex min-h-screen w-full flex-col overflow-x-visible bg-neutral-0 pt-20 md:overflow-y-hidden'}>
+		<div className={'relative mx-auto mb-0 flex min-h-screen w-full flex-col bg-neutral-0 pt-20'}>
 			<UIStepContextApp>
 				<YETH />
 			</UIStepContextApp>

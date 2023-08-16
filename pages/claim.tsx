@@ -1,5 +1,5 @@
 import React from 'react';
-import Claim from 'components/views/Claim';
+import Claim from 'components/bootstrapViews/Claim';
 
 import type {ReactElement} from 'react';
 

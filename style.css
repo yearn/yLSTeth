@@ -1,5 +1,5 @@
-@import "@yearn-finance/web-lib/style.css";
 @import "@rainbow-me/rainbowkit/styles.css";
+@import "./style.base.css";
 
 @font-face {
 	font-family: "Aeonik Mono";

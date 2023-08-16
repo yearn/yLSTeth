@@ -1,6 +1,5 @@
 import React, {createContext, memo, useCallback, useContext, useMemo, useState} from 'react';
 import {useTokenList} from 'contexts/useTokenList';
-import defaultTokenList from 'utils/tokenLists.json';
 import {useLocalStorageValue, useMountEffect, useUpdateEffect} from '@react-hookz/web';
 import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
 import {useBalances} from '@yearn-finance/web-lib/hooks/useBalances';
@@ -50,7 +49,7 @@ export const WalletContextApp = memo(function WalletContextApp({children}: {chil
 	const {value: extraTokens, set: saveExtraTokens} = useLocalStorageValue<TUseBalancesTokens[]>('yeth/tokens', {defaultValue: []});
 
 	const availableTokens = useMemo((): TUseBalancesTokens[] => {
-		const withDefaultTokens = [...Object.values(tokenList), ...defaultTokenList.tokens];
+		const withDefaultTokens = [...Object.values(tokenList)];
 		const tokens: TUseBalancesTokens[] = [];
 		withDefaultTokens
 			.filter((token): boolean => token.chainId === safeChainID)

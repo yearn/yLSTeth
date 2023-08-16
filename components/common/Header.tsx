@@ -205,8 +205,8 @@ function	WalletSelector(): ReactElement {
 
 const nav: TMenu[] = [
 	// {path: 'https://yearn.fi', label: 'Home', target: '_blank'},
-	{path: '/', label: 'Home'},
-	// {path: '/', label: 'yETH'},
+	// {path: '/', label: 'Home'},
+	{path: '/', label: 'yETH'},
 	{path: '/deposit', label: 'Deposit'},
 	{path: '/incentive', label: 'Incentivize'},
 	{path: '/vote', label: 'Vote'},

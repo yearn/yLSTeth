@@ -60,7 +60,7 @@ h4 {@apply text-lg font-bold text-neutral-700;}
 /* 🔵 - Yearn Finance ******************************************************
 ** Overwritting the defaults to match our needs
 **************************************************************************/
-* {@apply scroll-smooth font-sans}
+* {@apply scroll-smooth}
 input::placeholder {@apply text-neutral-400 not-italic}
 textarea::placeholder {@apply text-neutral-400 not-italic}
 input:-webkit-autofill,
@@ -132,22 +132,22 @@ label[aria-invalid="true"] {
 	border-radius: var(--default-rounded);
 
 	&[data-variant="filled"] {
-		@apply text-neutral-0 bg-neutral-900 font-normal border border-transparent;
+		@apply text-neutral-0 bg-neutral-900 font-normal border-2 border-transparent;
 		&:disabled {@apply bg-neutral-700 opacity-40;}
 		&:not(:disabled):not([aria-busy="true"]):hover {@apply bg-neutral-800;}
 	}
 	&[data-variant="light"] {
-		@apply text-neutral-600 bg-neutral-0 border border-neutral-200;
+		@apply text-neutral-600 bg-neutral-0 border-2 border-neutral-200;
 		&:disabled {@apply opacity-40;}
 		&:not(:disabled):not([aria-busy="true"]):hover {@apply bg-neutral-900 text-neutral-0;}
 	}
 	&[data-variant="outlined"] {
-		@apply text-neutral-900 bg-transparent border border-neutral-900;
+		@apply text-purple-300 bg-transparent border-2 border-purple-300;
 		&:disabled {@apply opacity-40;}
-		&:not(:disabled):not([aria-busy="true"]):hover {@apply bg-neutral-900 text-neutral-0;}
+		&:not(:disabled):not([aria-busy="true"]):hover {@apply bg-purple-300 text-neutral-0;}
 	}
 	&[data-variant="reverted"] {
-		@apply text-neutral-900 bg-neutral-0 font-normal border border-transparent;
+		@apply text-neutral-900 bg-neutral-0 font-normal border-2 border-transparent;
 		&:disabled {@apply bg-neutral-200 opacity-40;}
 		&:not(:disabled):not([aria-busy="true"]):hover {@apply bg-neutral-200;}
 		&[aria-busy="true"] svg {
@@ -332,9 +332,9 @@ label[aria-invalid="true"] {
 }
 
 .tab {
-	@apply font-normal text-neutral-600 transition-colors hover:text-neutral-900 cursor-pointer border-b-2 border-transparent pb-4 z-20;
+	@apply font-normal text-neutral-600 transition-colors hover:text-purple-300 cursor-pointer border-b-2 border-transparent pb-4 z-20;
 	&[aria-selected='true'] {
-		@apply font-bold text-neutral-900 border-neutral-900;
+		@apply font-bold text-purple-300 border-purple-300;
 	}
 }
 .hover-fix::before {
