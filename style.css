@@ -300,6 +300,14 @@
 	transform: rotate(180deg);
 }
 
+.tooltip .tooltipLight {
+	@apply invisible inset-x-0 absolute z-50 opacity-0 transition-opacity flex justify-center items-center;
+}
+
+.tooltip:hover .tooltipLight {
+	@apply visible opacity-100;
+}
+
 .tooltip.top .tooltiptext,
 .tooltip.top .tooltiptextBig {
 	top: -105%;

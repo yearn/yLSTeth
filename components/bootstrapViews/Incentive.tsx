@@ -229,7 +229,7 @@ function IncentiveGroupBreakdown({incentives}: {incentives: TIncentives[]}): Rea
 }
 
 function IncentiveGroup({item}: {item: TGroupedIncentives}): ReactElement {
-	const {safeChainID} = useChainID(Number(process.env.BASE_CHAINID));
+	const {safeChainID} = useChainID(Number(process.env.BASE_CHAIN_ID));
 
 	return (
 		<details
@@ -509,7 +509,7 @@ function IncentiveConfirmationModal({
 
 function ViewIncentive(): ReactElement {
 	const {address, isActive, provider} = useWeb3();
-	const {safeChainID} = useChainID(Number(process.env.BASE_CHAINID));
+	const {safeChainID} = useChainID(Number(process.env.BASE_CHAIN_ID));
 	const {balances, refresh} = useWallet();
 	const {tokenList} = useTokenList();
 	const {

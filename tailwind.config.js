@@ -41,6 +41,15 @@ module.exports = {
 				'xl': '552px',
 				'4xl': '904px',
 				'6xl': '1200px'
+			},
+			gridTemplateColumns: {
+				'30': 'repeat(30, minmax(0, 1fr))'
+			},
+			gridColumn: {
+				'span-18': 'span 18 / span 18'
+			},
+			scale: {
+				'102': '1.02'
 			}
 		}
 	}

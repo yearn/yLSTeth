@@ -145,6 +145,7 @@ label[aria-invalid="true"] {
 		@apply text-purple-300 bg-transparent border-2 border-purple-300;
 		&:disabled {@apply opacity-40;}
 		&:not(:disabled):not([aria-busy="true"]):hover {@apply bg-purple-300 text-neutral-0;}
+		&[aria-busy="true"] svg {@apply !text-purple-300;}
 	}
 	&[data-variant="reverted"] {
 		@apply text-neutral-900 bg-neutral-0 font-normal border-2 border-transparent;

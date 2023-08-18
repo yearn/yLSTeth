@@ -1,124 +1,169 @@
 import React, {useCallback, useMemo, useState} from 'react';
-import Link from 'next/link';
-import {ImageWithFallback} from 'components/common/ImageWithFallback';
+import assert from 'assert';
+import {RenderAmount} from 'components/common/RenderAmount';
+import TokenInput from 'components/common/TokenInput';
+import IconSwapSVG from 'components/icons/IconSwap';
 import useWallet from 'contexts/useWallet';
-import {handleInputChangeEventValue} from 'utils';
-import {SHOULD_USE_ALTERNATE_DESIGN} from 'utils/constants';
-import {STYETH_TOKEN, YETH_TOKEN} from 'utils/tokens';
+import {ST_YETH_ABI} from 'utils/abi/styETH.abi';
+import {approveERC20, stakeYETH, unstakeYETH} from 'utils/actions';
+import {ETH_TOKEN, STYETH_TOKEN, YETH_TOKEN} from 'utils/tokens';
+import {erc20ABI, useContractRead} from 'wagmi';
 import {Button} from '@yearn-finance/web-lib/components/Button';
-import IconLinkOut from '@yearn-finance/web-lib/icons/IconLinkOut';
-import {cl} from '@yearn-finance/web-lib/utils/cl';
-import {toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
+import useWeb3 from '@yearn-finance/web-lib/contexts/useWeb3';
+import {toAddress} from '@yearn-finance/web-lib/utils/address';
+import {MAX_UINT_256} from '@yearn-finance/web-lib/utils/constants';
+import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
+import {defaultTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 
-import type {TTokenInfo} from 'contexts/useTokenList';
-import type {ChangeEvent, ReactElement} from 'react';
+import type {TLST} from 'contexts/useLST';
+import type {ReactElement} from 'react';
 import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
+import type {TTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 
-function IconSwapSVG(): ReactElement {
-	return (
-		<svg
-			className={'group fill-white text-purple-300 hover:!fill-purple-300 hover:text-purple-300'}
-			width={'48'}
-			height={'48'}
-			viewBox={'0 0 48 48'}
-			fill={'currentColor'}
-			xmlns={'http://www.w3.org/2000/svg'}>
-			<g id={'Group 3528'}>
-				<rect className={'group-hover:fill-purple-300'} id={'Rectangle 579'} x={'0.5'} y={'0.5'} width={'47'} height={'47'} rx={'3.5'} stroke={'currentcolor'}/>
-				<path className={'group-hover:fill-white'} id={'Arrow 1'} d={'M19 12C19 11.4477 18.5523 11 18 11C17.4477 11 17 11.4477 17 12L19 12ZM17.2929 36.7071C17.6834 37.0976 18.3166 37.0976 18.7071 36.7071L25.0711 30.3431C25.4616 29.9526 25.4616 29.3195 25.0711 28.9289C24.6805 28.5384 24.0474 28.5384 23.6569 28.9289L18 34.5858L12.3431 28.9289C11.9526 28.5384 11.3195 28.5384 10.9289 28.9289C10.5384 29.3195 10.5384 29.9526 10.9289 30.3431L17.2929 36.7071ZM17 12L17 36L19 36L19 12L17 12Z'} fill={'currentcolor'}/>
-				<path className={'group-hover:fill-white'} id={'Arrow 2'} d={'M29 36C29 36.5523 29.4477 37 30 37C30.5523 37 31 36.5523 31 36L29 36ZM30.7071 11.2929C30.3166 10.9024 29.6834 10.9024 29.2929 11.2929L22.9289 17.6569C22.5384 18.0474 22.5384 18.6805 22.9289 19.0711C23.3195 19.4616 23.9526 19.4616 24.3431 19.0711L30 13.4142L35.6569 19.0711C36.0474 19.4616 36.6805 19.4616 37.0711 19.0711C37.4616 18.6805 37.4616 18.0474 37.0711 17.6569L30.7071 11.2929ZM31 36L31 12L29 12L29 36L31 36Z'} fill={'currentcolor'}/>
-			</g>
-		</svg>
-	);
-}
-
-function ViewFromToken({token}: {token: TTokenInfo}): ReactElement {
-	const {balances} = useWallet();
-	const [amountToDeposit, set_amountToDeposit] = useState<TNormalizedBN>(toNormalizedBN(0));
-
-	const balanceOf = useMemo((): TNormalizedBN => {
-		return toNormalizedBN((balances?.[token.address]?.raw || 0) || 0);
-	}, [balances, token.address]);
-
-	const onChangeAmount = useCallback((e: ChangeEvent<HTMLInputElement>): void => {
-		const element = document.getElementById('amountToSend') as HTMLInputElement;
-		const newAmount = handleInputChangeEventValue(e, token?.decimals || 18);
-		if (newAmount.raw > balances?.[token.address]?.raw) {
-			if (element?.value) {
-				element.value = formatAmount(balances?.[token.address]?.normalized, 0, 18);
-			}
-			return set_amountToDeposit(toNormalizedBN(balances?.[token.address]?.raw || 0));
-		}
-		set_amountToDeposit(newAmount);
-	}, [balances, token.address, token?.decimals]);
-
-	return (
-		<div className={'grid grid-cols-12 gap-x-2'}>
-			<div className={'grow-1 col-span-5 flex h-10 w-full items-center justify-start rounded-md bg-white p-2'}>
-				<div className={'mr-2 h-6 w-6 min-w-[24px]'}>
-					<ImageWithFallback
-						alt={token.name}
-						unoptimized
-						src={token.logoURI}
-						width={24}
-						height={24} />
-				</div>
-				<p>{token.symbol}</p>
-			</div>
-
-			<div className={'grow-1 col-span-7 flex h-10 w-full items-center justify-center rounded-md bg-white p-2'}>
-				<input
-					id={'amountToDeposit'}
-					className={'w-full overflow-x-scroll border-none bg-transparent px-0 py-4 font-mono text-sm outline-none scrollbar-none'}
-					type={'number'}
-					min={0}
-					maxLength={20}
-					max={balanceOf?.normalized || 0}
-					step={1 / 10 ** (token?.decimals || 18)}
-					inputMode={'numeric'}
-					placeholder={`0.000000 ${token.symbol}`}
-					pattern={'^((?:0|[1-9]+)(?:.(?:d+?[1-9]|[1-9]))?)$'}
-					value={amountToDeposit?.normalized || ''}
-					onChange={onChangeAmount} />
-				<div className={'ml-2 flex flex-row space-x-1'}>
-					<button
-						onClick={(): void => set_amountToDeposit(balanceOf)}
-						className={cl('px-2 py-1 text-xs rounded-md border border-purple-300 transition-colors bg-purple-300 text-white')}>
-						{'Max'}
-					</button>
-				</div>
-			</div>
-
-			<div className={'grow-1 col-span-5 flex w-full items-center justify-start pl-2 pt-1 text-purple-300'}>
-				<Link href={`https://etherscan.io/address/${token.address}`} className={'flex flex-row items-center space-x-1 hover:underline'}>
-					<small className={'text-xs'}>{'Contract'}</small>
-					<IconLinkOut className={'h-4 w-4'} />
-				</Link>
-			</div>
-			<div className={'grow-1 col-span-7 flex w-full items-center justify-start pl-2 pt-1 text-neutral-600'}>
-				<div className={'flex flex-row items-center space-x-1'}>
-					<small className={'text-xs'}>{`You have ${formatAmount(balanceOf?.normalized || 0, 2, 6)} ${token.symbol}`}</small>
-				</div>
-			</div>
-
-		</div>
-	);
-}
-
-function ViewStakeUnstake(): ReactElement {
+function ViewStakeUnstake({rate}: {rate: bigint}): ReactElement {
+	const {isActive, provider, address} = useWeb3();
+	const {refresh} = useWallet();
 	const [currentView, set_currentView] = useState<'stake' | 'unstake'>('stake');
+	const [fromAmount, set_fromAmount] = useState<TNormalizedBN>(toNormalizedBN(0));
+	const [toAmount, set_toAmount] = useState<TNormalizedBN>(toNormalizedBN(0));
+	const [txStatus, set_txStatus] = useState<TTxStatus>(defaultTxStatus);
+
+	/* 🔵 - Yearn Finance **************************************************************************
+	** If the user wants to stake, he first needs to approve the staking contract to spend his
+	** yETH. Thus, we need to check the user's allowance.
+	**********************************************************************************************/
+	const {data: allowance, refetch: refreshAllowance} = useContractRead({
+		address: YETH_TOKEN.address,
+		abi: erc20ABI,
+		functionName: 'allowance',
+		args: [toAddress(address), STYETH_TOKEN.address]
+	});
+	const hasAllowance = useMemo((): boolean => {
+		if (!fromAmount || !allowance) {
+			return false;
+		}
+		if (currentView === 'stake') {
+			return toBigInt(allowance) >= toBigInt(fromAmount.raw);
+		}
+		return true;
+	}, [allowance, currentView, fromAmount]);
+
+	/* 🔵 - Yearn Finance **************************************************************************
+	** If the user is updating the fromAmount and the fromToken is yETH, then update the toAmount
+	** with the st-yETH rate.
+	**********************************************************************************************/
+	const onUpdateFromAmount = useCallback((newAmount: TNormalizedBN): void => {
+		set_fromAmount(newAmount);
+		if (currentView === 'stake') {
+			set_toAmount(toNormalizedBN(newAmount.raw * (rate || 1n) / toBigInt(1e18)));
+		} else {
+			set_toAmount(toNormalizedBN(newAmount.raw * toBigInt(1e18) / (rate || 1n)));
+		}
+	}, [currentView, rate]);
+
+	/* 🔵 - Yearn Finance **************************************************************************
+	** If the user is updating the toAmount and the fromToken is st-yETH, then update the fromAmount
+	** with the st-yETH rate.
+	**********************************************************************************************/
+	const onUpdateToAmount = useCallback((newAmount: TNormalizedBN): void => {
+		set_toAmount(newAmount);
+		if (currentView === 'stake') {
+			set_fromAmount(toNormalizedBN(newAmount.raw * toBigInt(1e18) / (rate || 1n)));
+		} else {
+			set_fromAmount(toNormalizedBN(newAmount.raw * (rate || 1n) / toBigInt(1e18)));
+		}
+	}, [currentView, rate]);
+
+	/* 🔵 - Yearn Finance **************************************************************************
+	** Web3 action to allow the staking contract to spend the user's yETH.
+	**********************************************************************************************/
+	const onApprove = useCallback(async (): Promise<void> => {
+		assert(isActive, 'Wallet not connected');
+		assert(provider, 'Provider not connected');
+		assert(fromAmount.raw > 0n, 'Amount must be greater than 0');
+
+		const result = await approveERC20({
+			connector: provider,
+			contractAddress: YETH_TOKEN.address,
+			spenderAddress: STYETH_TOKEN.address,
+			amount: fromAmount.raw,
+			statusHandler: set_txStatus
+		});
+		if (result.isSuccessful) {
+			refreshAllowance();
+			await refresh([
+				{...ETH_TOKEN, token: ETH_TOKEN.address},
+				{...STYETH_TOKEN, token: STYETH_TOKEN.address},
+				{...YETH_TOKEN, token: YETH_TOKEN.address}
+			]);
+		}
+	}, [fromAmount.raw, isActive, provider, refresh, refreshAllowance]);
+
+	/* 🔵 - Yearn Finance **************************************************************************
+	** Web3 action to stake the user's yETH.
+	**********************************************************************************************/
+	const onStake = useCallback(async (): Promise<void> => {
+		assert(isActive, 'Wallet not connected');
+		assert(provider, 'Provider not connected');
+		assert(fromAmount.raw > 0n, 'Amount must be greater than 0');
+
+		const result = await stakeYETH({
+			connector: provider,
+			contractAddress: STYETH_TOKEN.address,
+			amount: fromAmount.raw,
+			statusHandler: set_txStatus
+		});
+		if (result.isSuccessful) {
+			await refresh([
+				{...ETH_TOKEN, token: ETH_TOKEN.address},
+				{...STYETH_TOKEN, token: STYETH_TOKEN.address},
+				{...YETH_TOKEN, token: YETH_TOKEN.address}
+			]);
+		}
+	}, [fromAmount.raw, isActive, provider, refresh]);
+
+	/* 🔵 - Yearn Finance **************************************************************************
+	** Web3 action to unstake the user's st-yETH.
+	**********************************************************************************************/
+	const onUnstake = useCallback(async (): Promise<void> => {
+		assert(isActive, 'Wallet not connected');
+		assert(provider, 'Provider not connected');
+		assert(fromAmount.raw > 0n, 'Amount must be greater than 0');
+
+		const result = await unstakeYETH({
+			connector: provider,
+			contractAddress: STYETH_TOKEN.address,
+			amount: fromAmount.raw,
+			statusHandler: set_txStatus
+		});
+		if (result.isSuccessful) {
+			await refresh([
+				{...ETH_TOKEN, token: ETH_TOKEN.address},
+				{...STYETH_TOKEN, token: STYETH_TOKEN.address},
+				{...YETH_TOKEN, token: YETH_TOKEN.address}
+			]);
+		}
+	}, [fromAmount.raw, isActive, provider, refresh]);
 
 	return (
-		<div className={cl(SHOULD_USE_ALTERNATE_DESIGN ? 'col-span-7 mb-10 flex w-full flex-col !rounded-md bg-neutral-100 p-4' : 'mb-10 flex w-full flex-col')}>
+		<div className={'col-span-18 py-10 pr-[72px]'}>
 			<h2 className={'text-xl font-black'}>
 				{currentView === 'stake' ? 'Stake yETH' : 'Unstake st-yETH'}
 			</h2>
 			<div className={'pt-4'}>
-				<div><b className={'text-purple-300'}>{'APR: 4.20%'}</b></div>
+				<div>
+					<b className={'text-purple-300'}>
+						{'APR: -'}
+					</b>
+				</div>
 
 				<div className={'mt-5 grid'}>
-					<ViewFromToken token={currentView === 'stake' ? YETH_TOKEN : STYETH_TOKEN} />
+					<TokenInput
+						allowance={toNormalizedBN(allowance || 0n)}
+						token={(currentView === 'stake' ? YETH_TOKEN : STYETH_TOKEN) as TLST}
+						value={fromAmount}
+						onChange={onUpdateFromAmount} />
 					<div className={'mb-8 mt-6 flex w-full justify-center'}>
 						<button
 							className={'cursor-pointer'}
@@ -126,76 +171,115 @@ function ViewStakeUnstake(): ReactElement {
 							<IconSwapSVG />
 						</button>
 					</div>
-					<ViewFromToken token={currentView === 'stake' ? STYETH_TOKEN : YETH_TOKEN} />
+					<TokenInput
+						shouldCheckAllowance={false}
+						shouldCheckBalance={false}
+						allowance={toNormalizedBN(MAX_UINT_256)}
+						token={(currentView === 'stake' ? STYETH_TOKEN : YETH_TOKEN) as TLST}
+						value={toAmount}
+						onChange={onUpdateToAmount} />
 				</div>
 
 
 			</div>
-			<div className={'absoelute bottom-6 left-6 mt-6 flex justify-end'}>
-				<Button className={'w-[184px]'}>
-					{'Withdraw'}
+			<div className={'mt-10 flex justify-start'}>
+				<Button
+					isBusy={txStatus.pending}
+					isDisabled={!txStatus.none || fromAmount.raw === 0n}
+					onClick={(): void => {
+						if (currentView === 'stake' && !hasAllowance) {
+							onApprove();
+						} else if (currentView === 'stake') {
+							onStake();
+						} else {
+							onUnstake();
+						}
+					}}
+					className={'w-[184px]'}>
+					{currentView === 'stake' ? hasAllowance ? 'Stake' : 'Approve' : 'Unstake'}
 				</Button>
 			</div>
 		</div>
 	);
 }
 
-function ViewDetails(): ReactElement {
+function ViewDetails({rate}: {rate: bigint}): ReactElement {
+	const {balances} = useWallet();
+
+	/* 🔵 - Yearn Finance **************************************************************************
+	** Retrieve the user's balance of yETH.
+	**********************************************************************************************/
+	const balanceOf = useMemo((): TNormalizedBN => {
+		return toNormalizedBN((balances?.[STYETH_TOKEN.address]?.raw || 0) || 0);
+	}, [balances]);
+
+	/* 🔵 - Yearn Finance **************************************************************************
+	** Retrieve the totalSupply of st-yETH. Based on that and the user's balance, calculate the
+	** user's share of the pool.
+	**********************************************************************************************/
+	const {data: totalSupply} = useContractRead({
+		address: STYETH_TOKEN.address,
+		abi: ST_YETH_ABI,
+		functionName: 'totalSupply'
+	});
+
+
 	return (
-		<div className={cl(SHOULD_USE_ALTERNATE_DESIGN ? 'col-span-5' : '')}>
-			<div className={cl(SHOULD_USE_ALTERNATE_DESIGN ? 'mb-10 flex w-full flex-col !rounded-md bg-neutral-100 p-4' : 'mb-10 flex w-full flex-col')}>
+		<div className={'col-span-12 py-10 pl-[72px]'}>
+			<div className={'mb-10 flex w-full flex-col !rounded-md bg-neutral-100'}>
 				<h2 className={'text-xl font-black'}>
-					{'Details & Info'}
+					{'Details'}
 				</h2>
-				<dl className={cl('grid grid-cols-3 pt-4', SHOULD_USE_ALTERNATE_DESIGN ? 'gap-2' : 'gap-4')}>
+				<dl className={'grid grid-cols-3 gap-2 pt-4'}>
 					<dt className={'col-span-2'}>{'yETH per st-yETH'}</dt>
-					<dd className={'text-right font-bold'}>{'1,053443'}</dd>
+					<dd className={'text-right font-bold'}>
+						{formatAmount(toNormalizedBN(rate).normalized, 6, 6)}
+					</dd>
 
 					<dt className={'col-span-2'}>{'Your share of the pool'}</dt>
-					<dd className={'text-right font-bold'}>{'0.00%'}</dd>
+					<dd className={'text-right font-bold'}>
+						<RenderAmount
+							value={Number(toNormalizedBN(balanceOf.raw * toBigInt(1e18) / (totalSupply || 1n)).normalized) || 0}
+							symbol={'percent'}
+							decimals={6} />
+					</dd>
 
 					<dt className={'col-span-2'}>{'Swap fee'}</dt>
 					<dd className={'text-right font-bold'}>{'0.03%'}</dd>
 				</dl>
-				{SHOULD_USE_ALTERNATE_DESIGN ? (
-					<>
-						<b className={'mt-6 block text-neutral-900'}>{'Info'}</b>
-						<p className={'whitespace-break-spaces pt-4 text-neutral-600'}>
-							{'How about to have here a nice copy describing how the Deposit works in details.\n\n'}
-							{'This text is just a placeholder.'}
-						</p>
-					</>
-				) : null}
+			</div>
+			<div>
+				<h2 className={'text-xl font-black'}>
+					{'Info'}
+				</h2>
+				<p className={'whitespace-break-spaces pt-4 text-neutral-600'}>
+					{'Like Draper said - it’s gonna be a super small description. Well, not like ultra small. It will take some room. It’s always nice to put some copy, and it’s good for balance.\n\n'}
+
+					{'We can put useful links here as well.'}
+				</p>
 			</div>
 		</div>
 
 	);
 }
 
-function ViewInfo(): ReactElement {
-	return (
-		<div className={cl(SHOULD_USE_ALTERNATE_DESIGN ? 'hidden' : 'mb-10 flex w-full flex-col')}>
-			<h2 className={'text-xl font-black'}>
-				{'Info'}
-			</h2>
-			<p className={'whitespace-break-spaces pt-4 text-neutral-600'}>
-				{'How about to have here a nice copy describing how the Deposit works in details.\n\n'}
-
-				{'For example about some deposits are prohibited because they will result in weight outside of the allowed bands of the LSTs. When the user enters amounts that results in such actions this SHOULD be detected and warned accordingly, possibly disabling deposit until it is corrected.\n\n'}
-
-				{'This text is just a placeholder.'}
-			</p>
-		</div>
-	);
-}
-
 function ViewStake(): ReactElement {
+	/* 🔵 - Yearn Finance **************************************************************************
+	** Retrieve the yETH/st-yETH rate.
+	** 1 st-yETH = rate
+	**********************************************************************************************/
+	const {data: rate} = useContractRead({
+		address: STYETH_TOKEN.address,
+		abi: ST_YETH_ABI,
+		functionName: 'convertToShares',
+		args: [toBigInt(1e18)]
+	});
+
 	return (
-		<section className={cl(SHOULD_USE_ALTERNATE_DESIGN ? 'relative' : 'relative px-8 py-6')}>
-			<div className={cl(SHOULD_USE_ALTERNATE_DESIGN ? 'grid grid-cols-12 gap-4 pt-4' : 'grid grid-cols-3 gap-8')}>
-				<ViewStakeUnstake />
-				<ViewDetails />
-				<ViewInfo />
+		<section className={'relative px-[72px]'}>
+			<div className={'grid grid-cols-30 divide-x-2 divide-neutral-300'}>
+				<ViewStakeUnstake rate={rate || 0n} />
+				<ViewDetails rate={rate || 0n} />
 			</div>
 		</section>
 	);

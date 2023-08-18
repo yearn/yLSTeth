@@ -43,13 +43,13 @@ const	defaultProps: TTokenListProps = {
 
 const	TokenList = createContext<TTokenListProps>(defaultProps);
 export const TokenListContextApp = ({children}: {children: React.ReactElement}): React.ReactElement => {
-	const {safeChainID} = useChainID(Number(process.env.BASE_CHAINID));
+	const {safeChainID} = useChainID(Number(process.env.BASE_CHAIN_ID));
 	const [tokenList, set_tokenList] = useState<TDict<TTokenInfo>>({});
 
 	const fetchTokensFromLists = useCallback(async (): Promise<void> => {
 		const [fromEtherscan, fromYearn] = await Promise.allSettled([
 			axios.get(`https://raw.githubusercontent.com/SmolDapp/tokenLists/main/lists/${safeChainID}/etherscan.json`),
-			axios.get(`https://raw.githubusercontent.com/Migratooor/tokenLists/main/lists/${safeChainID}/yearn.json`)
+			axios.get(`https://raw.githubusercontent.com/SmolDapp/tokenLists/main/lists/${safeChainID}/yearn.json`)
 		]);
 		const lists: TTokenInfo[] = [];
 		if (fromEtherscan.status === 'fulfilled') {

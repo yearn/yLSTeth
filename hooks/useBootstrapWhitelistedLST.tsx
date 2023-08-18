@@ -29,7 +29,7 @@ function useFilterWhitelistedLST(): TUseFilterWhitelistedLSTResp {
 	**********************************************************************************************/
 	const filterWhitelistEvents = useCallback(async (): Promise<void> => {
 		set_isLoading(true);
-		const publicClient = getClient(Number(process.env.DEFAULT_CHAINID));
+		const publicClient = getClient(Number(process.env.DEFAULT_CHAIN_ID));
 		const rangeLimit = 1_000_000n;
 		const deploymentBlockNumber = toBigInt(process.env.INIT_BLOCK_NUMBER);
 		const currentBlockNumber = await publicClient.getBlockNumber();
@@ -92,7 +92,7 @@ function useBootstrapWhitelistedLST(): TUseBootstrapWhitelistedLSTResp {
 				{...baseBootstrapContract, functionName: 'votes', args: [protocolAddress]}
 			]);
 		}
-		const results = await multicall({contracts: calls, chainId: Number(process.env.DEFAULT_CHAINID)});
+		const results = await multicall({contracts: calls, chainId: Number(process.env.DEFAULT_CHAIN_ID)});
 
 		/* 🔵 - Yearn Finance **********************************************************************
 		** We got the data, we can decode them and create our object of {address: TWhitelistedLST}
@@ -111,8 +111,8 @@ function useBootstrapWhitelistedLST(): TUseBootstrapWhitelistedLSTResp {
 				name: name,
 				symbol: symbol,
 				decimals: decimals,
-				chainId: Number(process.env.DEFAULT_CHAINID),
-				logoURI: `https://assets.smold.app/api/token/${Number(process.env.BASE_CHAINID)}/${address}/logo-128.png`,
+				chainId: Number(process.env.DEFAULT_CHAIN_ID),
+				logoURI: `https://assets.smold.app/api/token/${Number(process.env.BASE_CHAIN_ID)}/${address}/logo-128.png`,
 				extra: {
 					votes: allVotesForThis,
 					totalVotes: totalVotes,

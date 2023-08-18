@@ -74,7 +74,7 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 	const [incentives, set_incentives] = useState<TIncentives[]>([]);
 	const [claimedIncentives, set_claimedIncentives] = useState<TIncentivesClaimed[] | undefined>(undefined);
 	const [isFetchingHistory, set_isFetchingHistory] = useState(false);
-	const {yDaemonBaseUri} = useYDaemonBaseURI({chainID: Number(process.env.BASE_CHAINID)});
+	const {yDaemonBaseUri} = useYDaemonBaseURI({chainID: Number(process.env.BASE_CHAIN_ID)});
 	const {data: prices} = useFetch<TYDaemonPrices>({
 		endpoint: `${yDaemonBaseUri}/prices/all`,
 		schema: yDaemonPricesSchema
@@ -123,7 +123,7 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 	**********************************************************************************************/
 	const filterIncentivizeEvents = useCallback(async (): Promise<void> => {
 		set_isFetchingHistory(true);
-		const publicClient = getClient(Number(process.env.DEFAULT_CHAINID));
+		const publicClient = getClient(Number(process.env.DEFAULT_CHAIN_ID));
 		const rangeLimit = 1_000_000n;
 		const deploymentBlockNumber = toBigInt(process.env.INIT_BLOCK_NUMBER);
 		const currentBlockNumber = await publicClient.getBlockNumber();
@@ -169,7 +169,7 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 		if (!address || voteStatus !== 'ended') {
 			return;
 		}
-		const publicClient = getClient(Number(process.env.DEFAULT_CHAINID));
+		const publicClient = getClient(Number(process.env.DEFAULT_CHAIN_ID));
 		const rangeLimit = 1_000_000n;
 		const deploymentBlockNumber = toBigInt(process.env.INIT_BLOCK_NUMBER);
 		const currentBlockNumber = await publicClient.getBlockNumber();
@@ -254,7 +254,7 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 	const [{result: incentiveHistory}, fetchTokenData] = incentiveDetails;
 	useUpdateEffect((): void => {
 		fetchTokenData.execute(
-			Number(process.env.DEFAULT_CHAINID),
+			Number(process.env.DEFAULT_CHAIN_ID),
 			incentives
 		);
 	}, [incentives]);

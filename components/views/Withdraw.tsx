@@ -2,7 +2,7 @@ import React, {useCallback, useMemo, useState} from 'react';
 import {ImageWithFallback} from 'components/common/ImageWithFallback';
 import useWallet from 'contexts/useWallet';
 import {handleInputChangeEventValue} from 'utils';
-import {LST, SHOULD_USE_ALTERNATE_DESIGN} from 'utils/constants';
+import {LST} from 'utils/constants';
 import {Button} from '@yearn-finance/web-lib/components/Button';
 import {cl} from '@yearn-finance/web-lib/utils/cl';
 import {toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
@@ -75,7 +75,7 @@ function ViewLSTDepositForm({token}: {token: TTokenInfo}): ReactElement {
 
 function ViewSelectedTokens(): ReactElement {
 	return (
-		<div className={cl(SHOULD_USE_ALTERNATE_DESIGN ? 'col-span-7 mb-10 flex w-full flex-col !rounded-md bg-neutral-100 p-4' : 'mb-10 flex w-full flex-col')}>
+		<div className={'col-span-18 py-10 pr-[72px]'}>
 			<h2 className={'text-xl font-black'}>
 				{'Select tokens'}
 			</h2>
@@ -91,7 +91,7 @@ function ViewSelectedTokens(): ReactElement {
 					))}
 				</div>
 			</div>
-			<div className={cl(SHOULD_USE_ALTERNATE_DESIGN ? 'mt-6 flex justify-end' : 'absolute bottom-6 right-6')}>
+			<div className={'mt-10 flex justify-start'}>
 				<Button className={'w-[184px]'}>
 					{'Withdraw'}
 				</Button>
@@ -102,56 +102,39 @@ function ViewSelectedTokens(): ReactElement {
 
 function ViewDetails(): ReactElement {
 	return (
-		<div className={cl(SHOULD_USE_ALTERNATE_DESIGN ? 'col-span-5' : '')}>
-			<div className={cl(SHOULD_USE_ALTERNATE_DESIGN ? 'mb-10 flex w-full flex-col !rounded-md bg-neutral-100 p-4' : 'mb-10 flex w-full flex-col')}>
+		<div className={'col-span-12 py-10 pl-[72px]'}>
+			<div className={'mb-10 flex w-full flex-col !rounded-md bg-neutral-100'}>
 				<h2 className={'text-xl font-black'}>
 					{'Details'}
 				</h2>
-				<dl className={cl('grid grid-cols-3 pt-4', SHOULD_USE_ALTERNATE_DESIGN ? 'gap-2' : 'gap-4')}>
+				<dl className={'grid grid-cols-3 gap-2 pt-4'}>
 					<dt className={'col-span-2'}>{'Est. deposit Bonus/Penalties'}</dt>
 					<dd className={'text-right font-bold'}>{'0.00%'}</dd>
 
 					<dt className={'col-span-2'}>{'Minimum LP Tokens'}</dt>
 					<dd className={'text-right font-bold'}>{'-'}</dd>
 				</dl>
-				{SHOULD_USE_ALTERNATE_DESIGN ? (
-					<>
-						<b className={'mt-6 block text-neutral-900'}>{'Info'}</b>
-						<p className={'whitespace-break-spaces pt-4 text-neutral-600'}>
-							{'How about to have here a nice copy describing how the Deposit works in details.\n\n'}
-							{'This text is just a placeholder.'}
-						</p>
-					</>
-				) : null}
 			</div>
-		</div>
-	);
-}
+			<div>
+				<h2 className={'text-xl font-black'}>
+					{'Info'}
+				</h2>
+				<p className={'whitespace-break-spaces pt-4 text-neutral-600'}>
+					{'Like Draper said - it’s gonna be a super small description. Well, not like ultra small. It will take some room. It’s always nice to put some copy, and it’s good for balance.\n\n'}
 
-function ViewInfo(): ReactElement {
-	return (
-		<div className={cl(SHOULD_USE_ALTERNATE_DESIGN ? 'hidden' : 'mb-10 flex w-full flex-col')}>
-			<h2 className={'text-xl font-black'}>
-				{'Info'}
-			</h2>
-			<p className={'whitespace-break-spaces pt-4 text-neutral-600'}>
-				{'How about to have here a nice copy describing how the Deposit works in details.\n\n'}
-
-				{'For example about some deposits are prohibited because they will result in weight outside of the allowed bands of the LSTs. When the user enters amounts that results in such actions this SHOULD be detected and warned accordingly, possibly disabling deposit until it is corrected.\n\n'}
-
-				{'This text is just a placeholder.'}
-			</p>
+					{'We can put useful links here as well.'}
+				</p>
+			</div>
 		</div>
 	);
 }
 
 function ViewWithdraw(): ReactElement {
 	return (
-		<section className={cl(SHOULD_USE_ALTERNATE_DESIGN ? 'relative' : 'relative px-8 py-6')}>
-			<div className={cl(SHOULD_USE_ALTERNATE_DESIGN ? 'grid grid-cols-12 gap-4 pt-4' : 'grid grid-cols-3 gap-8')}>
+		<section className={'relative px-[72px]'}>
+			<div className={'grid grid-cols-30 divide-x-2 divide-neutral-300'}>
 				<ViewSelectedTokens />
 				<ViewDetails />
-				<ViewInfo />
 			</div>
 		</section>
 	);

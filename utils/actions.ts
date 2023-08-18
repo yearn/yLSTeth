@@ -7,6 +7,10 @@ import {MAX_UINT_256} from '@yearn-finance/web-lib/utils/constants';
 import {handleTx, toWagmiProvider} from '@yearn-finance/web-lib/utils/wagmi/provider';
 import {assertAddress} from '@yearn-finance/web-lib/utils/wagmi/utils';
 
+import {STYETH_TOKEN} from './tokens';
+import {ST_YETH_ABI} from './abi/styETH.abi';
+import {YETH_POOL_ABI} from './abi/yETHPool.abi';
+
 import type {Hex} from 'viem';
 import type {Connector} from 'wagmi';
 import type {TAddress} from '@yearn-finance/web-lib/types';
@@ -171,7 +175,6 @@ export async function vote(props: TVote): Promise<TTxResponse> {
 	});
 }
 
-
 /* 🔵 - Yearn Finance **********************************************************
 ** multicall is a _WRITE_ function that can be used to cast a multicall
 **
@@ -193,5 +196,79 @@ export async function multicall(props: TMulticall): Promise<TTxResponse> {
 		functionName: 'tryAggregate',
 		args: [true, props.multicallData],
 		value: 0n
+	});
+}
+
+
+/* 🔵 - Yearn Finance **********************************************************
+** addLiquidityToPool is a _WRITE_ function that deposits some of the LP tokens
+** into the pool in exchange for yETH.
+**
+** @app - yETH
+** @param amount - The amount of collateral to deposit.
+******************************************************************************/
+type TAddLiquidityToPool = TWriteTransaction & {
+	amounts: bigint[];
+	estimateOut: bigint;
+};
+export async function addLiquidityToPool(props: TAddLiquidityToPool): Promise<TTxResponse> {
+	assert(props.connector, 'No connector');
+	assert(props.estimateOut > 0n, 'EstimateOut is 0');
+	assert(props.amounts.some((amount): boolean => amount > 0n), 'Amount is 0');
+	assertAddress(process.env.POOL_ADDRESS, 'BOOTSTRAP_ADDRESS');
+
+	return await handleTx(props, {
+		address: toAddress(process.env.POOL_ADDRESS),
+		abi: YETH_POOL_ABI,
+		functionName: 'add_liquidity',
+		args: [props.amounts, props.estimateOut]
+	});
+}
+
+
+
+/* 🔵 - Yearn Finance **********************************************************
+** stakeYETH is a _WRITE_ function that deposits yETH into the st-yETH contract
+** in exchange for shares of st-yETH.
+**
+** @app - yETH
+** @param amount - The amount of collateral to deposit.
+******************************************************************************/
+type TStakeYETH = TWriteTransaction & {
+	amount: bigint;
+};
+export async function stakeYETH(props: TStakeYETH): Promise<TTxResponse> {
+	assert(props.connector, 'No connector');
+	assert(props.amount > 0n, 'Amount is 0');
+	assertAddress(process.env.BOOTSTRAP_ADDRESS, 'BOOTSTRAP_ADDRESS');
+
+	return await handleTx(props, {
+		address: STYETH_TOKEN.address,
+		abi: ST_YETH_ABI,
+		functionName: 'deposit',
+		args: [props.amount]
+	});
+}
+
+/* 🔵 - Yearn Finance **********************************************************
+** unstakeYETH is a _WRITE_ function that deposits yETH into the st-yETH contract
+** in exchange for shares of st-yETH.
+**
+** @app - yETH
+** @param amount - The amount of collateral to deposit.
+******************************************************************************/
+type TUnstakeYETH = TWriteTransaction & {
+	amount: bigint;
+};
+export async function unstakeYETH(props: TUnstakeYETH): Promise<TTxResponse> {
+	assert(props.connector, 'No connector');
+	assert(props.amount > 0n, 'Amount is 0');
+	assertAddress(process.env.BOOTSTRAP_ADDRESS, 'BOOTSTRAP_ADDRESS');
+
+	return await handleTx(props, {
+		address: STYETH_TOKEN.address,
+		abi: ST_YETH_ABI,
+		functionName: 'withdraw',
+		args: [props.amount]
 	});
 }

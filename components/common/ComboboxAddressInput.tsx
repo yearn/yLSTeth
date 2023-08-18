@@ -78,7 +78,7 @@ function ComboboxAddressInput({
 }: TComboboxAddressInput): ReactElement {
 	const {provider} = useWeb3();
 	const {balances, refresh} = useWallet();
-	const {safeChainID} = useChainID(Number(process.env.BASE_CHAINID));
+	const {safeChainID} = useChainID(Number(process.env.BASE_CHAIN_ID));
 	const [query, set_query] = useState('');
 	const [isOpen, set_isOpen] = useThrottledState(false, 400);
 	const [isLoadingTokenData, set_isLoadingTokenData] = useState(false);
