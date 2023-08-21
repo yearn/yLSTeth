@@ -1,26 +1,31 @@
-import React, {Fragment, useState} from 'react';
-import {useRouter} from 'next/router';
-import Phase1 from 'components/bootstrapViews/Phase1';
+import React, {Fragment, useCallback, useState} from 'react';
 import {ImageWithFallback} from 'components/common/ImageWithFallback';
 import {RenderAmount} from 'components/common/RenderAmount';
 import IconChevronBoth from 'components/icons/IconChevronBoth';
 import ViewDeposit from 'components/views/Deposit';
 import ViewStake from 'components/views/Stake';
 import ViewSwap from 'components/views/Swap';
+import LSTInPool from 'components/views/ViewLSTInPool';
 import ViewWithdraw from 'components/views/Withdraw';
 import useLST from 'contexts/useLST';
 import {UIStepContextApp} from 'contexts/useUI';
+import useWallet from 'contexts/useWallet';
+import {YETH_TOKEN} from 'utils/tokens';
+import {useAnimate} from 'framer-motion';
 import {Listbox, Transition} from '@headlessui/react';
+import {useMountEffect} from '@react-hookz/web';
 import {cl} from '@yearn-finance/web-lib/utils/cl';
+import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
 
+import type {AnimationScope} from 'framer-motion';
+import type {Router} from 'next/router';
 import type {ReactElement} from 'react';
 
 const tabs = [
 	{value: 0, label: 'Deposit', slug: 'deposit'},
 	{value: 1, label: 'Withdraw', slug: 'withdraw'},
 	{value: 2, label: 'Stake/Unstake', slug: 'stake-unstake'},
-	{value: 3, label: 'Swap', slug: 'swap'},
-	{value: 4, label: 'LP yETH', slug: 'lp-yeth'}
+	{value: 3, label: 'Swap', slug: 'swap'}
 ];
 
 const basicTransition = 'duration-200 ease-in-out';
@@ -59,12 +64,20 @@ function Composition(): ReactElement {
 	);
 }
 
-function YETHHeading(): ReactElement {
-	return (
-		<div className={cl('group grid cursor-pointer grid-cols-30 divide-x-2 divide-neutral-300 rounded-md bg-neutral-100 px-[72px] text-neutral-900 transition-all hover:scale-102 hover:divide-neutral-0/20 hover:bg-purple-300 hover:text-neutral-0', basicTransition)}>
+function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
+	const {balances} = useWallet();
 
-			<div className={'relative col-span-18 flex items-end py-8 pr-[72px]'}>
-				<div className={cl('absolute -left-full top-10 text-neutral-0 opacity-0 transition-all duration-200 ease-in-out group-hover:left-0 group-hover:opacity-100', basicTransition)}>
+	return (
+		<div
+			ref={scope}
+			id={'yeth-main-heading'}
+			className={cl('group', basicTransition)}>
+			<div
+				id={'title'}
+				className={'relative col-span-18 flex items-end py-8 pr-[72px]'}>
+				<div
+					id={'yeth-title-explore'}
+					className={cl('absolute -left-full top-10 text-neutral-0 opacity-0 transition-all duration-200 ease-in-out group-hover:left-0 group-hover:opacity-100', basicTransition)}>
 					{'Explore >'}
 				</div>
 				<h1 className={cl('text-3xl md:text-8xl', basicColorTransition)}>
@@ -72,14 +85,16 @@ function YETHHeading(): ReactElement {
 				</h1>
 			</div>
 
-			<div className={'col-span-12 flex w-full flex-row justify-between py-8 pl-[72px] transition-colors'}>
+			<div
+				id={'composition'}
+				className={'col-span-12 flex w-full flex-row justify-between py-8 pl-[72px] transition-colors'}>
 				<div className={'flex flex-col space-y-2'}>
 					<div>
 						<small className={cl('text-xs', basicLighterColorTransition)}>
 							{'Daily Volume, USD'}
 						</small>
 						<b className={cl('block text-2xl leading-10', basicColorTransition)}>
-							{'35 234.05'}
+							{'◼︎◼︎◼︎'}  {/* TODO: ADD DAILY VOLUME */}
 						</b>
 					</div>
 
@@ -88,16 +103,18 @@ function YETHHeading(): ReactElement {
 							{'Net APY'}
 						</small>
 						<b className={cl('block text-2xl leading-10 text-purple-300 group-hover:text-neutral-0', basicTransition)}>
-							{'37.32 %'}
+							{'◼︎◼︎◼︎ %'}  {/* TODO: ADD NET APY */}
 						</b>
 					</div>
 
 					<div>
 						<small className={cl('text-xs', basicLighterColorTransition)}>
-							{'Swap Fee'}
+							{'Your yETH'}
 						</small>
-						<b className={cl('block text-2xl leading-10', basicColorTransition)}>
-							{'0.69 %'}
+						<b
+							suppressHydrationWarning
+							className={cl('block text-2xl leading-10', basicColorTransition)}>
+							{formatAmount(balances?.[YETH_TOKEN.address]?.normalized || 0, 6, 6)}
 						</b>
 					</div>
 
@@ -106,7 +123,7 @@ function YETHHeading(): ReactElement {
 							{'Virtual Price, USD'}
 						</small>
 						<b className={cl('block text-2xl leading-10', basicColorTransition)}>
-							{'6348.0185'}
+							{'◼︎◼︎◼︎'}  {/* TODO: ADD VIRTUAL PRICE */}
 						</b>
 					</div>
 				</div>
@@ -124,9 +141,46 @@ function YETHHeading(): ReactElement {
 	);
 }
 
-function YETH(): ReactElement {
-	const router = useRouter();
+function YETH({router}: {router: Router}): ReactElement {
+	const [tabsCope, animateTabs] = useAnimate();
+	const [headingScope, headingAnimate] = useAnimate();
+	const [lpPoolScope, lpPoolAnimate] = useAnimate();
 	const [currentTab, set_currentTab] = useState<typeof tabs[0]>(tabs[0]);
+	const [shouldRenderPool, set_shouldRenderPool] = useState(false);
+
+	useMountEffect((): void => {
+		const action = router.asPath.split('?')[1] ?? {};
+		const actionType = action.split('=')[1] ?? '';
+		if (actionType && typeof actionType === 'string') {
+			const tabLabel = actionType.toLowerCase();
+			const tabValue = tabs.findIndex((tab): boolean => tab.slug === tabLabel);
+			if (tabValue !== -1) {
+				set_currentTab(tabs[tabValue]);
+			}
+		}
+	});
+
+	const triggerPoolView = useCallback((direction: boolean): void => {
+		set_shouldRenderPool((prev): boolean => {
+			if (direction === prev) {
+				return prev;
+			}
+			if (direction) {
+				animateTabs(tabsCope.current, {opacity: 0, y: '100vh'}, {duration: 0.8, ease: 'easeInOut'});
+				headingAnimate('#title', {y: -144}, {duration: 0.6, ease: 'easeInOut'});
+				headingAnimate('#composition', {opacity: 0, y: -144}, {duration: 0.6, ease: 'easeInOut'});
+				lpPoolAnimate(lpPoolScope.current, {opacity: 1, height: 'auto', pointerEvents: 'auto'}, {duration: 0.8, ease: 'easeInOut'});
+				document.body.classList.add('lpPoolTheme');
+				return true;
+			}
+			animateTabs(tabsCope.current, {opacity: 1, y: 0}, {duration: 0.8, ease: 'easeInOut'});
+			headingAnimate('#title', {opacity: 1, y: 0}, {duration: 0.6, ease: 'easeInOut'});
+			headingAnimate('#composition', {opacity: 1, y: 0}, {duration: 0.6, ease: 'easeInOut'});
+			lpPoolAnimate(lpPoolScope.current, {height: 0, opacity: 0, pointerEvents: 'none'}, {duration: 0.8, ease: 'easeInOut'});
+			document.body.classList.remove('lpPoolTheme');
+			return false;
+		});
+	}, [animateTabs, headingAnimate, lpPoolAnimate, lpPoolScope, tabsCope]);
 
 	function renderTab(): ReactElement {
 		switch (currentTab.value) {
@@ -138,21 +192,31 @@ function YETH(): ReactElement {
 				return <ViewStake />;
 			case 3:
 				return <ViewSwap />;
-
 			default:
-				return <Phase1
-					key={'phase-1'}
-					variant={[]} />;
+				return <ViewDeposit />;
 		}
 	}
 
 	return (
 		<div className={'relative mx-auto mt-6 w-screen max-w-5xl'}>
-			<YETHHeading />
+			<div onClick={(): void => triggerPoolView(true)}>
+				<YETHHeading scope={headingScope} />
+			</div>
 
-			<div className={'relative mt-4 !min-h-screen'}>
+
+			<div className={cl('absolute top-10 text-neutral-0 duration-[600ms] ease-in-out transition-all', shouldRenderPool ? 'left-[72px] opacity-100 pointer-events-auto' : 'left-0 opacity-0 pointer-events-none')}>
+				<button onClick={(): void => triggerPoolView(false)}>
+					{'< Back to actions'}
+				</button>
+			</div>
+
+			<LSTInPool scope={lpPoolScope} />
+
+			<div
+				ref={tabsCope}
+				className={'relative mt-4'}>
 				<div className={'flex w-full flex-col'}>
-					<div className={'relative flex w-full flex-row items-center justify-between rounded-md bg-neutral-100 px-4 pt-4 md:px-[72px]'}>
+					<div className={'relative flex w-full flex-row items-center justify-between rounded-t-md bg-neutral-100 px-4 pt-4 md:px-[72px]'}>
 						<nav className={'z-30 hidden flex-row items-center space-x-10 md:flex'}>
 							{tabs.map((tab): ReactElement => (
 								<button
@@ -227,7 +291,7 @@ function YETH(): ReactElement {
 						</div>
 					</div>
 					<div className={'z-10 -mt-0.5 h-0.5 w-full bg-neutral-300'} />
-					<div className={'relative col-span-12 bg-neutral-100'}>
+					<div className={'relative col-span-12 rounded-b-md bg-neutral-100'}>
 						{renderTab()}
 					</div>
 				</div>
@@ -236,11 +300,13 @@ function YETH(): ReactElement {
 	);
 }
 
-export default function Wrapper(): ReactElement {
+export default function Wrapper({router}: {router: Router}): ReactElement {
 	return (
-		<div className={'relative mx-auto mb-0 flex min-h-screen w-full flex-col bg-neutral-0 pt-20'}>
+		<div
+			id={'yeth-main-page'}
+			className={'relative mx-auto mb-0 flex min-h-screen w-full flex-col bg-neutral-0 pt-20'}>
 			<UIStepContextApp>
-				<YETH />
+				<YETH router={router} />
 			</UIStepContextApp>
 		</div>
 	);

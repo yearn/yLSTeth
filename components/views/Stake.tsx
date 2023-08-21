@@ -3,6 +3,7 @@ import assert from 'assert';
 import {RenderAmount} from 'components/common/RenderAmount';
 import TokenInput from 'components/common/TokenInput';
 import IconSwapSVG from 'components/icons/IconSwap';
+import useLST from 'contexts/useLST';
 import useWallet from 'contexts/useWallet';
 import {ST_YETH_ABI} from 'utils/abi/styETH.abi';
 import {approveERC20, stakeYETH, unstakeYETH} from 'utils/actions';
@@ -205,6 +206,7 @@ function ViewStakeUnstake({rate}: {rate: bigint}): ReactElement {
 
 function ViewDetails({rate}: {rate: bigint}): ReactElement {
 	const {balances} = useWallet();
+	const {stats} = useLST();
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	** Retrieve the user's balance of yETH.
@@ -245,7 +247,9 @@ function ViewDetails({rate}: {rate: bigint}): ReactElement {
 					</dd>
 
 					<dt className={'col-span-2'}>{'Swap fee'}</dt>
-					<dd className={'text-right font-bold'}>{'0.03%'}</dd>
+					<dd className={'text-right font-bold'}>
+						{`${formatAmount(toNormalizedBN(stats.swapFeeRate, 16).normalized, 2, 2)}%`}
+					</dd>
 				</dl>
 			</div>
 			<div>

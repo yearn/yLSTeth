@@ -19,12 +19,25 @@ type TViewFromToken = {
 	value: TNormalizedBN;
 	allowance: TNormalizedBN;
 	onChange: (value: TNormalizedBN) => void;
+	label?: string;
 	tokens?: TLST[];
 	onChangeToken?: (token: TLST) => void;
 	shouldCheckBalance?: boolean;
 	shouldCheckAllowance?: boolean;
+	isDisabled?: boolean;
 }
-function TokenInput({token, value, onChange, tokens, onChangeToken, allowance, shouldCheckAllowance = true, shouldCheckBalance = true}: TViewFromToken): ReactElement {
+function TokenInput({
+	token,
+	value,
+	onChange,
+	tokens,
+	onChangeToken,
+	allowance,
+	label,
+	shouldCheckAllowance = true,
+	shouldCheckBalance = true,
+	isDisabled = false
+}: TViewFromToken): ReactElement {
 	const {balances} = useWallet();
 	const balanceOf = useMemo((): TNormalizedBN => {
 		return toNormalizedBN((balances?.[token.address]?.raw || 0) || 0);
@@ -44,7 +57,12 @@ function TokenInput({token, value, onChange, tokens, onChangeToken, allowance, s
 
 	return (
 		<div className={'grid grid-cols-12 gap-x-2'}>
-			<div className={'grow-1 col-span-5 flex h-10 w-full items-center justify-start rounded-md bg-white p-2'}>
+			{label && (
+				<div className={'col-span-12 mb-1 flex w-full text-neutral-600'}>
+					{label}
+				</div>
+			)}
+			<div className={cl('grow-1 col-span-5 flex h-10 w-full items-center justify-start rounded-md p-2 bg-neutral-0')}>
 				<div className={'mr-2 h-6 w-6 min-w-[24px]'}>
 					<ImageWithFallback
 						alt={token.name}
@@ -70,7 +88,7 @@ function TokenInput({token, value, onChange, tokens, onChangeToken, allowance, s
 				)}
 			</div>
 
-			<div className={'grow-1 col-span-7 flex h-10 w-full items-center justify-center rounded-md bg-white p-2'}>
+			<div className={cl('grow-1 col-span-7 flex h-10 w-full items-center justify-center rounded-md p-2', isDisabled ? 'bg-neutral-200' : 'bg-neutral-0')}>
 				<input
 					className={'w-full overflow-x-scroll border-none bg-transparent px-0 py-4 font-mono text-sm outline-none scrollbar-none'}
 					type={'number'}
@@ -79,6 +97,7 @@ function TokenInput({token, value, onChange, tokens, onChangeToken, allowance, s
 					max={balanceOf?.normalized || 0}
 					step={1 / 10 ** (token?.decimals || 18)}
 					inputMode={'numeric'}
+					disabled={isDisabled}
 					placeholder={`0.000000 ${token.symbol}`}
 					pattern={'^((?:0|[1-9]+)(?:.(?:d+?[1-9]|[1-9]))?)$'}
 					value={value?.normalized || ''}

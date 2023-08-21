@@ -142,7 +142,7 @@ function ViewDetails({estimateOut, bonusOrPenalty}: {estimateOut: bigint, bonusO
 
 					<dt className={'col-span-2'}>{'Slippage'}</dt>
 					<dd className={'text-right font-bold'}>
-						{'0.00%'}
+						{`${formatAmount(1, 2, 2)}%`}  {/* TODO: ADD SLIPPAGE CONFIG */}
 					</dd>
 
 					<dt className={'col-span-2'}>{'Minimum LP Tokens'}</dt>

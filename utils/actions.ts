@@ -215,7 +215,7 @@ export async function addLiquidityToPool(props: TAddLiquidityToPool): Promise<TT
 	assert(props.connector, 'No connector');
 	assert(props.estimateOut > 0n, 'EstimateOut is 0');
 	assert(props.amounts.some((amount): boolean => amount > 0n), 'Amount is 0');
-	assertAddress(process.env.POOL_ADDRESS, 'BOOTSTRAP_ADDRESS');
+	assertAddress(process.env.POOL_ADDRESS, 'POOL_ADDRESS');
 
 	return await handleTx(props, {
 		address: toAddress(process.env.POOL_ADDRESS),
@@ -225,6 +225,62 @@ export async function addLiquidityToPool(props: TAddLiquidityToPool): Promise<TT
 	});
 }
 
+/* 🔵 - Yearn Finance **********************************************************
+** removeLiquidityFromPool is a _WRITE_ function that withdraw some of one
+** LP tokens from the pool.
+**
+** @app - yETH
+** @param index - The index of the LP token to get.
+** @param amount - The amount of yETH to remove.
+** @param minOut - The minimum amount of LP to receive.
+******************************************************************************/
+type TRemoveLiquidityFromPool = TWriteTransaction & {
+	amount: bigint;
+	minOuts: bigint[];
+};
+export async function removeLiquidityFromPool(props: TRemoveLiquidityFromPool): Promise<TTxResponse> {
+	assert(props.connector, 'No connector');
+	assert(props.amount > 0n, 'Amount is 0');
+	assert(props.minOuts.some((minOut): boolean => minOut > 0n), 'MinOut is 0');
+	assertAddress(process.env.POOL_ADDRESS, 'POOL_ADDRESS');
+
+	return await handleTx(props, {
+		address: toAddress(process.env.POOL_ADDRESS),
+		abi: YETH_POOL_ABI,
+		functionName: 'remove_liquidity',
+		args: [props.amount, props.minOuts]
+	});
+}
+
+/* 🔵 - Yearn Finance **********************************************************
+** removeLiquiditySingleFromPool is a _WRITE_ function that withdraw some of one
+** LP tokens from the pool.
+**
+** @app - yETH
+** @param index - The index of the LP token to get.
+** @param amount - The amount of yETH to remove.
+** @param minOut - The minimum amount of LP to receive.
+******************************************************************************/
+type TRemoveLiquiditySingleFromPool = TWriteTransaction & {
+	index: bigint;
+	amount: bigint;
+	minOut: bigint;
+};
+export async function removeLiquiditySingleFromPool(props: TRemoveLiquiditySingleFromPool): Promise<TTxResponse> {
+	assert(props.connector, 'No connector');
+	assert(props.minOut > 0n, 'minOut is 0');
+	assert(props.amount > 0n, 'Amount is 0');
+	assert(props.index >= 0n, 'Index is negative');
+	assert(props.index <= 4n, 'Index is too large');
+	assertAddress(process.env.POOL_ADDRESS, 'POOL_ADDRESS');
+
+	return await handleTx(props, {
+		address: toAddress(process.env.POOL_ADDRESS),
+		abi: YETH_POOL_ABI,
+		functionName: 'remove_liquidity_single',
+		args: [props.index, props.amount, props.minOut]
+	});
+}
 
 
 /* 🔵 - Yearn Finance **********************************************************
@@ -240,7 +296,7 @@ type TStakeYETH = TWriteTransaction & {
 export async function stakeYETH(props: TStakeYETH): Promise<TTxResponse> {
 	assert(props.connector, 'No connector');
 	assert(props.amount > 0n, 'Amount is 0');
-	assertAddress(process.env.BOOTSTRAP_ADDRESS, 'BOOTSTRAP_ADDRESS');
+	assertAddress(process.env.STYETH_TOKEN, 'STYETH_TOKEN');
 
 	return await handleTx(props, {
 		address: STYETH_TOKEN.address,
@@ -263,7 +319,7 @@ type TUnstakeYETH = TWriteTransaction & {
 export async function unstakeYETH(props: TUnstakeYETH): Promise<TTxResponse> {
 	assert(props.connector, 'No connector');
 	assert(props.amount > 0n, 'Amount is 0');
-	assertAddress(process.env.BOOTSTRAP_ADDRESS, 'BOOTSTRAP_ADDRESS');
+	assertAddress(STYETH_TOKEN.address, 'STYETH_TOKEN');
 
 	return await handleTx(props, {
 		address: STYETH_TOKEN.address,
@@ -272,3 +328,76 @@ export async function unstakeYETH(props: TUnstakeYETH): Promise<TTxResponse> {
 		args: [props.amount]
 	});
 }
+
+
+/* 🔵 - Yearn Finance **********************************************************
+** swapLST is a _WRITE_ function that swaps one of the LST tokens for another.
+**
+** @app - yETH
+** @param lstTokenFromIndex - The index of the LST token to swap from
+** @param lstTokenToIndex - The index of the LST token to swap to
+** @param amount - The amount of LST tokens from to swap
+** @param minAmountOut - The minimum amount of LST tokens to receive
+******************************************************************************/
+type TSwapLST = TWriteTransaction & {
+	lstTokenFromIndex: bigint;
+	lstTokenToIndex: bigint;
+	amount: bigint;
+	minAmountOut: bigint;
+};
+export async function swapLST(props: TSwapLST): Promise<TTxResponse> {
+	assert(props.connector, 'No connector');
+	assert(props.amount > 0n, 'Amount is 0');
+	assert(props.minAmountOut > 0n, 'minAmountOut is 0');
+	assert(props.lstTokenFromIndex >= 0n, 'lstTokenFromIndex is 0');
+	assert(props.lstTokenToIndex >= 0n, 'lstTokenToIndex is 0');
+	assert(props.lstTokenFromIndex <= 4n, 'lstTokenFromIndex is too high');
+	assert(props.lstTokenToIndex <= 4n, 'lstTokenToIndex is too high');
+	assert(props.lstTokenFromIndex !== props.lstTokenToIndex, 'lstTokenFromIndex and lstTokenToIndex are the same');
+	assertAddress(process.env.POOL_ADDRESS, 'POOL_ADDRESS');
+
+	return await handleTx(props, {
+		address: toAddress(process.env.POOL_ADDRESS),
+		abi: YETH_POOL_ABI,
+		functionName: 'swap',
+		args: [props.lstTokenFromIndex, props.lstTokenToIndex, props.amount, props.minAmountOut]
+	});
+}
+
+
+/* 🔵 - Yearn Finance **********************************************************
+** swapOutLST is a _WRITE_ function that swaps one of the LST tokens for another.
+** The main difference between this and swapLST is that this function will
+** get the exact amount to receive.
+**
+** @app - yETH
+** @param lstTokenFromIndex - The index of the LST token to swap from
+** @param lstTokenToIndex - The index of the LST token to swap to
+** @param amount - The amount of LST tokens to to receive
+** @param maxAmountIn - The maximum amount of LST tokens to send
+******************************************************************************/
+type TSwapOutLST = TWriteTransaction & {
+	lstTokenFromIndex: bigint;
+	lstTokenToIndex: bigint;
+	amount: bigint;
+	maxAmountIn: bigint;
+};
+export async function swapOutLST(props: TSwapOutLST): Promise<TTxResponse> {
+	assert(props.connector, 'No connector');
+	assert(props.amount > 0n, 'Amount is 0');
+	assert(props.maxAmountIn > 0n, 'maxAmountIn is 0');
+	assert(props.lstTokenFromIndex >= 0n, 'lstTokenFromIndex is 0');
+	assert(props.lstTokenToIndex >= 0n, 'lstTokenToIndex is 0');
+	assert(props.lstTokenFromIndex <= 4n, 'lstTokenFromIndex is too high');
+	assert(props.lstTokenToIndex <= 4n, 'lstTokenToIndex is too high');
+	assert(props.lstTokenFromIndex !== props.lstTokenToIndex, 'lstTokenFromIndex and lstTokenToIndex are the same');
+	assertAddress(process.env.POOL_ADDRESS, 'POOL_ADDRESS');
+
+	return await handleTx(props, {
+		address: toAddress(process.env.POOL_ADDRESS),
+		abi: YETH_POOL_ABI,
+		functionName: 'swap_exact_out',
+		args: [props.lstTokenFromIndex, props.lstTokenToIndex, props.amount, props.maxAmountIn]
+	});
+}
+

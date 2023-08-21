@@ -5,31 +5,48 @@ import IconSwapSVG from 'components/icons/IconSwap';
 import useLST from 'contexts/useLST';
 import useWallet from 'contexts/useWallet';
 import {ESTIMATOR_ABI} from 'utils/abi/estimator.abi';
-import {approveERC20} from 'utils/actions';
-import {ETH_TOKEN} from 'utils/tokens';
+import {approveERC20, swapLST, swapOutLST} from 'utils/actions';
+import {LST} from 'utils/constants';
+import {ETH_TOKEN, YETH_TOKEN} from 'utils/tokens';
 import {erc20ABI, useContractRead, useContractReads} from 'wagmi';
 import {Button} from '@yearn-finance/web-lib/components/Button';
 import useWeb3 from '@yearn-finance/web-lib/contexts/useWeb3';
 import {toAddress} from '@yearn-finance/web-lib/utils/address';
 import {MAX_UINT_256} from '@yearn-finance/web-lib/utils/constants';
 import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
+import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
 import performBatchedUpdates from '@yearn-finance/web-lib/utils/performBatchedUpdates';
 import {defaultTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 
 import type {TLST} from 'contexts/useLST';
-import type {ReactElement} from 'react';
+import type {Dispatch, ReactElement, SetStateAction} from 'react';
 import type {TUseBalancesTokens} from '@yearn-finance/web-lib/hooks/useBalances';
 import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import type {TTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 
-function ViewSwapBox(): ReactElement {
+type TViewSwapBox = {
+	selectedFromLST: TLST
+	selectedToLST: TLST
+	fromAmount: TNormalizedBN
+	toAmount: TNormalizedBN
+	set_selectedFromLST: Dispatch<SetStateAction<TLST>>
+	set_selectedToLST: Dispatch<SetStateAction<TLST>>
+	set_fromAmount: Dispatch<SetStateAction<TNormalizedBN>>
+	set_toAmount: Dispatch<SetStateAction<TNormalizedBN>>
+}
+function ViewSwapBox({
+	selectedFromLST,
+	selectedToLST,
+	fromAmount,
+	toAmount,
+	set_selectedFromLST,
+	set_selectedToLST,
+	set_fromAmount,
+	set_toAmount
+}: TViewSwapBox): ReactElement {
 	const {isActive, provider, address} = useWeb3();
 	const {lst, onUpdateLST} = useLST();
 	const {refresh} = useWallet();
-	const [selectedFromLST, set_selectedFromLST] = useState<TLST>(lst[0]);
-	const [selectedToLST, set_selectedToLST] = useState<TLST>(lst[1]);
-	const [fromAmount, set_fromAmount] = useState<TNormalizedBN>(toNormalizedBN(0));
-	const [toAmount, set_toAmount] = useState<TNormalizedBN>(toNormalizedBN(0));
 	const [txStatus, set_txStatus] = useState<TTxStatus>(defaultTxStatus);
 	const [lastInput, set_lastInput] = useState<'from' | 'to'>('from');
 
@@ -80,16 +97,17 @@ function ViewSwapBox(): ReactElement {
 
 	useEffect((): void => {
 		if (dyAndDx) {
-			const dy = dyAndDx?.[0]?.result as bigint;
-			const dx = dyAndDx?.[1]?.result as bigint;
+			const dy = toBigInt(dyAndDx?.[0]?.result as bigint);
+			const dx = toBigInt(dyAndDx?.[1]?.result as bigint);
 			if (lastInput === 'from') {
 				set_toAmount(toNormalizedBN(dy));
 			} else {
-				set_fromAmount(toNormalizedBN(dx));
+				const defaultSlippage = 100n;
+				const dxWith1PercentSlippage: bigint = dx + toBigInt(dx / defaultSlippage);
+				set_fromAmount(toNormalizedBN(dxWith1PercentSlippage));
 			}
 		}
-	}, [dyAndDx, lastInput]);
-
+	}, [dyAndDx, lastInput, set_fromAmount, set_toAmount]);
 
 
 	/* 🔵 - Yearn Finance **************************************************************************
@@ -103,7 +121,7 @@ function ViewSwapBox(): ReactElement {
 			}
 			set_selectedFromLST(token);
 		});
-	}, [selectedFromLST, selectedToLST.address]);
+	}, [selectedFromLST, selectedToLST.address, set_selectedFromLST, set_selectedToLST]);
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	** If the user clicks the switch button, we need to swap the fromToken and toToken.
@@ -116,7 +134,7 @@ function ViewSwapBox(): ReactElement {
 			set_fromAmount(toAmount);
 			set_toAmount(fromAmount);
 		});
-	}, [fromAmount, lastInput, selectedFromLST, selectedToLST, toAmount]);
+	}, [fromAmount, lastInput, selectedFromLST, selectedToLST, set_fromAmount, set_selectedFromLST, set_selectedToLST, set_toAmount, toAmount]);
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	** If the user is updating the toToken, we need to update the fromToken if it's the same token
@@ -129,7 +147,7 @@ function ViewSwapBox(): ReactElement {
 			}
 			set_selectedToLST(token);
 		});
-	}, [selectedFromLST, selectedToLST]);
+	}, [selectedFromLST.address, selectedToLST, set_selectedFromLST, set_selectedToLST]);
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	** If the user is updating the fromAmount and the fromToken is yETH, then update the toAmount
@@ -140,7 +158,7 @@ function ViewSwapBox(): ReactElement {
 			set_fromAmount(newAmount);
 			set_lastInput('from');
 		});
-	}, []);
+	}, [set_fromAmount]);
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	** If the user is updating the toAmount and the fromToken is st-yETH, then update the fromAmount
@@ -151,7 +169,7 @@ function ViewSwapBox(): ReactElement {
 			set_toAmount(newAmount);
 			set_lastInput('to');
 		});
-	}, []);
+	}, [set_toAmount]);
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	** Web3 action to allow the pool to spend the user's from token.
@@ -176,6 +194,62 @@ function ViewSwapBox(): ReactElement {
 			]);
 		}
 	}, [fromAmount.raw, isActive, provider, refresh, refreshAllowance, selectedFromLST.address, lst]);
+
+
+	const onSwap = useCallback(async (): Promise<void> => {
+		assert(isActive, 'Wallet not connected');
+		assert(provider, 'Provider not connected');
+
+		if (lastInput === 'from') {
+			const defaultSlippage = 100n;
+			const minOutWith1PercentSlippage: bigint = toAmount.raw - (toAmount.raw / defaultSlippage);
+			const result = await swapLST({
+				connector: provider,
+				contractAddress: toAddress(process.env.POOL_ADDRESS),
+				lstTokenFromIndex: toBigInt(selectedFromLST.index),
+				lstTokenToIndex: toBigInt(selectedToLST.index),
+				amount: fromAmount.raw,
+				minAmountOut: minOutWith1PercentSlippage,
+				statusHandler: set_txStatus
+			});
+			if (result.isSuccessful) {
+				onUpdateLST();
+				await refresh([
+					{...ETH_TOKEN, token: ETH_TOKEN.address},
+					{...YETH_TOKEN, token: YETH_TOKEN.address},
+					...LST.map((item): TUseBalancesTokens => ({...item, token: item.address}))
+				]);
+				performBatchedUpdates((): void => {
+					set_fromAmount(toNormalizedBN(0n));
+					set_toAmount(toNormalizedBN(0n));
+				});
+			}
+		} else if (lastInput === 'to') {
+			const defaultSlippage = 100n;
+			const maxInWith1PercentSlippage: bigint = fromAmount.raw + (fromAmount.raw / defaultSlippage);
+			const result = await swapOutLST({
+				connector: provider,
+				contractAddress: toAddress(process.env.POOL_ADDRESS),
+				lstTokenFromIndex: toBigInt(selectedFromLST.index),
+				lstTokenToIndex: toBigInt(selectedToLST.index),
+				amount: toAmount.raw,
+				maxAmountIn: maxInWith1PercentSlippage,
+				statusHandler: set_txStatus
+			});
+			if (result.isSuccessful) {
+				onUpdateLST();
+				await refresh([
+					{...ETH_TOKEN, token: ETH_TOKEN.address},
+					{...YETH_TOKEN, token: YETH_TOKEN.address},
+					...LST.map((item): TUseBalancesTokens => ({...item, token: item.address}))
+				]);
+				performBatchedUpdates((): void => {
+					set_fromAmount(toNormalizedBN(0n));
+					set_toAmount(toNormalizedBN(0n));
+				});
+			}
+		}
+	}, [isActive, provider, lastInput, toAmount.raw, selectedFromLST.index, selectedToLST.index, fromAmount.raw, onUpdateLST, refresh, set_fromAmount, set_toAmount]);
 
 	return (
 		<div className={'col-span-18 py-10 pr-[72px]'}>
@@ -241,7 +315,10 @@ function ViewSwapBox(): ReactElement {
 	);
 }
 
-function ViewDetails(): ReactElement {
+type TViewDetailsProps = {
+	exchangeRate: TNormalizedBN;
+}
+function ViewDetails({exchangeRate}: TViewDetailsProps): ReactElement {
 	return (
 		<div className={'col-span-12 py-10 pl-[72px]'}>
 			<div className={'mb-10 flex w-full flex-col !rounded-md bg-neutral-100'}>
@@ -249,14 +326,15 @@ function ViewDetails(): ReactElement {
 					{'Details'}
 				</h2>
 				<dl className={'grid grid-cols-3 gap-2 pt-4'}>
-					<dt className={'col-span-2'}>{'yETH per st-yETH'}</dt>
-					<dd className={'text-right font-bold'}>{'1,053443'}</dd>
+					<dt className={'col-span-2'}>{'Exchange rate (incl. fees)'}</dt>
+					<dd className={'text-right font-bold'}>
+						{`${formatAmount(exchangeRate.normalized, 2, 4)}%`}
+					</dd>
 
-					<dt className={'col-span-2'}>{'Your share of the pool'}</dt>
-					<dd className={'text-right font-bold'}>{'0.00%'}</dd>
-
-					<dt className={'col-span-2'}>{'Swap fee'}</dt>
-					<dd className={'text-right font-bold'}>{'0.03%'}</dd>
+					<dt className={'col-span-2'}>{'Price impact'}</dt>
+					<dd className={'text-right font-bold'}>
+						{'◼︎◼︎◼︎ %'}  {/* TODO: ADD PRICE IMPACT */}
+					</dd>
 				</dl>
 			</div>
 			<div>
@@ -275,11 +353,33 @@ function ViewDetails(): ReactElement {
 }
 
 function ViewSwap(): ReactElement {
+	const {lst} = useLST();
+	const [selectedFromLST, set_selectedFromLST] = useState<TLST>(lst[0]);
+	const [selectedToLST, set_selectedToLST] = useState<TLST>(lst[1]);
+	const [fromAmount, set_fromAmount] = useState<TNormalizedBN>(toNormalizedBN(0));
+	const [toAmount, set_toAmount] = useState<TNormalizedBN>(toNormalizedBN(0));
+
+	const exchangeRate = useMemo((): TNormalizedBN => {
+		if (fromAmount.raw === 0n) {
+			return toNormalizedBN(0n);
+		}
+
+		return toNormalizedBN(toAmount.raw * toBigInt(1e18) / fromAmount.raw);
+	}, [fromAmount.raw, toAmount.raw]);
+
 	return (
 		<section className={'relative px-[72px]'}>
 			<div className={'grid grid-cols-30 divide-x-2 divide-neutral-300'}>
-				<ViewSwapBox />
-				<ViewDetails />
+				<ViewSwapBox
+					selectedFromLST={selectedFromLST}
+					selectedToLST={selectedToLST}
+					fromAmount={fromAmount}
+					toAmount={toAmount}
+					set_selectedFromLST={set_selectedFromLST}
+					set_selectedToLST={set_selectedToLST}
+					set_fromAmount={set_fromAmount}
+					set_toAmount={set_toAmount} />
+				<ViewDetails exchangeRate={exchangeRate} />
 			</div>
 		</section>
 	);

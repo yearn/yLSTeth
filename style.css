@@ -33,8 +33,47 @@
 }
 .max-w-5xl {@apply max-w-[1200px] px-4;}
 
-@layer base {
+#yeth-main-page,
+#head {
+	@apply transition-colors duration-[800ms];
+}
 
+#yeth-lst-in-pool {
+}
+
+#yeth-main-heading {
+	@apply grid cursor-pointer grid-cols-30 divide-x-2 divide-neutral-300 rounded-md bg-neutral-100 px-[72px] text-neutral-900 transition-all hover:px-[80px] hover:-mx-2 hover:divide-neutral-0/20 hover:bg-purple-300 hover:text-neutral-0;
+}
+
+.lpPoolTheme {
+	& #yeth-main-page {
+		@apply bg-purple-300;
+	}
+	& #yeth-title-explore {
+		@apply left-0 opacity-100;
+	}
+	& #yeth-main-heading {
+		@apply grid grid-cols-30 divide-x-2 rounded-md px-[72px] transition-all divide-neutral-0/20 bg-purple-300 text-neutral-0 cursor-default;
+		@apply hover:px-[72px] hover:mx-0 hover:divide-neutral-0/20 hover:bg-purple-300 hover:text-neutral-0;
+		& * {
+			@apply !text-neutral-0;
+		}
+	}
+	& #yeth-lst-in-pool {
+		@apply flex flex-col;
+	}
+	& #head {
+		@apply bg-purple-300;
+		& .yearn--header-nav-item {
+			@apply text-neutral-300 hover:!text-neutral-0;
+			&.active {
+				@apply text-neutral-0;
+			}
+		}
+	}
+}
+
+@layer base {
 	.font-number {
 		@apply font-mono tabular-nums;
 	}

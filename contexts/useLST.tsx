@@ -13,17 +13,32 @@ import type {TTokenInfo} from './useTokenList';
 export type TLST = {
 	rate: TNormalizedBN,
 	weight: TNormalizedBN,
+	targetWeight: TNormalizedBN,
 	poolAllowance: TNormalizedBN,
+	poolSupply: TNormalizedBN,
+	virtualPoolSupply: TNormalizedBN,
 	weightRatio: number,
 	index: number
 } & TTokenInfo
 
 export type TUseLSTProps = {
 	lst: TLST[],
+	stats: {
+		amplification: bigint
+		rampStopTime: bigint
+		targetAmplification: bigint
+		swapFeeRate: bigint
+	}
 	onUpdateLST: () => void
 }
 const defaultProps: TUseLSTProps = {
 	lst: [] as unknown as TLST[],
+	stats: {
+		amplification: toBigInt(0),
+		rampStopTime: toBigInt(0),
+		targetAmplification: toBigInt(0),
+		swapFeeRate: toBigInt(0)
+	},
 	onUpdateLST: (): void => {}
 };
 
@@ -34,7 +49,10 @@ export const LSTContextApp = ({children}: {children: React.ReactElement}): React
 		...token,
 		rate: toNormalizedBN(0),
 		weight: toNormalizedBN(0),
+		targetWeight: toNormalizedBN(0),
 		poolAllowance: toNormalizedBN(0),
+		poolSupply: toNormalizedBN(0),
+		virtualPoolSupply: toNormalizedBN(0),
 		weightRatio: 0,
 		index
 	})));
@@ -70,7 +88,59 @@ export const LSTContextApp = ({children}: {children: React.ReactElement}): React
 				functionName: 'allowance',
 				args: [address, toAddress(process.env.POOL_ADDRESS)],
 				chainId: 1337
-			})) as never[]
+			})) as never[],
+			// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+			...LST.map((item) => ({
+				address: item.address,
+				abi: erc20ABI,
+				functionName: 'balanceOf',
+				args: [toAddress(process.env.POOL_ADDRESS)],
+				chainId: 1337
+			})),
+			// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+			...LST.map((_, index) => ({
+				address: toAddress(process.env.POOL_ADDRESS),
+				abi: YETH_POOL_ABI,
+				functionName: 'virtual_balance',
+				args: [index],
+				chainId: 1337
+			})),
+			{
+				address: toAddress(process.env.POOL_ADDRESS),
+				abi: YETH_POOL_ABI,
+				functionName: 'vb_prod_sum',
+				chainId: 1337
+			}
+		]
+	});
+
+
+	const {data: stats, isFetched: areStatsFetched} = useContractReads({
+		contracts: [
+			{
+				address: toAddress(process.env.POOL_ADDRESS),
+				abi: YETH_POOL_ABI,
+				functionName: 'amplification',
+				chainId: 1337
+			},
+			{
+				address: toAddress(process.env.POOL_ADDRESS),
+				abi: YETH_POOL_ABI,
+				functionName: 'ramp_stop_time',
+				chainId: 1337
+			},
+			{
+				address: toAddress(process.env.POOL_ADDRESS),
+				abi: YETH_POOL_ABI,
+				functionName: 'target_amplification',
+				chainId: 1337
+			},
+			{
+				address: toAddress(process.env.POOL_ADDRESS),
+				abi: YETH_POOL_ABI,
+				functionName: 'swap_fee_rate',
+				chainId: 1337
+			}
 		]
 	});
 
@@ -82,25 +152,37 @@ export const LSTContextApp = ({children}: {children: React.ReactElement}): React
 			const supply = toNormalizedBN(toBigInt(data?.[0]?.result as bigint || 0n));
 			const rate = toNormalizedBN(toBigInt(data?.[index + 1]?.result as bigint) || 0n);
 			const weight = toNormalizedBN(toBigInt((data?.[index + 6]?.result as [bigint, bigint, bigint, bigint])?.[0] as bigint) || 0n);
+			const targetWeight = toNormalizedBN(toBigInt((data?.[index + 6]?.result as [bigint, bigint, bigint, bigint])?.[1] as bigint) || 0n);
 			const allowances = toNormalizedBN(toBigInt(data?.[index + 11]?.result as bigint) || 0n);
+			const lstSupply = toNormalizedBN(toBigInt(data?.[index + 16]?.result as bigint) || 0n);
+			const virtualBalance = toNormalizedBN(toBigInt(data?.[index + 21]?.result as bigint) || 0n);
+			const vbProdSum = toNormalizedBN(toBigInt((data?.[26]?.result as [bigint, bigint])?.[0] as bigint) || 0n);
 
 			return ({
 				...token,
 				index,
 				rate,
 				weight,
+				targetWeight,
 				weightRatio: Number(weight.normalized) / Number(supply.normalized) * 100,
-				poolAllowance: allowances
+				poolAllowance: allowances,
+				poolSupply: lstSupply,
+				virtualPoolSupply: toNormalizedBN(virtualBalance.raw * toBigInt(1e18) / vbProdSum.raw)
 			});
 		});
 		set_lst(_lst);
 	}, [data, isFetched]);
 
-
 	const contextValue = useMemo((): TUseLSTProps => ({
 		lst,
+		stats: areStatsFetched ? {
+			amplification: toBigInt(stats?.[0]?.result as bigint),
+			rampStopTime: toBigInt(stats?.[1]?.result as bigint),
+			targetAmplification: toBigInt(stats?.[2]?.result as bigint),
+			swapFeeRate: toBigInt(stats?.[3]?.result as bigint)
+		} : defaultProps.stats,
 		onUpdateLST: refetch
-	}), [lst, refetch]);
+	}), [lst, stats, areStatsFetched, refetch]);
 
 	return (
 		<LSTContext.Provider value={contextValue}>
