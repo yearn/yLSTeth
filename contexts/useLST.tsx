@@ -63,7 +63,7 @@ export const LSTContextApp = ({children}: {children: React.ReactElement}): React
 				address: toAddress(process.env.POOL_ADDRESS),
 				abi: YETH_POOL_ABI,
 				functionName: 'supply',
-				chainId: 1337
+				chainId: Number(process.env.DEFAULT_CHAIN_ID)
 			},
 			// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 			...[0n, 1n, 2n, 3n, 4n].map((index) => ({
@@ -71,7 +71,7 @@ export const LSTContextApp = ({children}: {children: React.ReactElement}): React
 				abi: YETH_POOL_ABI,
 				functionName: 'rate',
 				args: [index],
-				chainId: 1337
+				chainId: Number(process.env.DEFAULT_CHAIN_ID)
 			})),
 			// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 			...[0n, 1n, 2n, 3n, 4n].map((index) => ({
@@ -79,7 +79,7 @@ export const LSTContextApp = ({children}: {children: React.ReactElement}): React
 				abi: YETH_POOL_ABI,
 				functionName: 'weight',
 				args: [index],
-				chainId: 1337
+				chainId: Number(process.env.DEFAULT_CHAIN_ID)
 			})),
 			// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 			...LST.map((item) => ({
@@ -87,7 +87,7 @@ export const LSTContextApp = ({children}: {children: React.ReactElement}): React
 				abi: erc20ABI,
 				functionName: 'allowance',
 				args: [address, toAddress(process.env.POOL_ADDRESS)],
-				chainId: 1337
+				chainId: Number(process.env.DEFAULT_CHAIN_ID)
 			})) as never[],
 			// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 			...LST.map((item) => ({
@@ -95,7 +95,7 @@ export const LSTContextApp = ({children}: {children: React.ReactElement}): React
 				abi: erc20ABI,
 				functionName: 'balanceOf',
 				args: [toAddress(process.env.POOL_ADDRESS)],
-				chainId: 1337
+				chainId: Number(process.env.DEFAULT_CHAIN_ID)
 			})),
 			// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 			...LST.map((_, index) => ({
@@ -103,13 +103,13 @@ export const LSTContextApp = ({children}: {children: React.ReactElement}): React
 				abi: YETH_POOL_ABI,
 				functionName: 'virtual_balance',
 				args: [index],
-				chainId: 1337
+				chainId: Number(process.env.DEFAULT_CHAIN_ID)
 			})),
 			{
 				address: toAddress(process.env.POOL_ADDRESS),
 				abi: YETH_POOL_ABI,
 				functionName: 'vb_prod_sum',
-				chainId: 1337
+				chainId: Number(process.env.DEFAULT_CHAIN_ID)
 			}
 		]
 	});
@@ -121,25 +121,25 @@ export const LSTContextApp = ({children}: {children: React.ReactElement}): React
 				address: toAddress(process.env.POOL_ADDRESS),
 				abi: YETH_POOL_ABI,
 				functionName: 'amplification',
-				chainId: 1337
+				chainId: Number(process.env.DEFAULT_CHAIN_ID)
 			},
 			{
 				address: toAddress(process.env.POOL_ADDRESS),
 				abi: YETH_POOL_ABI,
 				functionName: 'ramp_stop_time',
-				chainId: 1337
+				chainId: Number(process.env.DEFAULT_CHAIN_ID)
 			},
 			{
 				address: toAddress(process.env.POOL_ADDRESS),
 				abi: YETH_POOL_ABI,
 				functionName: 'target_amplification',
-				chainId: 1337
+				chainId: Number(process.env.DEFAULT_CHAIN_ID)
 			},
 			{
 				address: toAddress(process.env.POOL_ADDRESS),
 				abi: YETH_POOL_ABI,
 				functionName: 'swap_fee_rate',
-				chainId: 1337
+				chainId: Number(process.env.DEFAULT_CHAIN_ID)
 			}
 		]
 	});
@@ -167,7 +167,7 @@ export const LSTContextApp = ({children}: {children: React.ReactElement}): React
 				weightRatio: Number(weight.normalized) / Number(supply.normalized) * 100,
 				poolAllowance: allowances,
 				poolSupply: lstSupply,
-				virtualPoolSupply: toNormalizedBN(virtualBalance.raw * toBigInt(1e18) / vbProdSum.raw)
+				virtualPoolSupply: toNormalizedBN(virtualBalance.raw * toBigInt(1e18) / (vbProdSum.raw || 1n))
 			});
 		});
 		set_lst(_lst);

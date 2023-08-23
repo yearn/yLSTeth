@@ -129,7 +129,7 @@ function ViewDetails({estimateOut, bonusOrPenalty}: {estimateOut: bigint, bonusO
 	}, [bonusOrPenalty]);
 
 	return (
-		<div className={'col-span-12 py-10 pl-[72px]'}>
+		<div className={'col-span-12 py-6 pl-0 md:py-10 md:pl-[72px]'}>
 			<div className={'mb-10 flex w-full flex-col !rounded-md bg-neutral-100'}>
 				<h2 className={'text-xl font-black'}>
 					{'Details'}
@@ -141,7 +141,7 @@ function ViewDetails({estimateOut, bonusOrPenalty}: {estimateOut: bigint, bonusO
 					</dd>
 
 					<dt className={'col-span-2'}>{'Slippage'}</dt>
-					<dd className={'text-right font-bold'}>
+					<dd suppressHydrationWarning className={'text-right font-bold'}>
 						{`${formatAmount(1, 2, 2)}%`}  {/* TODO: ADD SLIPPAGE CONFIG */}
 					</dd>
 
@@ -226,14 +226,14 @@ function ViewDeposit(): ReactElement {
 				abi: ESTIMATOR_ABI,
 				address: toAddress(process.env.ESTIMATOR_ADDRESS),
 				functionName: 'get_add_lp',
-				chainId: 1337,
+				chainId: Number(process.env.DEFAULT_CHAIN_ID),
 				args: [amounts.map((item): bigint => item.raw)]
 			},
 			{
 				abi: ESTIMATOR_ABI,
 				address: toAddress(process.env.ESTIMATOR_ADDRESS),
 				functionName: 'get_vb',
-				chainId: 1337,
+				chainId: Number(process.env.DEFAULT_CHAIN_ID),
 				args: [amounts.map((item): bigint => item.raw)]
 			}
 		]
@@ -335,9 +335,9 @@ function ViewDeposit(): ReactElement {
 	}, [amounts, estimateOut, isActive, onUpdateLST, provider, refresh]);
 
 	return (
-		<section className={'relative px-[72px]'}>
-			<div className={'grid grid-cols-30 divide-x-2 divide-neutral-300'}>
-				<div className={'col-span-18 py-10 pr-[72px]'}>
+		<section className={'relative px-4 md:px-[72px]'}>
+			<div className={'grid grid-cols-1 divide-x-0 divide-y-2 divide-neutral-300 md:grid-cols-30 md:divide-x-2 md:divide-y-0'}>
+				<div className={'col-span-18 py-6 pr-0 md:py-10 md:pr-[72px]'}>
 					<div className={'flex w-full flex-col !rounded-md bg-neutral-100'}>
 						<h2 className={'text-xl font-black'}>
 							{'Select tokens'}
@@ -367,23 +367,23 @@ function ViewDeposit(): ReactElement {
 									onClick={onApprove}
 									isBusy={txStatus.pending}
 									isDisabled={!canDeposit}
-									className={'w-[184px]'}>
+									className={'w-full md:w-[184px]'}>
 									{'Approve'}
 								</Button>
 							) : (
-								<div className={'flex flex-row space-x-4'}>
+								<div className={'flex w-full flex-row space-x-4'}>
 									<Button
 										onClick={onDeposit}
 										isBusy={txStatusDeposit.pending}
 										isDisabled={!canDeposit}
 										variant={'outlined'}
-										className={'w-[184px]'}>
+										className={'w-full md:w-[184px]'}>
 										{'Deposit'}
 									</Button>
 									<Button
 										isDisabled={!canDeposit}
-										className={'w-[184px]'}>
-										{'Deposit and Stake'}
+										className={'w-full md:w-[184px]'}>
+										{'Deposit & Stake'}
 									</Button>
 								</div>
 							)}

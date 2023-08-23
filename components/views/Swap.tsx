@@ -82,14 +82,14 @@ function ViewSwapBox({
 				abi: ESTIMATOR_ABI,
 				address: toAddress(process.env.ESTIMATOR_ADDRESS),
 				functionName: 'get_dy',
-				chainId: 1337,
+				chainId: Number(process.env.DEFAULT_CHAIN_ID),
 				args: [toBigInt(selectedFromLST.index), toBigInt(selectedToLST.index), fromAmount.raw]
 			},
 			{
 				abi: ESTIMATOR_ABI,
 				address: toAddress(process.env.ESTIMATOR_ADDRESS),
 				functionName: 'get_dx',
-				chainId: 1337,
+				chainId: Number(process.env.DEFAULT_CHAIN_ID),
 				args: [toBigInt(selectedToLST.index), toBigInt(selectedFromLST.index), toAmount.raw]
 			}
 		]
@@ -252,7 +252,7 @@ function ViewSwapBox({
 	}, [isActive, provider, lastInput, toAmount.raw, selectedFromLST.index, selectedToLST.index, fromAmount.raw, onUpdateLST, refresh, set_fromAmount, set_toAmount]);
 
 	return (
-		<div className={'col-span-18 py-10 pr-[72px]'}>
+		<div className={'col-span-18 py-6 pr-0 md:py-10 md:pr-[72px]'}>
 			<div className={'flex w-full flex-col !rounded-md bg-neutral-100'}>
 				<h2 className={'text-xl font-black'}>
 					{'Swap tokens'}
@@ -306,7 +306,7 @@ function ViewSwapBox({
 								onSwap();
 							}
 						}}
-						className={'w-[184px]'}>
+						className={'w-full md:w-[184px]'}>
 						{hasAllowance ? 'Swap' : 'Approve'}
 					</Button>
 				</div>
@@ -320,14 +320,14 @@ type TViewDetailsProps = {
 }
 function ViewDetails({exchangeRate}: TViewDetailsProps): ReactElement {
 	return (
-		<div className={'col-span-12 py-10 pl-[72px]'}>
+		<div className={'col-span-12 py-6 pl-0 md:py-10 md:pl-[72px]'}>
 			<div className={'mb-10 flex w-full flex-col !rounded-md bg-neutral-100'}>
 				<h2 className={'text-xl font-black'}>
 					{'Details'}
 				</h2>
 				<dl className={'grid grid-cols-3 gap-2 pt-4'}>
 					<dt className={'col-span-2'}>{'Exchange rate (incl. fees)'}</dt>
-					<dd className={'text-right font-bold'}>
+					<dd suppressHydrationWarning className={'text-right font-bold'}>
 						{`${formatAmount(exchangeRate.normalized, 2, 4)}%`}
 					</dd>
 
@@ -368,8 +368,8 @@ function ViewSwap(): ReactElement {
 	}, [fromAmount.raw, toAmount.raw]);
 
 	return (
-		<section className={'relative px-[72px]'}>
-			<div className={'grid grid-cols-30 divide-x-2 divide-neutral-300'}>
+		<section className={'relative px-4 md:px-[72px]'}>
+			<div className={'grid grid-cols-1 divide-x-0 divide-y-2 divide-neutral-300 md:grid-cols-30 md:divide-x-2 md:divide-y-0'}>
 				<ViewSwapBox
 					selectedFromLST={selectedFromLST}
 					selectedToLST={selectedToLST}

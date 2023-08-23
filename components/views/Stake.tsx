@@ -148,7 +148,7 @@ function ViewStakeUnstake({rate}: {rate: bigint}): ReactElement {
 	}, [fromAmount.raw, isActive, provider, refresh]);
 
 	return (
-		<div className={'col-span-18 py-10 pr-[72px]'}>
+		<div className={'col-span-18 py-6 pr-0 md:py-10 md:pr-[72px]'}>
 			<h2 className={'text-xl font-black'}>
 				{currentView === 'stake' ? 'Stake yETH' : 'Unstake st-yETH'}
 			</h2>
@@ -196,7 +196,7 @@ function ViewStakeUnstake({rate}: {rate: bigint}): ReactElement {
 							onUnstake();
 						}
 					}}
-					className={'w-[184px]'}>
+					className={'w-full md:w-[184px]'}>
 					{currentView === 'stake' ? hasAllowance ? 'Stake' : 'Approve' : 'Unstake'}
 				</Button>
 			</div>
@@ -227,14 +227,14 @@ function ViewDetails({rate}: {rate: bigint}): ReactElement {
 
 
 	return (
-		<div className={'col-span-12 py-10 pl-[72px]'}>
+		<div className={'col-span-12 py-6 pl-0 md:py-10 md:pl-[72px]'}>
 			<div className={'mb-10 flex w-full flex-col !rounded-md bg-neutral-100'}>
 				<h2 className={'text-xl font-black'}>
 					{'Details'}
 				</h2>
 				<dl className={'grid grid-cols-3 gap-2 pt-4'}>
 					<dt className={'col-span-2'}>{'yETH per st-yETH'}</dt>
-					<dd className={'text-right font-bold'}>
+					<dd suppressHydrationWarning className={'text-right font-bold'}>
 						{formatAmount(toNormalizedBN(rate).normalized, 6, 6)}
 					</dd>
 
@@ -247,7 +247,7 @@ function ViewDetails({rate}: {rate: bigint}): ReactElement {
 					</dd>
 
 					<dt className={'col-span-2'}>{'Swap fee'}</dt>
-					<dd className={'text-right font-bold'}>
+					<dd suppressHydrationWarning className={'text-right font-bold'}>
 						{`${formatAmount(toNormalizedBN(stats.swapFeeRate, 16).normalized, 2, 2)}%`}
 					</dd>
 				</dl>
@@ -280,8 +280,8 @@ function ViewStake(): ReactElement {
 	});
 
 	return (
-		<section className={'relative px-[72px]'}>
-			<div className={'grid grid-cols-30 divide-x-2 divide-neutral-300'}>
+		<section className={'relative px-4 md:px-[72px]'}>
+			<div className={'grid grid-cols-1 divide-x-0 divide-y-2 divide-neutral-300 md:grid-cols-30 md:divide-x-2 md:divide-y-0'}>
 				<ViewStakeUnstake rate={rate || 0n} />
 				<ViewDetails rate={rate || 0n} />
 			</div>

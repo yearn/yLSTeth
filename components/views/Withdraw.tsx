@@ -215,7 +215,7 @@ function ViewSelectedTokens(): ReactElement {
 	}
 
 	return (
-		<div className={'col-span-18 py-10 pr-[72px]'}>
+		<div className={'col-span-18 py-6 pr-0 md:py-10 md:pr-[72px]'}>
 			<h2 className={'text-xl font-black'}>
 				{'Select tokens'}
 			</h2>
@@ -282,7 +282,7 @@ function ViewSelectedTokens(): ReactElement {
 					onClick={onWithdraw}
 					isBusy={txStatus.pending}
 					isDisabled={!isActive || !provider || fromAmount.raw === 0n || amounts.every((amount): boolean => amount.raw === 0n)}
-					className={'w-[184px]'}>
+					className={'w-full md:w-[184px]'}>
 					{'Withdraw'}
 				</Button>
 			</div>
@@ -292,7 +292,7 @@ function ViewSelectedTokens(): ReactElement {
 
 function ViewDetails(): ReactElement {
 	return (
-		<div className={'col-span-12 py-10 pl-[72px]'}>
+		<div className={'col-span-12 py-6 pl-0 md:py-10 md:pl-[72px]'}>
 			<div className={'mb-10 flex w-full flex-col !rounded-md bg-neutral-100'}>
 				<h2 className={'text-xl font-black'}>
 					{'Details'}
@@ -320,8 +320,8 @@ function ViewDetails(): ReactElement {
 
 function ViewWithdraw(): ReactElement {
 	return (
-		<section className={'relative px-[72px]'}>
-			<div className={'grid grid-cols-30 divide-x-2 divide-neutral-300'}>
+		<section className={'relative px-4 md:px-[72px]'}>
+			<div className={'grid grid-cols-1 divide-x-0 divide-y-2 divide-neutral-300 md:grid-cols-30 md:divide-x-2 md:divide-y-0'}>
 				<ViewSelectedTokens />
 				<ViewDetails />
 			</div>

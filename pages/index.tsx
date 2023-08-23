@@ -49,9 +49,9 @@ function Composition(): ReactElement {
 									width={24}
 									height={24} />
 							</div>
-							<p className={cl(basicColorTransition, 'px-2')}>{token.symbol}</p>
+							<p className={cl(basicColorTransition, 'text-sm md:text-base px-2')}>{token.symbol}</p>
 						</div>
-						<b className={basicColorTransition}>
+						<b className={cl(basicColorTransition, 'text-sm md:text-base')}>
 							<RenderAmount
 								value={token.weightRatio}
 								symbol={'percent'}
@@ -74,26 +74,26 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 			className={cl('group', basicTransition)}>
 			<div
 				id={'title'}
-				className={'relative col-span-18 flex items-end py-8 pr-[72px]'}>
+				className={'relative col-span-18 flex items-end py-6 pr-0 md:py-8 md:pr-[72px]'}>
 				<div
 					id={'yeth-title-explore'}
-					className={cl('absolute -left-full top-10 text-neutral-0 opacity-0 transition-all duration-200 ease-in-out group-hover:left-0 group-hover:opacity-100', basicTransition)}>
+					className={cl('absolute -left-full top-10 text-neutral-0 opacity-0 transition-all duration-200 ease-in-out group-hover:left-0 group-hover:opacity-100 hidden md:block', basicTransition)}>
 					{'Explore >'}
 				</div>
-				<h1 className={cl('text-3xl md:text-8xl', basicColorTransition)}>
+				<h1 className={cl('text-5xl md:text-8xl', basicColorTransition)}>
 					{'yETH Pool'}
 				</h1>
 			</div>
 
 			<div
 				id={'composition'}
-				className={'col-span-12 flex w-full flex-row justify-between py-8 pl-[72px] transition-colors'}>
+				className={'col-span-12 flex w-full flex-row justify-between py-4 pl-0 transition-colors md:py-8 md:pl-[72px]'}>
 				<div className={'flex flex-col space-y-2'}>
 					<div>
 						<small className={cl('text-xs', basicLighterColorTransition)}>
 							{'Daily Volume, USD'}
 						</small>
-						<b className={cl('block text-2xl leading-10', basicColorTransition)}>
+						<b className={cl('block text-lg md:text-2xl leading-6 md:leading-10', basicColorTransition)}>
 							{'◼︎◼︎◼︎'}  {/* TODO: ADD DAILY VOLUME */}
 						</b>
 					</div>
@@ -102,7 +102,7 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 						<small className={cl('text-xs text-purple-300 group-hover:text-neutral-0', basicTransition)}>
 							{'Net APY'}
 						</small>
-						<b className={cl('block text-2xl leading-10 text-purple-300 group-hover:text-neutral-0', basicTransition)}>
+						<b className={cl('block text-lg md:text-2xl leading-6 md:leading-10 text-purple-300 group-hover:text-neutral-0', basicTransition)}>
 							{'◼︎◼︎◼︎ %'}  {/* TODO: ADD NET APY */}
 						</b>
 					</div>
@@ -113,7 +113,7 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 						</small>
 						<b
 							suppressHydrationWarning
-							className={cl('block text-2xl leading-10', basicColorTransition)}>
+							className={cl('block text-lg md:text-2xl leading-6 md:leading-10', basicColorTransition)}>
 							{formatAmount(balances?.[YETH_TOKEN.address]?.normalized || 0, 6, 6)}
 						</b>
 					</div>
@@ -122,7 +122,7 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 						<small className={cl('text-xs', basicLighterColorTransition)}>
 							{'Virtual Price, USD'}
 						</small>
-						<b className={cl('block text-2xl leading-10', basicColorTransition)}>
+						<b className={cl('block text-lg md:text-2xl leading-6 md:leading-10', basicColorTransition)}>
 							{'◼︎◼︎◼︎'}  {/* TODO: ADD VIRTUAL PRICE */}
 						</b>
 					</div>
@@ -150,12 +150,14 @@ function YETH({router}: {router: Router}): ReactElement {
 
 	useMountEffect((): void => {
 		const action = router.asPath.split('?')[1] ?? {};
-		const actionType = action.split('=')[1] ?? '';
-		if (actionType && typeof actionType === 'string') {
-			const tabLabel = actionType.toLowerCase();
-			const tabValue = tabs.findIndex((tab): boolean => tab.slug === tabLabel);
-			if (tabValue !== -1) {
-				set_currentTab(tabs[tabValue]);
+		if (action?.split) {
+			const actionType = action.split('=')[1] ?? '';
+			if (actionType && typeof actionType === 'string') {
+				const tabLabel = actionType.toLowerCase();
+				const tabValue = tabs.findIndex((tab): boolean => tab.slug === tabLabel);
+				if (tabValue !== -1) {
+					set_currentTab(tabs[tabValue]);
+				}
 			}
 		}
 	});
@@ -204,7 +206,7 @@ function YETH({router}: {router: Router}): ReactElement {
 			</div>
 
 
-			<div className={cl('absolute top-10 text-neutral-0 duration-[600ms] ease-in-out transition-all', shouldRenderPool ? 'left-[72px] opacity-100 pointer-events-auto' : 'left-0 opacity-0 pointer-events-none')}>
+			<div className={cl('absolute top-10 text-neutral-0 duration-[600ms] ease-in-out transition-all', shouldRenderPool ? 'left-8 md:left-[72px] opacity-100 pointer-events-auto' : 'left-0 opacity-0 pointer-events-none')}>
 				<button onClick={(): void => triggerPoolView(false)}>
 					{'< Back to actions'}
 				</button>

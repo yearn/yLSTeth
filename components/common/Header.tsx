@@ -78,7 +78,7 @@ function CurrentNetworkButton({label, value, isOpen}: {
 
 	useEffect((): void => {
 		if (value) {
-			set_src(`chains/${value}.svg`);
+			set_src(`/chains/${value}.svg`);
 		}
 	}, [value]);
 
@@ -126,7 +126,7 @@ export function NetworkSelector({networks}: {networks: number[]}): ReactElement 
 
 		return (
 			chainsForInjected
-				.filter(({id}): boolean => id !== 1337 && ((networks.length > 0 && networks.includes(id)) || true))
+				// .filter(({id}): boolean => id !== 1337 && ((networks.length > 0 && networks.includes(id)) || true))
 				.map((network: Chain): TNetwork => (
 					{value: network.id, label: network.name}
 				))

@@ -19,8 +19,8 @@ function LSTInPoolStats(): ReactElement {
 	const hasRampStopTime = Boolean(stats?.rampStopTime && stats?.rampStopTime > 0);
 
 	return (
-		<div className={'mt-10 px-[72px]'}>
-			<dl className={'flex flex-row gap-10 text-neutral-0'}>
+		<div className={'-mt-4 px-4 md:mt-10 md:px-[72px]'}>
+			<dl className={'grid grid-cols-3 flex-row gap-10 text-neutral-0 md:flex'}>
 				<div>
 					<dt className={'mb-2 text-xs'}>{'Daily Volume'}</dt>
 					<dd className={'font-number font-bold'}>
@@ -51,7 +51,7 @@ function LSTInPoolStats(): ReactElement {
 
 				<div>
 					<dt className={'mb-2 text-xs'}>{'A'}</dt>
-					<dd className={'font-number font-bold'} suppressHydrationWarning>
+					<dd suppressHydrationWarning className={'font-number font-bold'}>
 						{formatAmount(toNormalizedBN(stats.amplification).normalized, 0, 0)}
 					</dd>
 				</div>
@@ -60,7 +60,7 @@ function LSTInPoolStats(): ReactElement {
 					<>
 						<div>
 							<dt className={'mb-2 text-xs'}>{'Rumping up A'}</dt>
-							<dd className={'font-number font-bold'} suppressHydrationWarning>
+							<dd suppressHydrationWarning className={'font-number font-bold'} >
 								{`${formatAmount(toNormalizedBN(stats.amplification).normalized, 0, 0)}->${formatAmount(toNormalizedBN(stats.targetAmplification).normalized, 0, 0)}`}
 							</dd>
 						</div>
@@ -129,7 +129,7 @@ function LSTInPool({scope}: {scope: AnimationScope}): ReactElement {
 			<div className={'-mt-36'}>
 				<LSTInPoolStats />
 
-				<div className={'mt-10 flex flex-row space-x-4 px-[72px]'}>
+				<div className={'mt-10 grid grid-cols-2 flex-row gap-4 px-4 md:flex md:px-[72px]'}>
 					<Link href={`https://etherscan.io/address/${process.env.POOL_ADDRESS}`} target={'_blank'}>
 						<div className={'flex cursor-pointer flex-row items-center justify-center rounded border border-neutral-0 px-3 py-2 text-center text-xs text-neutral-0 transition-colors hover:bg-neutral-0 hover:text-purple-300'}>
 							{'Pool'}
@@ -161,13 +161,13 @@ function LSTInPool({scope}: {scope: AnimationScope}): ReactElement {
 				</div>
 
 				<div className={'mt-10 w-full rounded bg-neutral-100/10 py-10 text-neutral-0'}>
-					<div className={'mb-4 px-[72px]'}>
+					<div className={'mb-4 px-4 md:px-[72px]'}>
 						<h2 className={'text-2xl font-bold'}>
 							{'LST in Pool'}
 						</h2>
 					</div>
 
-					<div className={'grid grid-cols-12 gap-10 px-[72px]'}>
+					<div className={'hidden grid-cols-12 gap-10 px-4 md:grid md:px-[72px]'}>
 						<div className={'col-span-6'}>
 							<p className={'text-xs'}>
 								{'Token'}
@@ -205,7 +205,7 @@ function LSTInPool({scope}: {scope: AnimationScope}): ReactElement {
 						</button>
 					</div>
 
-					<div className={'mt-6 grid'}>
+					<div className={'mt-6 grid divide-y divide-neutral-0/20 md:divide-y-0'}>
 						{lst
 							.sort((a, b): number => {
 								if (sortBy === 'amount') {
@@ -222,7 +222,8 @@ function LSTInPool({scope}: {scope: AnimationScope}): ReactElement {
 								return (
 									<Link key={token.address} href={`https://etherscan.io/address/${token.address}`} target={'_blank'}>
 										<div
-											className={'grid grid-cols-12 gap-10 px-[72px] py-3 hover:bg-neutral-100/10'}>
+											className={'grid grid-cols-6 gap-2 px-4 py-6 hover:bg-neutral-100/10 md:grid-cols-12 md:gap-10 md:px-[72px] md:py-3'}>
+
 											<div className={'col-span-6 flex flex-row items-center'}>
 												<div className={'h-10 w-10 min-w-[40px]'}>
 													<ImageWithFallback
@@ -235,24 +236,37 @@ function LSTInPool({scope}: {scope: AnimationScope}): ReactElement {
 												<p className={'pl-6'}>{token.symbol}</p>
 											</div>
 
-											<div
-												className={'font-number col-span-2 text-right'}>
-												<b suppressHydrationWarning>{`${formatAmount(Number(token?.virtualPoolSupply?.normalized || 0), 2, 2)}%`}</b>
-												<p suppressHydrationWarning>{formatAmount(token?.poolSupply?.normalized || 0, 6, 6)}</p>
+											<div className={'col-span-6 flex w-full flex-row items-center justify-between md:col-span-2 md:justify-end'}>
+												<div className={'flex md:hidden'}>
+													<p className={'text-xs text-neutral-0/60'}>{'Amount in pool'}</p>
+												</div>
+												<div className={'font-number text-right'}>
+													<b suppressHydrationWarning>{`${formatAmount(Number(token?.virtualPoolSupply?.normalized || 0), 2, 2)}%`}</b>
+													<p suppressHydrationWarning>{formatAmount(token?.poolSupply?.normalized || 0, 6, 6)}</p>
+												</div>
 											</div>
 
 
-											<div
-												suppressHydrationWarning
-												className={'font-number col-span-2 flex items-center justify-end text-right'}>
-												{formatAmount(token?.targetWeight?.normalized || 0, 6, 6)}
+											<div className={'col-span-6 flex w-full flex-row items-center justify-between md:col-span-2 md:justify-end'}>
+												<div className={'flex md:hidden'}>
+													<p className={'text-xs text-neutral-0/60'}>{'Target Weight Bands'}</p>
+												</div>
+												<div
+													suppressHydrationWarning
+													className={'font-number flex items-center justify-end text-right'}>
+													{formatAmount(token?.targetWeight?.normalized || 0, 6, 6)}
+												</div>
 											</div>
 
-
-											<div
-												suppressHydrationWarning
-												className={'font-number col-span-2 flex items-center justify-end text-right'}>
-												{formatAmount(balances?.[token.address]?.normalized || 0, 2, 6)}
+											<div className={'col-span-6 flex w-full flex-row items-center justify-between md:col-span-2 md:justify-end'}>
+												<div className={'flex md:hidden'}>
+													<p className={'text-xs text-neutral-0/60'}>{'Deposited'}</p>
+												</div>
+												<div
+													suppressHydrationWarning
+													className={'font-number flex items-center justify-end text-right'}>
+													{formatAmount(balances?.[token.address]?.normalized || 0, 2, 6)}
+												</div>
 											</div>
 										</div>
 									</Link>
