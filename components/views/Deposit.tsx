@@ -158,9 +158,7 @@ function ViewDetails({estimateOut, bonusOrPenalty}: {estimateOut: bigint, bonusO
 					{'Info'}
 				</h2>
 				<p className={'whitespace-break-spaces pt-4 text-neutral-600'}>
-					{'Like Draper said - it’s gonna be a super small description. Well, not like ultra small. It will take some room. It’s always nice to put some copy, and it’s good for balance.\n\n'}
-
-					{'We can put useful links here as well.'}
+					{'Deposit any of the 5 LSTs (or any combination of them) to receive yETH. You can choose to deposit and stake to receive st-yETH and immediately start earning that sweet, sweet liquid staking yield.'}
 				</p>
 			</div>
 		</div>
@@ -340,11 +338,11 @@ function ViewDeposit(): ReactElement {
 				<div className={'col-span-18 py-6 pr-0 md:py-10 md:pr-[72px]'}>
 					<div className={'flex w-full flex-col !rounded-md bg-neutral-100'}>
 						<h2 className={'text-xl font-black'}>
-							{'Select tokens'}
+							{'Deposit'}
 						</h2>
 						<div className={'pt-4'}>
 							<div className={'flex flex-row items-center space-x-2'}>
-								<b className={'text-purple-300'}>{'Balance tokens proportion'}</b>
+								<b className={'text-purple-300'}>{'Balance tokens in proportion'}</b>
 								<Toggle
 									isEnabled={shouldBalanceTokens}
 									onChange={(): void => set_shouldBalanceTokens(!shouldBalanceTokens)}

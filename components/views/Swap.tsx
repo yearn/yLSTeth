@@ -342,9 +342,7 @@ function ViewDetails({exchangeRate}: TViewDetailsProps): ReactElement {
 					{'Info'}
 				</h2>
 				<p className={'whitespace-break-spaces pt-4 text-neutral-600'}>
-					{'Like Draper said - it’s gonna be a super small description. Well, not like ultra small. It will take some room. It’s always nice to put some copy, and it’s good for balance.\n\n'}
-
-					{'We can put useful links here as well.'}
+					{'Want to swap between any of the yETH LSTs?\n\nYou don’t need to go anywhere anon, swap straight from the underlying Curve pool for gud prices and slippage - right here.'}
 				</p>
 			</div>
 		</div>

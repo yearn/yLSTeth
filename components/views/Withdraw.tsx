@@ -218,7 +218,7 @@ function ViewSelectedTokens(): ReactElement {
 	return (
 		<div className={'col-span-18 py-6 pr-0 md:py-10 md:pr-[72px]'}>
 			<h2 className={'text-xl font-black'}>
-				{'Select tokens'}
+				{'Withdraw'}
 			</h2>
 			<div className={'pt-4'}>
 				<div className={'flex flex-row items-center space-x-2'}>
@@ -310,9 +310,7 @@ function ViewDetails(): ReactElement {
 					{'Info'}
 				</h2>
 				<p className={'whitespace-break-spaces pt-4 text-neutral-600'}>
-					{'Like Draper said - it’s gonna be a super small description. Well, not like ultra small. It will take some room. It’s always nice to put some copy, and it’s good for balance.\n\n'}
-
-					{'We can put useful links here as well.'}
+					{'Choose a single LST to withdraw into, or withdraw into all 5 LSTs (balanced by pool composition).'}
 				</p>
 			</div>
 		</div>
