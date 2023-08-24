@@ -61,7 +61,7 @@ function useVoteEvents(): TUseVoteEventsResp {
 		}
 		set_isLoadingEvents(hasAlreadyBeLoaded.current ? false : true);
 		const publicClient = getClient(Number(process.env.DEFAULT_CHAIN_ID));
-		const rangeLimit = 1_000_000n;
+		const rangeLimit = 10_000n;
 		const deploymentBlockNumber = toBigInt(process.env.INIT_BLOCK_NUMBER);
 		const currentBlockNumber = await publicClient.getBlockNumber();
 		const userVotes: TDict<TNormalizedBN> = {};

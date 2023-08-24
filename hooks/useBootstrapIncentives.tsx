@@ -124,7 +124,7 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 	const filterIncentivizeEvents = useCallback(async (): Promise<void> => {
 		set_isFetchingHistory(true);
 		const publicClient = getClient(Number(process.env.DEFAULT_CHAIN_ID));
-		const rangeLimit = 1_000_000n;
+		const rangeLimit = 10_000n;
 		const deploymentBlockNumber = toBigInt(process.env.INIT_BLOCK_NUMBER);
 		const currentBlockNumber = await publicClient.getBlockNumber();
 		const incentives: TIncentives[] = [];
@@ -170,7 +170,7 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 			return;
 		}
 		const publicClient = getClient(Number(process.env.DEFAULT_CHAIN_ID));
-		const rangeLimit = 1_000_000n;
+		const rangeLimit = 10_000n;
 		const deploymentBlockNumber = toBigInt(process.env.INIT_BLOCK_NUMBER);
 		const currentBlockNumber = await publicClient.getBlockNumber();
 		const incentivesClaimed: TIncentivesClaimed[] = [];
