@@ -1,6 +1,5 @@
 import React, {Fragment, useCallback, useState} from 'react';
 import {ImageWithFallback} from 'components/common/ImageWithFallback';
-import {RenderAmount} from 'components/common/RenderAmount';
 import IconChevronBoth from 'components/icons/IconChevronBoth';
 import ViewDeposit from 'components/views/Deposit';
 import ViewStake from 'components/views/Stake';
@@ -51,11 +50,8 @@ function Composition(): ReactElement {
 							</div>
 							<p className={cl(basicColorTransition, 'text-sm md:text-base px-2')}>{token.symbol}</p>
 						</div>
-						<b className={cl(basicColorTransition, 'text-sm md:text-base')}>
-							<RenderAmount
-								value={token.weightRatio}
-								symbol={'percent'}
-								decimals={2} />
+						<b suppressHydrationWarning className={cl(basicColorTransition, 'text-sm md:text-base')}>
+							{`${formatAmount((token?.weightRatio || 0) * 100, 2, 2)}%`}
 						</b>
 					</div>
 				);
