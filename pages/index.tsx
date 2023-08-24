@@ -81,7 +81,7 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 					{'Explore >'}
 				</div>
 				<h1 className={cl('text-5xl md:text-8xl', basicColorTransition)}>
-					{'yETH Pool'}
+					{'yETH'}
 				</h1>
 			</div>
 

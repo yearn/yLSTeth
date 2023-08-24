@@ -161,7 +161,7 @@ function LSTInPool({scope}: {scope: AnimationScope}): ReactElement {
 				<div className={'mt-10 w-full rounded bg-neutral-100/10 py-10 text-neutral-0'}>
 					<div className={'mb-4 px-4 md:px-[72px]'}>
 						<h2 className={'text-2xl font-bold'}>
-							{'LST in Pool'}
+							{'LSTs in Pool'}
 						</h2>
 					</div>
 
