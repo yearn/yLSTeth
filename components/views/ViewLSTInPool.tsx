@@ -3,7 +3,6 @@ import Link from 'next/link';
 import {ImageWithFallback} from 'components/common/ImageWithFallback';
 import IconChevronPlain from 'components/icons/IconChevronPlain';
 import useLST from 'contexts/useLST';
-import useWallet from 'contexts/useWallet';
 import IconLinkOut from '@yearn-finance/web-lib/icons/IconLinkOut';
 import {cl} from '@yearn-finance/web-lib/utils/cl';
 import {toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
@@ -81,7 +80,6 @@ function LSTInPoolStats(): ReactElement {
 type TSortDirection = '' | 'desc' | 'asc'
 function LSTInPool({scope}: {scope: AnimationScope}): ReactElement {
 	const {lst} = useLST();
-	const {balances} = useWallet();
 	const [sortBy, set_sortBy] = useState<string>('');
 	const [sortDirection, set_sortDirection] = useState<TSortDirection>('');
 
