@@ -123,7 +123,7 @@ function LSTInPool({scope}: {scope: AnimationScope}): ReactElement {
 	return (
 		<div
 			ref={scope}
-			className={'flex h-0 min-h-0 flex-col opacity-0'}>
+			className={'pointer-events-none flex h-0 min-h-0 flex-col opacity-0'}>
 			<div className={'-mt-36'}>
 				<LSTInPoolStats />
 

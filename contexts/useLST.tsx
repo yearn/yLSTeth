@@ -22,6 +22,8 @@ export type TLST = {
 } & TTokenInfo
 
 export type TUseLSTProps = {
+	slippage: bigint
+	set_slippage: (value: bigint) => void
 	lst: TLST[],
 	stats: {
 		amplification: bigint
@@ -32,6 +34,8 @@ export type TUseLSTProps = {
 	onUpdateLST: () => void
 }
 const defaultProps: TUseLSTProps = {
+	slippage: 100n,
+	set_slippage: (): void => {},
 	lst: [] as unknown as TLST[],
 	stats: {
 		amplification: toBigInt(0),
@@ -45,6 +49,7 @@ const defaultProps: TUseLSTProps = {
 const LSTContext = createContext<TUseLSTProps>(defaultProps);
 export const LSTContextApp = ({children}: {children: React.ReactElement}): React.ReactElement => {
 	const {address} = useWeb3();
+	const [slippage, set_slippage] = useState(100n);
 	const [lst, set_lst] = useState(LST.map((token, index): TLST => ({
 		...token,
 		rate: toNormalizedBN(0),
@@ -173,6 +178,8 @@ export const LSTContextApp = ({children}: {children: React.ReactElement}): React
 	}, [data, isFetched]);
 
 	const contextValue = useMemo((): TUseLSTProps => ({
+		slippage,
+		set_slippage,
 		lst,
 		stats: areStatsFetched ? {
 			amplification: toBigInt(stats?.[0]?.result as bigint),
@@ -181,7 +188,7 @@ export const LSTContextApp = ({children}: {children: React.ReactElement}): React
 			swapFeeRate: toBigInt(stats?.[3]?.result as bigint)
 		} : defaultProps.stats,
 		onUpdateLST: refetch
-	}), [lst, stats, areStatsFetched, refetch]);
+	}), [lst, stats, areStatsFetched, refetch, slippage]);
 
 	return (
 		<LSTContext.Provider value={contextValue}>

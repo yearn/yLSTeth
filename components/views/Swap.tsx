@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import assert from 'assert';
+import SettingsPopover from 'components/common/SettingsPopover';
 import TokenInput from 'components/common/TokenInput';
 import IconSwapSVG from 'components/icons/IconSwap';
 import useLST from 'contexts/useLST';
@@ -45,7 +46,7 @@ function ViewSwapBox({
 	set_toAmount
 }: TViewSwapBox): ReactElement {
 	const {isActive, provider, address} = useWeb3();
-	const {lst, onUpdateLST} = useLST();
+	const {lst, onUpdateLST, slippage} = useLST();
 	const {refresh} = useWallet();
 	const [txStatus, set_txStatus] = useState<TTxStatus>(defaultTxStatus);
 	const [lastInput, set_lastInput] = useState<'from' | 'to'>('from');
@@ -102,12 +103,11 @@ function ViewSwapBox({
 			if (lastInput === 'from') {
 				set_toAmount(toNormalizedBN(dy));
 			} else {
-				const defaultSlippage = 100n;
-				const dxWith1PercentSlippage: bigint = dx + toBigInt(dx / defaultSlippage);
+				const dxWith1PercentSlippage: bigint = dx + toBigInt(dx / slippage);
 				set_fromAmount(toNormalizedBN(dxWith1PercentSlippage));
 			}
 		}
-	}, [dyAndDx, lastInput, set_fromAmount, set_toAmount]);
+	}, [dyAndDx, lastInput, set_fromAmount, set_toAmount, slippage]);
 
 
 	/* 🔵 - Yearn Finance **************************************************************************
@@ -201,8 +201,7 @@ function ViewSwapBox({
 		assert(provider, 'Provider not connected');
 
 		if (lastInput === 'from') {
-			const defaultSlippage = 100n;
-			const minOutWith1PercentSlippage: bigint = toAmount.raw - (toAmount.raw / defaultSlippage);
+			const minOutWith1PercentSlippage: bigint = toAmount.raw - (toAmount.raw / slippage);
 			const result = await swapLST({
 				connector: provider,
 				contractAddress: toAddress(process.env.POOL_ADDRESS),
@@ -225,8 +224,7 @@ function ViewSwapBox({
 				});
 			}
 		} else if (lastInput === 'to') {
-			const defaultSlippage = 100n;
-			const maxInWith1PercentSlippage: bigint = fromAmount.raw + (fromAmount.raw / defaultSlippage);
+			const maxInWith1PercentSlippage: bigint = fromAmount.raw + (fromAmount.raw / slippage);
 			const result = await swapOutLST({
 				connector: provider,
 				contractAddress: toAddress(process.env.POOL_ADDRESS),
@@ -249,14 +247,17 @@ function ViewSwapBox({
 				});
 			}
 		}
-	}, [isActive, provider, lastInput, toAmount.raw, selectedFromLST.index, selectedToLST.index, fromAmount.raw, onUpdateLST, refresh, set_fromAmount, set_toAmount]);
+	}, [isActive, provider, lastInput, toAmount.raw, slippage, selectedFromLST.index, selectedToLST.index, fromAmount.raw, onUpdateLST, refresh, set_fromAmount, set_toAmount]);
 
 	return (
 		<div className={'col-span-18 py-6 pr-0 md:py-10 md:pr-[72px]'}>
 			<div className={'flex w-full flex-col !rounded-md bg-neutral-100'}>
-				<h2 className={'text-xl font-black'}>
-					{'Swap tokens'}
-				</h2>
+				<div className={'flex flex-row items-center justify-between'}>
+					<h2 className={'text-xl font-black'}>
+						{'Swap tokens'}
+					</h2>
+					<SettingsPopover />
+				</div>
 				<div className={'pt-4'}>
 					<div>
 						<b className={'text-purple-300'}>
@@ -319,6 +320,8 @@ type TViewDetailsProps = {
 	exchangeRate: TNormalizedBN;
 }
 function ViewDetails({exchangeRate}: TViewDetailsProps): ReactElement {
+	const {stats, slippage} = useLST();
+
 	return (
 		<div className={'col-span-12 py-6 pl-0 md:py-10 md:pl-[72px]'}>
 			<div className={'mb-10 flex w-full flex-col !rounded-md bg-neutral-100'}>
@@ -329,6 +332,16 @@ function ViewDetails({exchangeRate}: TViewDetailsProps): ReactElement {
 					<dt className={'col-span-2'}>{'Exchange rate (incl. fees)'}</dt>
 					<dd suppressHydrationWarning className={'text-right font-bold'}>
 						{`${formatAmount(exchangeRate.normalized, 2, 4)}%`}
+					</dd>
+
+					<dt className={'col-span-2'}>{'Swap fee'}</dt>
+					<dd suppressHydrationWarning className={'text-right font-bold'}>
+						{`${formatAmount(toNormalizedBN(stats.swapFeeRate, 16).normalized, 2, 2)}%`}
+					</dd>
+
+					<dt className={'col-span-2'}>{'Slippage'}</dt>
+					<dd suppressHydrationWarning className={'text-right font-bold'}>
+						{`${formatAmount(Number(slippage / 100n), 2, 2)}%`}
 					</dd>
 
 					<dt className={'col-span-2'}>{'Price impact'}</dt>

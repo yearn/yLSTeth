@@ -1,6 +1,7 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import assert from 'assert';
 import {ImageWithFallback} from 'components/common/ImageWithFallback';
+import SettingsPopover from 'components/common/SettingsPopover';
 import TokenInput from 'components/common/TokenInput';
 import useLST from 'contexts/useLST';
 import useWallet from 'contexts/useWallet';
@@ -74,7 +75,7 @@ function ViewLSTWithdrawForm({token, amount}: {
 function ViewSelectedTokens(): ReactElement {
 	const {isActive, provider} = useWeb3();
 	const {refresh} = useWallet();
-	const {lst} = useLST();
+	const {lst, slippage} = useLST();
 	const [selectedLST, set_selectedLST] = useState<TLST>(lst[0]);
 	const [amounts, set_amounts] = useState<TNormalizedBN[]>([toNormalizedBN(0), toNormalizedBN(0), toNormalizedBN(0), toNormalizedBN(0), toNormalizedBN(0)]);
 	const [txStatus, set_txStatus] = useState<TTxStatus>(defaultTxStatus);
@@ -97,8 +98,7 @@ function ViewSelectedTokens(): ReactElement {
 					args: [newAmount.raw]
 				});
 				set_amounts(amounts.map((_, index): TNormalizedBN => {
-					const defaultSlippage = 100n;
-					const amountWithSlippage: bigint = estimatedAmount[index] - toBigInt(estimatedAmount[index] / defaultSlippage);
+					const amountWithSlippage: bigint = estimatedAmount[index] - toBigInt(estimatedAmount[index] / slippage);
 					return toNormalizedBN(amountWithSlippage);
 				}));
 			} else {
@@ -114,8 +114,7 @@ function ViewSelectedTokens(): ReactElement {
 				});
 				set_amounts(amounts.map((item, index): TNormalizedBN => {
 					if (index === selectedLSTIndex) {
-						const defaultSlippage = 100n;
-						const amountWithSlippage: bigint = estimatedAmount - toBigInt(estimatedAmount / defaultSlippage);
+						const amountWithSlippage: bigint = estimatedAmount - toBigInt(estimatedAmount / slippage);
 						return toNormalizedBN(amountWithSlippage);
 					}
 					return item;
@@ -217,9 +216,12 @@ function ViewSelectedTokens(): ReactElement {
 
 	return (
 		<div className={'col-span-18 py-6 pr-0 md:py-10 md:pr-[72px]'}>
-			<h2 className={'text-xl font-black'}>
-				{'Withdraw'}
-			</h2>
+			<div className={'flex flex-row items-center justify-between'}>
+				<h2 className={'text-xl font-black'}>
+					{'Withdraw'}
+				</h2>
+				<SettingsPopover />
+			</div>
 			<div className={'pt-4'}>
 				<div className={'flex flex-row items-center space-x-2'}>
 					<label className={'mr-7 flex cursor-pointer flex-row items-center justify-center space-x-2'}>
@@ -292,14 +294,22 @@ function ViewSelectedTokens(): ReactElement {
 }
 
 function ViewDetails(): ReactElement {
+	const {slippage} = useLST();
+
 	return (
 		<div className={'col-span-12 py-6 pl-0 md:py-10 md:pl-[72px]'}>
 			<div className={'mb-10 flex w-full flex-col !rounded-md bg-neutral-100'}>
 				<h2 className={'text-xl font-black'}>
 					{'Details'}
 				</h2>
+
 				<dl className={'grid grid-cols-3 gap-2 pt-4'}>
-					<dt className={'col-span-2'}>{'Minimum LP Tokens'}</dt>
+					<dt className={'col-span-2'}>{'Slippage'}</dt>
+					<dd suppressHydrationWarning className={'text-right font-bold'}>
+						{`${formatAmount(Number(slippage / 100n), 2, 2)}%`}
+					</dd>
+
+					<dt className={'col-span-2'}>{'Minimum yETH amount'}</dt>
 					<dd className={'text-right font-bold'}>
 						{'◼︎◼︎◼︎'}  {/* TODO: ADD MIN LP TOKENS */}
 					</dd>

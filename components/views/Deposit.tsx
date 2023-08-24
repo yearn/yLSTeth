@@ -145,7 +145,7 @@ function ViewDetails({estimateOut, bonusOrPenalty}: {estimateOut: bigint, bonusO
 						{`${formatAmount(1, 2, 2)}%`}  {/* TODO: ADD SLIPPAGE CONFIG */}
 					</dd>
 
-					<dt className={'col-span-2'}>{'Minimum LP Tokens'}</dt>
+					<dt className={'col-span-2'}>{'Minimum yETH amount'}</dt>
 					<dd suppressHydrationWarning className={'text-right font-bold'}>
 						<RenderAmount
 							value={Number(formatAmount(toNormalizedBN(estimateOut).normalized))}
