@@ -55,7 +55,7 @@ function Composition(): ReactElement {
 							<RenderAmount
 								value={token.weightRatio}
 								symbol={'percent'}
-								decimals={6} />
+								decimals={2} />
 						</b>
 					</div>
 				);
