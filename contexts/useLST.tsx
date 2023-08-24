@@ -158,6 +158,8 @@ export const LSTContextApp = ({children}: {children: React.ReactElement}): React
 			const virtualBalance = toNormalizedBN(toBigInt(data?.[index + 21]?.result as bigint) || 0n);
 			const vbProdSum = toNormalizedBN(toBigInt((data?.[26]?.result as [bigint, bigint])?.[0] as bigint) || 0n);
 
+			console.warn(supply, virtualBalance, vbProdSum);
+
 			return ({
 				...token,
 				index,
@@ -167,7 +169,7 @@ export const LSTContextApp = ({children}: {children: React.ReactElement}): React
 				weightRatio: Number(weight.normalized) / Number(supply.normalized) * 100,
 				poolAllowance: allowances,
 				poolSupply: lstSupply,
-				virtualPoolSupply: toNormalizedBN(virtualBalance.raw * toBigInt(1e18) / (vbProdSum.raw || 1n))
+				virtualPoolSupply: toNormalizedBN(virtualBalance.raw * toBigInt(1e18) / supply.raw * 100n)
 			});
 		});
 		set_lst(_lst);

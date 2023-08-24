@@ -226,7 +226,9 @@ function LSTInPool({scope}: {scope: AnimationScope}): ReactElement {
 													<p className={'text-xs text-neutral-0/60'}>{'Amount in pool'}</p>
 												</div>
 												<div className={'font-number text-right'}>
-													<b suppressHydrationWarning>{`${formatAmount(Number(token?.virtualPoolSupply?.normalized || 0), 2, 2)}%`}</b>
+													<b suppressHydrationWarning>
+														{`${formatAmount(Number(token?.virtualPoolSupply?.normalized || 0), 4, 4)}%`}
+													</b>
 													<p suppressHydrationWarning>{formatAmount(token?.poolSupply?.normalized || 0, 6, 6)}</p>
 												</div>
 											</div>
