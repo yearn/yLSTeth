@@ -12,7 +12,7 @@ import useWallet from 'contexts/useWallet';
 import {YETH_TOKEN} from 'utils/tokens';
 import {useAnimate} from 'framer-motion';
 import {Listbox, Transition} from '@headlessui/react';
-import {useMountEffect} from '@react-hookz/web';
+import {useMountEffect, useUnmountEffect} from '@react-hookz/web';
 import {cl} from '@yearn-finance/web-lib/utils/cl';
 import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
 
@@ -156,6 +156,10 @@ function YETH({router}: {router: Router}): ReactElement {
 				}
 			}
 		}
+	});
+
+	useUnmountEffect((): void => {
+		document.body.classList.remove('lpPoolTheme');
 	});
 
 	const triggerPoolView = useCallback((direction: boolean): void => {

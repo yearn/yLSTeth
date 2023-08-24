@@ -156,9 +156,6 @@ export const LSTContextApp = ({children}: {children: React.ReactElement}): React
 			const allowances = toNormalizedBN(toBigInt(data?.[index + 11]?.result as bigint) || 0n);
 			const lstSupply = toNormalizedBN(toBigInt(data?.[index + 16]?.result as bigint) || 0n);
 			const virtualBalance = toNormalizedBN(toBigInt(data?.[index + 21]?.result as bigint) || 0n);
-			const vbProdSum = toNormalizedBN(toBigInt((data?.[26]?.result as [bigint, bigint])?.[0] as bigint) || 0n);
-
-			console.warn(supply, virtualBalance, vbProdSum);
 
 			return ({
 				...token,

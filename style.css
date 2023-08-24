@@ -33,8 +33,11 @@
 }
 .max-w-5xl {@apply max-w-[1200px] px-4;}
 
-#yeth-main-page,
 #head {
+	@apply transition-colors duration-0 bg-neutral-0;
+}
+
+#yeth-main-page {
 	@apply transition-colors duration-[800ms];
 }
 
@@ -69,7 +72,7 @@
 		@apply flex flex-col;
 	}
 	& #head {
-		@apply bg-purple-300;
+		@apply bg-purple-300 transition-colors duration-[800ms];
 		& .yearn--header-nav-item {
 			@apply text-neutral-300 hover:!text-neutral-0;
 			&.active {
