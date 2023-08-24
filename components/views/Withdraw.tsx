@@ -78,7 +78,7 @@ function ViewSelectedTokens(): ReactElement {
 	const [selectedLST, set_selectedLST] = useState<TLST>(lst[0]);
 	const [amounts, set_amounts] = useState<TNormalizedBN[]>([toNormalizedBN(0), toNormalizedBN(0), toNormalizedBN(0), toNormalizedBN(0), toNormalizedBN(0)]);
 	const [txStatus, set_txStatus] = useState<TTxStatus>(defaultTxStatus);
-	const [shouldBalanceTokens, set_shouldBalanceTokens] = useState(false);
+	const [shouldBalanceTokens, set_shouldBalanceTokens] = useState(true);
 	const [fromAmount, set_fromAmount] = useState<TNormalizedBN>(toNormalizedBN(0));
 
 	/* 🔵 - Yearn Finance **************************************************************************
@@ -190,6 +190,7 @@ function ViewSelectedTokens(): ReactElement {
 				allowance={toNormalizedBN(MAX_UINT_256)}
 				isDisabled
 				shouldCheckAllowance={false}
+				shouldCheckBalance={false}
 				onChange={(): void => undefined}
 				onChangeToken={(token): void => {
 					set_selectedLST(token);
