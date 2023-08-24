@@ -380,11 +380,11 @@ function ViewDeposit(): ReactElement {
 										className={'w-full md:w-[184px]'}>
 										{'Deposit'}
 									</Button>
-									<Button
+									{/* <Button
 										isDisabled={!canDeposit}
 										className={'w-full md:w-[184px]'}>
 										{'Deposit & Stake'}
-									</Button>
+									</Button> */}
 								</div>
 							)}
 						</div>

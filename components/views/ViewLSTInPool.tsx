@@ -167,7 +167,7 @@ function LSTInPool({scope}: {scope: AnimationScope}): ReactElement {
 						</h2>
 					</div>
 
-					<div className={'hidden grid-cols-12 gap-10 px-4 md:grid md:px-[72px]'}>
+					<div className={'hidden grid-cols-10 gap-10 px-4 md:grid md:px-[72px]'}>
 						<div className={'col-span-6'}>
 							<p className={'text-xs'}>
 								{'Token'}
@@ -193,16 +193,6 @@ function LSTInPool({scope}: {scope: AnimationScope}): ReactElement {
 								{renderChevron(sortBy === 'weight')}
 							</span>
 						</button>
-						<button
-							onClick={(): void => onSort('deposited', toggleSortDirection('deposited'))}
-							className={'group col-span-2 -mr-1.5 flex cursor-pointer flex-row justify-end'}>
-							<p className={'text-right text-xs'}>
-								{'Deposited'}
-							</p>
-							<span className={'pl-2'}>
-								{renderChevron(sortBy === 'deposited')}
-							</span>
-						</button>
 					</div>
 
 					<div className={'mt-6 grid divide-y divide-neutral-0/20 md:divide-y-0'}>
@@ -214,15 +204,12 @@ function LSTInPool({scope}: {scope: AnimationScope}): ReactElement {
 								if (sortBy === 'weight') {
 									return sortDirection === 'desc' ? Number(b.targetWeight.normalized) - Number(a.targetWeight.normalized) : Number(a.targetWeight.normalized) - Number(b.targetWeight.normalized);
 								}
-								if (sortBy === 'deposited') {
-									return sortDirection === 'desc' ? Number(balances?.[b.address]?.normalized || 0) - Number(balances?.[a.address]?.normalized || 0) : Number(balances?.[a.address]?.normalized || 0) - Number(balances?.[b.address]?.normalized || 0);
-								}
 								return 0;
 							}).map((token): ReactElement => {
 								return (
 									<Link key={token.address} href={`https://etherscan.io/address/${token.address}`} target={'_blank'}>
 										<div
-											className={'grid grid-cols-6 gap-2 px-4 py-6 hover:bg-neutral-100/10 md:grid-cols-12 md:gap-10 md:px-[72px] md:py-3'}>
+											className={'grid grid-cols-6 gap-2 px-4 py-6 hover:bg-neutral-100/10 md:grid-cols-10 md:gap-10 md:px-[72px] md:py-3'}>
 
 											<div className={'col-span-6 flex flex-row items-center'}>
 												<div className={'h-10 w-10 min-w-[40px]'}>
@@ -258,16 +245,6 @@ function LSTInPool({scope}: {scope: AnimationScope}): ReactElement {
 												</div>
 											</div>
 
-											<div className={'col-span-6 flex w-full flex-row items-center justify-between md:col-span-2 md:justify-end'}>
-												<div className={'flex md:hidden'}>
-													<p className={'text-xs text-neutral-0/60'}>{'Deposited'}</p>
-												</div>
-												<div
-													suppressHydrationWarning
-													className={'font-number flex items-center justify-end text-right'}>
-													{formatAmount(balances?.[token.address]?.normalized || 0, 2, 6)}
-												</div>
-											</div>
 										</div>
 									</Link>
 								);
