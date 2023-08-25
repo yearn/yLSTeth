@@ -1,9 +1,10 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {Fragment, useCallback, useMemo, useState} from 'react';
 import assert from 'assert';
 import {RenderAmount} from 'components/common/RenderAmount';
 import TokenInput from 'components/common/TokenInput';
 import IconSwapSVG from 'components/icons/IconSwap';
 import useWallet from 'contexts/useWallet';
+import BOOTSTRAP_ABI from 'utils/abi/bootstrap.abi';
 import {ST_YETH_ABI} from 'utils/abi/styETH.abi';
 import {approveERC20, stakeYETH, unstakeYETH} from 'utils/actions';
 import {ETH_TOKEN, STYETH_TOKEN, YETH_TOKEN} from 'utils/tokens';
@@ -14,9 +15,10 @@ import {toAddress} from '@yearn-finance/web-lib/utils/address';
 import {MAX_UINT_256} from '@yearn-finance/web-lib/utils/constants';
 import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
+import {formatDuration} from '@yearn-finance/web-lib/utils/format.time';
 import {defaultTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 
-import type {TLST} from 'contexts/useLST';
+import type {TLST} from 'hooks/useLSTData';
 import type {ReactElement} from 'react';
 import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import type {TTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
@@ -204,6 +206,7 @@ function ViewStakeUnstake({rate}: {rate: bigint}): ReactElement {
 }
 
 function ViewDetails({rate}: {rate: bigint}): ReactElement {
+	const {address} = useWeb3();
 	const {balances} = useWallet();
 
 	/* 🔵 - Yearn Finance **************************************************************************
@@ -221,6 +224,17 @@ function ViewDetails({rate}: {rate: bigint}): ReactElement {
 		address: STYETH_TOKEN.address,
 		abi: ST_YETH_ABI,
 		functionName: 'totalSupply'
+	});
+
+	/* 🔵 - Yearn Finance **************************************************************************
+	** Retrieve the locked st-yETH in the bootstrap contract for the current user
+	**********************************************************************************************/
+	const {data: lockedTokens} = useContractRead({
+		abi: BOOTSTRAP_ABI,
+		address: toAddress(process.env.BOOTSTRAP_ADDRESS),
+		functionName: 'deposits',
+		args: [toAddress(address)],
+		chainId: Number(process.env.DEFAULT_CHAIN_ID)
 	});
 
 
@@ -243,6 +257,22 @@ function ViewDetails({rate}: {rate: bigint}): ReactElement {
 							symbol={'percent'}
 							decimals={6} />
 					</dd>
+
+
+					{(lockedTokens && lockedTokens >= 0n) ? (
+						<>
+							<dt className={'col-span-2'}>{'Your locked st-yETH'}</dt>
+							<dd className={'text-right font-bold'}>
+								{formatAmount(toNormalizedBN(lockedTokens || 0n).normalized, 6, 6)}
+							</dd>
+
+							<dt className={'col-span-2'}>{'Unlock date'}</dt>
+							<dd className={'text-right font-bold'}>
+								{formatDuration(1699012800, true)}
+							</dd>
+						</>
+					) : <Fragment />}
+
 				</dl>
 			</div>
 			<div>
@@ -250,7 +280,13 @@ function ViewDetails({rate}: {rate: bigint}): ReactElement {
 					{'Info'}
 				</h2>
 				<p className={'whitespace-break-spaces pt-4 text-neutral-600'}>
-					{'Stake your yETH into st-yETH to start earning liquid staking yield.\n\nYou can unstake back into yETH at any time.'}
+					{'Stake your yETH into st-yETH to start earning liquid staking yield.\n\nYou can unstake back into yETH at any time.\n\n'}
+
+					{(lockedTokens && lockedTokens >= 0n) ? (
+						<>
+							{'Your st-yETH from the yETH bootstrap has a lock period. See details above for more info.'}
+						</>
+					) : <Fragment />}
 				</p>
 			</div>
 		</div>

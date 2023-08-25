@@ -9,7 +9,7 @@ import ViewWithdraw from 'components/views/Withdraw';
 import useLST from 'contexts/useLST';
 import {UIStepContextApp} from 'contexts/useUI';
 import useWallet from 'contexts/useWallet';
-import {YETH_TOKEN} from 'utils/tokens';
+import {STYETH_TOKEN, YETH_TOKEN} from 'utils/tokens';
 import {useAnimate} from 'framer-motion';
 import {Listbox, Transition} from '@headlessui/react';
 import {useMountEffect, useUnmountEffect} from '@react-hookz/web';
@@ -62,6 +62,7 @@ function Composition(): ReactElement {
 
 function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 	const {balances} = useWallet();
+	const {dailyVolume} = useLST();
 
 	return (
 		<div
@@ -89,8 +90,10 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 						<small className={cl('text-xs', basicLighterColorTransition)}>
 							{'Daily Volume, USD'}
 						</small>
-						<b className={cl('block text-lg md:text-2xl leading-6 md:leading-10', basicColorTransition)}>
-							{'◼︎◼︎◼︎'}  {/* TODO: ADD DAILY VOLUME */}
+						<b
+							suppressHydrationWarning
+							className={cl('block text-lg md:text-2xl leading-6 md:leading-10', basicColorTransition)}>
+							{formatAmount(dailyVolume, 2, 2)}
 						</b>
 					</div>
 
@@ -99,7 +102,7 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 							{'Net APY'}
 						</small>
 						<b className={cl('block text-lg md:text-2xl leading-6 md:leading-10 text-purple-300 group-hover:text-neutral-0', basicTransition)}>
-							{'◼︎◼︎◼︎ %'}  {/* TODO: ADD NET APY */}
+							{'Soon™️'}  {/* TODO: ADD NET APY */}
 						</b>
 					</div>
 
@@ -116,10 +119,12 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 
 					<div>
 						<small className={cl('text-xs', basicLighterColorTransition)}>
-							{'Virtual Price, USD'}
+							{'Your st-yETH'}
 						</small>
-						<b className={cl('block text-lg md:text-2xl leading-6 md:leading-10', basicColorTransition)}>
-							{'◼︎◼︎◼︎'}  {/* TODO: ADD VIRTUAL PRICE */}
+						<b
+							suppressHydrationWarning
+							className={cl('block text-lg md:text-2xl leading-6 md:leading-10', basicColorTransition)}>
+							{formatAmount(Number(balances?.[STYETH_TOKEN.address]?.normalized || 0), 6, 6)}
 						</b>
 					</div>
 				</div>

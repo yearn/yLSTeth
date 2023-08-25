@@ -10,7 +10,7 @@ import {cl} from '@yearn-finance/web-lib/utils/cl';
 import {toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
 
-import type {TLST} from 'contexts/useLST';
+import type {TLST} from 'hooks/useLSTData';
 import type {ChangeEvent, ReactElement} from 'react';
 import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 

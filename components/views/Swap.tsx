@@ -19,7 +19,7 @@ import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
 import performBatchedUpdates from '@yearn-finance/web-lib/utils/performBatchedUpdates';
 import {defaultTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 
-import type {TLST} from 'contexts/useLST';
+import type {TLST} from 'hooks/useLSTData';
 import type {Dispatch, ReactElement, SetStateAction} from 'react';
 import type {TUseBalancesTokens} from '@yearn-finance/web-lib/hooks/useBalances';
 import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
@@ -344,10 +344,11 @@ function ViewDetails({exchangeRate}: TViewDetailsProps): ReactElement {
 						{`${formatAmount(Number(slippage / 100n), 2, 2)}%`}
 					</dd>
 
-					<dt className={'col-span-2'}>{'Price impact'}</dt>
+					{/* TODO: ADD PRICE IMPACT */}
+					{/* <dt className={'col-span-2'}>{'Price impact'}</dt>
 					<dd className={'text-right font-bold'}>
-						{'◼︎◼︎◼︎ %'}  {/* TODO: ADD PRICE IMPACT */}
-					</dd>
+						{'◼︎◼︎◼︎ %'}
+					</dd> */}
 				</dl>
 			</div>
 			<div>

@@ -23,7 +23,7 @@ import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
 import performBatchedUpdates from '@yearn-finance/web-lib/utils/performBatchedUpdates';
 import {defaultTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 
-import type {TLST} from 'contexts/useLST';
+import type {TLST} from 'hooks/useLSTData';
 import type {ChangeEvent, ReactElement} from 'react';
 import type {TUseBalancesTokens} from '@yearn-finance/web-lib/hooks/useBalances';
 import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';

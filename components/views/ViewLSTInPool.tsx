@@ -14,7 +14,7 @@ import type {AnimationScope} from 'framer-motion';
 import type {ReactElement} from 'react';
 
 function LSTInPoolStats(): ReactElement {
-	const {stats} = useLST();
+	const {stats, dailyVolume} = useLST();
 	const hasRampStopTime = Boolean(stats?.rampStopTime && stats?.rampStopTime > 0);
 
 	return (
@@ -22,15 +22,15 @@ function LSTInPoolStats(): ReactElement {
 			<dl className={'grid grid-cols-3 flex-row gap-10 text-neutral-0 md:flex'}>
 				<div>
 					<dt className={'mb-2 text-xs'}>{'Daily Volume'}</dt>
-					<dd className={'font-number font-bold'}>
-						{'◼︎◼︎◼︎ USD'}  {/* TODO: ADD DAILY VOLUME */}
+					<dd suppressHydrationWarning className={'font-number font-bold'}>
+						{`${formatAmount(dailyVolume, 2, 2)} USD`}
 					</dd>
 				</div>
 
 				<div>
 					<dt className={'mb-2 text-xs'}>{'Net APY'}</dt>
 					<dd className={'font-number font-bold'}>
-						{'◼︎◼︎◼︎ %'}  {/* TODO: ADD NET APY */}
+						{'Soon™️'}  {/* TODO: ADD NET APY */}
 					</dd>
 				</div>
 
@@ -41,12 +41,6 @@ function LSTInPoolStats(): ReactElement {
 					</dd>
 				</div>
 
-				<div>
-					<dt className={'mb-2 text-xs'}>{'Virtual Price'}</dt>
-					<dd className={'font-number font-bold'}>
-						{'◼︎◼︎◼︎ USD'}  {/* TODO: ADD VIRTUAL PRICE */}
-					</dd>
-				</div>
 
 				<div>
 					<dt className={'mb-2 text-xs'}>{'A'}</dt>

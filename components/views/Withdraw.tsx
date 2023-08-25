@@ -21,7 +21,7 @@ import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
 import performBatchedUpdates from '@yearn-finance/web-lib/utils/performBatchedUpdates';
 import {defaultTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 
-import type {TLST} from 'contexts/useLST';
+import type {TLST} from 'hooks/useLSTData';
 import type {ReactElement} from 'react';
 import type {TUseBalancesTokens} from '@yearn-finance/web-lib/hooks/useBalances';
 import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
@@ -307,11 +307,6 @@ function ViewDetails(): ReactElement {
 					<dt className={'col-span-2'}>{'Slippage'}</dt>
 					<dd suppressHydrationWarning className={'text-right font-bold'}>
 						{`${formatAmount(Number(slippage / 100n), 2, 2)}%`}
-					</dd>
-
-					<dt className={'col-span-2'}>{'Minimum yETH amount'}</dt>
-					<dd className={'text-right font-bold'}>
-						{'◼︎◼︎◼︎'}  {/* TODO: ADD MIN LP TOKENS */}
 					</dd>
 				</dl>
 			</div>
