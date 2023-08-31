@@ -114,7 +114,7 @@ function TokenInput({
 										<div
 											suppressHydrationWarning
 											className={'w-fit rounded-md border border-neutral-700 bg-neutral-900 p-1 px-2 text-center text-xs font-medium text-neutral-0'}>
-											{`You will be prompted to approve spending of ${formatAmount(value.normalized, 6, 6)} ${token.symbol}`}
+											{`You may be prompted to approve the spending of ${formatAmount(value.normalized, 6, 6)} ${token.symbol}`}
 										</div>
 									</span>
 								</span>

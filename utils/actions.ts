@@ -10,6 +10,7 @@ import {assertAddress} from '@yearn-finance/web-lib/utils/wagmi/utils';
 import {STYETH_TOKEN} from './tokens';
 import {ST_YETH_ABI} from './abi/styETH.abi';
 import {YETH_POOL_ABI} from './abi/yETHPool.abi';
+import {ZAP_ABI} from './abi/zap.abi';
 
 import type {Hex} from 'viem';
 import type {Connector} from 'wagmi';
@@ -198,7 +199,6 @@ export async function multicall(props: TMulticall): Promise<TTxResponse> {
 		value: 0n
 	});
 }
-
 
 /* 🔵 - Yearn Finance **********************************************************
 ** addLiquidityToPool is a _WRITE_ function that deposits some of the LP tokens
@@ -401,3 +401,60 @@ export async function swapOutLST(props: TSwapOutLST): Promise<TTxResponse> {
 	});
 }
 
+
+/* 🔵 - Yearn Finance **********************************************************
+** depositAndStake is a _WRITE_ function that deposits some of the LP tokens
+** into the pool in exchange for st-yETH.
+**
+** @app - yETH
+** @param amount - The amount of collateral to deposit.
+******************************************************************************/
+type TDepositAndStake = TWriteTransaction & {
+	amounts: bigint[];
+	estimateOut: bigint;
+};
+export async function depositAndStake(props: TDepositAndStake): Promise<TTxResponse> {
+	assert(props.connector, 'No connector');
+	assert(props.estimateOut > 0n, 'EstimateOut is 0');
+	assert(props.amounts.some((amount): boolean => amount > 0n), 'Amount is 0');
+	assertAddress(process.env.ZAP_ADDRESS, 'ZAP_ADDRESS');
+
+
+	// await handleTx(props, {
+	// 	address: toAddress(process.env.ZAP_ADDRESS),
+	// 	abi: ZAP_ABI,
+	// 	functionName: 'approve',
+	// 	args: [0n]
+	// });
+	// await handleTx(props, {
+	// 	address: toAddress(process.env.ZAP_ADDRESS),
+	// 	abi: ZAP_ABI,
+	// 	functionName: 'approve',
+	// 	args: [1n]
+	// });
+	// await handleTx(props, {
+	// 	address: toAddress(process.env.ZAP_ADDRESS),
+	// 	abi: ZAP_ABI,
+	// 	functionName: 'approve',
+	// 	args: [2n]
+	// });
+	// await handleTx(props, {
+	// 	address: toAddress(process.env.ZAP_ADDRESS),
+	// 	abi: ZAP_ABI,
+	// 	functionName: 'approve',
+	// 	args: [3n]
+	// });
+	// await handleTx(props, {
+	// 	address: toAddress(process.env.ZAP_ADDRESS),
+	// 	abi: ZAP_ABI,
+	// 	functionName: 'approve',
+	// 	args: [4n]
+	// });
+
+	return await handleTx(props, {
+		address: toAddress(process.env.ZAP_ADDRESS),
+		abi: ZAP_ABI,
+		functionName: 'add_liquidity',
+		args: [props.amounts, props.estimateOut]
+	});
+}

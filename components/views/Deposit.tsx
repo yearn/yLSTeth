@@ -9,23 +9,25 @@ import useLST from 'contexts/useLST';
 import useWallet from 'contexts/useWallet';
 import {handleInputChangeEventValue} from 'utils';
 import {ESTIMATOR_ABI} from 'utils/abi/estimator.abi';
-import {addLiquidityToPool, approveERC20} from 'utils/actions';
+import {addLiquidityToPool, approveERC20, depositAndStake} from 'utils/actions';
 import {LST} from 'utils/constants';
-import {ETH_TOKEN, YETH_TOKEN} from 'utils/tokens';
+import {ETH_TOKEN, STYETH_TOKEN, YETH_TOKEN} from 'utils/tokens';
 import {useContractReads} from 'wagmi';
 import {useUpdateEffect} from '@react-hookz/web';
 import {Button} from '@yearn-finance/web-lib/components/Button';
 import useWeb3 from '@yearn-finance/web-lib/contexts/useWeb3';
 import {toAddress} from '@yearn-finance/web-lib/utils/address';
 import {cl} from '@yearn-finance/web-lib/utils/cl';
+import {decodeAsBigInt} from '@yearn-finance/web-lib/utils/decoder';
 import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
 import performBatchedUpdates from '@yearn-finance/web-lib/utils/performBatchedUpdates';
 import {defaultTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 
 import type {TLST} from 'hooks/useLSTData';
-import type {ChangeEvent, ReactElement} from 'react';
+import type {ChangeEvent, Dispatch, ReactElement} from 'react';
 import type {TUseBalancesTokens} from '@yearn-finance/web-lib/hooks/useBalances';
+import type {TAddress} from '@yearn-finance/web-lib/types';
 import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import type {TTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 
@@ -87,7 +89,7 @@ function ViewLSTDepositForm({token, amount, onUpdateAmount}: {
 									<div
 										suppressHydrationWarning
 										className={'w-fit rounded-md border border-neutral-700 bg-neutral-900 p-1 px-2 text-center text-xs font-medium text-neutral-0'}>
-										{`You will be prompted to approve spending of ${formatAmount(amount.normalized, 6, 6)} ${token.symbol}`}
+										{`You may be prompted to approve the spending of ${formatAmount(amount.normalized, 6, 6)} ${token.symbol}`}
 									</div>
 								</span>
 							</span>
@@ -115,6 +117,8 @@ function ViewLSTDepositForm({token, amount, onUpdateAmount}: {
 }
 
 function ViewDetails({estimateOut, bonusOrPenalty}: {estimateOut: bigint, bonusOrPenalty: number}): ReactElement {
+	// const {slippage} = useLST();
+
 	const bonusOrPenaltyFormatted = useMemo((): string => {
 		if (Number.isNaN(bonusOrPenalty)) {
 			return formatAmount(0, 2, 2);
@@ -140,15 +144,15 @@ function ViewDetails({estimateOut, bonusOrPenalty}: {estimateOut: bigint, bonusO
 						{`${formatAmount(bonusOrPenaltyFormatted, 2, 6)}%`}
 					</dd>
 
-					<dt className={'col-span-2'}>{'Slippage'}</dt>
+					{/* <dt className={'col-span-2'}>{'Slippage'}</dt>
 					<dd suppressHydrationWarning className={'text-right font-bold'}>
-						{`${formatAmount(1, 2, 2)}%`}  {/* TODO: ADD SLIPPAGE CONFIG */}
-					</dd>
+						{`${formatAmount(Number(slippage / 100n), 2, 2)}%`}
+					</dd> */}
 
 					<dt className={'col-span-2'}>{'Minimum yETH amount'}</dt>
 					<dd suppressHydrationWarning className={'text-right font-bold'}>
 						<RenderAmount
-							value={Number(formatAmount(toNormalizedBN(estimateOut).normalized))}
+							value={Number(toNormalizedBN(estimateOut).normalized)}
 							decimals={6} />
 					</dd>
 				</dl>
@@ -173,7 +177,9 @@ function ViewDeposit(): ReactElement {
 	const [amounts, set_amounts] = useState<TNormalizedBN[]>([toNormalizedBN(0), toNormalizedBN(0), toNormalizedBN(0), toNormalizedBN(0), toNormalizedBN(0)]);
 	const [lastAmountUpdated, set_lastAmountUpdated] = useState(-1);
 	const [txStatus, set_txStatus] = useState<TTxStatus>(defaultTxStatus);
+	const [txStatusApproveDS, set_txStatusApproveDS] = useState<TTxStatus>(defaultTxStatus);
 	const [txStatusDeposit, set_txStatusDeposit] = useState<TTxStatus>(defaultTxStatus);
+	const [txStatusDepositStake, set_txStatusDepositStake] = useState<TTxStatus>(defaultTxStatus);
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	** Once the user update the amount of a token, we have two options, depending on the value of
@@ -184,14 +190,14 @@ function ViewDeposit(): ReactElement {
 	const onChangeAmount = useCallback((lstIndex: number, amount: TNormalizedBN): void => {
 		if (shouldBalanceTokens) {
 			const initialTokenAmount = amount.raw;
-			const initialTokenRate = lst?.[lstIndex].rate.raw;
-			const initialTokenWeight = lst?.[lstIndex].weight.raw;
+			const initialTokenRate = toBigInt(lst?.[lstIndex].rate.raw);
+			const initialTokenWeight = toBigInt(lst?.[lstIndex].weight.raw || 1n);
 
 			const newAmounts = lst.map((item, index): TNormalizedBN => {
 				if (item.address === lst[lstIndex].address) {
 					return amount;
 				}
-				const balancedTokenRate = lst?.[index].rate.raw;
+				const balancedTokenRate = toBigInt(lst?.[index].rate.raw || 1n);
 				const balancedTokenWeight = lst?.[index].weight.raw;
 				const balancedTokenAmount = toBigInt(initialTokenAmount * initialTokenRate * balancedTokenWeight / initialTokenWeight / balancedTokenRate);
 				return toNormalizedBN(balancedTokenAmount);
@@ -236,8 +242,9 @@ function ViewDeposit(): ReactElement {
 			}
 		]
 	});
-	const estimateOut = toBigInt(data?.[0]?.result as bigint);
-	const vb = toBigInt(data?.[1]?.result as bigint);
+	const estimateOut = decodeAsBigInt(data?.[0] as never);
+	const vb = decodeAsBigInt(data?.[1] as never);
+
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	** When the user clicks the toggle button, if the toggle is set to true and if the user already
@@ -264,51 +271,59 @@ function ViewDeposit(): ReactElement {
 		);
 	}, [amounts, balances, lst]);
 
-	const shouldApprove = useMemo((): boolean => {
+	const shouldApproveDeposit = useMemo((): boolean => {
 		return (amounts.some((item, index): boolean => item.raw > lst[index].poolAllowance.raw));
 	}, [amounts, lst]);
+
+	const shouldApproveDepositStake = useMemo((): boolean => {
+		return (amounts.some((item, index): boolean => item.raw > lst[index].zapAllowance.raw));
+	}, [amounts, lst]);
+
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	** Web3 action to allow the pool contract to spend the user's underlying pool tokens.
 	**********************************************************************************************/
-	const onApprove = useCallback(async (): Promise<void> => {
+	const onApprove = useCallback(async (
+		spender: TAddress,
+		key: 'zapAllowance' | 'poolAllowance',
+		txStatusSetter: Dispatch<TTxStatus>
+	): Promise<void> => {
 		assert(isActive, 'Wallet not connected');
 		assert(provider, 'Provider not connected');
 
-		set_txStatus({...defaultTxStatus, pending: true});
+		txStatusSetter({...defaultTxStatus, pending: true});
 		for (const item of lst) {
 			const amount = amounts[lst.indexOf(item)];
 			if (amount.raw <= 0n) {
 				continue;
 			}
-			if (amount.raw <= item.poolAllowance.raw) {
+			if (amount.raw <= item[key].raw) {
 				continue;
 			}
 
 			const result = await approveERC20({
 				connector: provider,
 				contractAddress: item.address,
-				spenderAddress: toAddress(process.env.POOL_ADDRESS),
+				spenderAddress: spender,
 				amount: amount.raw,
-				statusHandler: set_txStatus
+				statusHandler: txStatusSetter
 			});
 			if (result.isSuccessful) {
 				onUpdateLST();
 				await refresh([{...ETH_TOKEN, token: ETH_TOKEN.address}]);
 			} else {
-				set_txStatus({...defaultTxStatus, error: true});
+				txStatusSetter({...defaultTxStatus, error: true});
 				setTimeout((): void => {
-					set_txStatus({...defaultTxStatus});
+					txStatusSetter({...defaultTxStatus});
 				}, 3000);
 				return;
 			}
 		}
-		set_txStatus({...defaultTxStatus, success: true});
+		txStatusSetter({...defaultTxStatus, success: true});
 		setTimeout((): void => {
-			set_txStatus({...defaultTxStatus});
+			txStatusSetter({...defaultTxStatus});
 		}, 3000);
 	}, [amounts, isActive, lst, onUpdateLST, provider, refresh]);
-
 
 	const onDeposit = useCallback(async (): Promise<void> => {
 		assert(isActive, 'Wallet not connected');
@@ -326,6 +341,29 @@ function ViewDeposit(): ReactElement {
 			await refresh([
 				{...ETH_TOKEN, token: ETH_TOKEN.address},
 				{...YETH_TOKEN, token: YETH_TOKEN.address},
+				...LST.map((item): TUseBalancesTokens => ({...item, token: item.address}))
+			]);
+			set_amounts(amounts.map((item): TNormalizedBN => ({...item, raw: 0n})));
+		}
+	}, [amounts, estimateOut, isActive, onUpdateLST, provider, refresh]);
+
+	const onDepositAndStake = useCallback(async (): Promise<void> => {
+		assert(isActive, 'Wallet not connected');
+		assert(provider, 'Provider not connected');
+
+		const result = await depositAndStake({
+			connector: provider,
+			contractAddress: toAddress(process.env.ZAP_ADDRESS),
+			amounts: amounts.map((item): bigint => item.raw),
+			estimateOut,
+			statusHandler: set_txStatusDepositStake
+		});
+		if (result.isSuccessful) {
+			onUpdateLST();
+			await refresh([
+				{...ETH_TOKEN, token: ETH_TOKEN.address},
+				{...YETH_TOKEN, token: YETH_TOKEN.address},
+				{...STYETH_TOKEN, token: STYETH_TOKEN.address},
 				...LST.map((item): TUseBalancesTokens => ({...item, token: item.address}))
 			]);
 			set_amounts(amounts.map((item): TNormalizedBN => ({...item, raw: 0n})));
@@ -360,36 +398,40 @@ function ViewDeposit(): ReactElement {
 							</div>
 						</div>
 						<div className={'mt-10 flex justify-start'}>
-							{shouldApprove ? (
+							<div className={'flex w-full flex-row space-x-4'}>
 								<Button
-									onClick={onApprove}
-									isBusy={txStatus.pending}
+									onClick={async (): Promise<void> => (
+										shouldApproveDeposit ? onApprove(
+											toAddress(process.env.POOL_ADDRESS),
+											'poolAllowance',
+											set_txStatus
+										) : onDeposit()
+									)}
+									isBusy={shouldApproveDeposit ? txStatus.pending : txStatusDeposit.pending}
 									isDisabled={!canDeposit}
+									variant={'outlined'}
 									className={'w-full md:w-[184px]'}>
-									{'Approve'}
+									{shouldApproveDeposit ? 'Approve for Deposit' : 'Deposit'}
 								</Button>
-							) : (
-								<div className={'flex w-full flex-row space-x-4'}>
-									<Button
-										onClick={onDeposit}
-										isBusy={txStatusDeposit.pending}
-										isDisabled={!canDeposit}
-										variant={'outlined'}
-										className={'w-full md:w-[184px]'}>
-										{'Deposit'}
-									</Button>
-									{/* <Button
-										isDisabled={!canDeposit}
-										className={'w-full md:w-[184px]'}>
-										{'Deposit & Stake'}
-									</Button> */}
-								</div>
-							)}
+								<Button
+									onClick={async (): Promise<void> => (
+										shouldApproveDepositStake ? onApprove(
+											toAddress(process.env.ZAP_ADDRESS),
+											'zapAllowance',
+											set_txStatusApproveDS
+										) : onDepositAndStake()
+									)}
+									isBusy={shouldApproveDepositStake ? txStatusApproveDS.pending : txStatusDepositStake.pending}
+									isDisabled={!canDeposit}
+									className={'w-fit md:min-w-[184px]'}>
+									{shouldApproveDepositStake ? 'Approve for Deposit & Stake' : 'Deposit & Stake'}
+								</Button>
+							</div>
 						</div>
 					</div>
 				</div>
 				<ViewDetails
-					estimateOut={toBigInt(estimateOut)}
+					estimateOut={estimateOut}
 					bonusOrPenalty={(Number(toNormalizedBN(estimateOut).normalized) - Number(toNormalizedBN(vb).normalized)) / Number(toNormalizedBN(vb).normalized) * 100}
 				/>
 			</div>

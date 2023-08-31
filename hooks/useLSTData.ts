@@ -15,6 +15,7 @@ export type TLST = {
 	weight: TNormalizedBN,
 	targetWeight: TNormalizedBN,
 	poolAllowance: TNormalizedBN,
+	zapAllowance: TNormalizedBN,
 	poolSupply: TNormalizedBN,
 	virtualPoolSupply: TNormalizedBN,
 	weightRatio: number,
@@ -29,6 +30,7 @@ function useLSTData(): {lst: TLST[], updateLST: () => void} {
 		weight: toNormalizedBN(0),
 		targetWeight: toNormalizedBN(0),
 		poolAllowance: toNormalizedBN(0),
+		zapAllowance: toNormalizedBN(0),
 		poolSupply: toNormalizedBN(0),
 		virtualPoolSupply: toNormalizedBN(0),
 		weightRatio: 0,
@@ -88,7 +90,15 @@ function useLSTData(): {lst: TLST[], updateLST: () => void} {
 				abi: YETH_POOL_ABI,
 				functionName: 'vb_prod_sum',
 				chainId: Number(process.env.DEFAULT_CHAIN_ID)
-			}
+			},
+			// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+			...LST.map((item) => ({
+				address: item.address,
+				abi: erc20ABI,
+				functionName: 'allowance',
+				args: [address, toAddress(process.env.ZAP_ADDRESS)],
+				chainId: Number(process.env.DEFAULT_CHAIN_ID)
+			})) as never[]
 		]
 	});
 
@@ -101,12 +111,12 @@ function useLSTData(): {lst: TLST[], updateLST: () => void} {
 			const rate = toNormalizedBN(toBigInt(data?.[index + 1]?.result as bigint) || 0n);
 			const weight = toNormalizedBN(toBigInt((data?.[index + 6]?.result as [bigint, bigint, bigint, bigint])?.[0] as bigint) || 0n);
 			const targetWeight = toNormalizedBN(toBigInt((data?.[index + 6]?.result as [bigint, bigint, bigint, bigint])?.[1] as bigint) || 0n);
-			const allowances = toNormalizedBN(toBigInt(data?.[index + 11]?.result as bigint) || 0n);
+			const poolAllowance = toNormalizedBN(toBigInt(data?.[index + 11]?.result as bigint) || 0n);
 			const lstSupply = toNormalizedBN(toBigInt(data?.[index + 16]?.result as bigint) || 0n);
 			const virtualBalance = toNormalizedBN(toBigInt(data?.[index + 21]?.result as bigint) || 0n);
 			const vbSum = toNormalizedBN(toBigInt((data?.[26]?.result as [bigint, bigint])?.[1] as bigint) || 0n);
+			const zapAllowance = toNormalizedBN(toBigInt(data?.[index + 27]?.result as bigint) || 0n);
 
-			// console.warn(vb, vbSum, data?.[index + 26]);
 			return ({
 				...token,
 				index,
@@ -114,9 +124,10 @@ function useLSTData(): {lst: TLST[], updateLST: () => void} {
 				weight,
 				targetWeight,
 				weightRatio: Number(virtualBalance.normalized) / Number(vbSum.normalized),
-				poolAllowance: allowances,
+				poolAllowance: poolAllowance,
+				zapAllowance: zapAllowance,
 				poolSupply: lstSupply,
-				virtualPoolSupply: toNormalizedBN(virtualBalance.raw * toBigInt(1e18) / supply.raw * 100n)
+				virtualPoolSupply: toNormalizedBN(virtualBalance.raw * toBigInt(1e18) / (supply.raw || 1n) * 100n)
 			});
 		});
 		set_lst(_lst);

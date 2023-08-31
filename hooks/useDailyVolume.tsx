@@ -91,7 +91,6 @@ function useDailyVolume(): number {
 		}
 		let _volumeUSD = 0;
 		for (const swap of swapEvents) {
-			console.log(prices, swap);
 			_volumeUSD += Number(prices[swap.tokenIn]) * Number(toNormalizedBN(swap.amountIn).normalized);
 		}
 		return _volumeUSD;
