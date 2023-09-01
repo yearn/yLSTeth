@@ -128,7 +128,7 @@ function ViewSelectedTokens(): ReactElement {
 				}));
 			}
 		}
-	}, [amounts]);
+	}, [amounts, slippage]);
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	** Web3 action to withdraw some LP tokens from the pool

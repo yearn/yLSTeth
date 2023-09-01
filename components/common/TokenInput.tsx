@@ -5,6 +5,7 @@ import IconCircleCross from 'components/icons/IconCircleCross';
 import IconWarning from 'components/icons/IconWarning';
 import useWallet from 'contexts/useWallet';
 import {handleInputChangeEventValue} from 'utils';
+import useWeb3 from '@yearn-finance/web-lib/contexts/useWeb3';
 import IconLinkOut from '@yearn-finance/web-lib/icons/IconLinkOut';
 import {cl} from '@yearn-finance/web-lib/utils/cl';
 import {toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
@@ -38,6 +39,7 @@ function TokenInput({
 	shouldCheckBalance = true,
 	isDisabled = false
 }: TViewFromToken): ReactElement {
+	const {provider} = useWeb3();
 	const {balances} = useWallet();
 	const balanceOf = useMemo((): TNormalizedBN => {
 		return toNormalizedBN((balances?.[token.address]?.raw || 0) || 0);
@@ -46,6 +48,9 @@ function TokenInput({
 	const onChangeAmount = useCallback((e: ChangeEvent<HTMLInputElement>): void => {
 		const element = document.getElementById('amountToSend') as HTMLInputElement;
 		const newAmount = handleInputChangeEventValue(e, token?.decimals || 18);
+		if (!provider) {
+			return onChange(newAmount);
+		}
 		if (newAmount.raw > balances?.[token.address]?.raw) {
 			if (element?.value) {
 				element.value = formatAmount(balances?.[token.address]?.normalized, 0, 18);
@@ -53,7 +58,7 @@ function TokenInput({
 			return onChange(toNormalizedBN(balances?.[token.address]?.raw || 0));
 		}
 		onChange(newAmount);
-	}, [balances, onChange, token.address, token?.decimals]);
+	}, [provider, balances, onChange, token.address, token?.decimals]);
 
 	return (
 		<div className={'grid grid-cols-12 gap-x-2'}>

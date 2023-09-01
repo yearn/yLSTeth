@@ -36,6 +36,7 @@ function ViewLSTDepositForm({token, amount, onUpdateAmount}: {
 	amount: TNormalizedBN,
 	onUpdateAmount: (amount: TNormalizedBN) => void,
 }): ReactElement {
+	const {provider} = useWeb3();
 	const {balances} = useWallet();
 
 	const balanceOf = useMemo((): TNormalizedBN => {
@@ -45,6 +46,9 @@ function ViewLSTDepositForm({token, amount, onUpdateAmount}: {
 	const onChangeAmount = useCallback((e: ChangeEvent<HTMLInputElement>): void => {
 		const element = document.getElementById('amountToSend') as HTMLInputElement;
 		const newAmount = handleInputChangeEventValue(e, token?.decimals || 18);
+		if (!provider) {
+			return onUpdateAmount(newAmount);
+		}
 		if (newAmount.raw > balances?.[token.address]?.raw) {
 			if (element?.value) {
 				element.value = formatAmount(balances?.[token.address]?.normalized, 0, 18);
@@ -52,7 +56,7 @@ function ViewLSTDepositForm({token, amount, onUpdateAmount}: {
 			return onUpdateAmount(toNormalizedBN(balances?.[token.address]?.raw || 0));
 		}
 		onUpdateAmount(newAmount);
-	}, [balances, onUpdateAmount, token.address, token?.decimals]);
+	}, [balances, provider, onUpdateAmount, token.address, token?.decimals]);
 
 	return (
 		<div className={'lg:col-span-4'}>
@@ -408,7 +412,7 @@ function ViewDeposit(): ReactElement {
 										) : onDeposit()
 									)}
 									isBusy={shouldApproveDeposit ? txStatus.pending : txStatusDeposit.pending}
-									isDisabled={!canDeposit}
+									isDisabled={!canDeposit || !provider}
 									variant={'outlined'}
 									className={'w-full md:w-[184px]'}>
 									{shouldApproveDeposit ? 'Approve for Deposit' : 'Deposit'}
@@ -422,7 +426,7 @@ function ViewDeposit(): ReactElement {
 										) : onDepositAndStake()
 									)}
 									isBusy={shouldApproveDepositStake ? txStatusApproveDS.pending : txStatusDepositStake.pending}
-									isDisabled={!canDeposit}
+									isDisabled={!canDeposit || !provider}
 									className={'w-fit md:min-w-[184px]'}>
 									{shouldApproveDepositStake ? 'Approve for Deposit & Stake' : 'Deposit & Stake'}
 								</Button>

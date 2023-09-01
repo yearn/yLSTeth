@@ -259,12 +259,6 @@ function ViewSwapBox({
 					<SettingsPopover />
 				</div>
 				<div className={'pt-4'}>
-					<div>
-						<b className={'text-purple-300'}>
-							{'APR: -'}
-						</b>
-					</div>
-
 					<div className={'mt-5 grid'}>
 						<TokenInput
 							key={selectedFromLST.address}
@@ -299,7 +293,7 @@ function ViewSwapBox({
 				<div className={'mt-10 flex justify-start'}>
 					<Button
 						isBusy={txStatus.pending}
-						isDisabled={!txStatus.none || fromAmount.raw === 0n}
+						isDisabled={!txStatus.none || fromAmount.raw === 0n || !provider}
 						onClick={(): void => {
 							if (!hasAllowance) {
 								onApprove();

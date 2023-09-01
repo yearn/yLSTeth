@@ -187,7 +187,7 @@ function ViewStakeUnstake({rate}: {rate: bigint}): ReactElement {
 			<div className={'mt-10 flex justify-start'}>
 				<Button
 					isBusy={txStatus.pending}
-					isDisabled={!txStatus.none || fromAmount.raw === 0n}
+					isDisabled={!txStatus.none || fromAmount.raw === 0n || !provider}
 					onClick={(): void => {
 						if (currentView === 'stake' && !hasAllowance) {
 							onApprove();
