@@ -36,16 +36,16 @@ export default function SettingsPopover(): ReactElement {
 										</label>
 										<div className={'mt-1 flex flex-row space-x-2'}>
 											<button
-												onClick={(): void => set_slippage(100n)}
-												className={`flex h-8 items-center rounded border-2 bg-neutral-100 px-1.5 py-2 ${slippage === 100n ? 'border-purple-300' : 'border-transparent'}`}>
-												<p className={'font-number pr-4 text-neutral-900'}>{'1%'}</p>
+												onClick={(): void => set_slippage(10n)}
+												className={`flex h-8 items-center rounded border-2 bg-neutral-100 px-1.5 py-2 ${slippage === 10n ? 'border-purple-300' : 'border-transparent'}`}>
+												<p className={'font-number pr-4 text-neutral-900'}>{'0.1%'}</p>
 											</button>
 											<button
-												onClick={(): void => set_slippage(200n)}
-												className={`flex h-8 items-center rounded border-2 bg-neutral-100 px-1.5 py-2 ${slippage === 200n ? 'border-purple-300' : 'border-transparent'}`}>
-												<p className={'font-number pr-4 text-neutral-900'}>{'2%'}</p>
+												onClick={(): void => set_slippage(50n)}
+												className={`flex h-8 items-center rounded border-2 bg-neutral-100 px-1.5 py-2 ${slippage === 50n ? 'border-purple-300' : 'border-transparent'}`}>
+												<p className={'font-number pr-4 text-neutral-900'}>{'0.5%'}</p>
 											</button>
-											<div className={`flex h-8 w-full min-w-[48px] items-center rounded border-2 bg-neutral-100 px-0 py-4 md:min-w-[72px] ${slippage !== 100n && slippage !== 200n ? 'border-purple-300' : 'border-transparent'}`}>
+											<div className={`flex h-8 w-full min-w-[48px] items-center rounded border-2 bg-neutral-100 px-0 py-4 md:min-w-[72px] ${slippage !== 10n && slippage !== 50n ? 'border-purple-300' : 'border-transparent'}`}>
 												<input
 													id={'slippageTolerance'}
 													type={'number'}

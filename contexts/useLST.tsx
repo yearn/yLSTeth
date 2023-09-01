@@ -22,7 +22,7 @@ type TUseLSTProps = {
 	onUpdateLST: () => void
 }
 const defaultProps: TUseLSTProps = {
-	slippage: 100n,
+	slippage: 50n,
 	set_slippage: (): void => {},
 	dailyVolume: 0,
 	lst: [] as unknown as TLST[],
@@ -37,7 +37,7 @@ const defaultProps: TUseLSTProps = {
 
 const LSTContext = createContext<TUseLSTProps>(defaultProps);
 export const LSTContextApp = ({children}: {children: React.ReactElement}): React.ReactElement => {
-	const [slippage, set_slippage] = useState(100n);
+	const [slippage, set_slippage] = useState(50n);
 	const {lst, updateLST} = useLSTData();
 	const dailyVolume = useDailyVolume();
 
