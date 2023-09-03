@@ -214,14 +214,14 @@ function	WalletSelector(): ReactElement {
 }
 
 const nav: TMenu[] = [
-	// {path: 'https://yearn.finance', label: 'Home', target: '_blank'},
+	// {path: 'https://yearn.fi', label: 'Home', target: '_blank'},
 	{path: '/', label: 'Home'},
 	// {path: '/', label: 'yETH'},
 	{path: '/deposit', label: 'Deposit'},
 	{path: '/incentive', label: 'Incentivize'},
 	{path: '/vote', label: 'Vote'},
 	{path: '/claim', label: 'Claim'},
-	{path: 'https://docs.yearn.finance/getting-started/products/yeth/overview', label: 'Docs'}
+	{path: 'https://docs.yearn.fi/getting-started/products/yeth/overview', label: 'Docs'}
 	// {path: 'https://yeth.yearn.farm/support', label: 'Support'}
 ];
 

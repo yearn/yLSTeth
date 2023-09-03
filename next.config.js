@@ -50,7 +50,7 @@ module.exports = (phase) => withPWA({
 		ALCHEMY_KEY: process.env.ALCHEMY_KEY,
 		INFURA_PROJECT_ID: process.env.INFURA_PROJECT_ID,
 		WALLETCONNECT_PROJECT_ID: process.env.WALLETCONNECT_PROJECT_ID,
-		YDAEMON_BASE_URI: 'https://ydaemon.yearn.finance',
+		YDAEMON_BASE_URI: 'https://ydaemon.yearn.fi',
 		BASE_CHAINID: 1, // Expected to work on this chain
 		DEFAULT_CHAINID: 1, // The one we currently use
 		YETH_ADDRESS: '0x1BED97CBC3c24A4fb5C069C6E311a967386131f7',
