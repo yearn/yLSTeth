@@ -35,7 +35,14 @@ function	MyApp(props: AppProps): ReactElement {
 	return (
 		<>
 			<style jsx global>{`html {font-family: ${aeonik.style.fontFamily};}`}</style>
-			<WithYearn supportedChains={[localhost]}>
+			<WithYearn
+				supportedChains={[localhost]}
+				options={{
+					baseSettings: {
+						yDaemonBaseURI: process.env.YDAEMON_BASE_URI as string
+					},
+					ui: {shouldUseThemes: false}
+				}}>
 				<BootstrapContextApp>
 					<LSTContextApp>
 						<TokenListContextApp>
