@@ -8,7 +8,7 @@ import {UIStepContextApp} from 'contexts/useUI';
 import {transition} from 'utils';
 import {AnimatePresence, motion} from 'framer-motion';
 import {toBigInt} from '@yearn-finance/web-lib/utils/format.bigNumber';
-import performBatchedUpdates from '@yearn-finance/web-lib/utils/performBatchedUpdates';
+import {performBatchedUpdates} from '@yearn-finance/web-lib/utils/performBatchedUpdates';
 
 import type {TPeriods} from 'hooks/useBootstrapPeriods';
 import type {ReactElement} from 'react';

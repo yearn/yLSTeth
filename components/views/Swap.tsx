@@ -11,12 +11,12 @@ import {LST} from 'utils/constants';
 import {ETH_TOKEN, YETH_TOKEN} from 'utils/tokens';
 import {erc20ABI, useContractRead, useContractReads} from 'wagmi';
 import {Button} from '@yearn-finance/web-lib/components/Button';
-import useWeb3 from '@yearn-finance/web-lib/contexts/useWeb3';
+import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
 import {toAddress} from '@yearn-finance/web-lib/utils/address';
 import {MAX_UINT_256} from '@yearn-finance/web-lib/utils/constants';
 import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
-import performBatchedUpdates from '@yearn-finance/web-lib/utils/performBatchedUpdates';
+import {performBatchedUpdates} from '@yearn-finance/web-lib/utils/performBatchedUpdates';
 import {defaultTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 
 import type {TLST} from 'hooks/useLSTData';

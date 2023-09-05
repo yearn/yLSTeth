@@ -3,7 +3,7 @@ import {YETH_POOL_ABI} from 'utils/abi/yETHPool.abi';
 import {LST} from 'utils/constants';
 import {erc20ABI, useContractReads} from 'wagmi';
 import {useUpdateEffect} from '@react-hookz/web';
-import useWeb3 from '@yearn-finance/web-lib/contexts/useWeb3';
+import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
 import {toAddress} from '@yearn-finance/web-lib/utils/address';
 import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 

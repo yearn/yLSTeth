@@ -3,12 +3,12 @@ import Link from 'next/link';
 import {ImageWithFallback} from 'components/common/ImageWithFallback';
 import IconChevronPlain from 'components/icons/IconChevronPlain';
 import useLST from 'contexts/useLST';
-import IconLinkOut from '@yearn-finance/web-lib/icons/IconLinkOut';
+import {IconLinkOut} from '@yearn-finance/web-lib/icons/IconLinkOut';
 import {cl} from '@yearn-finance/web-lib/utils/cl';
 import {toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
 import {formatDate} from '@yearn-finance/web-lib/utils/format.time';
-import performBatchedUpdates from '@yearn-finance/web-lib/utils/performBatchedUpdates';
+import {performBatchedUpdates} from '@yearn-finance/web-lib/utils/performBatchedUpdates';
 
 import type {AnimationScope} from 'framer-motion';
 import type {ReactElement} from 'react';

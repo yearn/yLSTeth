@@ -1,7 +1,7 @@
 import {Fragment} from 'react';
 import useLST from 'contexts/useLST';
 import {Popover, Transition} from '@headlessui/react';
-import IconSettings from '@yearn-finance/web-lib/icons/IconSettings';
+import {IconSettings} from '@yearn-finance/web-lib/icons/IconSettings';
 import {toBigInt} from '@yearn-finance/web-lib/utils/format.bigNumber';
 
 import type {ReactElement} from 'react';
