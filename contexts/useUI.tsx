@@ -1,6 +1,5 @@
 import React, {createContext, useContext, useMemo, useState} from 'react';
 import {useMountEffect, useUpdateEffect} from '@react-hookz/web';
-import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
 
 import type {Dispatch, SetStateAction} from 'react';
 
@@ -38,7 +37,6 @@ function scrollToTargetAdjusted(element: HTMLElement): void {
 
 const	UIStepContext = createContext<TSelected>(defaultProps);
 export const UIStepContextApp = ({children}: {children: React.ReactElement}): React.ReactElement => {
-	const	{walletType} = useWeb3();
 	const	[currentStep, set_currentStep] = useState<Step>(Step.ADDRESS);
 
 	/**********************************************************************************************
@@ -81,7 +79,7 @@ export const UIStepContextApp = ({children}: {children: React.ReactElement}): Re
 				scrollToTargetAdjusted(currentStepContainer);
 			}
 		}, 0);
-	}, [currentStep, walletType]);
+	}, [currentStep]);
 
 	const	contextValue = useMemo((): TSelected => ({
 		currentStep,

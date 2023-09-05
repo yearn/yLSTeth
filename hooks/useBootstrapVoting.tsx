@@ -6,7 +6,7 @@ import {useDeepCompareMemo} from '@react-hookz/web';
 import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
 import {toAddress} from '@yearn-finance/web-lib/utils/address';
 import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
-import performBatchedUpdates from '@yearn-finance/web-lib/utils/performBatchedUpdates';
+import {performBatchedUpdates} from '@yearn-finance/web-lib/utils/performBatchedUpdates';
 import {getClient} from '@yearn-finance/web-lib/utils/wagmi/utils';
 
 import type {TAddress, TAddressWagmi, TDict} from '@yearn-finance/web-lib/types';

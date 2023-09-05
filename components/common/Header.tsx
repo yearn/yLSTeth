@@ -4,10 +4,11 @@ import {useRouter} from 'next/router';
 import Logo from 'components/icons/Logo';
 import {useConnect, usePublicClient} from 'wagmi';
 import {Listbox, Transition} from '@headlessui/react';
+import {useAccountModal, useChainModal} from '@rainbow-me/rainbowkit';
 import {ModalMobileMenu} from '@yearn-finance/web-lib/components/ModalMobileMenu';
 import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
-import IconChevronBottom from '@yearn-finance/web-lib/icons/IconChevronBottom';
-import IconWallet from '@yearn-finance/web-lib/icons/IconWallet';
+import {IconChevronBottom} from '@yearn-finance/web-lib/icons/IconChevronBottom';
+import {IconWallet} from '@yearn-finance/web-lib/icons/IconWallet';
 import {truncateHex} from '@yearn-finance/web-lib/utils/address';
 
 import type {ReactElement} from 'react';
@@ -157,21 +158,10 @@ function NetworkSelector(): ReactElement {
 }
 
 function	WalletSelector(): ReactElement {
-	const {isActive, address, ens, lensProtocolHandle, openLoginModal, onDesactivate, onSwitchChain} = useWeb3();
+	const {openAccountModal} = useAccountModal();
+	const {openChainModal} = useChainModal();
+	const {isActive, address, ens, lensProtocolHandle, openLoginModal} = useWeb3();
 	const [walletIdentity, set_walletIdentity] = useState<string | undefined>(undefined);
-	const {connectors} = useConnect();
-
-	const supportedNetworks = useMemo((): TNetwork[] => {
-		const injectedConnector = connectors.find((e): boolean => e.id === 'injected');
-		if (!injectedConnector) {
-			return [];
-		}
-		const chainsForInjected = injectedConnector.chains;
-		const noTestnet = chainsForInjected.filter(({id}): boolean => id !== 1337);
-		return noTestnet.map((network: Chain): TNetwork => (
-			{value: network.id, label: network.name}
-		));
-	}, [connectors]);
 
 	useEffect((): void => {
 		if (!isActive && address) {
@@ -191,9 +181,9 @@ function	WalletSelector(): ReactElement {
 		<div
 			onClick={(): void => {
 				if (isActive) {
-					onDesactivate();
+					openAccountModal?.();
 				} else if (!isActive && address) {
-					onSwitchChain(supportedNetworks[0].value);
+					openChainModal?.();
 				} else {
 					openLoginModal();
 				}
