@@ -574,8 +574,7 @@ function ViewIncentive(): ReactElement {
 			return toNormalizedBN(0);
 		}
 		return toNormalizedBN((balances?.[tokenToUse.address]?.raw || 0) || 0, tokenToUse.decimals || 18);
-	// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [balances, tokenToUse, tokenToUse?.address]);
+	}, [balances, tokenToUse]);
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	** Change the inputed amount when the user types something in the input field.
