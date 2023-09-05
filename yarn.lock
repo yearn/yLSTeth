@@ -2766,10 +2766,10 @@
   dependencies:
     lodash "^4"
 
-"@yearn-finance/web-lib@^3.0.33":
-  version "3.0.33"
-  resolved "https://registry.yarnpkg.com/@yearn-finance/web-lib/-/web-lib-3.0.33.tgz#90a79d1476c4a781afc93018a12da2a255ca2ba4"
-  integrity sha512-n0JjblPe7F40wUhRF4zK8AHTDBXGYXrmwO0onBWr/+d1SDYQAHEHANIN8LLswlztjaMtKbLhyCPv9skG87sziA==
+"@yearn-finance/web-lib@^3.0.34":
+  version "3.0.34"
+  resolved "https://registry.yarnpkg.com/@yearn-finance/web-lib/-/web-lib-3.0.34.tgz#0c03a38d321b67ee3e30ba98d0ebf3d057095c05"
+  integrity sha512-nAzm7u/nG4NdRhiCAWB65BloxZliAfIKGdMnpNlole7TuoTVQM7wDCaTQlrILdQzEZ/QW3/qpyGUEDcpvkAr/g==
   dependencies:
     "@babel/core" "^7.0.0-0"
     "@headlessui/react" "^1.7.17"

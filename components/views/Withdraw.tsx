@@ -28,9 +28,12 @@ import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber'
 import type {TTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 
 
-function ViewLSTWithdrawForm({token, amount}: {
+function ViewLSTWithdrawForm({token, amount, onSelect, isSelected, shouldHideRadio}: {
 	token: TLST,
 	amount: TNormalizedBN,
+	onSelect: (token: TLST) => void,
+	isSelected: boolean,
+	shouldHideRadio?: boolean
 }): ReactElement {
 	const {balances} = useWallet();
 
@@ -41,6 +44,13 @@ function ViewLSTWithdrawForm({token, amount}: {
 	return (
 		<div className={'lg:col-span-4'}>
 			<div className={'grow-1 flex h-10 w-full items-center justify-center rounded-md bg-neutral-200 p-2'}>
+				{!shouldHideRadio && <input
+					type={'radio'}
+					radioGroup={'singleToken'}
+					checked={isSelected}
+					className={'absolute left-12 mt-0.5 h-2 w-2 cursor-pointer border-none bg-transparent text-purple-300 outline outline-2 outline-offset-2 outline-neutral-600 checked:bg-purple-300 checked:outline-purple-300 focus-within:bg-purple-300 focus:bg-purple-300'}
+					style={{backgroundImage: 'none'}}
+					onChange={(): void => onSelect(token)} />}
 				<div className={'mr-2 h-6 w-6 min-w-[24px]'}>
 					<ImageWithFallback
 						alt={token.name}
@@ -56,7 +66,6 @@ function ViewLSTWithdrawForm({token, amount}: {
 					min={0}
 					maxLength={20}
 					disabled
-					max={balanceOf?.normalized || 0}
 					step={1 / 10 ** (token?.decimals || 18)}
 					inputMode={'numeric'}
 					placeholder={`0.000000 ${token.symbol}`}
@@ -112,12 +121,12 @@ function ViewSelectedTokens(): ReactElement {
 					functionName: 'get_remove_single_lp',
 					args: [toBigInt(selectedLSTIndex), newAmount.raw]
 				});
-				set_amounts(amounts.map((item, index): TNormalizedBN => {
+				set_amounts(amounts.map((_, index): TNormalizedBN => {
 					if (index === selectedLSTIndex) {
 						const amountWithSlippage: bigint = estimatedAmount - toBigInt(estimatedAmount / slippage);
 						return toNormalizedBN(amountWithSlippage);
 					}
-					return item;
+					return toNormalizedBN(0);
 				}));
 			} else {
 				set_amounts(amounts.map((item, index): TNormalizedBN => {
@@ -179,40 +188,6 @@ function ViewSelectedTokens(): ReactElement {
 
 	}, [amounts, fromAmount.raw, isActive, provider, refresh, selectedLST.index, shouldBalanceTokens]);
 
-	function renderWithoutShouldBalanceTokens(): ReactElement {
-		return (
-			<TokenInput
-				label={'Select token'}
-				token={selectedLST}
-				tokens={lst}
-				value={amounts[selectedLST.index]}
-				allowance={toNormalizedBN(MAX_UINT_256)}
-				isDisabled
-				shouldCheckAllowance={false}
-				shouldCheckBalance={false}
-				onChange={(): void => undefined}
-				onChangeToken={(token): void => {
-					set_selectedLST(token);
-					onUpdateFromAmount(fromAmount, token.index, shouldBalanceTokens);
-				}} />
-		);
-	}
-
-	function renderWithShouldBalanceTokens(): ReactElement {
-		return (
-			<div className={'grid gap-5'}>
-				<div className={'-mb-4 flex w-full text-neutral-600'}>
-					{'Select token'}
-				</div>
-				{lst.map((token, index): ReactElement => (
-					<ViewLSTWithdrawForm
-						key={token.address}
-						token={token}
-						amount={amounts[index]} />
-				))}
-			</div>
-		);
-	}
 
 	return (
 		<div className={'col-span-18 py-6 pr-0 md:py-10 md:pr-[72px]'}>
@@ -275,8 +250,23 @@ function ViewSelectedTokens(): ReactElement {
 						</button>
 					</div>
 					<div className={'mt-4'}>
-						{!shouldBalanceTokens && renderWithoutShouldBalanceTokens()}
-						{shouldBalanceTokens && renderWithShouldBalanceTokens()}
+						<div className={'grid gap-5'}>
+							<div className={'-mb-4 flex w-full text-neutral-600'}>
+								{'Select token'}
+							</div>
+							{lst.map((token, index): ReactElement => (
+								<ViewLSTWithdrawForm
+									key={token.address}
+									isSelected={selectedLST.address === token.address}
+									onSelect={(token): void => {
+										set_selectedLST(token);
+										onUpdateFromAmount(fromAmount, token.index, shouldBalanceTokens);
+									}}
+									shouldHideRadio={shouldBalanceTokens}
+									token={token}
+									amount={amounts[index]} />
+							))}
+						</div>
 					</div>
 				</div>
 			</div>
