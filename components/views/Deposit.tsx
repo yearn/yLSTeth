@@ -412,7 +412,7 @@ function ViewDeposit(): ReactElement {
 										) : onDeposit()
 									)}
 									isBusy={shouldApproveDeposit ? txStatus.pending : txStatusDeposit.pending}
-									isDisabled={!canDeposit || !provider}
+									isDisabled={!canDeposit || !provider || toBigInt(estimateOut) === 0n}
 									variant={'outlined'}
 									className={'w-full md:w-[184px]'}>
 									{shouldApproveDeposit ? 'Approve for Deposit' : 'Deposit'}
@@ -426,7 +426,7 @@ function ViewDeposit(): ReactElement {
 										) : onDepositAndStake()
 									)}
 									isBusy={shouldApproveDepositStake ? txStatusApproveDS.pending : txStatusDepositStake.pending}
-									isDisabled={!canDeposit || !provider}
+									isDisabled={!canDeposit || !provider || toBigInt(estimateOut) === 0n}
 									className={'w-fit md:min-w-[184px]'}>
 									{shouldApproveDepositStake ? 'Approve for Deposit & Stake' : 'Deposit & Stake'}
 								</Button>

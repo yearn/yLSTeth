@@ -293,7 +293,7 @@ function ViewSwapBox({
 				<div className={'mt-10 flex justify-start'}>
 					<Button
 						isBusy={txStatus.pending}
-						isDisabled={!txStatus.none || fromAmount.raw === 0n || !provider}
+						isDisabled={!txStatus.none || fromAmount.raw === 0n || !provider || toAmount.raw === 0n}
 						onClick={(): void => {
 							if (!hasAllowance) {
 								onApprove();
