@@ -199,12 +199,7 @@ function ViewSelectedTokens(): ReactElement {
 			</div>
 			<div className={'pt-4'}>
 				<div className={'flex flex-row items-center space-x-2'}>
-					<label className={'mr-7 flex cursor-pointer flex-row items-center justify-center space-x-2'}>
-						<p
-							title={'Single token'}
-							className={cl('hover-fix', !shouldBalanceTokens ? 'text-purple-300 font-bold' : 'text-neutral-600 font-normal')}>
-							{'Single token'}
-						</p>
+					<label className={'mr-7 flex cursor-pointer flex-row items-center justify-center space-x-3'}>
 						<input
 							type={'radio'}
 							radioGroup={'singleToken'}
@@ -215,13 +210,13 @@ function ViewSelectedTokens(): ReactElement {
 								set_shouldBalanceTokens(false);
 								onUpdateFromAmount(fromAmount, selectedLST.index, false);
 							}} />
-					</label>
-					<label className={'flex cursor-pointer flex-row items-center justify-center space-x-2'}>
 						<p
-							title={'Balanced amounts'}
-							className={cl('hover-fix', shouldBalanceTokens ? 'text-purple-300 font-bold' : 'text-neutral-600 font-normal')}>
-							{'Balanced amounts'}
+							title={'Single token'}
+							className={cl('hover-fix pt-1', !shouldBalanceTokens ? 'text-purple-300 font-bold' : 'text-neutral-600 font-normal')}>
+							{'Single token'}
 						</p>
+					</label>
+					<label className={'flex cursor-pointer flex-row items-center justify-center space-x-3'}>
 						<input
 							type={'radio'}
 							radioGroup={'singleToken'}
@@ -232,6 +227,11 @@ function ViewSelectedTokens(): ReactElement {
 								set_shouldBalanceTokens(true);
 								onUpdateFromAmount(fromAmount, selectedLST.index, true);
 							}} />
+						<p
+							title={'Balanced amounts'}
+							className={cl('hover-fix pt-1', shouldBalanceTokens ? 'text-purple-300 font-bold' : 'text-neutral-600 font-normal')}>
+							{'Balanced amounts'}
+						</p>
 					</label>
 
 				</div>
@@ -251,9 +251,6 @@ function ViewSelectedTokens(): ReactElement {
 					</div>
 					<div className={'mt-4'}>
 						<div className={'grid gap-5'}>
-							<div className={'-mb-4 flex w-full text-neutral-600'}>
-								{'Select token'}
-							</div>
 							{lst.map((token, index): ReactElement => (
 								<ViewLSTWithdrawForm
 									key={token.address}
