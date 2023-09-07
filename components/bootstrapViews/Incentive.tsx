@@ -229,7 +229,7 @@ function IncentiveGroupBreakdown({incentives}: {incentives: TIncentives[]}): Rea
 }
 
 function IncentiveGroup({item}: {item: TGroupedIncentives}): ReactElement {
-	const {safeChainID} = useChainID(Number(process.env.BASE_CHAINID));
+	const {safeChainID} = useChainID(Number(process.env.BASE_CHAIN_ID));
 
 	return (
 		<details
@@ -509,7 +509,7 @@ function IncentiveConfirmationModal({
 
 function ViewIncentive(): ReactElement {
 	const {address, isActive, provider} = useWeb3();
-	const {safeChainID} = useChainID(Number(process.env.BASE_CHAINID));
+	const {safeChainID} = useChainID(Number(process.env.BASE_CHAIN_ID));
 	const {balances, refresh} = useWallet();
 	const {tokenList} = useTokenList();
 	const {
@@ -574,8 +574,7 @@ function ViewIncentive(): ReactElement {
 			return toNormalizedBN(0);
 		}
 		return toNormalizedBN((balances?.[tokenToUse.address]?.raw || 0) || 0, tokenToUse.decimals || 18);
-	// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [balances, tokenToUse, tokenToUse?.address]);
+	}, [balances, tokenToUse]);
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	** Change the inputed amount when the user types something in the input field.

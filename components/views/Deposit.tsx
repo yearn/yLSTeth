@@ -1,374 +1,443 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import assert from 'assert';
 import {ImageWithFallback} from 'components/common/ImageWithFallback';
-import IconSpinner from 'components/icons/IconSpinner';
-import useBootstrap from 'contexts/useBootstrap';
-import {useWallet} from 'contexts/useWallet';
-import {useTimer} from 'hooks/useTimer';
-import {formatDate, handleInputChangeEventValue} from 'utils';
-import BOOTSTRAP_ABI from 'utils/abi/bootstrap.abi';
-import {depositETH} from 'utils/actions';
+import {RenderAmount} from 'components/common/RenderAmount';
+import Toggle from 'components/common/toggle';
+import IconCircleCross from 'components/icons/IconCircleCross';
+import IconWarning from 'components/icons/IconWarning';
+import useLST from 'contexts/useLST';
+import useWallet from 'contexts/useWallet';
+import {handleInputChangeEventValue} from 'utils';
+import {ESTIMATOR_ABI} from 'utils/abi/estimator.abi';
+import {addLiquidityToPool, approveERC20, depositAndStake} from 'utils/actions';
+import {LST} from 'utils/constants';
 import {ETH_TOKEN, STYETH_TOKEN, YETH_TOKEN} from 'utils/tokens';
-import {parseAbiItem} from 'viem';
-import {useContractRead} from 'wagmi';
+import {useContractReads} from 'wagmi';
+import {useUpdateEffect} from '@react-hookz/web';
 import {Button} from '@yearn-finance/web-lib/components/Button';
-import {Renderable} from '@yearn-finance/web-lib/components/Renderable';
 import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
 import {toAddress} from '@yearn-finance/web-lib/utils/address';
 import {cl} from '@yearn-finance/web-lib/utils/cl';
+import {decodeAsBigInt} from '@yearn-finance/web-lib/utils/decoder';
 import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
 import {performBatchedUpdates} from '@yearn-finance/web-lib/utils/performBatchedUpdates';
-import {getClient} from '@yearn-finance/web-lib/utils/wagmi/utils';
 import {defaultTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 
-import type {ChangeEvent, ReactElement} from 'react';
+import type {TLST} from 'hooks/useLSTData';
+import type {ChangeEvent, Dispatch, ReactElement} from 'react';
+import type {TUseBalancesTokens} from '@yearn-finance/web-lib/hooks/useBalances';
 import type {TAddress} from '@yearn-finance/web-lib/types';
 import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import type {TTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 
-function Timer(): ReactElement {
-	const {periods} = useBootstrap();
-	const {depositBegin, depositEnd, depositStatus} = periods || {};
-	const time = useTimer({endTime: depositStatus === 'started' ? Number(depositEnd) : Number(depositBegin)});
-	return <>{depositStatus === 'ended' ? 'ended' : depositStatus === 'started' ? time : `in ${time}`}</>;
-}
+function ViewLSTDepositForm({token, amount, onUpdateAmount}: {
+	token: TLST,
+	amount: TNormalizedBN,
+	onUpdateAmount: (amount: TNormalizedBN) => void,
+}): ReactElement {
+	const {provider} = useWeb3();
+	const {balances} = useWallet();
 
-type TDepositHistory = {
-	timestamp: bigint;
-	amount: bigint;
-	depositor: TAddress;
-}
+	const balanceOf = useMemo((): TNormalizedBN => {
+		return toNormalizedBN((balances?.[token.address]?.raw || 0) || 0);
+	}, [balances, token.address]);
 
-function DepositItem({item}: {item: TDepositHistory}): ReactElement {
+	const onChangeAmount = useCallback((e: ChangeEvent<HTMLInputElement>): void => {
+		const element = document.getElementById('amountToSend') as HTMLInputElement;
+		const newAmount = handleInputChangeEventValue(e, token?.decimals || 18);
+		if (!provider) {
+			return onUpdateAmount(newAmount);
+		}
+		if (newAmount.raw > balances?.[token.address]?.raw) {
+			if (element?.value) {
+				element.value = formatAmount(balances?.[token.address]?.normalized, 0, 18);
+			}
+			return onUpdateAmount(toNormalizedBN(balances?.[token.address]?.raw || 0));
+		}
+		onUpdateAmount(newAmount);
+	}, [balances, provider, onUpdateAmount, token.address, token?.decimals]);
+
 	return (
-		<div className={'grid grid-cols-12 py-3'}>
-			<div className={'col-span-12 flex w-full flex-row items-center justify-between md:col-span-2 md:justify-start'}>
-				<small className={'block text-neutral-500 md:hidden'}>
-					{'Date'}
-				</small>
-				<p>{formatDate(Number(item.timestamp) * 1000)}</p>
+		<div className={'lg:col-span-4'}>
+			<div className={'grow-1 flex h-10 w-full items-center justify-center rounded-md bg-white p-2'}>
+				<div className={'mr-2 h-6 w-6 min-w-[24px]'}>
+					<ImageWithFallback
+						alt={token.name}
+						unoptimized
+						src={token.logoURI}
+						width={24}
+						height={24} />
+				</div>
+				<input
+					id={token.address}
+					className={'w-full overflow-x-scroll border-none bg-transparent px-0 py-4 font-mono text-sm outline-none scrollbar-none'}
+					type={'number'}
+					min={0}
+					maxLength={20}
+					max={balanceOf?.normalized || 0}
+					step={1 / 10 ** (token?.decimals || 18)}
+					inputMode={'numeric'}
+					placeholder={`0.000000 ${token.symbol}`}
+					pattern={'^((?:0|[1-9]+)(?:.(?:d+?[1-9]|[1-9]))?)$'}
+					value={amount?.normalized || ''}
+					onChange={onChangeAmount} />
+				<div className={'ml-2 flex flex-row items-center space-x-2'}>
+					<div className={'relative h-4 w-4'}>
+						<div className={'absolute inset-0'}>
+							<span className={'tooltip'}>
+								<IconWarning
+									style={{opacity: (amount.raw > token.poolAllowance.raw) && (amount.raw <= balanceOf.raw) ? 1 : 0}}
+									className={'h-4 w-4 text-neutral-400 transition-opacity'} />
+								<span className={'tooltipLight !-inset-x-24 top-full mt-2 !w-auto'}>
+									<div
+										suppressHydrationWarning
+										className={'w-fit rounded-md border border-neutral-700 bg-neutral-900 p-1 px-2 text-center text-xs font-medium text-neutral-0'}>
+										{`You may be prompted to approve the spending of ${formatAmount(amount.normalized, 6, 6)} ${token.symbol}`}
+									</div>
+								</span>
+							</span>
+						</div>
+						<IconCircleCross
+							style={{opacity: amount.raw > balanceOf.raw ? 1 : 0, pointerEvents: amount.raw > balanceOf.raw ? 'auto' : 'none'}}
+							className={'absolute inset-0 h-4 w-4 text-red-900 transition-opacity'} />
+					</div>
+					<button
+						type={'button'}
+						tabIndex={-1}
+						onClick={(): void => onUpdateAmount(balanceOf)}
+						className={cl('px-2 py-1 text-xs rounded-md border border-purple-300 transition-colors bg-purple-300 text-white')}>
+						{'Max'}
+					</button>
+				</div>
 			</div>
-			<div className={'col-span-12 flex justify-between pr-0 md:col-span-2 md:justify-end md:pr-1'}>
-				<small className={'block text-neutral-500 md:hidden'}>
-					{'Locked, st-yETH'}
-				</small>
-				<p className={'font-number'}>
-					{`${formatAmount(toNormalizedBN(item.amount).normalized, 0, 6)}`}
+			<p
+				suppressHydrationWarning
+				className={'pl-2 pt-1 text-xs text-neutral-600'}>
+				{`You have ${formatAmount(balanceOf?.normalized || 0, 2, 6)} ${token.symbol}`}
+			</p>
+		</div>
+	);
+}
+
+function ViewDetails({estimateOut, bonusOrPenalty}: {estimateOut: bigint, bonusOrPenalty: number}): ReactElement {
+	// const {slippage} = useLST();
+
+	const bonusOrPenaltyFormatted = useMemo((): string => {
+		if (Number.isNaN(bonusOrPenalty)) {
+			return formatAmount(0, 2, 2);
+		}
+		if (bonusOrPenalty === 0) {
+			return formatAmount(0, 2, 2);
+		}
+		if (Number(bonusOrPenalty.toFixed(6)) === 0) {
+			return formatAmount(0, 2, 2);
+		}
+		return bonusOrPenalty.toFixed(6);
+	}, [bonusOrPenalty]);
+
+	return (
+		<div className={'col-span-12 py-6 pl-0 md:py-10 md:pl-[72px]'}>
+			<div className={'mb-10 flex w-full flex-col !rounded-md bg-neutral-100'}>
+				<h2 className={'text-xl font-black'}>
+					{'Details'}
+				</h2>
+				<dl className={'grid grid-cols-3 gap-2 pt-4'}>
+					<dt className={'col-span-2'}>{'Est. deposit Bonus/Penalties'}</dt>
+					<dd suppressHydrationWarning className={'text-right font-bold'}>
+						{`${formatAmount(bonusOrPenaltyFormatted, 2, 6)}%`}
+					</dd>
+
+					{/* <dt className={'col-span-2'}>{'Slippage'}</dt>
+					<dd suppressHydrationWarning className={'text-right font-bold'}>
+						{`${formatAmount(Number(slippage / 100n), 2, 2)}%`}
+					</dd> */}
+
+					<dt className={'col-span-2'}>{'Minimum yETH amount'}</dt>
+					<dd suppressHydrationWarning className={'text-right font-bold'}>
+						<RenderAmount
+							value={Number(toNormalizedBN(estimateOut).normalized)}
+							decimals={6} />
+					</dd>
+				</dl>
+			</div>
+			<div>
+				<h2 className={'text-xl font-black'}>
+					{'Info'}
+				</h2>
+				<p className={'whitespace-break-spaces pt-4 text-neutral-600'}>
+					{'Deposit any of the 5 LSTs (or any combination of them) to receive yETH. You can choose to deposit and stake to receive st-yETH and immediately start earning that sweet, sweet liquid staking yield.'}
 				</p>
 			</div>
 		</div>
 	);
 }
 
-function DepositHistory({isPending, depositHistory}: {isPending: boolean, depositHistory: TDepositHistory[]}): ReactElement {
-	return (
-		<div className={'mt-8 border-t-2 border-neutral-300 pt-6'}>
-			<div aria-label={'header'} className={'mb-2 hidden grid-cols-12 md:grid'}>
-				<div className={'col-span-2'}>
-					<p className={'text-xs text-neutral-500'}>
-						{'Date'}
-					</p>
-				</div>
-				<div className={'col-span-2 flex justify-end'}>
-					<p className={'group flex flex-row text-xs text-neutral-500'}>
-						{'You locked, ETH'}
-					</p>
-				</div>
-			</div>
-
-			{depositHistory.map((item, index): ReactElement => <DepositItem key={index} item={item} />)}
-			{isPending && (
-				<div className={'mt-6 flex flex-row items-center justify-center'}>
-					<IconSpinner className={'!h-6 !w-6 !text-neutral-400'} />
-				</div>
-			)}
-		</div>
-	);
-}
-
 function ViewDeposit(): ReactElement {
-	const {periods: {depositStatus}, incentives: {totalDepositedETH}} = useBootstrap();
-	const {address, isActive, provider, chainID} = useWeb3();
+	const {isActive, provider} = useWeb3();
+	const {lst, onUpdateLST} = useLST();
 	const {balances, refresh} = useWallet();
-	const [amountToSend, set_amountToSend] = useState<TNormalizedBN>(toNormalizedBN(0));
-	const [depositTxStatus, set_depositTxStatus] = useState<TTxStatus>(defaultTxStatus);
-	const [depositHistory, set_depositHistory] = useState<TDepositHistory[]>([]);
-	const [isFetchingHistory, set_isFetchingHistory] = useState<boolean>(false);
-	const [className, set_className] = useState<string>('pointer-events-none opacity-40');
-	const tokenToSend = ETH_TOKEN;
-	const {data: tokensDeposited, refetch} = useContractRead({
-		abi: BOOTSTRAP_ABI,
-		address: toAddress(process.env.BOOTSTRAP_ADDRESS),
-		functionName: 'deposits',
-		args: [toAddress(address)],
-		chainId: Number(chainID)
-	});
+	const [shouldBalanceTokens, set_shouldBalanceTokens] = useState(false);
+	const [amounts, set_amounts] = useState<TNormalizedBN[]>([toNormalizedBN(0), toNormalizedBN(0), toNormalizedBN(0), toNormalizedBN(0), toNormalizedBN(0)]);
+	const [lastAmountUpdated, set_lastAmountUpdated] = useState(-1);
+	const [txStatus, set_txStatus] = useState<TTxStatus>(defaultTxStatus);
+	const [txStatusApproveDS, set_txStatusApproveDS] = useState<TTxStatus>(defaultTxStatus);
+	const [txStatusDeposit, set_txStatusDeposit] = useState<TTxStatus>(defaultTxStatus);
+	const [txStatusDepositStake, set_txStatusDepositStake] = useState<TTxStatus>(defaultTxStatus);
 
-	const filterEvents = useCallback(async (): Promise<void> => {
-		if (!address) {
+	/* 🔵 - Yearn Finance **************************************************************************
+	** Once the user update the amount of a token, we have two options, depending on the value of
+	** `shouldBalanceTokens`:
+	** 1. Balance the amounts of all tokens based on the rate and the weight of the tokens
+	** 2. Just update the amount of the token that was changed
+	**********************************************************************************************/
+	const onChangeAmount = useCallback((lstIndex: number, amount: TNormalizedBN): void => {
+		if (shouldBalanceTokens) {
+			const initialTokenAmount = amount.raw;
+			const initialTokenRate = toBigInt(lst?.[lstIndex].rate.raw);
+			const initialTokenWeight = toBigInt(lst?.[lstIndex].weight.raw || 1n);
+
+			const newAmounts = lst.map((item, index): TNormalizedBN => {
+				if (item.address === lst[lstIndex].address) {
+					return amount;
+				}
+				const balancedTokenRate = toBigInt(lst?.[index].rate.raw || 1n);
+				const balancedTokenWeight = lst?.[index].weight.raw;
+				const balancedTokenAmount = toBigInt(initialTokenAmount * initialTokenRate * balancedTokenWeight / initialTokenWeight / balancedTokenRate);
+				return toNormalizedBN(balancedTokenAmount);
+			});
+			performBatchedUpdates((): void => {
+				set_amounts(newAmounts);
+				set_lastAmountUpdated(lstIndex);
+			});
 			return;
 		}
-		set_isFetchingHistory(true);
-		const publicClient = getClient(Number(process.env.DEFAULT_CHAINID));
-		const rangeLimit = 1_000_000n;
-		const deploymentBlockNumber = toBigInt(process.env.INIT_BLOCK_NUMBER);
-		const currentBlockNumber = await publicClient.getBlockNumber();
-		const history: TDepositHistory[] = [];
-		for (let i = deploymentBlockNumber; i < currentBlockNumber; i += rangeLimit) {
-			const logs = await publicClient.getLogs({
-				address: toAddress(process.env.BOOTSTRAP_ADDRESS),
-				event: parseAbiItem('event Deposit(address indexed depositor, address indexed receiver, uint256 amount)'),
-				args: {
-					depositor: toAddress(address)
-				},
-				fromBlock: i,
-				toBlock: i + rangeLimit
-			});
-
-			for (const log of logs) {
-				if (!log.blockNumber) {
-					continue;
-				}
-				const blockData = await publicClient.getBlock({blockNumber: log.blockNumber});
-				history.push({
-					timestamp: blockData.timestamp,
-					amount: toBigInt(log.args.amount),
-					depositor: toAddress(log.args.depositor)
-				});
-			}
-		}
+		const newAmounts = [...amounts];
+		newAmounts[lstIndex] = amount;
 		performBatchedUpdates((): void => {
-			set_depositHistory(history);
-			set_isFetchingHistory(false);
+			set_amounts(newAmounts);
+			set_lastAmountUpdated(lstIndex);
 		});
-	}, [address]);
-	useEffect((): void => {
-		filterEvents();
-	}, [filterEvents]);
+	}, [amounts, lst, shouldBalanceTokens]);
 
-	useEffect((): void => {
-		if (depositStatus !== 'started') {
-			set_className('pointer-events-none opacity-40');
-		} else {
-			set_className('');
-		}
-
-	}, [depositStatus, className]);
-
-	const balanceOf = useMemo((): TNormalizedBN => {
-		return toNormalizedBN((balances?.[tokenToSend.address]?.raw || 0) || 0);
-	}, [balances, tokenToSend.address]);
-
-	const balanceDeposited = useMemo((): TNormalizedBN => {
-		return toNormalizedBN((tokensDeposited || 0) || 0);
-	}, [tokensDeposited]);
-
-	const safeMaxValue = useMemo((): TNormalizedBN => {
-		return toNormalizedBN(((balances?.[tokenToSend.address]?.raw || 0n) * 9n / 10n) || 0);
-	}, [balances, tokenToSend.address]);
-
-	const onChangeAmount = useCallback((e: ChangeEvent<HTMLInputElement>): void => {
-		const element = document.getElementById('amountToSend') as HTMLInputElement;
-		const newAmount = handleInputChangeEventValue(e, tokenToSend?.decimals || 18);
-		if (newAmount.raw > balances?.[tokenToSend.address]?.raw) {
-			if (element?.value) {
-				element.value = formatAmount(balances?.[tokenToSend.address]?.normalized, 0, 18);
+	/* 🔵 - Yearn Finance **************************************************************************
+	** Once the inputed amounts are updated, we need to fetch the `get_add_lp` and `get_vb` values.
+	** This is done by using the `useContractReads` hook.
+	** By comparing the `get_add_lp` value and the `get_vb` value we can calculate the bonus or
+	** penalty that will be applied to the deposit.
+	**********************************************************************************************/
+	const {data} = useContractReads({
+		enabled: amounts.some((item): boolean => item.raw > 0n),
+		keepPreviousData: true,
+		contracts: [
+			{
+				abi: ESTIMATOR_ABI,
+				address: toAddress(process.env.ESTIMATOR_ADDRESS),
+				functionName: 'get_add_lp',
+				chainId: Number(process.env.DEFAULT_CHAIN_ID),
+				args: [amounts.map((item): bigint => item.raw)]
+			},
+			{
+				abi: ESTIMATOR_ABI,
+				address: toAddress(process.env.ESTIMATOR_ADDRESS),
+				functionName: 'get_vb',
+				chainId: Number(process.env.DEFAULT_CHAIN_ID),
+				args: [amounts.map((item): bigint => item.raw)]
 			}
-			return set_amountToSend(toNormalizedBN(balances?.[tokenToSend.address]?.raw || 0));
-		}
-		set_amountToSend(newAmount);
-	}, [balances, tokenToSend.address, tokenToSend?.decimals]);
+		]
+	});
+	const estimateOut = decodeAsBigInt(data?.[0] as never);
+	const vb = decodeAsBigInt(data?.[1] as never);
 
-	const updateToPercent = useCallback((percent: number): void => {
-		const element = document.getElementById('amountToSend') as HTMLInputElement;
-		const newAmount = toNormalizedBN((balanceOf.raw * BigInt(percent)) / 100n);
-		if (newAmount.raw > balances?.[tokenToSend.address]?.raw) {
-			if (element?.value) {
-				element.value = formatAmount(balances?.[tokenToSend.address]?.normalized, 0, 18);
+
+	/* 🔵 - Yearn Finance **************************************************************************
+	** When the user clicks the toggle button, if the toggle is set to true and if the user already
+	** inputed something, we need to balance the amounts of all tokens based on the rate and the
+	** weight of the last token that was updated.
+	**********************************************************************************************/
+	useUpdateEffect((): void => {
+		if (shouldBalanceTokens) {
+			if (lastAmountUpdated !== -1) {
+				onChangeAmount(lastAmountUpdated, amounts[lastAmountUpdated]);
 			}
-			return set_amountToSend(toNormalizedBN(balances?.[tokenToSend.address]?.raw || 0));
 		}
-		set_amountToSend(newAmount);
-	}, [balanceOf, balances, tokenToSend.address]);
+	}, [shouldBalanceTokens]);
 
-	const amountPercentage = useMemo((): number => {
-		const percent = Number(amountToSend.normalized) / Number(balanceOf.normalized) * 100;
-		return Math.round(percent * 100) / 100;
-	}, [amountToSend.normalized, balanceOf.normalized]);
+	/* 🔵 - Yearn Finance **************************************************************************
+	** Check whether the deposit buttons are enabled or not. This is used by checking if at least
+	** one of the inputed amounts is greater than zero and if all the inputed amounts are less than
+	** or equal to the user's balance.
+	**********************************************************************************************/
+	const canDeposit = useMemo((): boolean => {
+		return (
+			amounts.some((item): boolean => item.raw > 0n)
+			&& amounts.every((item, index): boolean => item.raw <= (balances?.[lst?.[index]?.address]?.raw || 0n))
+		);
+	}, [amounts, balances, lst]);
+
+	const shouldApproveDeposit = useMemo((): boolean => {
+		return (amounts.some((item, index): boolean => item.raw > lst[index].poolAllowance.raw));
+	}, [amounts, lst]);
+
+	const shouldApproveDepositStake = useMemo((): boolean => {
+		return (amounts.some((item, index): boolean => item.raw > lst[index].zapAllowance.raw));
+	}, [amounts, lst]);
+
+
+	/* 🔵 - Yearn Finance **************************************************************************
+	** Web3 action to allow the pool contract to spend the user's underlying pool tokens.
+	**********************************************************************************************/
+	const onApprove = useCallback(async (
+		spender: TAddress,
+		key: 'zapAllowance' | 'poolAllowance',
+		txStatusSetter: Dispatch<TTxStatus>
+	): Promise<void> => {
+		assert(isActive, 'Wallet not connected');
+		assert(provider, 'Provider not connected');
+
+		txStatusSetter({...defaultTxStatus, pending: true});
+		for (const item of lst) {
+			const amount = amounts[lst.indexOf(item)];
+			if (amount.raw <= 0n) {
+				continue;
+			}
+			if (amount.raw <= item[key].raw) {
+				continue;
+			}
+
+			const result = await approveERC20({
+				connector: provider,
+				contractAddress: item.address,
+				spenderAddress: spender,
+				amount: amount.raw,
+				statusHandler: txStatusSetter
+			});
+			if (result.isSuccessful) {
+				onUpdateLST();
+				await refresh([{...ETH_TOKEN, token: ETH_TOKEN.address}]);
+			} else {
+				txStatusSetter({...defaultTxStatus, error: true});
+				setTimeout((): void => {
+					txStatusSetter({...defaultTxStatus});
+				}, 3000);
+				return;
+			}
+		}
+		txStatusSetter({...defaultTxStatus, success: true});
+		setTimeout((): void => {
+			txStatusSetter({...defaultTxStatus});
+		}, 3000);
+	}, [amounts, isActive, lst, onUpdateLST, provider, refresh]);
 
 	const onDeposit = useCallback(async (): Promise<void> => {
 		assert(isActive, 'Wallet not connected');
 		assert(provider, 'Provider not connected');
-		assert(amountToSend.raw > 0n, 'Amount must be greater than 0');
 
-		const result = await depositETH({
+		const result = await addLiquidityToPool({
 			connector: provider,
-			contractAddress: toAddress(process.env.BOOTSTRAP_ADDRESS),
-			amount: amountToSend.raw,
-			statusHandler: set_depositTxStatus
+			contractAddress: toAddress(process.env.POOL_ADDRESS),
+			amounts: amounts.map((item): bigint => item.raw),
+			estimateOut,
+			statusHandler: set_txStatusDeposit
 		});
 		if (result.isSuccessful) {
-			set_amountToSend(toNormalizedBN(0));
-			await Promise.all([
-				filterEvents(),
-				refetch(),
-				refresh([
-					{...ETH_TOKEN, token: ETH_TOKEN.address},
-					{...STYETH_TOKEN, token: STYETH_TOKEN.address},
-					{...YETH_TOKEN, token: YETH_TOKEN.address}
-				])
+			onUpdateLST();
+			await refresh([
+				{...ETH_TOKEN, token: ETH_TOKEN.address},
+				{...YETH_TOKEN, token: YETH_TOKEN.address},
+				...LST.map((item): TUseBalancesTokens => ({...item, token: item.address}))
 			]);
+			set_amounts(amounts.map((item): TNormalizedBN => ({...item, raw: 0n})));
 		}
-	}, [amountToSend.raw, isActive, provider, refresh, refetch, filterEvents]);
+	}, [amounts, estimateOut, isActive, onUpdateLST, provider, refresh]);
+
+	const onDepositAndStake = useCallback(async (): Promise<void> => {
+		assert(isActive, 'Wallet not connected');
+		assert(provider, 'Provider not connected');
+
+		const result = await depositAndStake({
+			connector: provider,
+			contractAddress: toAddress(process.env.ZAP_ADDRESS),
+			amounts: amounts.map((item): bigint => item.raw),
+			estimateOut,
+			statusHandler: set_txStatusDepositStake
+		});
+		if (result.isSuccessful) {
+			onUpdateLST();
+			await refresh([
+				{...ETH_TOKEN, token: ETH_TOKEN.address},
+				{...YETH_TOKEN, token: YETH_TOKEN.address},
+				{...STYETH_TOKEN, token: STYETH_TOKEN.address},
+				...LST.map((item): TUseBalancesTokens => ({...item, token: item.address}))
+			]);
+			set_amounts(amounts.map((item): TNormalizedBN => ({...item, raw: 0n})));
+		}
+	}, [amounts, estimateOut, isActive, onUpdateLST, provider, refresh]);
 
 	return (
-		<section className={'grid grid-cols-1 pt-10 md:mb-20 md:pt-12'}>
-			<div className={'mb-20 md:mb-0'}>
-				<div className={'mb-10 flex w-full flex-col justify-center'}>
-					<h1 className={'text-3xl font-black md:text-8xl'}>
-						{'Deposit'}
-					</h1>
-					<b
-						suppressHydrationWarning
-						className={'font-number mt-4 text-4xl text-purple-300'}>
-						<Timer />
-					</b>
-					<div className={'grid w-full items-center gap-4 pt-8 md:grid-cols-1 md:gap-6 lg:grid-cols-2'}>
-						<div className={'w-full'}>
-							<span className={'text-neutral-700'}>
-								<p>{'Decide how much ETH you want to lock as st-yETH.'}</p>
-								<p>{'Remember this ETH will be locked for 16 weeks, but by holding st-yETH:'}</p>
-								<div className={'pt-4'}>
-									<b>{'You’ll receive incentives for voting on which LSTs will be included in yETH. Ka-ching.'}</b>
-								</div>
-							</span>
-						</div>
-
-						<div className={'flex justify-end space-x-4'}>
-							<div className={'w-full bg-neutral-100 p-4 lg:w-72'}>
-								<p className={'pb-2'}>{'Current total deposits, ETH'}</p>
-								<b suppressHydrationWarning className={'font-number text-3xl'}>
-									<Renderable shouldRender={true} fallback ={'-'}>
-										{formatAmount(totalDepositedETH.normalized, 6, 6)}
-									</Renderable>
-								</b>
+		<section className={'relative px-4 md:px-[72px]'}>
+			<div className={'grid grid-cols-1 divide-x-0 divide-y-2 divide-neutral-300 md:grid-cols-30 md:divide-x-2 md:divide-y-0'}>
+				<div className={'col-span-18 py-6 pr-0 md:py-10 md:pr-[72px]'}>
+					<div className={'flex w-full flex-col !rounded-md bg-neutral-100'}>
+						<h2 className={'text-xl font-black'}>
+							{'Deposit'}
+						</h2>
+						<div className={'pt-4'}>
+							<div className={'flex flex-row items-center space-x-2'}>
+								<b className={'text-purple-300'}>{'Balance tokens in proportion'}</b>
+								<Toggle
+									isEnabled={shouldBalanceTokens}
+									onChange={(): void => set_shouldBalanceTokens(!shouldBalanceTokens)}
+								/>
 							</div>
-							<div className={'w-full bg-neutral-100 p-4 lg:w-72'}>
-								<p className={'pb-2'}>{'Your deposit, ETH'}</p>
-								<b suppressHydrationWarning className={'font-number text-3xl'}>
-									<Renderable shouldRender={true} fallback ={'-'}>
-										{formatAmount(Number(balanceDeposited.normalized), 6, 6)}
-									</Renderable>
-								</b>
+
+							<div className={'mt-5 grid gap-5'}>
+								{lst.map((token, index): ReactElement => (
+									<ViewLSTDepositForm
+										key={token.address}
+										token={token}
+										amount={amounts[index]}
+										onUpdateAmount={(amount): void => onChangeAmount(index, amount)} />
+								))}
+							</div>
+						</div>
+						<div className={'mt-10 flex justify-start'}>
+							<div className={'flex w-full flex-row space-x-4'}>
+								<Button
+									onClick={async (): Promise<void> => (
+										shouldApproveDeposit ? onApprove(
+											toAddress(process.env.POOL_ADDRESS),
+											'poolAllowance',
+											set_txStatus
+										) : onDeposit()
+									)}
+									isBusy={shouldApproveDeposit ? txStatus.pending : txStatusDeposit.pending}
+									isDisabled={!canDeposit || !provider || toBigInt(estimateOut) === 0n}
+									variant={'outlined'}
+									className={'w-full md:w-[184px]'}>
+									{shouldApproveDeposit ? 'Approve for Deposit' : 'Deposit'}
+								</Button>
+								<Button
+									onClick={async (): Promise<void> => (
+										shouldApproveDepositStake ? onApprove(
+											toAddress(process.env.ZAP_ADDRESS),
+											'zapAllowance',
+											set_txStatusApproveDS
+										) : onDepositAndStake()
+									)}
+									isBusy={shouldApproveDepositStake ? txStatusApproveDS.pending : txStatusDepositStake.pending}
+									isDisabled={!canDeposit || !provider || toBigInt(estimateOut) === 0n}
+									className={'w-fit md:min-w-[184px]'}>
+									{shouldApproveDepositStake ? 'Approve for Deposit & Stake' : 'Deposit & Stake'}
+								</Button>
 							</div>
 						</div>
 					</div>
 				</div>
-
-				<div
-					key={depositStatus}
-					className={className}>
-					<div className={'mb-8 grid w-full grid-cols-1 gap-2 md:grid-cols-3 md:gap-2 lg:grid-cols-12 lg:gap-4'}>
-						<div className={'lg:col-span-4'}>
-							<p className={'pb-1 text-sm text-neutral-600 md:text-base'}>{'You’re locking, ETH'}</p>
-							<div className={'box-500 grow-1 flex h-10 w-full items-center justify-center p-2'}>
-								<div className={'mr-2 h-6 w-6 min-w-[24px]'}>
-									<ImageWithFallback
-										alt={''}
-										unoptimized
-										src={ETH_TOKEN.logoURI}
-										width={24}
-										height={24} />
-								</div>
-								<input
-									id={'amountToSend'}
-									className={'w-full overflow-x-scroll border-none bg-transparent px-0 py-4 font-mono text-sm outline-none scrollbar-none'}
-									type={'number'}
-									min={0}
-									maxLength={20}
-									max={safeMaxValue?.normalized || 0}
-									step={1 / 10 ** (tokenToSend?.decimals || 18)}
-									inputMode={'numeric'}
-									placeholder={'0'}
-									pattern={'^((?:0|[1-9]+)(?:.(?:d+?[1-9]|[1-9]))?)$'}
-									value={amountToSend?.normalized || ''}
-									onChange={onChangeAmount} />
-								<div className={'ml-2 flex flex-row space-x-1'}>
-									<button
-										onClick={(): void => updateToPercent(20)}
-										className={cl('p-1 text-xs rounded-sm border border-purple-300 transition-colors', amountPercentage === 20 ? 'bg-purple-300 text-white' : 'text-purple-300 hover:bg-purple-300 hover:text-white')}>
-										{'20%'}
-									</button>
-									<button
-										onClick={(): void => updateToPercent(40)}
-										className={cl('p-1 text-xs rounded-sm border border-purple-300 transition-colors', amountPercentage === 40 ? 'bg-purple-300 text-white' : 'text-purple-300 hover:bg-purple-300 hover:text-white')}>
-										{'40%'}
-									</button>
-									<button
-										onClick={(): void => updateToPercent(60)}
-										className={cl('p-1 text-xs rounded-sm border border-purple-300 transition-colors', amountPercentage === 60 ? 'bg-purple-300 text-white' : 'text-purple-300 hover:bg-purple-300 hover:text-white')}>
-										{'60%'}
-									</button>
-									<button
-										onClick={(): void => updateToPercent(80)}
-										className={cl('p-1 text-xs rounded-sm border border-purple-300 transition-colors', amountPercentage === 80 ? 'bg-purple-300 text-white' : 'text-purple-300 hover:bg-purple-300 hover:text-white')}>
-										{'80%'}
-									</button>
-
-								</div>
-							</div>
-							<p
-								suppressHydrationWarning
-								className={'pl-2 pt-1 text-xs text-neutral-600'}>
-								{`You have ${formatAmount(balanceOf?.normalized || 0, 2, 6)} ${tokenToSend.symbol}`}
-							</p>
-						</div>
-						<div className={'pt-2 md:pt-0 lg:col-span-3'}>
-							<p className={'pb-1 text-sm text-neutral-600 md:text-base'}>{'You’re getting, st-yETH'}</p>
-							<div className={'box-500 grow-1 flex h-10 w-full items-center justify-center p-2'}>
-								<div className={'mr-2 h-6 w-6 min-w-[24px]'}>
-									<ImageWithFallback
-										alt={''}
-										src={'/favicons/favicon.png'}
-										width={24}
-										height={24} />
-								</div>
-								<input
-									className={'w-full overflow-x-scroll border-none bg-transparent px-0 py-4 font-mono text-sm text-neutral-400 outline-none scrollbar-none'}
-									readOnly
-									type={'number'}
-									inputMode={'numeric'}
-									placeholder={'0'}
-									value={amountToSend?.normalized || ''} />
-							</div>
-							<p
-								suppressHydrationWarning
-								className={'pl-2 pt-1 text-xs text-neutral-600'}>
-								{`You have ${formatAmount(balanceDeposited?.normalized || 0, 2, 6)} st-yETH`}
-							</p>
-						</div>
-						<div className={'w-full pt-4 md:pt-0 lg:col-span-3'}>
-							<p className={'hidden pb-1 text-neutral-600 md:block'}>&nbsp;</p>
-							<Button
-								onClick={onDeposit}
-								isBusy={depositTxStatus.pending}
-								isDisabled={
-									amountToSend.raw === 0n
-									|| depositStatus !== 'started'
-									|| amountToSend.raw > balanceOf.raw
-									|| !depositTxStatus.none
-								}
-								className={'yearn--button w-full rounded-md !text-sm'}>
-								{'Submit'}
-							</Button>
-							<p className={'pl-2 pt-1 text-xs text-neutral-600'}>&nbsp;</p>
-						</div>
-					</div>
-					<DepositHistory
-						isPending={isFetchingHistory}
-						depositHistory={depositHistory} />
-				</div>
+				<ViewDetails
+					estimateOut={estimateOut}
+					bonusOrPenalty={(Number(toNormalizedBN(estimateOut).normalized) - Number(toNormalizedBN(vb).normalized)) / Number(toNormalizedBN(vb).normalized) * 100}
+				/>
 			</div>
 		</section>
 	);

@@ -2,6 +2,7 @@ import React from 'react';
 import localFont from 'next/font/local';
 import AppWrapper from 'components/common/AppWrapper';
 import {BootstrapContextApp} from 'contexts/useBootstrap';
+import {LSTContextApp} from 'contexts/useLST';
 import {TokenListContextApp} from 'contexts/useTokenList';
 import {WalletContextApp} from 'contexts/useWallet';
 import {mainnet} from 'wagmi';
@@ -30,19 +31,29 @@ const aeonik = localFont({
 	]
 });
 
+
 function	MyApp(props: AppProps): ReactElement {
 	return (
 		<>
 			<style jsx global>{`html {font-family: ${aeonik.style.fontFamily};}`}</style>
-			<WithYearn supportedChains={[mainnet, localhost]}>
+			<WithYearn
+				supportedChains={[mainnet, localhost]}
+				options={{
+					baseSettings: {
+						yDaemonBaseURI: process.env.YDAEMON_BASE_URI as string
+					},
+					ui: {shouldUseThemes: false}
+				}}>
 				<BootstrapContextApp>
-					<TokenListContextApp>
-						<WalletContextApp>
-							<main className={cl('flex flex-col', aeonik.className)}>
-								<AppWrapper {...props} />
-							</main>
-						</WalletContextApp>
-					</TokenListContextApp>
+					<LSTContextApp>
+						<TokenListContextApp>
+							<WalletContextApp>
+								<main className={cl('flex flex-col', aeonik.className)}>
+									<AppWrapper {...props} />
+								</main>
+							</WalletContextApp>
+						</TokenListContextApp>
+					</LSTContextApp>
 				</BootstrapContextApp>
 			</WithYearn>
 		</>

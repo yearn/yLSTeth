@@ -12,11 +12,12 @@
 		"lint": "eslint . --ext .js,.jsx,.ts,.tsx"
 	},
 	"dependencies": {
+		"@fullpage/react-fullpage": "^0.1.40",
 		"@headlessui/react": "^1.7.15",
 		"@rainbow-me/rainbowkit": "^1.0.10",
 		"@react-hookz/web": "^23.1.0",
 		"@wagmi/core": "^1.4.1",
-		"@yearn-finance/web-lib": "^3.0.33",
+		"@yearn-finance/web-lib": "^3.0.34",
 		"axios": "^1.4.0",
 		"dayjs": "^1.11.9",
 		"framer-motion": "^10.12.22",

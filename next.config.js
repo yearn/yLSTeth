@@ -33,17 +33,14 @@ module.exports = (phase) => withPWA({
 			},
 			{
 				source: '/favicon.ico',
-				destination: 'https://gib.to/favicons/favicon.ico',
+				destination: 'https://yeth.yearn.fi/favicons/favicon.ico',
 				permanent: true
 			}
 		];
 	},
 	env: {
 		JSON_RPC_URL: {
-			1: 'https://eth.llamarpc.com' || process.env.RPC_URL_MAINNET,
-			10: process.env.RPC_URL_OPTIMISM,
-			250: 'https://rpc3.fantom.network' || process.env.RPC_URL_FANTOM,
-			42161: process.env.RPC_URL_ARBITRUM
+			1: process.env.RPC_URL_MAINNET
 		},
 		TELEGRAM_BOT: process.env.TELEGRAM_BOT,
 		TELEGRAM_CHAT: process.env.TELEGRAM_CHAT,
@@ -51,13 +48,20 @@ module.exports = (phase) => withPWA({
 		INFURA_PROJECT_ID: process.env.INFURA_PROJECT_ID,
 		WALLETCONNECT_PROJECT_ID: process.env.WALLETCONNECT_PROJECT_ID,
 		YDAEMON_BASE_URI: 'https://ydaemon.yearn.fi',
-		BASE_CHAINID: 1, // Expected to work on this chain
-		DEFAULT_CHAINID: 1, // The one we currently use
+		BASE_CHAIN_ID: 1, // Expected to work on this chain
+		DEFAULT_CHAIN_ID: 1, // The one we currently use
+
 		YETH_ADDRESS: '0x1BED97CBC3c24A4fb5C069C6E311a967386131f7',
-		STYETH_ADDRESS: '0x8E5CBc6f470d064063341aceF7c45172A3EEf766',
+		STYETH_ADDRESS: '0x583019fF0f430721aDa9cfb4fac8F06cA104d0B4',
 		POL_ADDRESS: '0x929401e30Aab6bd648dEf2d30FF44952BaB04478',
 		BOOTSTRAP_ADDRESS: '0x41B994C192183793bB9cc35bAAb8bD9C6885c6bf',
-		INIT_BLOCK_NUMBER: 17_591_810,
+		ESTIMATOR_ADDRESS: '0x6Cc6Af51091e29c288d6fb44b7e1C73e946555c8',
+		POOL_ADDRESS: '0x2cced4ffA804ADbe1269cDFc22D7904471aBdE63',
+		ZAP_ADDRESS: '0x7DeD4df8d8a663b8Af5933058356B367b5DE8f23',
+
+		BOOTSTRAP_INIT_BLOCK_NUMBER: 17_591_810,
+		INIT_BLOCK_NUMBER: 18_074_804,
+		RANGE_LIMIT: 10_000,
 		PERIODS: {
 			WHITELIST_BEGIN: '1688126400',
 			WHITELIST_END: '1689940800',
@@ -68,6 +72,12 @@ module.exports = (phase) => withPWA({
 			VOTE_BEGIN: '1690545600',
 			VOTE_END: '1691150400'
 		},
-		WHITELISTED_PROTOCOLS: []
+		WHITELISTED_PROTOCOLS: [
+			'Staked Frax Ether',
+			'Swell Network Ether',
+			'Wrapped liquid staked Ether 2.0',
+			'Stader ETHx',
+			'Coinbase Wrapped Staked ETH'
+		]
 	}
 });
