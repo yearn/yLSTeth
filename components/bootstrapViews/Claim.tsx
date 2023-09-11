@@ -204,13 +204,10 @@ function Claim(): ReactElement {
 	} = useBootstrap();
 	const [claimableIncentive, set_claimableIncentive] = useState<TClaimDetails[]>([]);
 	const [claimableRefund, set_claimableRefund] = useState<TClaimDetails[]>([]);
-	const [totalIncentiveValue, set_totalIncentiveValue] = useState<number>(0);
 	const [totalRefundValue, set_totalRefundValue] = useState<number>(0);
 	const [isModalOpen, set_isModalOpen] = useState<boolean>(false);
 	const [className, set_className] = useState('pointer-events-none opacity-40');
 	const [refundStatus, set_refundStatus] = useState<TTxStatus>(defaultTxStatus);
-
-	console.warn(groupIncentiveHistory);
 
 	useEffect((): void => {
 		if (voteStatus !== 'ended') {
@@ -253,7 +250,6 @@ function Claim(): ReactElement {
 		if (totalVotes.raw === 0n || !claimedIncentives) {
 			return;
 		}
-		let _totalIncentiveValue = 0;
 		let _totalRefundValue = 0;
 		const claimData: TClaimDetails[] = [];
 		const refundData: TClaimDetails[] = [];
@@ -296,7 +292,6 @@ function Claim(): ReactElement {
 					continue;
 				}
 				if (claimedIncentives.find((item): boolean => item.id === id)) {
-					_totalIncentiveValue += valueOfThis;
 					continue;
 				}
 
@@ -319,7 +314,6 @@ function Claim(): ReactElement {
 						})
 					}
 				});
-				_totalIncentiveValue += valueOfThis;
 			}
 		}
 
@@ -382,7 +376,6 @@ function Claim(): ReactElement {
 		******************************************************************************************/
 		performBatchedUpdates((): void => {
 			set_claimableIncentive(claimData);
-			set_totalIncentiveValue(_totalIncentiveValue);
 			set_claimableRefund(refundData);
 			set_totalRefundValue(_totalRefundValue);
 		});
