@@ -195,7 +195,7 @@ function ClaimHeading(): ReactElement {
 }
 
 function Claim(): ReactElement {
-	const {address} = useWeb3();
+	const {address, provider} = useWeb3();
 	const {
 		periods: {voteStatus},
 		whitelistedLST: {whitelistedLST},
@@ -203,9 +203,14 @@ function Claim(): ReactElement {
 		incentives: {groupIncentiveHistory, claimedIncentives, refreshClaimedIncentives}
 	} = useBootstrap();
 	const [claimableIncentive, set_claimableIncentive] = useState<TClaimDetails[]>([]);
+	const [claimableRefund, set_claimableRefund] = useState<TClaimDetails[]>([]);
 	const [totalIncentiveValue, set_totalIncentiveValue] = useState<number>(0);
+	const [totalRefundValue, set_totalRefundValue] = useState<number>(0);
 	const [isModalOpen, set_isModalOpen] = useState<boolean>(false);
 	const [className, set_className] = useState('pointer-events-none opacity-40');
+	const [refundStatus, set_refundStatus] = useState<TTxStatus>(defaultTxStatus);
+
+	console.warn(groupIncentiveHistory);
 
 	useEffect((): void => {
 		if (voteStatus !== 'ended') {
@@ -249,7 +254,9 @@ function Claim(): ReactElement {
 			return;
 		}
 		let _totalIncentiveValue = 0;
+		let _totalRefundValue = 0;
 		const claimData: TClaimDetails[] = [];
+		const refundData: TClaimDetails[] = [];
 
 		/* 🔵 - Yearn Finance **********************************************************************
 		** As only the winner are giving incentives, we need to loop through the winners only.
@@ -316,6 +323,59 @@ function Claim(): ReactElement {
 			}
 		}
 
+		const nonWinnerProtocols = Object.keys(groupIncentiveHistory.user).filter((protocol): boolean => !voteData.winners.includes(toAddress(protocol)));
+		for (const protocol of nonWinnerProtocols) {
+			const incentivesForThisProtocol = groupIncentiveHistory.protocols[protocol];
+			if (!incentivesForThisProtocol) {
+				continue;
+			}
+			for (const incentive of incentivesForThisProtocol.incentives) {
+				/* 🔵 - Yearn Finance **************************************************************
+				** We compute:
+				** - the value of the incentive you can claim. The value is the total usd amount
+				**   you should get when claiming this specific incentive.
+				** - the amount of the incentive you can claim. The amount is the total amount of
+				**   tokens you should get when claiming this specific incentive.
+				** - the id of the incentive you can claim. The id is the unique identifier of the
+				**   incentive you can claim.
+				**********************************************************************************/
+				const valueOfThis = incentive.value;
+				const id = `${protocol}-${incentive.incentive}-${toAddress(address)}`;
+
+				/* 🔵 - Yearn Finance **************************************************************
+				** If we already have this incentive in the list, we skip it.
+				** If we already claimed this incentive, we skip it.
+				**********************************************************************************/
+				if (refundData.find((item): boolean => item.id === id)) {
+					continue;
+				}
+				if (claimedIncentives.find((item): boolean => item.id === id)) {
+					continue;
+				}
+
+				/* 🔵 - Yearn Finance **************************************************************
+				** Add the incentive to the list of claimable incentives.
+				**********************************************************************************/
+				refundData.push({
+					id: id,
+					protocolName: incentive.protocolName,
+					value: valueOfThis,
+					amount: toNormalizedBN(incentive.amount, incentive.incentiveToken?.decimals || 18),
+					token: incentive.incentiveToken as TTokenInfo,
+					isSelected: true,
+					multicall: {
+						target: toAddress(process.env.BOOTSTRAP_ADDRESS),
+						callData: encodeFunctionData({
+							abi: BOOTSTRAP_ABI,
+							functionName: 'refund_incentive',
+							args: [toAddress(protocol), toAddress(incentive.incentive), toAddress(incentive.depositor)]
+						})
+					}
+				});
+				_totalRefundValue += valueOfThis;
+			}
+		}
+
 		/* 🔵 - Yearn Finance **********************************************************************
 		** Perform a batched update to avoid multiple re-renders, updating both the list of
 		** claimable incentives and the total value of the incentives you can claim.
@@ -323,8 +383,10 @@ function Claim(): ReactElement {
 		performBatchedUpdates((): void => {
 			set_claimableIncentive(claimData);
 			set_totalIncentiveValue(_totalIncentiveValue);
+			set_claimableRefund(refundData);
+			set_totalRefundValue(_totalRefundValue);
 		});
-	}, [voteData.winners, groupIncentiveHistory.protocols, voteData.votesUsedPerProtocol, totalVotes, voteData.votesUsed.normalized, voteData.votesUsed.raw, claimedIncentives, address]);
+	}, [voteData.winners, groupIncentiveHistory.protocols, voteData.votesUsedPerProtocol, totalVotes, voteData.votesUsed.normalized, voteData.votesUsed.raw, claimedIncentives, address, groupIncentiveHistory.user]);
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	** Compute the total amount of incentives you already claimed.
@@ -369,25 +431,60 @@ function Claim(): ReactElement {
 		]);
 	}, [refreshClaimedIncentives, refreshVoteData]);
 
+
+	/* 🔵 - Yearn Finance **************************************************************************
+	** Web3 actions to claim the incentives you selected. This is triggered via a multicall3.
+	**********************************************************************************************/
+	async function onRefund(): Promise<void> {
+		const result = await multicall({
+			connector: provider,
+			contractAddress: toAddress(process.env.BOOTSTRAP_ADDRESS),
+			multicallData: (
+				claimableRefund
+					.map((incentive): {target: TAddress, callData: Hex} => incentive.multicall)
+			),
+			statusHandler: set_refundStatus
+		});
+		if (result.isSuccessful) {
+			onClaimedSuccess();
+		}
+	}
+
 	return (
 		<section className={'grid grid-cols-1 pt-10 md:mb-20 md:pt-12'}>
 			<div className={'mb-20 md:mb-0'}>
 				<ClaimHeading />
-				<div
-					key={voteStatus}
-					className={cl('flex flex-col md:w-1/2 lg:w-[352px]', className)}>
-					<div className={'mb-4 w-full bg-neutral-100 p-4'}>
-						<p className={'pb-2'}>{'Unclaimed incentives, $'}</p>
-						<b suppressHydrationWarning className={'font-number text-3xl'}>
-							{`$${formatAmount(totalToClaim, 2, 2)}/$${formatAmount(totalIncentiveValue, 2, 2)}`}
-						</b>
+				<div key={voteStatus} className={'flex flex-row gap-6'}>
+					<div className={cl('flex flex-col md:w-1/2 lg:w-[352px]', className)}>
+						<div className={'mb-4 w-full bg-neutral-100 p-4'}>
+							<p className={'pb-2'}>{'Your claimable incentives, $'}</p>
+							<b suppressHydrationWarning className={'font-number text-3xl'}>
+								{`$${formatAmount(totalToClaim, 2, 2)}`}
+							</b>
+						</div>
+						<Button
+							onClick={(): void => set_isModalOpen(true)}
+							isDisabled={claimableIncentive.length === 0}
+							className={'yearn--button w-full rounded-md !text-sm'}>
+							{'Claim'}
+						</Button>
 					</div>
-					<Button
-						onClick={(): void => set_isModalOpen(true)}
-						isDisabled={claimableIncentive.length === 0}
-						className={'yearn--button w-full rounded-md !text-sm'}>
-						{'Claim all'}
-					</Button>
+					<div className={cl('flex flex-col md:w-1/2 lg:w-[352px]', className)}>
+						<div className={'mb-4 w-full bg-neutral-100 p-4'}>
+							<p className={'pb-2'}>{'Your incentive refunds, $'}</p>
+							<b suppressHydrationWarning className={'font-number text-3xl'}>
+								{`$${formatAmount(totalRefundValue, 2, 2)}`}
+							</b>
+						</div>
+						<Button
+							variant={'outlined'}
+							onClick={onRefund}
+							isDisabled={claimableRefund.length === 0}
+							isBusy={refundStatus.pending}
+							className={'yearn--button w-full rounded-md !text-sm'}>
+							{'Refund'}
+						</Button>
+					</div>
 				</div>
 			</div>
 			<Modal
