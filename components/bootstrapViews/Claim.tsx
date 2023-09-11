@@ -447,7 +447,7 @@ function Claim(): ReactElement {
 		<section className={'grid grid-cols-1 pt-10 md:mb-20 md:pt-12'}>
 			<div className={'mb-20 md:mb-0'}>
 				<ClaimHeading />
-				<div key={voteStatus} className={'flex flex-row gap-6'}>
+				<div key={voteStatus} className={'flex flex-col gap-10 md:flex-row md:gap-6'}>
 					<div className={cl('flex flex-col md:w-1/2 lg:w-[352px]', className)}>
 						<div className={'mb-4 w-full bg-neutral-100 p-4'}>
 							<p className={'pb-2'}>{'Your claimable incentives, $'}</p>
