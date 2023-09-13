@@ -25,9 +25,10 @@ import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber'
 type TSortDirection = '' | 'desc' | 'asc'
 
 function Timer(): ReactElement {
-	const {endPeriod} = useEpoch();
-	const time = useTimer({endTime: endPeriod});
-	return <>{`in ${time}`}</>;
+	const {voteStart, endPeriod, hasVotingStarted} = useEpoch();
+
+	const time = useTimer({endTime: hasVotingStarted ? Number(endPeriod) : Number(voteStart)});
+	return <>{hasVotingStarted ? `ends in ${time}` : `starts in ${time}`}</>;
 }
 
 

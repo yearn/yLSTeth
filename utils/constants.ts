@@ -4,6 +4,7 @@ import type {TTokenInfo} from 'contexts/useTokenList';
 
 export const INITIAL_PERIOD_TIMESTAMP = 1_694_044_800;
 export const EPOCH_DURATION = 2_419_200; // 4 weeks
+export const VOTE_START_DELAY = 1_814_400; // 3 weeks
 
 export const LST: (TTokenInfo & {index: number})[] = [
 	{
