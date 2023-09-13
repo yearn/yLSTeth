@@ -7,6 +7,7 @@ import IconSpinner from 'components/icons/IconSpinner';
 import useBootstrap from 'contexts/useBootstrap';
 import {useTokenList} from 'contexts/useTokenList';
 import {useWallet} from 'contexts/useWallet';
+import {useEpoch} from 'hooks/useEpoch';
 import {useTimer} from 'hooks/useTimer';
 import {handleInputChangeEventValue} from 'utils';
 import {approveERC20} from 'utils/actions';
@@ -48,10 +49,10 @@ function isValidAddress(address: TAddress | undefined): boolean {
 type TSortDirection = '' | 'desc' | 'asc'
 
 function Timer(): ReactElement {
-	const {periods} = useBootstrap();
-	const {incentiveBegin, incentiveEnd, incentiveStatus} = periods || {};
-	const time = useTimer({endTime: incentiveStatus === 'started' ? Number(incentiveEnd) : Number(incentiveBegin)});
-	return <>{incentiveStatus === 'ended' ? 'ended' : incentiveStatus === 'started' ? time : `in ${time}`}</>;
+	const {voteStart, endPeriod, hasVotingStarted} = useEpoch();
+
+	const time = useTimer({endTime: hasVotingStarted ? Number(endPeriod) : Number(voteStart)});
+	return <>{hasVotingStarted ? `starts in ${time}` : `ends in ${time}`}</>;
 }
 
 function IncentiveMenuTabs({set_currentTab, currentTab}: {
@@ -59,23 +60,25 @@ function IncentiveMenuTabs({set_currentTab, currentTab}: {
 	set_currentTab: (tab: 'current' | 'potential') => void;
 }): ReactElement {
 	return (
-		<div className={'relative -mx-4 overflow-hidden px-4 md:px-72'}>
-			<button
-				onClick={(): void => set_currentTab('current')}
-				className={cl('mx-4 mb-2 text-lg transition-colors', currentTab === 'current' ? 'text-purple-300 font-bold' : 'text-neutral-400')}>
-				{'Current participants'}
-			</button>
-			<button
-				onClick={(): void => set_currentTab('potential')}
-				className={cl('mx-4 mb-2 text-lg transition-colors', currentTab === 'potential' ? 'text-purple-300 font-bold' : 'text-neutral-400')}>
-				{'Potential participants'}
-			</button>
-			<div className={'absolute bottom-0 left-0 flex h-0.5 w-full flex-row bg-neutral-300 px-4 md:px-72'}>
-				<div className={cl('h-full w-fit transition-colors ml-4', currentTab === 'current' ? 'bg-purple-300' : 'bg-transparent')}>
-					<button className={'pointer-events-none invisible h-0 p-0 text-lg font-bold opacity-0'}>{'Current participants'}</button>
-				</div>
-				<div className={cl('h-full w-fit transition-colors ml-4', currentTab === 'potential' ? 'bg-purple-300' : 'bg-transparent')}>
-					<button className={'pointer-events-none invisible h-0 p-0 text-lg font-bold opacity-0'}>{'Potential participants'}</button>
+		<div className={'overflow-hidden'}>
+			<div className={'relative -mx-4 px-4 md:px-72 '}>
+				<button
+					onClick={(): void => set_currentTab('current')}
+					className={cl('mx-4 mb-2 text-lg transition-colors', currentTab === 'current' ? 'text-purple-300 font-bold' : 'text-neutral-400')}>
+					{'Weight votes'}
+				</button>
+				<button
+					onClick={(): void => set_currentTab('potential')}
+					className={cl('mx-4 mb-2 text-lg transition-colors', currentTab === 'potential' ? 'text-purple-300 font-bold' : 'text-neutral-400')}>
+					{'Inclusion votes'}
+				</button>
+				<div className={'absolute bottom-0 left-0 flex h-0.5 w-full flex-row bg-neutral-300 px-4 md:px-72'}>
+					<div className={cl('h-full w-fit transition-colors ml-4', currentTab === 'current' ? 'bg-purple-300' : 'bg-transparent')}>
+						<button className={'pointer-events-none invisible h-0 p-0 text-lg font-bold opacity-0'}>{'Weight votes'}</button>
+					</div>
+					<div className={cl('h-full w-fit transition-colors ml-4', currentTab === 'potential' ? 'bg-purple-300' : 'bg-transparent')}>
+						<button className={'pointer-events-none invisible h-0 p-0 text-lg font-bold opacity-0'}>{'Inclusion votes'}</button>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -420,13 +423,17 @@ function ViewHeader(): ReactElement {
 				className={'font-number mt-4 text-4xl text-purple-300'}>
 				<Timer />
 			</b>
-			<div className={'flex w-full flex-col items-center gap-4 md:grid-cols-1 md:flex-row md:gap-6'}>
+			<div className={'mt-8 flex w-full flex-col items-end gap-4 md:grid-cols-1 md:flex-row md:gap-6'}>
 				<div className={'w-full'}>
 					<p className={'text-neutral-700'}>
-						{'st-yETH holders, it’s time to be (metaphorically) wined and dined by the LST protocols vying for a spot in yETH. Decide which LST gets your votes below, and remember you will recieve incentives from the winning LSTs whether you voted for them or not. So follow your heart anon.'}
+						{'They say it’s not what you know, but who you… incentivize. You can incentivize with any amount and any token for:'}
 					</p>
+					<ul className={'pl-4'}>
+						<li className={'list-outside list-disc text-neutral-700'}>{'Weight votes: anyone who votes in favor receives incentives accordingly. Incentives are non-refundable.'}</li>
+						<li className={'list-outside list-disc text-neutral-700'}>{'Inclusion votes: Support an LST to get added to yETH or to not let any new LST in. Incentives are refundable if your outcome does not win.'}</li>
+					</ul>
 				</div>
-				<div className={'flex w-full justify-end space-x-4 md:w-auto'}>
+				<div className={'flex w-full justify-end space-x-4 pb-2 md:w-auto'}>
 					<div className={'w-full min-w-[200px] bg-neutral-100 p-4 md:w-fit'}>
 						<p className={'whitespace-nowrap pb-2'}>{'Current total deposits, USD'}</p>
 						<b suppressHydrationWarning className={'font-number text-3xl'}>
@@ -587,7 +594,7 @@ function ViewSelectIncentive({onOpenModal}: {onOpenModal: VoidFunction}): ReactE
 
 
 	return (
-		<div className={'overflow-hidden bg-neutral-100 pt-4'}>
+		<div className={'bg-neutral-100 pt-4'}>
 			<IncentiveMenuTabs
 				currentTab={currentTab}
 				set_currentTab={set_currentTab} />

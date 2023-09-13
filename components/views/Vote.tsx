@@ -340,13 +340,13 @@ function ViewHeader(): ReactElement {
 				className={'font-number mt-4 text-4xl text-purple-300'}>
 				<Timer />
 			</b>
-			<div className={'flex w-full flex-col items-center gap-4 md:grid-cols-1 md:flex-row md:gap-6'}>
+			<div className={'mt-0 flex w-full flex-col items-center gap-4 md:grid-cols-1 md:flex-row md:gap-6'}>
 				<div className={'w-full'}>
 					<p className={'text-neutral-700'}>
-						{'st-yETH holders, it’s time to be (metaphorically) wined and dined by the LST protocols vying for a spot in yETH. Decide which LST gets your votes below, and remember you will recieve incentives from the winning LSTs whether you voted for them or not. So follow your heart anon.'}
+						{'st-yETH holders are the house, senate, lords, and commons of yETH governance. Holders vote every epoch on yETH composition, accepting new LSTs into yETH, as well as governance proposals and parameter configurations. Vote power is fixed at the start of voting.'}
 					</p>
 				</div>
-				<div className={'flex w-full justify-end space-x-4 md:w-auto'}>
+				<div className={'flex w-full justify-end space-x-4 pb-2 md:w-auto'}>
 					<div className={'w-full min-w-[200px] bg-neutral-100 p-4 md:w-fit'}>
 						<p className={'pb-2'}>{'Total Votes, yETH'}</p>
 						<b suppressHydrationWarning className={'font-number text-3xl'}>

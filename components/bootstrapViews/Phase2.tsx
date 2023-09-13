@@ -105,7 +105,7 @@ function Phase2Started({variant}: {variant: string[]}): ReactElement {
 							initial={'initial'}
 							animate={'move'}
 							exit={'exit'}>
-							<Link href={currentTab === 0 ? '/deposit' : '/incentive'}>
+							<Link href={currentTab === 0 ? '/deposit' : '/incentivize'}>
 								<Button
 									className={'yearn--button w-full rounded-md !text-sm md:w-1/2'}>
 									{currentTab === 0 ? 'Deposit' : 'Incentivize'}
@@ -250,7 +250,7 @@ function Phase2Ended({variant}: {variant: string[]}): ReactElement {
 					initial={'initial'}
 					animate={'move'}
 					exit={'exit'}>
-					<Link href={'/incentive'}>
+					<Link href={'/incentivize'}>
 						<Button
 							className={'yearn--button w-full rounded-md !text-sm md:w-1/2'}>
 							{'Check Incentives'}
