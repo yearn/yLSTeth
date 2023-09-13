@@ -13,8 +13,6 @@ import {IconChevronBottom} from '@yearn-finance/web-lib/icons/IconChevronBottom'
 import {IconWallet} from '@yearn-finance/web-lib/icons/IconWallet';
 import {truncateHex} from '@yearn-finance/web-lib/utils/address';
 
-import {ImageWithFallback} from './ImageWithFallback';
-
 import type {ReactElement} from 'react';
 import type {Chain} from 'wagmi';
 
@@ -69,19 +67,11 @@ function NetworkButton({label, isDisabled, onClick}: {
 	);
 }
 
-function CurrentNetworkButton({label, value, isOpen}: {
+function CurrentNetworkButton({label, isOpen}: {
 	label: string,
 	value: number,
 	isOpen: boolean
 }): ReactElement {
-	const [src, set_src] = useState<string | undefined>(undefined);
-
-	useEffect((): void => {
-		if (value) {
-			set_src(`/chains/${value}.svg`);
-		}
-	}, [value]);
-
 	return (
 		<Listbox.Button
 			suppressHydrationWarning
@@ -89,19 +79,6 @@ function CurrentNetworkButton({label, value, isOpen}: {
 			<div
 				suppressHydrationWarning
 				className={'relative flex flex-row items-center truncate whitespace-nowrap text-xs md:text-sm'}>
-				{src ? (
-					<ImageWithFallback
-						suppressHydrationWarning
-						id={value.toString()}
-						className={'mr-2 min-h-[20px] min-w-[20px]'}
-						src={src}
-						width={20}
-						height={20}
-						alt={label} />
-				) : (
-					<div
-						className={'mr-2 min-h-[20px] min-w-[20px] animate-pulse rounded-full bg-neutral-200'} />
-				)}
 				{label}
 			</div>
 			<div className={'ml-1 md:ml-2'}>

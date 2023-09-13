@@ -190,7 +190,7 @@ function ViewSelectedTokens(): ReactElement {
 
 
 	return (
-		<div className={'col-span-18 py-6 pr-0 md:py-10 md:pr-[72px]'}>
+		<div className={'col-span-18 py-6 pr-0 md:py-10 md:pr-72'}>
 			<div className={'flex flex-row items-center justify-between'}>
 				<h2 className={'text-xl font-black'}>
 					{'Withdraw'}
@@ -284,7 +284,7 @@ function ViewDetails(): ReactElement {
 	const {slippage} = useLST();
 
 	return (
-		<div className={'col-span-12 py-6 pl-0 md:py-10 md:pl-[72px]'}>
+		<div className={'col-span-12 py-6 pl-0 md:py-10 md:pl-72'}>
 			<div className={'mb-10 flex w-full flex-col !rounded-md bg-neutral-100'}>
 				<h2 className={'text-xl font-black'}>
 					{'Details'}
@@ -311,7 +311,7 @@ function ViewDetails(): ReactElement {
 
 function ViewWithdraw(): ReactElement {
 	return (
-		<section className={'relative px-4 md:px-[72px]'}>
+		<section className={'relative px-4 md:px-72'}>
 			<div className={'grid grid-cols-1 divide-x-0 divide-y-2 divide-neutral-300 md:grid-cols-30 md:divide-x-2 md:divide-y-0'}>
 				<ViewSelectedTokens />
 				<ViewDetails />

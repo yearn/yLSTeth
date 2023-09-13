@@ -27,7 +27,8 @@ export const STYETH_TOKEN: TTokenInfo = {
 	name: 'Staked Yearn ETH',
 	symbol: 'st-yETH',
 	decimals: 18,
-	logoURI: '/favicons/favicon.svg'
+	logoURI: `https://assets.smold.app/api/token/1/${process.env.STYETH_ADDRESS}/logo-128.png`
+
 };
 
 export const YETH_TOKEN: TTokenInfo = {
@@ -36,6 +37,7 @@ export const YETH_TOKEN: TTokenInfo = {
 	name: 'Yearn ETH',
 	symbol: 'yETH',
 	decimals: 18,
-	logoURI: '/favicons/favicon.svg'
+	logoURI: `https://assets.smold.app/api/token/1/${process.env.YETH_ADDRESS}/logo-128.png`
+
 };
 

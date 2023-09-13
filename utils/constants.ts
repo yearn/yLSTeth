@@ -2,8 +2,8 @@ import {toAddress} from '@yearn-finance/web-lib/utils/address';
 
 import type {TTokenInfo} from 'contexts/useTokenList';
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
-export const SHOULD_USE_ALTERNATE_DESIGN = true;
+export const INITIAL_PERIOD_TIMESTAMP = 1_694_044_800;
+export const EPOCH_DURATION = 2_419_200; // 4 weeks
 
 export const LST: (TTokenInfo & {index: number})[] = [
 	{
@@ -52,3 +52,39 @@ export const LST: (TTokenInfo & {index: number})[] = [
 		logoURI: `https://assets.smold.app/api/token/1/${toAddress('0xBe9895146f7AF43049ca1c1AE358B0541Ea49704')}/logo-128.png`
 	}
 ];
+
+
+/**********************************************************************************************
+** Tokens that may be added in the future via the whitelist process and vote. They will be
+** displayed in the /vote page, under the `Whitelisting vote` section.
+**********************************************************************************************/
+export const POTENTIAL_LST: (TTokenInfo & {index: number})[] = [
+	{
+		chainId: 1,
+		index: 0,
+		address: toAddress('0x93ef1Ea305D11A9b2a3EbB9bB4FCc34695292E7d'),
+		name: 'TranchessV2 WETH QUEEN',
+		symbol: 'qETH',
+		decimals: 18,
+		logoURI: `https://assets.smold.app/api/token/1/${toAddress('0x93ef1Ea305D11A9b2a3EbB9bB4FCc34695292E7d')}/logo-128.png`
+	},
+	{
+		chainId: 1,
+		index: 1,
+		address: toAddress('0xa2E3356610840701BDf5611a53974510Ae27E2e1'),
+		name: 'Wrapped Binance Beacon ETH',
+		symbol: 'wBETH',
+		decimals: 18,
+		logoURI: `https://assets.smold.app/api/token/1/${toAddress('0xa2E3356610840701BDf5611a53974510Ae27E2e1')}/logo-128.png`
+	},
+	{
+		chainId: 1,
+		index: 2,
+		address: toAddress('0x9559Aaa82d9649C7A7b220E7c461d2E74c9a3593'),
+		name: 'StaFi',
+		symbol: 'rETH',
+		decimals: 18,
+		logoURI: `https://assets.smold.app/api/token/1/${toAddress('0x9559Aaa82d9649C7A7b220E7c461d2E74c9a3593')}/logo-128.png`
+	}
+];
+

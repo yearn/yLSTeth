@@ -30,7 +30,7 @@ function useFilterWhitelistedLST(): TUseFilterWhitelistedLSTResp {
 	const filterWhitelistEvents = useCallback(async (): Promise<void> => {
 		set_isLoading(true);
 		const publicClient = getClient(Number(process.env.DEFAULT_CHAIN_ID));
-		const rangeLimit = 10_000n;
+		const rangeLimit = toBigInt(Number(process.env.RANGE_LIMIT));
 		const deploymentBlockNumber = toBigInt(process.env.BOOTSTRAP_INIT_BLOCK_NUMBER);
 		const currentBlockNumber = await publicClient.getBlockNumber();
 		const whitelisted: TAddress[] = [];
