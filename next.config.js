@@ -81,8 +81,6 @@ module.exports = (phase) => withPWA({
 			'Wrapped liquid staked Ether 2.0',
 			'Stader ETHx',
 			'Coinbase Wrapped Staked ETH'
-		],
-
-		IS_WHITELISTING_VOTE_ENABLED: false
+		]
 	}
 });

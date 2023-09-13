@@ -8,7 +8,7 @@ import useLST from 'contexts/useLST';
 import {useEpoch} from 'hooks/useEpoch';
 import useIncentives from 'hooks/useIncentives';
 import {useTimer} from 'hooks/useTimer';
-import {POTENTIAL_LST} from 'utils/constants';
+import {getCurrentEpoch} from 'utils/epochs';
 import {erc20ABI, useContractRead} from 'wagmi';
 import {Button} from '@yearn-finance/web-lib/components/Button';
 import {Renderable} from '@yearn-finance/web-lib/components/Renderable';
@@ -203,7 +203,7 @@ function VoteCardWhitelist(): ReactElement {
 	}, [sortDirection]);
 
 
-	if (!process.env.IS_WHITELISTING_VOTE_ENABLED) {
+	if (getCurrentEpoch().inclusion.candidates.length === 0) {
 		return (
 			<div className={'mt-10'}>
 				<p className={'whitespace-pre text-neutral-700'}>{'There is nobody to be whitelisted yet\nnothing to worry about anon'}</p>
@@ -230,7 +230,7 @@ function VoteCardWhitelist(): ReactElement {
 				</div>
 			</div>
 
-			{POTENTIAL_LST
+			{getCurrentEpoch().inclusion.candidates
 				.filter((item): boolean => Boolean(!lst.find((e): boolean => e.address === item.address)))
 				.filter((e): boolean => Boolean(e))
 				.map((item): ReactElement => {
@@ -296,10 +296,9 @@ function VoteCards(): ReactElement {
 			<div className={'col-span-20 flex flex-col px-4 py-10 md:col-span-9 md:px-72'}>
 				<b className={'text-xl font-black'}>{'Whitelisting vote'}</b>
 				<VoteCardWhitelist />
-				{process.env.IS_WHITELISTING_VOTE_ENABLED && (
+				{getCurrentEpoch().inclusion.candidates.length > 0 && (
 					<div className={'mt-auto pt-10'}>
 						<Button
-							isDisabled={!(process.env.IS_WHITELISTING_VOTE_ENABLED)}
 							href={'https://snapshot.org/#/ylsd.eth'}
 							className={'w-full md:w-[264px]'}>
 							{'Vote on Snapshot'}
