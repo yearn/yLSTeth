@@ -9,15 +9,18 @@ import {useEpoch} from 'hooks/useEpoch';
 import useIncentives from 'hooks/useIncentives';
 import {useTimer} from 'hooks/useTimer';
 import {POTENTIAL_LST} from 'utils/constants';
+import {erc20ABI, useContractRead} from 'wagmi';
 import {Button} from '@yearn-finance/web-lib/components/Button';
 import {Renderable} from '@yearn-finance/web-lib/components/Renderable';
+import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
 import {useChainID} from '@yearn-finance/web-lib/hooks/useChainID';
 import {toAddress, truncateHex} from '@yearn-finance/web-lib/utils/address';
-import {toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
+import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import {formatAmount, formatPercent} from '@yearn-finance/web-lib/utils/format.number';
 import {performBatchedUpdates} from '@yearn-finance/web-lib/utils/performBatchedUpdates';
 
 import type {ReactElement} from 'react';
+import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 
 type TSortDirection = '' | 'desc' | 'asc'
 
@@ -308,12 +311,16 @@ function VoteCards(): ReactElement {
 }
 
 function ViewHeader(): ReactElement {
-	const {whitelistedLST: {whitelistedLST}, voting: {voteData}} = useBootstrap();
+	const {address} = useWeb3();
+	const {data: votePower} = useContractRead({
+		abi: erc20ABI,
+		address: toAddress(process.env.VOTE_POWER_ADDRESS),
+		functionName: 'balanceOf',
+		args: [toAddress(address)]
+	});
+	const {whitelistedLST: {whitelistedLST}} = useBootstrap();
 
-	const totalVotePowerNormalized = useMemo((): number => {
-		return Number(voteData.votesAvailable.normalized) + Number(voteData.votesUsed.normalized);
-	}, [voteData]);
-
+	const votePowerNormalized = useMemo((): TNormalizedBN => toNormalizedBN(toBigInt(votePower)), [votePower]);
 	const totalVotesNormalized = useMemo((): number => {
 		let sum = 0n;
 		for (const item of Object.values(whitelistedLST)) {
@@ -348,10 +355,10 @@ function ViewHeader(): ReactElement {
 						</b>
 					</div>
 					<div className={'w-full min-w-[200px] bg-neutral-100 p-4 md:w-fit'}>
-						<p className={'whitespace-nowrap pb-2'}>{'Your vote power this epoch, yETH'}</p>
+						<p className={'whitespace-nowrap pb-2'}>{'Your vote power, yETH'}</p>
 						<b suppressHydrationWarning className={'font-number text-3xl'}>
 							<Renderable shouldRender={true} fallback ={'-'}>
-								{formatAmount(totalVotePowerNormalized, 4, 4)}
+								{formatAmount(votePowerNormalized.normalized, 4, 4)}
 							</Renderable>
 						</b>
 					</div>
