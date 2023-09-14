@@ -159,6 +159,9 @@ function useIncentives(): TUseIncentivesResp {
 				}
 
 				const protocol = getCurrentEpoch().inclusion.candidates[Number(log.args.choice) + 1];
+				if (!protocol) {
+					continue;
+				}
 				const protocolAddress = toAddress(protocol.address);
 				const {amount, depositor, token} = log.args;
 
