@@ -245,7 +245,7 @@ function ViewDetails({rate}: {rate: bigint}): ReactElement {
 					{'Details'}
 				</h2>
 				<dl className={'grid grid-cols-3 gap-2 pt-4'}>
-					<dt className={'col-span-2'}>{'yETH per st-yETH'}</dt>
+					<dt className={'col-span-2'}>{'st-yETH per yETH'}</dt>
 					<dd suppressHydrationWarning className={'text-right font-bold'}>
 						{formatAmount(toNormalizedBN(rate).normalized, 6, 6)}
 					</dd>

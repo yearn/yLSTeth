@@ -39,7 +39,7 @@ function VoteHeader(): ReactElement {
 	const totalVotesNormalized = useMemo((): number => {
 		let sum = 0n;
 		for (const item of Object.values(whitelistedLST)) {
-			sum += item.extra.votes || 0n;
+			sum += item?.extra?.votes || 0n;
 		}
 		return Number(toNormalizedBN(sum).normalized);
 	}, [whitelistedLST]);

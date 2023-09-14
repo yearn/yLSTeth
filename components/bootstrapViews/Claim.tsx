@@ -227,7 +227,7 @@ function Claim(): ReactElement {
 	const totalVotes = useMemo((): TNormalizedBN => {
 		let sum = 0n;
 		for (const item of Object.values(whitelistedLST)) {
-			sum += item.extra.votes || 0n;
+			sum += item?.extra?.votes || 0n;
 		}
 		return toNormalizedBN(sum);
 	}, [whitelistedLST]);
