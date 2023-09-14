@@ -9,12 +9,18 @@ import ViewWithdraw from 'components/views/Withdraw';
 import useLST from 'contexts/useLST';
 import {UIStepContextApp} from 'contexts/useUI';
 import useWallet from 'contexts/useWallet';
+import BOOTSTRAP_ABI from 'utils/abi/bootstrap.abi';
 import {STYETH_TOKEN, YETH_TOKEN} from 'utils/tokens';
+import {useContractRead} from 'wagmi';
 import {useAnimate} from 'framer-motion';
 import {Listbox, Transition} from '@headlessui/react';
 import {useMountEffect, useUnmountEffect} from '@react-hookz/web';
+import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
+import {toAddress} from '@yearn-finance/web-lib/utils/address';
 import {cl} from '@yearn-finance/web-lib/utils/cl';
+import {toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
+import {formatDuration} from '@yearn-finance/web-lib/utils/format.time';
 
 import type {AnimationScope} from 'framer-motion';
 import type {Router} from 'next/router';
@@ -61,8 +67,21 @@ function Composition(): ReactElement {
 }
 
 function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
+	const {address} = useWeb3();
 	const {balances} = useWallet();
 	const {dailyVolume} = useLST();
+
+	/* 🔵 - Yearn Finance **************************************************************************
+	** Retrieve the locked st-yETH in the bootstrap contract for the current user
+	**********************************************************************************************/
+	const {data: lockedTokens} = useContractRead({
+		abi: BOOTSTRAP_ABI,
+		address: toAddress(process.env.BOOTSTRAP_ADDRESS),
+		functionName: 'deposits',
+		args: [toAddress(address)],
+		chainId: Number(process.env.DEFAULT_CHAIN_ID)
+	});
+
 
 	return (
 		<div
@@ -121,11 +140,34 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 						<small className={cl('text-xs', basicLighterColorTransition)}>
 							{'Your st-yETH'}
 						</small>
-						<b
-							suppressHydrationWarning
-							className={cl('block text-lg md:text-2xl leading-6 md:leading-10', basicColorTransition)}>
-							{formatAmount(Number(balances?.[STYETH_TOKEN.address]?.normalized || 0), 6, 6)}
-						</b>
+						<span className={'block whitespace-nowrap'}>
+							<b
+								suppressHydrationWarning
+								className={cl('text-lg md:text-2xl leading-6 md:leading-10', basicColorTransition)}>
+								{formatAmount(Number(balances?.[STYETH_TOKEN.address]?.normalized || 0), 6, 6)}
+							</b>
+							{(lockedTokens && lockedTokens >= 0n) ? (
+								<span className={'tooltip'}>
+									<p
+										suppressHydrationWarning
+										className={cl('text-sm block md:text-base -mt-2 text-neutral-500 transition-colors group-hover:text-neutral-0')}>
+										{`+ ${formatAmount(toNormalizedBN(lockedTokens || 0n).normalized, 6, 6)} locked`}
+									</p>
+									<span className={'tooltipLight !-inset-x-24 top-full mt-2 !w-auto'}>
+										<div
+											suppressHydrationWarning
+											className={'w-fit rounded-md border border-neutral-700 bg-neutral-900 p-1 px-2 text-center text-xs font-medium text-neutral-0'}>
+											{`Your st-yETH from the yETH bootstrap will be unlocked ${formatDuration(1699012800, true)}`}
+										</div>
+									</span>
+								</span>
+							) : (
+								<p
+									className={cl('text-sm block md:text-base -mt-2 text-neutral-500 transition-colors group-hover:text-neutral-0')}>
+										&nbsp;
+								</p>
+							)}
+						</span>
 					</div>
 				</div>
 
