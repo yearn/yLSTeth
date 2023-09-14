@@ -244,7 +244,7 @@ const nav: TMenu[] = [
 	// {path: 'https://yearn.fi', label: 'Home', target: '_blank'},
 	{path: '/', label: 'yETH'},
 	// {path: '/deposit', label: 'Deposit'},
-	{path: '/incentivize', label: 'Incentivize'},
+	// {path: '/incentivize', label: 'Incentivize'},
 	{path: '/vote', label: 'Vote'},
 	{path: '/claim', label: 'Claim'},
 	{path: 'https://docs.yearn.fi/getting-started/products/yeth/overview', label: 'Docs'}
