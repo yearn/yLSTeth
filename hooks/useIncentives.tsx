@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import {useYDaemonBaseURI} from 'hooks/useYDaemonBaseURI';
-import BOOTSTRAP_ABI from 'utils/abi/bootstrap.abi';
+import {getCurrentEpoch} from 'utils/epochs';
 import {yDaemonPricesSchema} from 'utils/schemas/yDaemonPricesSchema';
 import {parseAbiItem, toHex} from 'viem';
 import {erc20ABI, useContractRead} from 'wagmi';
-import {useAsync, useMountEffect, useUpdateEffect} from '@react-hookz/web';
+import {useAsync, useUpdateEffect} from '@react-hookz/web';
 import {multicall} from '@wagmi/core';
 import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
 import {toAddress, truncateHex} from '@yearn-finance/web-lib/utils/address';
@@ -14,7 +14,7 @@ import {decodeAsNumber, decodeAsString} from '@yearn-finance/web-lib/utils/decod
 import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import {getClient} from '@yearn-finance/web-lib/utils/wagmi/utils';
 
-import useBootstrapPeriods from './useBootstrapPeriods';
+import {useEpoch} from './useEpoch';
 import {useFetch} from './useFetch';
 
 import type {TTokenInfo} from 'contexts/useTokenList';
@@ -59,26 +59,24 @@ export type TIncentivesFor = {
 	user: TDict<TGroupedIncentives>
 }
 
-export type TUseBootstrapIncentivesResp = {
+export type TUseIncentivesResp = {
 	groupIncentiveHistory: TIncentivesFor,
-	claimedIncentives: TIncentivesClaimed[] | undefined,
 	isFetchingHistory: boolean,
 	refreshIncentives: VoidFunction,
-	refreshClaimedIncentives: VoidFunction
 	totalDepositedETH: TNormalizedBN
 	totalDepositedUSD: number
 };
-function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
+function useIncentives(): TUseIncentivesResp {
 	const {address} = useWeb3();
-	const {voteStatus} = useBootstrapPeriods();
+	const {startPeriod} = useEpoch();
 	const [incentives, set_incentives] = useState<TIncentives[]>([]);
-	const [claimedIncentives, set_claimedIncentives] = useState<TIncentivesClaimed[] | undefined>(undefined);
 	const [isFetchingHistory, set_isFetchingHistory] = useState(false);
 	const {yDaemonBaseUri} = useYDaemonBaseURI({chainID: Number(process.env.BASE_CHAIN_ID)});
 	const {data: prices} = useFetch<TYDaemonPrices>({
 		endpoint: `${yDaemonBaseUri}/prices/all`,
 		schema: yDaemonPricesSchema
 	});
+
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	** useContractRead calling the `deposited` method from the bootstrap contract to get the total
@@ -87,9 +85,9 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 	** @returns: bigint - total deposited eth
 	**********************************************************************************************/
 	const {data: totalDepositedETH} = useContractRead({
-		address: toAddress(process.env.BOOTSTRAP_ADDRESS),
-		abi: BOOTSTRAP_ABI,
-		functionName: 'deposited'
+		address: toAddress(process.env.YETH_ADDRESS),
+		abi: erc20ABI,
+		functionName: 'totalSupply'
 	});
 
 
@@ -119,31 +117,58 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 	** depositor and incentive token.
 	** From that we will be able to create our mappings
 	**
-	** @deps: none
+	** @deps: startPeriod - start period of the current epoch
 	**********************************************************************************************/
 	const filterIncentivizeEvents = useCallback(async (): Promise<void> => {
+		if (startPeriod === 0) {
+			return;
+		}
 		set_isFetchingHistory(true);
 		const publicClient = getClient(Number(process.env.DEFAULT_CHAIN_ID));
 		const rangeLimit = toBigInt(Number(process.env.RANGE_LIMIT));
-		const deploymentBlockNumber = toBigInt(process.env.BOOTSTRAP_INIT_BLOCK_NUMBER);
+		const deploymentTime = toBigInt(startPeriod);
+		const now = toBigInt(Math.floor(Date.now() / 1000));
 		const currentBlockNumber = await publicClient.getBlockNumber();
+		const blocksPerDay = 7200n;
+		const daySinceDeployment = toBigInt(Math.floor(Number((now - deploymentTime) / 86400n)));
+		const deploymentBlockNumber = currentBlockNumber - blocksPerDay * daySinceDeployment;
 		const incentives: TIncentives[] = [];
 		for (let i = deploymentBlockNumber; i < currentBlockNumber; i += rangeLimit) {
 			const logs = await publicClient.getLogs({
-				address: toAddress(process.env.BOOTSTRAP_ADDRESS),
-				event: parseAbiItem('event Incentivize(address indexed protocol, address indexed incentive, address indexed depositor, uint256 amount)'),
+				address: toAddress(process.env.VOTE_ADDRESS),
+				event: parseAbiItem('event Deposit(bytes32 indexed vote, uint256 choice, address indexed token, address depositor, uint256 amount)'),
 				fromBlock: i,
 				toBlock: i + rangeLimit
 			});
 			for (const log of logs) {
-				const {protocol, incentive, amount, depositor} = log.args;
+				if (log.args.choice === 0n) {
+					const {amount, depositor, token} = log.args;
+					incentives.push({
+						blockNumber: toBigInt(log.blockNumber as bigint),
+						txHash: toHex(log.transactionHash || ''),
+						protocol: toAddress(),
+						protocolName: 'Do Nothing / No Change',
+						protocolSymbol: 'Do Nothing / No Change',
+						incentive: toAddress(token),
+						depositor: toAddress(depositor),
+						amount: toBigInt(amount),
+						value: 0,
+						estimatedAPR: 0
+					});
+					continue;
+				}
+
+				const protocol = getCurrentEpoch().inclusion.candidates[Number(log.args.choice) + 1];
+				const protocolAddress = toAddress(protocol.address);
+				const {amount, depositor, token} = log.args;
+
 				incentives.push({
 					blockNumber: toBigInt(log.blockNumber as bigint),
 					txHash: toHex(log.transactionHash || ''),
-					protocol: toAddress(protocol),
-					protocolName: truncateHex(protocol, 6),
-					protocolSymbol: truncateHex(protocol, 6),
-					incentive: toAddress(incentive),
+					protocol: toAddress(protocolAddress),
+					protocolName: truncateHex(protocolAddress, 6),
+					protocolSymbol: truncateHex(protocolAddress, 6),
+					incentive: toAddress(token),
 					depositor: toAddress(depositor),
 					amount: toBigInt(amount),
 					value: 0,
@@ -152,52 +177,10 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 			}
 		}
 		set_incentives(incentives);
-	}, []);
-	useMountEffect(filterIncentivizeEvents);
-
-
-	/* 🔵 - Yearn Finance **************************************************************************
-	** Connect to the node and listen for all the events since the deployment of the contracts.
-	** We need to filter the ClaimIncentive event to be able to know which incentives were already
-	** claimed by the user.
-	** From that we will be able to create our mappings
-	**
-	** @deps: address - The address of the user
-	** @deps: voteStatus - The status of the vote
-	**********************************************************************************************/
-	const filterClaimIncentiveEvents = useCallback(async (): Promise<void> => {
-		if (!address || voteStatus !== 'ended') {
-			return;
-		}
-		const publicClient = getClient(Number(process.env.DEFAULT_CHAIN_ID));
-		const rangeLimit = toBigInt(Number(process.env.RANGE_LIMIT));
-		const deploymentBlockNumber = toBigInt(process.env.BOOTSTRAP_INIT_BLOCK_NUMBER);
-		const currentBlockNumber = await publicClient.getBlockNumber();
-		const incentivesClaimed: TIncentivesClaimed[] = [];
-		for (let i = deploymentBlockNumber; i < currentBlockNumber; i += rangeLimit) {
-			const logs = await publicClient.getLogs({
-				address: toAddress(process.env.BOOTSTRAP_ADDRESS),
-				event: parseAbiItem('event ClaimIncentive(address indexed protocol, address indexed incentive, address indexed claimer, uint256 amount)'),
-				args: {claimer: address},
-				fromBlock: i,
-				toBlock: i + rangeLimit
-			});
-			for (const log of logs) {
-				const {protocol, incentive, claimer} = log.args;
-				incentivesClaimed.push({
-					id: `${toAddress(protocol)}-${toAddress(incentive)}-${toAddress(claimer)}`,
-					protocol: toAddress(protocol),
-					incentive: toAddress(incentive),
-					claimer: toAddress(claimer)
-				});
-			}
-		}
-		set_claimedIncentives(incentivesClaimed);
-	}, [address, voteStatus]);
+	}, [startPeriod]);
 	useEffect((): void => {
-		filterClaimIncentiveEvents();
-	}, [filterClaimIncentiveEvents]);
-
+		filterIncentivizeEvents();
+	}, [filterIncentivizeEvents]);
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	** The filtered events are only a bunch of addresses and amounts. Because we are an UI we want
@@ -372,10 +355,8 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 		isFetchingHistory,
 		refreshIncentives: filterIncentivizeEvents,
 		totalDepositedETH: toNormalizedBN(totalDepositedETH || 0n),
-		totalDepositedUSD: totalDepositedValue,
-		claimedIncentives: claimedIncentives,
-		refreshClaimedIncentives: filterClaimIncentiveEvents
+		totalDepositedUSD: totalDepositedValue
 	});
 }
 
-export default useBootstrapIncentives;
+export default useIncentives;

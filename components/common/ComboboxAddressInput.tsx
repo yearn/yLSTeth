@@ -3,7 +3,9 @@ import {ImageWithFallback} from 'components/common/ImageWithFallback';
 import IconCheck from 'components/icons/IconCheck';
 import IconChevronBoth from 'components/icons/IconChevronBoth';
 import IconSpinner from 'components/icons/IconSpinner';
+import {type TTokenInfo,useTokenList} from 'contexts/useTokenList';
 import {useWallet} from 'contexts/useWallet';
+import {isValidAddress} from 'utils';
 import {isAddress} from 'viem';
 import {erc20ABI} from 'wagmi';
 import {Combobox, Transition} from '@headlessui/react';
@@ -17,23 +19,23 @@ import {toBigInt} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
 import {performBatchedUpdates} from '@yearn-finance/web-lib/utils/performBatchedUpdates';
 
-import type {TTokenInfo} from 'contexts/useTokenList';
 import type {Dispatch, ReactElement, SetStateAction} from 'react';
 import type {TAddress, TDict} from '@yearn-finance/web-lib/types';
 
 type TComboboxAddressInput = {
 	possibleValues: TDict<TTokenInfo | undefined>;
 	value: string | undefined;
-	onChangeValue: Dispatch<SetStateAction<TTokenInfo | undefined>>,
-	onAddValue?: Dispatch<SetStateAction<TDict<TTokenInfo | undefined>>>
+	onChangeValue: Dispatch<SetStateAction<TTokenInfo | undefined>>;
+	onAddValue?: Dispatch<SetStateAction<TDict<TTokenInfo | undefined>>>;
+	shouldDisplayBalance?: boolean;
 }
 
-function ComboboxOption({option}: {option: TTokenInfo | undefined}): ReactElement {
-	const	{balances} = useWallet();
+function ComboboxOption({option, shouldDisplayBalance = true}: {option: TTokenInfo | undefined, shouldDisplayBalance?: boolean}): ReactElement {
+	const {balances} = useWallet();
 
 	return (
 		<Combobox.Option
-			className={({active: isActive}): string => `relative cursor-pointer select-none p-2 ${isActive ? 'bg-neutral-100 text-neutral-900' : 'text-neutral-900'}`}
+			className={({active: isActive}): string => `relative cursor-pointer select-none p-2 ${isActive ? 'bg-purple-300/10 text-neutral-900' : 'text-neutral-900'}`}
 			value={toAddress(option?.address)}>
 			{({selected: isSelected}): ReactElement => (
 				<div className={'flex w-full flex-row items-center space-x-2'}>
@@ -49,13 +51,17 @@ function ComboboxOption({option}: {option: TTokenInfo | undefined}): ReactElemen
 					<div className={'font-sans flex flex-col text-neutral-900'}>
 						<span>
 							{`${option?.symbol || truncateHex(toAddress(option?.address), 4)}`}
-							<small className={'text-xs text-neutral-600'}>{` - ${formatAmount(balances?.[toAddress(option?.address)]?.normalized || 0, 2, 6)} available`}</small>
+							{shouldDisplayBalance && isValidAddress(option?.address) ? (
+								<small className={'text-xs text-neutral-600'}>
+									{` - ${formatAmount(balances?.[toAddress(option?.address)]?.normalized || 0, 2, 6)} available`}
+								</small>
+							) : null}
 						</span>
 						<small className={'font-number hidden text-xs text-neutral-500 md:flex'}>
-							{toAddress(option?.address)}
+							{isValidAddress(option?.address) ? toAddress(option?.address) : ''}
 						</small>
 						<small className={'font-number flex text-xs text-neutral-500 md:hidden'}>
-							{truncateHex(toAddress(option?.address), 6)}
+							{isValidAddress(option?.address) ? truncateHex(toAddress(option?.address), 6) : ''}
 						</small>
 					</div>
 					{isSelected ? (
@@ -74,7 +80,8 @@ function ComboboxAddressInput({
 	possibleValues,
 	value,
 	onChangeValue,
-	onAddValue
+	onAddValue,
+	shouldDisplayBalance
 }: TComboboxAddressInput): ReactElement {
 	const {provider} = useWeb3();
 	const {balances, refresh} = useWallet();
@@ -82,6 +89,7 @@ function ComboboxAddressInput({
 	const [query, set_query] = useState('');
 	const [isOpen, set_isOpen] = useThrottledState(false, 400);
 	const [isLoadingTokenData, set_isLoadingTokenData] = useState(false);
+	const {tokenList} = useTokenList();
 
 	const fetchToken = useCallback(async (
 		_safeChainID: number,
@@ -90,6 +98,15 @@ function ComboboxAddressInput({
 		if (!isAddress(_query)) {
 			return (undefined);
 		}
+
+		if (tokenList[_query]) {
+			return ({
+				name: tokenList[_query].name,
+				symbol: tokenList[_query].symbol,
+				decimals: tokenList[_query].decimals
+			});
+		}
+
 		const results = await multicall({
 			contracts: [
 				{address: _query, abi: erc20ABI, functionName: 'name'},
@@ -103,7 +120,7 @@ function ComboboxAddressInput({
 		const decimals = decodeAsNumber(results[2]);
 		await refresh([{decimals, name, symbol, token: _query}]);
 		return ({name, symbol, decimals});
-	}, [refresh]);
+	}, [refresh, tokenList]);
 
 	const [{result: tokenData}, fetchTokenData] = useAsync(fetchToken);
 
@@ -189,7 +206,7 @@ function ComboboxAddressInput({
 				<div className={'relative'}>
 					<Combobox.Button
 						onClick={(): void => set_isOpen((o: boolean): boolean => !o)}
-						className={'box-500 grow-1 col-span-12 flex h-10 w-full items-center p-2 md:col-span-9'}>
+						className={'grow-1 col-span-12 flex h-10 w-full items-center rounded-md bg-neutral-0 p-2 md:col-span-9'}>
 						<div className={'relative flex w-full flex-row items-center space-x-2'}>
 							<div className={'h-6 w-6 min-w-[24px]'}>
 								<ImageWithFallback
@@ -203,11 +220,17 @@ function ComboboxAddressInput({
 							<p className={'w-full overflow-x-hidden text-ellipsis whitespace-nowrap pr-2 font-normal text-neutral-900 scrollbar-none'}>
 								<Combobox.Input
 									className={'font-inter w-full cursor-default overflow-x-scroll border-none bg-transparent p-0 outline-none scrollbar-none'}
-									displayValue={(dest: TAddress): string => (
-										possibleValues?.[toAddress(dest)]?.symbol ||
-										truncateHex(toAddress(dest), 8) ||
-										''
-									)}
+									displayValue={(dest: TAddress): string => {
+										if (!isValidAddress(dest)) {
+											console.log(possibleValues);
+											return possibleValues?.[toAddress(dest)]?.name || '';
+										}
+										return (
+											possibleValues?.[toAddress(dest)]?.symbol ||
+											truncateHex(toAddress(dest), 8) ||
+											''
+										);
+									}}
 									placeholder={'0x...'}
 									autoComplete={'off'}
 									autoCorrect={'off'}
@@ -239,7 +262,7 @@ function ComboboxAddressInput({
 						leaveFrom={'transform scale-100 opacity-100'}
 						leaveTo={'transform scale-95 opacity-0'}
 						afterLeave={(): void => set_query('')}>
-						<Combobox.Options className={'box-500 scrollbar-show absolute left-0 z-50 mt-1 flex max-h-52 w-full min-w-fit flex-col overflow-y-scroll md:min-w-[400px]'}>
+						<Combobox.Options className={'scrollbar-show absolute left-0 z-50 mt-1 flex max-h-52 w-full min-w-fit flex-col overflow-y-scroll rounded-md bg-neutral-0 shadow-lg md:min-w-[400px]'}>
 							{Object.values(possibleValues || []).length === 0 ? (
 								<div className={'relative flex cursor-default select-none items-center justify-center px-4 py-2 text-neutral-500'}>
 									<IconSpinner />
@@ -250,6 +273,7 @@ function ComboboxAddressInput({
 								</div>
 							) : filteredValues.length === 0 && query !== '' && tokenData ? (
 								<ComboboxOption
+									shouldDisplayBalance={shouldDisplayBalance}
 									option={{
 										address: toAddress(query),
 										chainId: safeChainID,
@@ -265,6 +289,7 @@ function ComboboxAddressInput({
 									.map((dest): ReactElement => (
 										<ComboboxOption
 											key={`${dest.address}_${dest.chainId}`}
+											shouldDisplayBalance={shouldDisplayBalance}
 											option={dest} />
 									))
 							)}

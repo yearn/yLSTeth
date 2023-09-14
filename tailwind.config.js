@@ -43,13 +43,18 @@ module.exports = {
 				'6xl': '1200px'
 			},
 			gridTemplateColumns: {
+				'20': 'repeat(20, minmax(0, 1fr))',
 				'30': 'repeat(30, minmax(0, 1fr))'
 			},
 			gridColumn: {
-				'span-18': 'span 18 / span 18'
+				'span-18': 'span 18 / span 18',
+				'span-20': 'span 20 / span 20'
 			},
 			scale: {
 				'102': '1.02'
+			},
+			spacing: {
+				72: '72px'
 			}
 		}
 	}

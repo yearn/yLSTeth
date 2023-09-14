@@ -121,8 +121,6 @@ function ViewLSTDepositForm({token, amount, onUpdateAmount}: {
 }
 
 function ViewDetails({estimateOut, bonusOrPenalty}: {estimateOut: bigint, bonusOrPenalty: number}): ReactElement {
-	// const {slippage} = useLST();
-
 	const bonusOrPenaltyFormatted = useMemo((): string => {
 		if (Number.isNaN(bonusOrPenalty)) {
 			return formatAmount(0, 2, 2);
@@ -137,7 +135,7 @@ function ViewDetails({estimateOut, bonusOrPenalty}: {estimateOut: bigint, bonusO
 	}, [bonusOrPenalty]);
 
 	return (
-		<div className={'col-span-12 py-6 pl-0 md:py-10 md:pl-[72px]'}>
+		<div className={'col-span-12 py-6 pl-0 md:py-10 md:pl-72'}>
 			<div className={'mb-10 flex w-full flex-col !rounded-md bg-neutral-100'}>
 				<h2 className={'text-xl font-black'}>
 					{'Details'}
@@ -375,9 +373,9 @@ function ViewDeposit(): ReactElement {
 	}, [amounts, estimateOut, isActive, onUpdateLST, provider, refresh]);
 
 	return (
-		<section className={'relative px-4 md:px-[72px]'}>
+		<section className={'relative px-4 md:px-72'}>
 			<div className={'grid grid-cols-1 divide-x-0 divide-y-2 divide-neutral-300 md:grid-cols-30 md:divide-x-2 md:divide-y-0'}>
-				<div className={'col-span-18 py-6 pr-0 md:py-10 md:pr-[72px]'}>
+				<div className={'col-span-18 py-6 pr-0 md:py-10 md:pr-72'}>
 					<div className={'flex w-full flex-col !rounded-md bg-neutral-100'}>
 						<h2 className={'text-xl font-black'}>
 							{'Deposit'}

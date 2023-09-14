@@ -71,7 +71,7 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 			className={cl('group', basicTransition)}>
 			<div
 				id={'title'}
-				className={'relative col-span-18 flex items-end py-6 pr-0 md:py-8 md:pr-[72px]'}>
+				className={'relative col-span-18 flex items-end py-6 pr-0 md:py-8 md:pr-72'}>
 				<div
 					id={'yeth-title-explore'}
 					className={cl('absolute -left-full top-10 text-neutral-0 opacity-0 transition-all duration-200 ease-in-out group-hover:left-0 group-hover:opacity-100 hidden md:block', basicTransition)}>
@@ -84,7 +84,7 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 
 			<div
 				id={'composition'}
-				className={'col-span-12 flex w-full flex-row justify-between py-4 pl-0 transition-colors md:py-8 md:pl-[72px]'}>
+				className={'col-span-12 flex w-full flex-row justify-between py-4 pl-0 transition-colors md:py-8 md:pl-72'}>
 				<div className={'flex flex-col space-y-2'}>
 					<div>
 						<small className={cl('text-xs', basicLighterColorTransition)}>
@@ -211,7 +211,7 @@ function YETH({router}: {router: Router}): ReactElement {
 			</div>
 
 
-			<div className={cl('absolute top-10 text-neutral-0 duration-[600ms] ease-in-out transition-all', shouldRenderPool ? 'left-8 md:left-[72px] opacity-100 pointer-events-auto' : 'left-0 opacity-0 pointer-events-none')}>
+			<div className={cl('absolute top-10 text-neutral-0 duration-[600ms] ease-in-out transition-all', shouldRenderPool ? 'left-8 md:left-72 opacity-100 pointer-events-auto' : 'left-0 opacity-0 pointer-events-none')}>
 				<button onClick={(): void => triggerPoolView(false)}>
 					{'< Back to actions'}
 				</button>
@@ -223,7 +223,7 @@ function YETH({router}: {router: Router}): ReactElement {
 				ref={tabsCope}
 				className={'relative mt-4'}>
 				<div className={'flex w-full flex-col'}>
-					<div className={'relative flex w-full flex-row items-center justify-between rounded-t-md bg-neutral-100 px-4 pt-4 md:px-[72px]'}>
+					<div className={'relative flex w-full flex-row items-center justify-between rounded-t-md bg-neutral-100 px-4 pt-4 md:px-72'}>
 						<nav className={'z-30 hidden flex-row items-center space-x-10 md:flex'}>
 							{tabs.map((tab): ReactElement => (
 								<button

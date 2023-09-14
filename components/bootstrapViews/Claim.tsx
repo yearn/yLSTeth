@@ -185,7 +185,7 @@ function ClaimHeading(): ReactElement {
 			</h1>
 			<b
 				suppressHydrationWarning
-				className={'font-number mt-4 text-4xl text-purple-300'}>
+				className={'font-number mt-4 text-4xl leading-10 text-purple-300'}>
 				<Timer />
 			</b>
 			<p className={'pt-8 text-neutral-700'}>{'If you voted for any LSTs you’d like to see included in yETH, you’re eligble to recieve incentives from the top 5 protocols (even if you didn’t vote for them).'}</p>
@@ -227,7 +227,7 @@ function Claim(): ReactElement {
 	const totalVotes = useMemo((): TNormalizedBN => {
 		let sum = 0n;
 		for (const item of Object.values(whitelistedLST)) {
-			sum += item.extra.votes || 0n;
+			sum += item?.extra?.votes || 0n;
 		}
 		return toNormalizedBN(sum);
 	}, [whitelistedLST]);

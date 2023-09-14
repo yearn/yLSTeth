@@ -45,7 +45,7 @@ export default function SettingsPopover(): ReactElement {
 												className={`flex h-8 items-center rounded border-2 bg-neutral-100 px-1.5 py-2 ${slippage === 50n ? 'border-purple-300' : 'border-transparent'}`}>
 												<p className={'font-number pr-4 text-neutral-900'}>{'0.5%'}</p>
 											</button>
-											<div className={`flex h-8 w-full min-w-[48px] items-center rounded border-2 bg-neutral-100 px-0 py-4 md:min-w-[72px] ${slippage !== 10n && slippage !== 50n ? 'border-purple-300' : 'border-transparent'}`}>
+											<div className={`md:min-w-72 flex h-8 w-full min-w-[48px] items-center rounded border-2 bg-neutral-100 px-0 py-4 ${slippage !== 10n && slippage !== 50n ? 'border-purple-300' : 'border-transparent'}`}>
 												<input
 													id={'slippageTolerance'}
 													type={'number'}

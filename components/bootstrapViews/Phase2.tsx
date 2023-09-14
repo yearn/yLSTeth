@@ -105,7 +105,7 @@ function Phase2Started({variant}: {variant: string[]}): ReactElement {
 							initial={'initial'}
 							animate={'move'}
 							exit={'exit'}>
-							<Link href={currentTab === 0 ? '/deposit' : '/incentive'}>
+							<Link href={currentTab === 0 ? '/deposit' : '/incentivize'}>
 								<Button
 									className={'yearn--button w-full rounded-md !text-sm md:w-1/2'}>
 									{currentTab === 0 ? 'Deposit' : 'Incentivize'}
@@ -156,7 +156,7 @@ function Phase2NotStarted({variant}: {variant: string[]}): ReactElement {
 					</motion.h1>
 					<motion.b
 						suppressHydrationWarning
-						className={'font-number mt-4 text-4xl text-purple-300'}
+						className={'font-number mt-4 text-4xl leading-10 text-purple-300'}
 						variants={customVariants(0.04)}
 						custom={variant}
 						initial={'initial'}
@@ -224,7 +224,7 @@ function Phase2Ended({variant}: {variant: string[]}): ReactElement {
 					</motion.h1>
 					<motion.b
 						suppressHydrationWarning
-						className={'font-number mt-4 text-4xl text-purple-300'}
+						className={'font-number mt-4 text-4xl leading-10 text-purple-300'}
 						variants={customVariants(0.04)}
 						custom={variant}
 						initial={'initial'}
@@ -250,7 +250,7 @@ function Phase2Ended({variant}: {variant: string[]}): ReactElement {
 					initial={'initial'}
 					animate={'move'}
 					exit={'exit'}>
-					<Link href={'/incentive'}>
+					<Link href={'/incentivize'}>
 						<Button
 							className={'yearn--button w-full rounded-md !text-sm md:w-1/2'}>
 							{'Check Incentives'}

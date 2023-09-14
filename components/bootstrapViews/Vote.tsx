@@ -1,30 +1,25 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import assert from 'assert';
+import {VoteConfirmationModal} from 'components/bootstrapViews/Vote.ConfirmationModal';
 import {ImageWithFallback} from 'components/common/ImageWithFallback';
 import IconChevronPlain from 'components/icons/IconChevronPlain';
 import IconSpinner from 'components/icons/IconSpinner';
 import useBootstrap from 'contexts/useBootstrap';
 import {useTimer} from 'hooks/useTimer';
 import {handleInputChangeEventValue} from 'utils';
-import {vote} from 'utils/actions';
 import {Button} from '@yearn-finance/web-lib/components/Button';
 import {Modal} from '@yearn-finance/web-lib/components/Modal';
 import {Renderable} from '@yearn-finance/web-lib/components/Renderable';
-import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
-import {toAddress, truncateHex} from '@yearn-finance/web-lib/utils/address';
+import {truncateHex} from '@yearn-finance/web-lib/utils/address';
 import {cl} from '@yearn-finance/web-lib/utils/cl';
 import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import {formatAmount, formatPercent} from '@yearn-finance/web-lib/utils/format.number';
 import {performBatchedUpdates} from '@yearn-finance/web-lib/utils/performBatchedUpdates';
-import {defaultTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 
-import type {TTokenInfo, TWhitelistedLST} from 'contexts/useTokenList';
+import type {TTokenInfo} from 'contexts/useTokenList';
 import type {ChangeEvent, ReactElement} from 'react';
-import type {TAddress, TDict} from '@yearn-finance/web-lib/types';
+import type {TSortDirection} from 'utils/types';
+import type {TDict} from '@yearn-finance/web-lib/types';
 import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
-import type {TTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
-
-type TSortDirection = '' | 'desc' | 'asc'
 
 function Timer(): ReactElement {
 	const {periods} = useBootstrap();
@@ -33,93 +28,12 @@ function Timer(): ReactElement {
 	return <>{voteStatus === 'ended' ? 'ended' : voteStatus === 'started' ? time : `in ${time}`}</>;
 }
 
-function VoteConfirmationModal({whitelistedLST, voteToSend, onSuccess, onCancel}: {
-	whitelistedLST: TDict<TTokenInfo>,
-	voteToSend: TDict<TNormalizedBN>,
-	onSuccess: VoidFunction,
-	onCancel: VoidFunction
-}): ReactElement {
-	const {isActive, provider} = useWeb3();
-	const [voteStatus, set_voteStatus] = useState<TTxStatus>(defaultTxStatus);
-
-	const protocols = useMemo((): TAddress[] => (
-		Object.values(whitelistedLST)
-			.filter((lst): boolean => voteToSend[lst.address]?.raw > 0n)
-			.map((lst): TAddress => lst.address)
-	), [whitelistedLST, voteToSend]);
-
-	const amounts = useMemo((): bigint[] => (
-		Object.values(voteToSend)
-			.filter((amount): boolean => amount.raw > 0n)
-			.map((amount): bigint => amount.raw)
-	), [voteToSend]);
-
-	/* 🔵 - Yearn Finance **************************************************************************
-	** Web3 action to incentivize a given protocol with a given token and amount.
-	**********************************************************************************************/
-	const onVote = useCallback(async (): Promise<void> => {
-		assert(isActive, 'Wallet not connected');
-		assert(provider, 'Provider not connected');
-
-		const result = await vote({
-			connector: provider,
-			contractAddress: toAddress(process.env.BOOTSTRAP_ADDRESS),
-			protocols: protocols,
-			amounts: amounts,
-			statusHandler: set_voteStatus
-		});
-		if (result.isSuccessful) {
-			onSuccess();
-		}
-	}, [isActive, provider, protocols, amounts, onSuccess]);
-
-	return (
-		<div className={'w-full max-w-[400px] rounded-sm bg-neutral-0 p-6'}>
-			<b className={'text-xl'}>{'Confirm votes'}</b>
-			<div className={'mt-8 grid grid-cols-1 gap-4'}>
-				<div className={'flex flex-row items-center justify-between'}>
-					<small className={'text-xs text-neutral-500'}>{'LST'}</small>
-					<small className={'text-xs text-neutral-500'}>{'Votes, st-yETH'}</small>
-				</div>
-				{Object.values(whitelistedLST)
-					.filter((lst): boolean => voteToSend[lst.address]?.raw > 0n)
-					.map((lst): ReactElement => (
-						<div
-							key={lst.address}
-							className={'flex flex-row items-center justify-between'}>
-							<p>{lst.symbol || truncateHex(lst.address, 6)}</p>
-							<b>{formatAmount(voteToSend[lst.address]?.normalized, 6, 6)}</b>
-						</div>
-					))}
-			</div>
-
-			<div className={'mt-20'}>
-				<Button
-					onClick={onVote}
-					isBusy={voteStatus.pending}
-					isDisabled={
-						protocols.length !== amounts.length
-						|| protocols.length === 0
-					}
-					className={'yearn--button w-full rounded-md !text-sm'}>
-					{'Confirm'}
-				</Button>
-				<button
-					onClick={onCancel}
-					className={'mt-2 h-10 w-full text-center text-neutral-500 transition-colors hover:text-neutral-900'}>
-					{'Cancel'}
-				</button>
-			</div>
-		</div>
-	);
-}
-
 type TVoteListItem = {
-	item: TWhitelistedLST
+	item: TTokenInfo
 	totalVotesRemaining: TNormalizedBN
 	voteToSend: TNormalizedBN
-	onChangeAmount: (e: ChangeEvent<HTMLInputElement>, item: TWhitelistedLST) => void
-	updateToMax: (item: TWhitelistedLST) => void
+	onChangeAmount: (e: ChangeEvent<HTMLInputElement>, item: TTokenInfo) => void
+	updateToMax: (item: TTokenInfo) => void
 }
 function VoteListItem({
 	item,
@@ -183,7 +97,7 @@ function VoteListItem({
 				<div className={'col-span-12 flex h-auto items-center justify-between pr-0 md:col-span-2 md:h-10 md:justify-end md:pr-1'}>
 					<small className={'block text-neutral-500 md:hidden'}>{'Weight'}</small>
 					<p suppressHydrationWarning className={'font-number'}>
-						{formatPercent(item.extra.weight, 2, 2)}
+						{formatPercent(item?.extra?.weight || 0, 2, 2)}
 					</p>
 				</div>
 
@@ -192,7 +106,7 @@ function VoteListItem({
 						{'Total Votes, yETH'}
 					</small>
 					<p suppressHydrationWarning className={'font-number'}>
-						{`${formatAmount(toNormalizedBN(item.extra.votes || 0).normalized, 6, 6)}`}
+						{`${formatAmount(toNormalizedBN(item?.extra?.votes || 0).normalized, 6, 6)}`}
 					</p>
 				</div>
 
@@ -487,7 +401,7 @@ function Vote(): ReactElement {
 	const totalVotesNormalized = useMemo((): number => {
 		let sum = 0n;
 		for (const item of Object.values(whitelistedLST)) {
-			sum += item.extra.votes || 0n;
+			sum += item?.extra?.votes || 0n;
 		}
 		return Number(toNormalizedBN(sum).normalized);
 	}, [whitelistedLST]);
@@ -510,7 +424,7 @@ function Vote(): ReactElement {
 					</h1>
 					<b
 						suppressHydrationWarning
-						className={'font-number mt-4 text-4xl text-purple-300'}>
+						className={'font-number mt-4 text-4xl leading-10 text-purple-300'}>
 						<Timer />
 					</b>
 					<p className={'pt-8 text-neutral-700'}>

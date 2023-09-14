@@ -149,7 +149,7 @@ function ViewStakeUnstake({rate}: {rate: bigint}): ReactElement {
 	}, [fromAmount.raw, isActive, provider, refresh]);
 
 	return (
-		<div className={'col-span-18 py-6 pr-0 md:py-10 md:pr-[72px]'}>
+		<div className={'col-span-18 py-6 pr-0 md:py-10 md:pr-72'}>
 			<h2 className={'text-xl font-black'}>
 				{currentView === 'stake' ? 'Stake yETH' : 'Unstake st-yETH'}
 			</h2>
@@ -239,13 +239,13 @@ function ViewDetails({rate}: {rate: bigint}): ReactElement {
 
 
 	return (
-		<div className={'col-span-12 py-6 pl-0 md:py-10 md:pl-[72px]'}>
+		<div className={'col-span-12 py-6 pl-0 md:py-10 md:pl-72'}>
 			<div className={'mb-10 flex w-full flex-col !rounded-md bg-neutral-100'}>
 				<h2 className={'text-xl font-black'}>
 					{'Details'}
 				</h2>
 				<dl className={'grid grid-cols-3 gap-2 pt-4'}>
-					<dt className={'col-span-2'}>{'yETH per st-yETH'}</dt>
+					<dt className={'col-span-2'}>{'st-yETH per yETH'}</dt>
 					<dd suppressHydrationWarning className={'text-right font-bold'}>
 						{formatAmount(toNormalizedBN(rate).normalized, 6, 6)}
 					</dd>
@@ -307,7 +307,7 @@ function ViewStake(): ReactElement {
 	});
 
 	return (
-		<section className={'relative px-4 md:px-[72px]'}>
+		<section className={'relative px-4 md:px-72'}>
 			<div className={'grid grid-cols-1 divide-x-0 divide-y-2 divide-neutral-300 md:grid-cols-30 md:divide-x-2 md:divide-y-0'}>
 				<ViewStakeUnstake rate={rate || 0n} />
 				<ViewDetails rate={rate || 0n} />

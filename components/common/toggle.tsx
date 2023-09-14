@@ -3,20 +3,19 @@ import {cl} from '@yearn-finance/web-lib/utils/cl';
 
 import type {ReactElement} from 'react';
 
-export default function Toggle({isEnabled, onChange}: {
+export default function Toggle({isEnabled, onChange, bgOffColor = 'bg-neutral-300'}: {
 	isEnabled: boolean;
 	onChange: (isEnabled: boolean) => void;
+	bgOffColor?: string;
 }): ReactElement {
 	return (
 		<Switch
 			checked={isEnabled}
 			onChange={onChange}
 			className={cl(
-				isEnabled ? 'bg-purple-300/20 border-purple-300' : 'bg-neutral-300 border-neutral-600',
+				isEnabled ? 'bg-purple-300/20 border-purple-300' : `${bgOffColor} border-neutral-600`,
 				'relative h-4 w-8 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-200 ease-in-out focus:outline-none focus:ring-0 border-2 flex items-center mt-[1px]'
-			)}
-		>
-			<span className={'sr-only'}>{'Use setting'}</span>
+			)}>
 			<span
 				aria-hidden={'true'}
 				className={cl(

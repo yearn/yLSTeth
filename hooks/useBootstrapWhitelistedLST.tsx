@@ -10,7 +10,7 @@ import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigN
 import {performBatchedUpdates} from '@yearn-finance/web-lib/utils/performBatchedUpdates';
 import {getClient} from '@yearn-finance/web-lib/utils/wagmi/utils';
 
-import type {TWhitelistedLST} from 'contexts/useTokenList';
+import type {TTokenInfo} from 'contexts/useTokenList';
 import type {TAddress, TDict} from '@yearn-finance/web-lib/types';
 
 export type TUseFilterWhitelistedLSTResp = {
@@ -30,7 +30,7 @@ function useFilterWhitelistedLST(): TUseFilterWhitelistedLSTResp {
 	const filterWhitelistEvents = useCallback(async (): Promise<void> => {
 		set_isLoading(true);
 		const publicClient = getClient(Number(process.env.DEFAULT_CHAIN_ID));
-		const rangeLimit = 10_000n;
+		const rangeLimit = toBigInt(Number(process.env.RANGE_LIMIT));
 		const deploymentBlockNumber = toBigInt(process.env.BOOTSTRAP_INIT_BLOCK_NUMBER);
 		const currentBlockNumber = await publicClient.getBlockNumber();
 		const whitelisted: TAddress[] = [];
@@ -60,7 +60,7 @@ function useFilterWhitelistedLST(): TUseFilterWhitelistedLSTResp {
 }
 
 export type TUseBootstrapWhitelistedLSTResp = {
-	whitelistedLST: TDict<TWhitelistedLST>,
+	whitelistedLST: TDict<TTokenInfo>,
 	isLoading: boolean,
 	onUpdate: VoidFunction
 }
@@ -71,9 +71,9 @@ function useBootstrapWhitelistedLST(): TUseBootstrapWhitelistedLSTResp {
 	** Once we got the whitelistedLSTAddr, we need to fetch the token data for each of them, aka
 	** all the stuff like name, symbol, but also the votes and the weight of each.
 	**
-	** @returns: TDict<TWhitelistedLST> - The object of whitelisted tokens with all the data.
+	** @returns: TDict<TTokenInfo> - The object of whitelisted tokens with all the data.
 	**********************************************************************************************/
-	const fetchTokens = useCallback(async (addresses: TAddress[]): Promise<TDict<TWhitelistedLST>> => {
+	const fetchTokens = useCallback(async (addresses: TAddress[]): Promise<TDict<TTokenInfo>> => {
 		const calls = [];
 
 		/* 🔵 - Yearn Finance **********************************************************************
@@ -95,11 +95,11 @@ function useBootstrapWhitelistedLST(): TUseBootstrapWhitelistedLSTResp {
 		const results = await multicall({contracts: calls, chainId: Number(process.env.DEFAULT_CHAIN_ID)});
 
 		/* 🔵 - Yearn Finance **********************************************************************
-		** We got the data, we can decode them and create our object of {address: TWhitelistedLST}
+		** We got the data, we can decode them and create our object of {address: TTokenInfo}
 		** so we can do some more calculations to get the weight of each token.
 		******************************************************************************************/
 		let i = 0;
-		const tokens: TDict<TWhitelistedLST> = {};
+		const tokens: TDict<TTokenInfo> = {};
 		const totalVotes = decodeAsBigInt(results[i++]);
 		for (const address of addresses) {
 			const name = decodeAsString(results[i++]);
@@ -129,15 +129,17 @@ function useBootstrapWhitelistedLST(): TUseBootstrapWhitelistedLSTResp {
 		const maxWeight = 40;
 		let totalWeightAfterScaling = 0;
 		for (const token of Object.values(tokens)) {
-			const votes = Number(toNormalizedBN(token.extra.votes).normalized);
+			const votes = Number(toNormalizedBN((token?.extra?.votes || 0)).normalized);
 			const total = Number(toNormalizedBN(totalVotes).normalized);
 			const weight = votes / total * 100;
-			if (weight > maxWeight) {
-				token.extra.weight = maxWeight;
-				totalWeightAfterScaling += maxWeight;
-			} else {
-				token.extra.weight = weight;
-				totalWeightAfterScaling += weight;
+			if (token.extra) {
+				if (weight > maxWeight) {
+					token.extra.weight = maxWeight;
+					totalWeightAfterScaling += maxWeight;
+				} else {
+					token.extra.weight = weight;
+					totalWeightAfterScaling += weight;
+				}
 			}
 		}
 
@@ -147,17 +149,19 @@ function useBootstrapWhitelistedLST(): TUseBootstrapWhitelistedLSTResp {
 		if (totalWeightAfterScaling < 100n) {
 			const diff = 100 - totalWeightAfterScaling;
 			const nonZeroTokensLen = Object.values(tokens)
-				.filter((token): boolean => token.extra.weight > 0)
-				.filter((token): boolean => token.extra.weight !== 40)
+				.filter((token): boolean => (token?.extra?.weight || 0) > 0)
+				.filter((token): boolean => (token?.extra?.weight || 0) !== 40)
 				.length;
 			for (const token of Object.values(tokens)) {
-				if (token.extra.weight === 0) {
+				if ((token?.extra?.weight || 0) === 0) {
 					continue;
 				}
-				if (token.extra.weight === maxWeight) {
+				if ((token?.extra?.weight || 0) === maxWeight) {
 					continue;
 				}
-				token.extra.weight += diff / nonZeroTokensLen;
+				if (token?.extra?.weight) {
+					token.extra.weight += diff / nonZeroTokensLen;
+				}
 			}
 		}
 

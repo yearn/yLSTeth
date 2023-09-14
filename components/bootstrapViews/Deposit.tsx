@@ -111,7 +111,7 @@ function ViewDeposit(): ReactElement {
 		}
 		set_isFetchingHistory(true);
 		const publicClient = getClient(Number(process.env.DEFAULT_CHAIN_ID));
-		const rangeLimit = 10_000n;
+		const rangeLimit = toBigInt(Number(process.env.RANGE_LIMIT));
 		const deploymentBlockNumber = toBigInt(process.env.BOOTSTRAP_INIT_BLOCK_NUMBER);
 		const currentBlockNumber = await publicClient.getBlockNumber();
 		const history: TDepositHistory[] = [];
@@ -231,7 +231,7 @@ function ViewDeposit(): ReactElement {
 					</h1>
 					<b
 						suppressHydrationWarning
-						className={'font-number mt-4 text-4xl text-purple-300'}>
+						className={'font-number mt-4 text-4xl leading-10 text-purple-300'}>
 						<Timer />
 					</b>
 					<div className={'grid w-full items-center gap-4 pt-8 md:grid-cols-1 md:gap-6 lg:grid-cols-2'}>
