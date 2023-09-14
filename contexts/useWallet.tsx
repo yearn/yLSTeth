@@ -41,7 +41,7 @@ const defaultProps = {
 ******************************************************************************/
 const WalletContext = createContext<TWalletContext>(defaultProps);
 export const WalletContextApp = memo(function WalletContextApp({children}: {children: ReactElement}): ReactElement {
-	const {isActive} = useWeb3();
+	const {provider, isActive} = useWeb3();
 	const {safeChainID} = useChainID();
 	const [walletProvider, set_walletProvider] = useState('NONE');
 	const {value: extraTokens, set: saveExtraTokens} = useLocalStorageValue<TUseBalancesTokens[]>('yeth/tokens', {defaultValue: []});
@@ -147,14 +147,14 @@ export const WalletContextApp = memo(function WalletContextApp({children}: {chil
 	**	Setup and render the Context provider to use in the app.
 	***************************************************************************/
 	const contextValue = useMemo((): TWalletContext => ({
-		balances: balances,
+		balances: provider ? balances : {},
 		balancesNonce: nonce,
 		isLoading: isLoading || false,
 		refresh: onRefresh,
 		refreshWithList: onRefreshWithList,
 		walletProvider,
 		set_walletProvider
-	}), [balances, isLoading, onRefresh, nonce, onRefreshWithList, walletProvider]);
+	}), [provider, balances, nonce, isLoading, onRefresh, onRefreshWithList, walletProvider]);
 
 	return (
 		<WalletContext.Provider value={contextValue}>

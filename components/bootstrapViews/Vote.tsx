@@ -15,7 +15,7 @@ import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigN
 import {formatAmount, formatPercent} from '@yearn-finance/web-lib/utils/format.number';
 import {performBatchedUpdates} from '@yearn-finance/web-lib/utils/performBatchedUpdates';
 
-import type {TTokenInfo, TWhitelistedLST} from 'contexts/useTokenList';
+import type {TTokenInfo} from 'contexts/useTokenList';
 import type {ChangeEvent, ReactElement} from 'react';
 import type {TSortDirection} from 'utils/types';
 import type {TDict} from '@yearn-finance/web-lib/types';
@@ -29,11 +29,11 @@ function Timer(): ReactElement {
 }
 
 type TVoteListItem = {
-	item: TWhitelistedLST
+	item: TTokenInfo
 	totalVotesRemaining: TNormalizedBN
 	voteToSend: TNormalizedBN
-	onChangeAmount: (e: ChangeEvent<HTMLInputElement>, item: TWhitelistedLST) => void
-	updateToMax: (item: TWhitelistedLST) => void
+	onChangeAmount: (e: ChangeEvent<HTMLInputElement>, item: TTokenInfo) => void
+	updateToMax: (item: TTokenInfo) => void
 }
 function VoteListItem({
 	item,
@@ -97,7 +97,7 @@ function VoteListItem({
 				<div className={'col-span-12 flex h-auto items-center justify-between pr-0 md:col-span-2 md:h-10 md:justify-end md:pr-1'}>
 					<small className={'block text-neutral-500 md:hidden'}>{'Weight'}</small>
 					<p suppressHydrationWarning className={'font-number'}>
-						{formatPercent(item.extra.weight, 2, 2)}
+						{formatPercent(item?.extra?.weight || 0, 2, 2)}
 					</p>
 				</div>
 
@@ -106,7 +106,7 @@ function VoteListItem({
 						{'Total Votes, yETH'}
 					</small>
 					<p suppressHydrationWarning className={'font-number'}>
-						{`${formatAmount(toNormalizedBN(item.extra.votes || 0).normalized, 6, 6)}`}
+						{`${formatAmount(toNormalizedBN(item?.extra?.votes || 0).normalized, 6, 6)}`}
 					</p>
 				</div>
 

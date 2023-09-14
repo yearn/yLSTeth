@@ -8,7 +8,7 @@ import useBootstrap from 'contexts/useBootstrap';
 import {useTokenList} from 'contexts/useTokenList';
 import {useWallet} from 'contexts/useWallet';
 import {useTimer} from 'hooks/useTimer';
-import {handleInputChangeEventValue} from 'utils';
+import {handleInputChangeEventValue, isValidAddress} from 'utils';
 import {approveERC20, incentivize} from 'utils/actions';
 import {ETH_TOKEN} from 'utils/tokens';
 import {erc20ABI, useContractRead} from 'wagmi';
@@ -31,21 +31,9 @@ import type {TTokenInfo} from 'contexts/useTokenList';
 import type {TGroupedIncentives, TIncentives, TIncentivesFor} from 'hooks/useBootstrapIncentives';
 import type {ChangeEvent, ReactElement} from 'react';
 import type {TSortDirection} from 'utils/types';
-import type {TAddress, TDict} from '@yearn-finance/web-lib/types';
+import type {TDict} from '@yearn-finance/web-lib/types';
 import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import type {TTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
-
-function isValidAddress(address: TAddress | undefined): boolean {
-	if (!address) {
-		return false;
-	}
-	try {
-		assertAddress(address);
-		return true;
-	} catch (error) {
-		return false;
-	}
-}
 
 function Timer(): ReactElement {
 	const {periods} = useBootstrap();
@@ -622,14 +610,6 @@ function ViewIncentive(): ReactElement {
 	}, [balanceOf, balances, tokenToUse]);
 
 	/* 🔵 - Yearn Finance **************************************************************************
-	** View function to round the amount and make it match to a known percentage.
-	**********************************************************************************************/
-	const amountPercentage = useMemo((): number => {
-		const percent = Number(amountToSend.normalized) / Number(balanceOf.normalized) * 100;
-		return Math.round(percent * 100) / 100;
-	}, [amountToSend.normalized, balanceOf.normalized]);
-
-	/* 🔵 - Yearn Finance **************************************************************************
 	** View function to check if the user has enough allowance for the token/amount to send.
 	**********************************************************************************************/
 	const hasAllowance = useMemo((): boolean => {
@@ -762,7 +742,7 @@ function ViewIncentive(): ReactElement {
 
 						<div className={'pt-2 md:pt-0'}>
 							<p className={'pb-1 text-sm text-neutral-600 md:text-base'}>{'Amount'}</p>
-							<div className={'box-500 grow-1 flex h-10 w-full items-center justify-center p-2'}>
+							<div className={'grow-1 flex h-10 w-full items-center justify-center rounded-md bg-neutral-0 p-2'}>
 								<div className={'mr-2 h-6 w-6 min-w-[24px]'}>
 									<ImageWithFallback
 										alt={''}
@@ -787,9 +767,11 @@ function ViewIncentive(): ReactElement {
 									onChange={onChangeAmount} />
 								<div className={'ml-2 flex flex-row space-x-1'}>
 									<button
+										type={'button'}
+										tabIndex={-1}
 										onClick={(): void => updateToPercent(100)}
-										className={cl('p-1 text-xs rounded-sm border border-purple-300 transition-colors', amountPercentage === 100 ? 'bg-purple-300 text-white' : 'text-purple-300 hover:bg-purple-300 hover:text-white')}>
-										{'max'}
+										className={cl('px-2 py-1 text-xs rounded-md border border-purple-300 transition-colors bg-purple-300 text-white')}>
+										{'Max'}
 									</button>
 
 								</div>

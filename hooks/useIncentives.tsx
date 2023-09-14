@@ -141,10 +141,27 @@ function useIncentives(): TUseIncentivesResp {
 				toBlock: i + rangeLimit
 			});
 			for (const log of logs) {
-				const protocol = getCurrentEpoch().inclusion.candidates[Number(log.args.choice)];
-				const protocolAddress = toAddress(protocol.address);
+				if (log.args.choice === 0n) {
+					const {amount, depositor, token} = log.args;
+					incentives.push({
+						blockNumber: toBigInt(log.blockNumber as bigint),
+						txHash: toHex(log.transactionHash || ''),
+						protocol: toAddress(),
+						protocolName: 'Do Nothing / No Change',
+						protocolSymbol: 'Do Nothing / No Change',
+						incentive: toAddress(token),
+						depositor: toAddress(depositor),
+						amount: toBigInt(amount),
+						value: 0,
+						estimatedAPR: 0
+					});
+					continue;
+				}
 
+				const protocol = getCurrentEpoch().inclusion.candidates[Number(log.args.choice) + 1];
+				const protocolAddress = toAddress(protocol.address);
 				const {amount, depositor, token} = log.args;
+
 				incentives.push({
 					blockNumber: toBigInt(log.blockNumber as bigint),
 					txHash: toHex(log.transactionHash || ''),

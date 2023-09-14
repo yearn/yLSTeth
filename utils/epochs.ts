@@ -1,29 +1,7 @@
 import {EPOCH_DURATION, INITIAL_PERIOD_TIMESTAMP} from 'utils/constants';
-import {QETH_TOKEN, STRATFIRETH_TOKEN, WBETH_TOKEN} from 'utils/tokens';
+import {CBETH_TOKEN, QETH_TOKEN, SFRXETH_TOKEN, STADERETH_TOKEN, STRATFIRETH_TOKEN, SWETH_TOKEN, WBETH_TOKEN, WSTETH_TOKEN} from 'utils/tokens';
 
-import type {TTokenInfo} from 'contexts/useTokenList';
-
-/**************************************************************************************************
-** TEpoch is a type that represents an epoch in the system. An epoch is a period of time in the
-** system's operation. Each epoch has an index, an inclusion object, and a weight object.
-**
-** The index is a unique identifier for the epoch.
-**
-** The inclusion object contains an id and a list of candidates. Each candidate is a TTokenInfo
-** object with an additional index property.
-**
-** The weight object contains an id.
-**************************************************************************************************/
-type TEpoch = {
-	index: number;
-	inclusion: {
-		id: string;
-		candidates: (TTokenInfo & {index: number})[];
-	},
-	weight: {
-		id: string;
-	}
-}
+import type {TEpoch} from './types';
 
 /**************************************************************************************************
 ** Calculate the current epoch based on the current timestamp, the initial period timestamp and
@@ -49,6 +27,8 @@ export function getCurrentEpoch(): TEpoch {
 
 
 const allEpochs: TEpoch[] = [];
+
+// Epoch 0
 allEpochs.push({
 	index: 0,
 	inclusion: {
@@ -60,6 +40,13 @@ allEpochs.push({
 		]
 	},
 	weight: {
-		id: '0x0102000000000000000000000000000000000000000000000000000000000000'
+		id: '0x0102000000000000000000000000000000000000000000000000000000000000',
+		participants: [
+			{...SFRXETH_TOKEN, index: 0},
+			{...SWETH_TOKEN, index: 1},
+			{...WSTETH_TOKEN, index: 2},
+			{...STADERETH_TOKEN, index: 3},
+			{...CBETH_TOKEN, index: 4}
+		]
 	}
 });

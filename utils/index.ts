@@ -1,6 +1,8 @@
 import {parseUnits} from '@yearn-finance/web-lib/utils/format.bigNumber';
+import {assertAddress} from '@yearn-finance/web-lib/utils/wagmi/utils';
 
 import type {Transition} from 'framer-motion';
+import type {TAddress} from '@yearn-finance/web-lib/types';
 import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 
 export const transition = {duration: 0.8, ease: 'easeInOut'};
@@ -54,4 +56,18 @@ export function	formatDate(value: number): string {
 		hourCycle: 'h24'
 	}).format(value);
 	return formatedDate;
+}
+
+
+
+export function isValidAddress(address: TAddress | undefined): boolean {
+	if (!address) {
+		return false;
+	}
+	try {
+		assertAddress(address);
+		return true;
+	} catch (error) {
+		return false;
+	}
 }

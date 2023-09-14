@@ -121,8 +121,6 @@ function ViewLSTDepositForm({token, amount, onUpdateAmount}: {
 }
 
 function ViewDetails({estimateOut, bonusOrPenalty}: {estimateOut: bigint, bonusOrPenalty: number}): ReactElement {
-	// const {slippage} = useLST();
-
 	const bonusOrPenaltyFormatted = useMemo((): string => {
 		if (Number.isNaN(bonusOrPenalty)) {
 			return formatAmount(0, 2, 2);
