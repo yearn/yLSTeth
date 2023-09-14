@@ -12,6 +12,7 @@ import {performBatchedUpdates} from '@yearn-finance/web-lib/utils/performBatched
 
 import type {AnimationScope} from 'framer-motion';
 import type {ReactElement} from 'react';
+import type {TSortDirection} from 'utils/types';
 
 function LSTInPoolStats(): ReactElement {
 	const {stats, dailyVolume} = useLST();
@@ -71,7 +72,6 @@ function LSTInPoolStats(): ReactElement {
 	);
 }
 
-type TSortDirection = '' | 'desc' | 'asc'
 function LSTInPool({scope}: {scope: AnimationScope}): ReactElement {
 	const {lst} = useLST();
 	const [sortBy, set_sortBy] = useState<string>('');

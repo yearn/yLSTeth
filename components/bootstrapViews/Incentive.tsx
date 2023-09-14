@@ -30,6 +30,7 @@ import {defaultTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 import type {TTokenInfo} from 'contexts/useTokenList';
 import type {TGroupedIncentives, TIncentives, TIncentivesFor} from 'hooks/useBootstrapIncentives';
 import type {ChangeEvent, ReactElement} from 'react';
+import type {TSortDirection} from 'utils/types';
 import type {TAddress, TDict} from '@yearn-finance/web-lib/types';
 import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import type {TTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
@@ -45,8 +46,6 @@ function isValidAddress(address: TAddress | undefined): boolean {
 		return false;
 	}
 }
-
-type TSortDirection = '' | 'desc' | 'asc'
 
 function Timer(): ReactElement {
 	const {periods} = useBootstrap();
@@ -708,7 +707,7 @@ function ViewIncentive(): ReactElement {
 					</h1>
 					<b
 						suppressHydrationWarning
-						className={'font-number mt-4 text-4xl text-purple-300'}>
+						className={'font-number mt-4 text-4xl leading-10 text-purple-300'}>
 						<Timer />
 					</b>
 					<div className={'grid w-full items-center gap-4 md:grid-cols-1 md:gap-6 lg:grid-cols-2'}>

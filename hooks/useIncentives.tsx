@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
-import {useCallback, useMemo, useState} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 import {useYDaemonBaseURI} from 'hooks/useYDaemonBaseURI';
+import {getCurrentEpoch} from 'utils/epochs';
 import {yDaemonPricesSchema} from 'utils/schemas/yDaemonPricesSchema';
-import {parseAbiItem} from 'viem';
+import {parseAbiItem, toHex} from 'viem';
 import {erc20ABI, useContractRead} from 'wagmi';
-import {useAsync, useMountEffect, useUpdateEffect} from '@react-hookz/web';
+import {useAsync, useUpdateEffect} from '@react-hookz/web';
 import {multicall} from '@wagmi/core';
 import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
 import {toAddress, truncateHex} from '@yearn-finance/web-lib/utils/address';
@@ -116,10 +117,9 @@ function useIncentives(): TUseIncentivesResp {
 	** depositor and incentive token.
 	** From that we will be able to create our mappings
 	**
-	** @deps: none
+	** @deps: startPeriod - start period of the current epoch
 	**********************************************************************************************/
 	const filterIncentivizeEvents = useCallback(async (): Promise<void> => {
-		console.log('here');
 		if (startPeriod === 0) {
 			return;
 		}
@@ -141,27 +141,29 @@ function useIncentives(): TUseIncentivesResp {
 				toBlock: i + rangeLimit
 			});
 			for (const log of logs) {
-				console.log(log);
-				// const {protocol, incentive, amount, depositor} = log.args;
-				// incentives.push({
-				// 	blockNumber: toBigInt(log.blockNumber as bigint),
-				// 	txHash: toHex(log.transactionHash || ''),
-				// 	protocol: toAddress(protocol),
-				// 	protocolName: truncateHex(protocol, 6),
-				// 	protocolSymbol: truncateHex(protocol, 6),
-				// 	incentive: toAddress(incentive),
-				// 	depositor: toAddress(depositor),
-				// 	amount: toBigInt(amount),
-				// 	value: 0,
-				// 	estimatedAPR: 0
-				// });
+				const protocol = getCurrentEpoch().inclusion.candidates[Number(log.args.choice)];
+				const protocolAddress = toAddress(protocol.address);
+
+				const {amount, depositor, token} = log.args;
+				incentives.push({
+					blockNumber: toBigInt(log.blockNumber as bigint),
+					txHash: toHex(log.transactionHash || ''),
+					protocol: toAddress(protocolAddress),
+					protocolName: truncateHex(protocolAddress, 6),
+					protocolSymbol: truncateHex(protocolAddress, 6),
+					incentive: toAddress(token),
+					depositor: toAddress(depositor),
+					amount: toBigInt(amount),
+					value: 0,
+					estimatedAPR: 0
+				});
 			}
 		}
-
 		set_incentives(incentives);
 	}, [startPeriod]);
-	useMountEffect(filterIncentivizeEvents);
-
+	useEffect((): void => {
+		filterIncentivizeEvents();
+	}, [filterIncentivizeEvents]);
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	** The filtered events are only a bunch of addresses and amounts. Because we are an UI we want

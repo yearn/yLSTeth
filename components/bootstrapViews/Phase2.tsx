@@ -156,7 +156,7 @@ function Phase2NotStarted({variant}: {variant: string[]}): ReactElement {
 					</motion.h1>
 					<motion.b
 						suppressHydrationWarning
-						className={'font-number mt-4 text-4xl text-purple-300'}
+						className={'font-number mt-4 text-4xl leading-10 text-purple-300'}
 						variants={customVariants(0.04)}
 						custom={variant}
 						initial={'initial'}
@@ -224,7 +224,7 @@ function Phase2Ended({variant}: {variant: string[]}): ReactElement {
 					</motion.h1>
 					<motion.b
 						suppressHydrationWarning
-						className={'font-number mt-4 text-4xl text-purple-300'}
+						className={'font-number mt-4 text-4xl leading-10 text-purple-300'}
 						variants={customVariants(0.04)}
 						custom={variant}
 						initial={'initial'}

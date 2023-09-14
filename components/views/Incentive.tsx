@@ -30,6 +30,7 @@ import {defaultTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 import type {TTokenInfo} from 'contexts/useTokenList';
 import type {TGroupedIncentives, TIncentives, TIncentivesFor} from 'hooks/useBootstrapIncentives';
 import type {ChangeEvent, ReactElement} from 'react';
+import type {TSortDirection} from 'utils/types';
 import type {TAddress, TDict} from '@yearn-finance/web-lib/types';
 import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import type {TTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
@@ -46,13 +47,22 @@ function isValidAddress(address: TAddress | undefined): boolean {
 	}
 }
 
-type TSortDirection = '' | 'desc' | 'asc'
-
 function Timer(): ReactElement {
 	const {voteStart, endPeriod, hasVotingStarted} = useEpoch();
-
 	const time = useTimer({endTime: hasVotingStarted ? Number(endPeriod) : Number(voteStart)});
-	return <>{hasVotingStarted ? `starts in ${time}` : `ends in ${time}`}</>;
+
+	return (
+		<>
+			<b className={'mt-4 block text-4xl font-bold leading-10 text-purple-300'}>
+				{hasVotingStarted ? 'Closed' : 'Live'}
+			</b>
+			<b
+				suppressHydrationWarning
+				className={'font-number mt-2 text-4xl leading-10 text-purple-300'}>
+				{hasVotingStarted ? `New Epoch in ${time}` : `Epoch ends in ${time}`}
+			</b>
+		</>
+	);
 }
 
 function IncentiveMenuTabs({set_currentTab, currentTab}: {
@@ -418,19 +428,15 @@ function ViewHeader(): ReactElement {
 			<h1 className={'text-3xl font-black md:text-8xl'}>
 				{'Incentivize'}
 			</h1>
-			<b
-				suppressHydrationWarning
-				className={'font-number mt-4 text-4xl text-purple-300'}>
-				<Timer />
-			</b>
-			<div className={'mt-8 flex w-full flex-col items-end gap-4 md:grid-cols-1 md:flex-row md:gap-6'}>
+			<Timer />
+			<div className={'mt-6 flex w-full flex-col items-start gap-4 md:grid-cols-1 md:flex-row md:gap-6'}>
 				<div className={'w-full'}>
 					<p className={'text-neutral-700'}>
 						{'They say it’s not what you know, but who you… incentivize. You can incentivize with any amount and any token for:'}
 					</p>
-					<ul className={'pl-4'}>
-						<li className={'list-outside list-disc text-neutral-700'}>{'Weight votes: anyone who votes in favor receives incentives accordingly. Incentives are non-refundable.'}</li>
-						<li className={'list-outside list-disc text-neutral-700'}>{'Inclusion votes: Support an LST to get added to yETH or to not let any new LST in. Incentives are refundable if your outcome does not win.'}</li>
+					<ul>
+						<li className={'list-inside list-disc text-neutral-700'}>{'Weight votes: anyone who votes in favor receives incentives accordingly. Incentives are non-refundable.'}</li>
+						<li className={'list-inside list-disc text-neutral-700'}>{'Inclusion votes: Support an LST to get added to yETH or to not let any new LST in. Incentives are refundable if your outcome does not win.'}</li>
 					</ul>
 				</div>
 				<div className={'flex w-full justify-end space-x-4 pb-2 md:w-auto'}>

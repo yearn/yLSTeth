@@ -46,7 +46,6 @@ function useDailyVolume(): number {
 		const lastDay = currentBlockNumber - toBigInt(7200);
 		const swapEvents: TSwapEvent[] = [];
 		for (let i = lastDay; i < currentBlockNumber; i += rangeLimit) {
-			console.log(`Fetching logs from block ${i} to ${i + rangeLimit}`);
 			const logs = await publicClient.getLogs({
 				address: toAddress(process.env.POOL_ADDRESS),
 				events: YETH_POOL_ABI.filter((abiItem): boolean => abiItem.type === 'event' && abiItem.name === 'Swap'),
