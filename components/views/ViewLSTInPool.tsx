@@ -140,13 +140,6 @@ function LSTInPool({scope}: {scope: AnimationScope}): ReactElement {
 
 					<Link href={`https://etherscan.io/address/${process.env.STYETH_ADDRESS}`} target={'_blank'}>
 						<div className={'flex cursor-pointer flex-row items-center justify-center rounded border border-neutral-0 px-3 py-2 text-center text-xs text-neutral-0 transition-colors hover:bg-neutral-0 hover:text-purple-300'}>
-							{'st-yETH Vault'}
-							<IconLinkOut className={'ml-2 h-4 w-4'} />
-						</div>
-					</Link>
-
-					<Link href={`https://etherscan.io/address/${process.env.STYETH_ADDRESS}`} target={'_blank'}>
-						<div className={'flex cursor-pointer flex-row items-center justify-center rounded border border-neutral-0 px-3 py-2 text-center text-xs text-neutral-0 transition-colors hover:bg-neutral-0 hover:text-purple-300'}>
 							{'st-yETH'}
 							<IconLinkOut className={'ml-2 h-4 w-4'} />
 						</div>
