@@ -233,7 +233,6 @@ function ViewSelectedTokens(): ReactElement {
 							{'Balanced amounts'}
 						</p>
 					</label>
-
 				</div>
 				<div className={'mt-5 grid'}>
 					<TokenInput

@@ -7,7 +7,9 @@ import useWallet from 'contexts/useWallet';
 import {handleInputChangeEventValue} from 'utils';
 import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
 import {IconLinkOut} from '@yearn-finance/web-lib/icons/IconLinkOut';
+import {toAddress} from '@yearn-finance/web-lib/utils/address';
 import {cl} from '@yearn-finance/web-lib/utils/cl';
+import {ETH_TOKEN_ADDRESS} from '@yearn-finance/web-lib/utils/constants';
 import {toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
 
@@ -141,15 +143,17 @@ function TokenInput({
 				</div>
 			</div>
 
-			<div className={'grow-1 col-span-5 flex w-full items-center justify-start pl-2 pt-1 text-purple-300'}>
-				<Link
-					tabIndex={-1}
-					href={`https://etherscan.io/address/${token.address}`}
-					className={'flex flex-row items-center space-x-1 hover:underline'}>
-					<small className={'text-xs'}>{'Contract'}</small>
-					<IconLinkOut className={'h-4 w-4'} />
-				</Link>
-			</div>
+			{toAddress(token.address) !== ETH_TOKEN_ADDRESS && (
+				<div className={'grow-1 col-span-5 flex w-full items-center justify-start pl-2 pt-1 text-purple-300'}>
+					<Link
+						tabIndex={-1}
+						href={`https://etherscan.io/address/${token.address}`}
+						className={'flex flex-row items-center space-x-1 hover:underline'}>
+						<small className={'text-xs'}>{'Contract'}</small>
+						<IconLinkOut className={'h-4 w-4'} />
+					</Link>
+				</div>
+			)}
 			<div className={'grow-1 col-span-7 flex w-full items-center justify-start pl-2 pt-1 text-neutral-600'}>
 				<div className={'flex flex-row items-center space-x-1'}>
 					<small className={'text-xs'}>{`You have ${formatAmount(balanceOf?.normalized || 0, 2, 6)} ${token.symbol}`}</small>

@@ -12,13 +12,14 @@
 		"lint": "eslint . --ext .js,.jsx,.ts,.tsx"
 	},
 	"dependencies": {
+		"@curvefi/api": "^2.46.7",
 		"@fullpage/react-fullpage": "^0.1.40",
 		"@headlessui/react": "^1.7.15",
 		"@rainbow-me/rainbowkit": "^1.0.10",
 		"@react-hookz/web": "^23.1.0",
 		"@wagmi/chains": "^1.8.0",
 		"@wagmi/core": "^1.4.1",
-		"@yearn-finance/web-lib": "^3.0.34",
+		"@yearn-finance/web-lib": "^3.0.38",
 		"axios": "^1.4.0",
 		"dayjs": "^1.11.9",
 		"framer-motion": "^10.12.22",
@@ -32,8 +33,9 @@
 		"swr": "^2.2.0",
 		"tailwindcss": "^3.3.3",
 		"telegraf": "^4.12.2",
-		"viem": "^1.10.3",
-		"wagmi": "^1.4.1"
+		"viem": "^1.10.13",
+		"wagmi": "^1.4.1",
+		"wido": "^0.4.1"
 	},
 	"devDependencies": {
 		"@types/node": "^20.4.2",

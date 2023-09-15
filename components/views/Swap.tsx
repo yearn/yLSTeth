@@ -103,7 +103,7 @@ function ViewSwapBox({
 			if (lastInput === 'from') {
 				set_toAmount(toNormalizedBN(dy));
 			} else {
-				const dxWith1PercentSlippage: bigint = dx + toBigInt(dx / slippage);
+				const dxWith1PercentSlippage: bigint = dx + toBigInt(dx / (slippage || 1n));
 				set_fromAmount(toNormalizedBN(dxWith1PercentSlippage));
 			}
 		}
@@ -201,7 +201,7 @@ function ViewSwapBox({
 		assert(provider, 'Provider not connected');
 
 		if (lastInput === 'from') {
-			const minOutWith1PercentSlippage: bigint = toAmount.raw - (toAmount.raw / slippage);
+			const minOutWith1PercentSlippage: bigint = toAmount.raw - (toAmount.raw / (slippage || 1n));
 			const result = await swapLST({
 				connector: provider,
 				contractAddress: toAddress(process.env.POOL_ADDRESS),
@@ -224,7 +224,7 @@ function ViewSwapBox({
 				});
 			}
 		} else if (lastInput === 'to') {
-			const maxInWith1PercentSlippage: bigint = fromAmount.raw + (fromAmount.raw / slippage);
+			const maxInWith1PercentSlippage: bigint = fromAmount.raw + (fromAmount.raw / (slippage || 1n));
 			const result = await swapOutLST({
 				connector: provider,
 				contractAddress: toAddress(process.env.POOL_ADDRESS),
@@ -335,7 +335,7 @@ function ViewDetails({exchangeRate}: TViewDetailsProps): ReactElement {
 
 					<dt className={'col-span-2'}>{'Slippage'}</dt>
 					<dd suppressHydrationWarning className={'text-right font-bold'}>
-						{`${formatAmount(Number(slippage / 100n), 2, 2)}%`}
+						{`${formatAmount(Number(slippage) / 100, 2, 2)}%`}
 					</dd>
 				</dl>
 			</div>
