@@ -16,7 +16,6 @@ import {toAddress} from '@yearn-finance/web-lib/utils/address';
 import {MAX_UINT_256} from '@yearn-finance/web-lib/utils/constants';
 import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
-import {performBatchedUpdates} from '@yearn-finance/web-lib/utils/performBatchedUpdates';
 import {defaultTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 
 import type {TLST} from 'hooks/useLSTData';
@@ -135,10 +134,8 @@ function ViewStakeUnstake(): ReactElement {
 				{...STYETH_TOKEN, token: STYETH_TOKEN.address},
 				{...YETH_TOKEN, token: YETH_TOKEN.address}
 			]);
-			performBatchedUpdates((): void => {
-				set_fromAmount(toNormalizedBN(0));
-				set_toAmount(toNormalizedBN(0));
-			});
+			set_fromAmount(toNormalizedBN(0));
+			set_toAmount(toNormalizedBN(0));
 		}
 	}, [fromAmount.raw, isActive, provider, refresh]);
 

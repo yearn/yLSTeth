@@ -1,4 +1,4 @@
-import React, {Fragment, useCallback, useState} from 'react';
+import React, {Fragment, useCallback, useMemo, useState} from 'react';
 import {ImageWithFallback} from 'components/common/ImageWithFallback';
 import IconChevronBoth from 'components/icons/IconChevronBoth';
 import ViewDeposit from 'components/views/Deposit';
@@ -21,7 +21,6 @@ import {toAddress} from '@yearn-finance/web-lib/utils/address';
 import {cl} from '@yearn-finance/web-lib/utils/cl';
 import {toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
-import {formatDuration} from '@yearn-finance/web-lib/utils/format.time';
 
 import type {AnimationScope} from 'framer-motion';
 import type {Router} from 'next/router';
@@ -84,6 +83,27 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 		chainId: Number(process.env.DEFAULT_CHAIN_ID)
 	});
 
+	const relativeTimeToUnlock = useMemo((): string => {
+		const unlockTime = 1699012800;
+		const timeToUnlock = unlockTime - Math.floor(Date.now() / 1000);
+		const toDays = timeToUnlock / 86400;
+		const toHours = timeToUnlock / 3600;
+		const toMinutes = timeToUnlock / 60;
+		const toSeconds = timeToUnlock;
+		if (toDays > 1) {
+			return `${Math.floor(toDays)} days from now.`;
+		}
+		if (toHours > 1) {
+			return `${Math.floor(toHours)} hours from now.`;
+		}
+		if (toMinutes > 1) {
+			return `${Math.floor(toMinutes)} minutes from now.`;
+		}
+		if (toSeconds > 1) {
+			return `${Math.floor(toSeconds)} seconds from now.`;
+		}
+		return 'Soon';
+	}, []);
 
 	return (
 		<div
@@ -159,7 +179,8 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 										<div
 											suppressHydrationWarning
 											className={'w-fit rounded-md border border-neutral-700 bg-neutral-900 p-1 px-2 text-center text-xs font-medium text-neutral-0'}>
-											{`Your st-yETH from the yETH bootstrap will be unlocked ${formatDuration(1699012800, true)}`}
+											{`Your st-yETH from the yETH bootstrap will be unlocked ${relativeTimeToUnlock}`}
+
 										</div>
 									</span>
 								</span>
