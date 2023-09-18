@@ -74,7 +74,6 @@ function ViewDepositETH({estimateOut, onEstimateOut}: {
 	const onUpdateFromAmount = useCallback(async (newAmount: TNormalizedBN, currentSlippage: bigint): Promise<void> => {
 		set_fromEthAmount(newAmount);
 		let pool = curvePoolFromAPI;
-		console.warn(pool);
 		if (!pool) {
 			await curve.init('JsonRpc', {url: process.env.JSON_RPC_URL?.[1] || 'https://eth.llamarpc.com'}, {chainId: 1});
 			await curve.factory.fetchPools();
@@ -140,6 +139,7 @@ function ViewDepositETH({estimateOut, onEstimateOut}: {
 				{...YETH_TOKEN, token: YETH_TOKEN.address},
 				...LST.map((item): TUseBalancesTokens => ({...item, token: item.address}))
 			]);
+			set_fromEthAmount(toNormalizedBN(0));
 		}
 	}, [estimateOut.value, fromEthAmount.raw, isActive, onUpdateLST, provider, refresh]);
 
