@@ -26,7 +26,7 @@ function LSTInPoolStats(): ReactElement {
 				<div>
 					<dt className={'mb-2 text-xs'}>{'TVL'}</dt>
 					<dd suppressHydrationWarning className={'font-number font-bold'}>
-						{`${formatAmount(TVL, 2, 2)} USD`}
+						{`${formatAmount(TVL, 0, 0)} USD`}
 					</dd>
 				</div>
 

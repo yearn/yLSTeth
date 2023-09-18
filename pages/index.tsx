@@ -114,7 +114,7 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 						<b
 							suppressHydrationWarning
 							className={cl('block text-lg md:text-2xl leading-6 md:leading-10', basicColorTransition)}>
-							{formatAmount(TVL, 2, 2)}
+							{formatAmount(TVL, 0, 0)}
 						</b>
 					</div>
 
