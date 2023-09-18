@@ -1,6 +1,6 @@
 import React, {createContext, useContext, useMemo, useState} from 'react';
-import useDailyVolume from 'hooks/useDailyVolume';
 import useLSTData from 'hooks/useLSTData';
+import useTVL from 'hooks/useTVL';
 import {YETH_POOL_ABI} from 'utils/abi/yETHPool.abi';
 import {useContractReads} from 'wagmi';
 import {toAddress} from '@yearn-finance/web-lib/utils/address';
@@ -12,6 +12,7 @@ type TUseLSTProps = {
 	slippage: bigint
 	set_slippage: (value: bigint) => void
 	dailyVolume: number
+	TVL: number
 	lst: TLST[],
 	stats: {
 		amplification: bigint
@@ -25,6 +26,7 @@ const defaultProps: TUseLSTProps = {
 	slippage: 50n,
 	set_slippage: (): void => {},
 	dailyVolume: 0,
+	TVL: 0,
 	lst: [] as unknown as TLST[],
 	stats: {
 		amplification: toBigInt(0),
@@ -39,7 +41,8 @@ const LSTContext = createContext<TUseLSTProps>(defaultProps);
 export const LSTContextApp = ({children}: {children: React.ReactElement}): React.ReactElement => {
 	const [slippage, set_slippage] = useState(50n);
 	const {lst, updateLST} = useLSTData();
-	const dailyVolume = useDailyVolume();
+	// const dailyVolume = useDailyVolume();
+	const TVL = useTVL();
 
 	const {data: stats, isFetched: areStatsFetched} = useContractReads({
 		contracts: [
@@ -73,8 +76,9 @@ export const LSTContextApp = ({children}: {children: React.ReactElement}): React
 	const contextValue = useMemo((): TUseLSTProps => ({
 		slippage,
 		set_slippage,
-		dailyVolume,
+		dailyVolume: 0,
 		lst,
+		TVL,
 		stats: areStatsFetched ? {
 			amplification: toBigInt(stats?.[0]?.result as bigint),
 			rampStopTime: toBigInt(stats?.[1]?.result as bigint),
@@ -82,7 +86,7 @@ export const LSTContextApp = ({children}: {children: React.ReactElement}): React
 			swapFeeRate: toBigInt(stats?.[3]?.result as bigint)
 		} : defaultProps.stats,
 		onUpdateLST: updateLST
-	}), [lst, stats, areStatsFetched, updateLST, slippage, dailyVolume]);
+	}), [lst, stats, areStatsFetched, updateLST, slippage, TVL]);
 
 	return (
 		<LSTContext.Provider value={contextValue}>

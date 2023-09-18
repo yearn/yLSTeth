@@ -16,7 +16,7 @@ import type {ReactElement} from 'react';
 import type {TSortDirection} from 'utils/types';
 
 function LSTInPoolStats(): ReactElement {
-	const {stats, dailyVolume} = useLST();
+	const {stats, TVL} = useLST();
 	const APR = useAPR();
 	const hasRampStopTime = Boolean(stats?.rampStopTime && stats?.rampStopTime > 0);
 
@@ -24,9 +24,9 @@ function LSTInPoolStats(): ReactElement {
 		<div className={'-mt-4 px-4 md:mt-10 md:px-72'}>
 			<dl className={'grid grid-cols-3 flex-row gap-10 text-neutral-0 md:flex'}>
 				<div>
-					<dt className={'mb-2 text-xs'}>{'Daily Volume'}</dt>
+					<dt className={'mb-2 text-xs'}>{'TVL'}</dt>
 					<dd suppressHydrationWarning className={'font-number font-bold'}>
-						{`${formatAmount(dailyVolume, 2, 2)} USD`}
+						{`${formatAmount(TVL, 2, 2)} USD`}
 					</dd>
 				</div>
 

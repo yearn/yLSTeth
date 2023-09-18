@@ -70,7 +70,7 @@ function Composition(): ReactElement {
 function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 	const {address} = useWeb3();
 	const {balances} = useWallet();
-	const {dailyVolume} = useLST();
+	const {TVL} = useLST();
 	const APR = useAPR();
 
 	/* 🔵 - Yearn Finance **************************************************************************
@@ -109,12 +109,12 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 				<div className={'flex flex-col space-y-2'}>
 					<div>
 						<small className={cl('text-xs', basicLighterColorTransition)}>
-							{'Daily Volume, USD'}
+							{'TVL, USD'}
 						</small>
 						<b
 							suppressHydrationWarning
 							className={cl('block text-lg md:text-2xl leading-6 md:leading-10', basicColorTransition)}>
-							{formatAmount(dailyVolume, 2, 2)}
+							{formatAmount(TVL, 2, 2)}
 						</b>
 					</div>
 
