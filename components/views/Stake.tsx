@@ -15,7 +15,7 @@ import {toAddress} from '@yearn-finance/web-lib/utils/address';
 import {MAX_UINT_256} from '@yearn-finance/web-lib/utils/constants';
 import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
-import {formatDuration} from '@yearn-finance/web-lib/utils/format.time';
+import {performBatchedUpdates} from '@yearn-finance/web-lib/utils/performBatchedUpdates';
 import {defaultTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 
 import type {TLST} from 'hooks/useLSTData';
@@ -122,6 +122,10 @@ function ViewStakeUnstake({rate}: {rate: bigint}): ReactElement {
 				{...STYETH_TOKEN, token: STYETH_TOKEN.address},
 				{...YETH_TOKEN, token: YETH_TOKEN.address}
 			]);
+			performBatchedUpdates((): void => {
+				set_fromAmount(toNormalizedBN(0));
+				set_toAmount(toNormalizedBN(0));
+			});
 		}
 	}, [fromAmount.raw, isActive, provider, refresh]);
 
@@ -145,6 +149,8 @@ function ViewStakeUnstake({rate}: {rate: bigint}): ReactElement {
 				{...STYETH_TOKEN, token: STYETH_TOKEN.address},
 				{...YETH_TOKEN, token: YETH_TOKEN.address}
 			]);
+			set_fromAmount(toNormalizedBN(0));
+			set_toAmount(toNormalizedBN(0));
 		}
 	}, [fromAmount.raw, isActive, provider, refresh]);
 
@@ -237,6 +243,28 @@ function ViewDetails({rate}: {rate: bigint}): ReactElement {
 		chainId: Number(process.env.DEFAULT_CHAIN_ID)
 	});
 
+	const relativeTimeToUnlock = useMemo((): string => {
+		const unlockTime = 1699012800;
+		const timeToUnlock = unlockTime - Math.floor(Date.now() / 1000);
+		const toDays = timeToUnlock / 86400;
+		const toHours = timeToUnlock / 3600;
+		const toMinutes = timeToUnlock / 60;
+		const toSeconds = timeToUnlock;
+		if (toDays > 1) {
+			return `in ${Math.floor(toDays)} days.`;
+		}
+		if (toHours > 1) {
+			return `in ${Math.floor(toHours)} hours.`;
+		}
+		if (toMinutes > 1) {
+			return `in ${Math.floor(toMinutes)} minutes.`;
+		}
+		if (toSeconds > 1) {
+			return `in ${Math.floor(toSeconds)} seconds.`;
+		}
+		return 'Soon';
+	}, []);
+
 
 	return (
 		<div className={'col-span-12 py-6 pl-0 md:py-10 md:pl-72'}>
@@ -267,8 +295,8 @@ function ViewDetails({rate}: {rate: bigint}): ReactElement {
 							</dd>
 
 							<dt className={'col-span-2'}>{'Unlock date'}</dt>
-							<dd className={'text-right font-bold'}>
-								{formatDuration(1699012800, true)}
+							<dd className={'whitespace-nowrap text-right font-bold'}>
+								{relativeTimeToUnlock}
 							</dd>
 						</>
 					) : <Fragment />}
