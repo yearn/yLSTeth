@@ -296,7 +296,7 @@ type TStakeYETH = TWriteTransaction & {
 export async function stakeYETH(props: TStakeYETH): Promise<TTxResponse> {
 	assert(props.connector, 'No connector');
 	assert(props.amount > 0n, 'Amount is 0');
-	assertAddress(process.env.STYETH_TOKEN, 'STYETH_TOKEN');
+	assertAddress(process.env.STYETH_ADDRESS, 'STYETH_ADDRESS');
 
 	return await handleTx(props, {
 		address: STYETH_TOKEN.address,
