@@ -226,7 +226,6 @@ function ViewDeposit(): ReactElement {
 	**********************************************************************************************/
 	const {data} = useContractReads({
 		enabled: amounts.some((item): boolean => item.raw > 0n),
-		keepPreviousData: true,
 		contracts: [
 			{
 				abi: ESTIMATOR_ABI,
