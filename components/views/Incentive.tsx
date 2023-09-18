@@ -1,5 +1,5 @@
 import React, {useMemo, useState} from 'react';
-import useIncentives from 'hooks/useIncentives';
+import useLST from 'contexts/useLST';
 import {getCurrentEpoch} from 'utils/epochs';
 import {toAddress} from '@yearn-finance/web-lib/utils/address';
 
@@ -13,7 +13,7 @@ import type {TDict} from '@yearn-finance/web-lib/types';
 
 function ViewIncentive(): ReactElement {
 	const [currentTab, set_currentTab] = useState<'current' | 'potential'>('current');
-	const {groupIncentiveHistory, isFetchingHistory} = useIncentives();
+	const {incentives: {groupIncentiveHistory, isFetchingHistory}} = useLST();
 	const currentEpoch = getCurrentEpoch();
 
 	/** 🔵 - Yearn *************************************************************************************
@@ -46,8 +46,7 @@ function ViewIncentive(): ReactElement {
 				<IncentiveSelector
 					possibleLSTs={possibleLSTs}
 					currentTab={currentTab}
-					set_currentTab={set_currentTab}
-					onOpenModal={(): void => undefined} />
+					set_currentTab={set_currentTab} />
 				<div className={'bg-neutral-100'}>
 					<IncentiveHistory
 						possibleLSTs={possibleLSTs}

@@ -78,7 +78,6 @@ function IncentiveGroupBreakdownItem({item}: {item: TIncentives}): ReactElement 
 			<div className={'col-span-2 flex w-full flex-row items-center space-x-2'}>
 				<div className={'h-6 w-6 min-w-[24px]'}>
 					<ImageWithFallback
-						key={item.incentiveToken?.logoURI || ''}
 						src={item.incentiveToken?.logoURI || ''}
 						alt={''}
 						unoptimized
@@ -226,7 +225,6 @@ function IncentiveGroup({item}: {item: TGroupedIncentives}): ReactElement {
 				<div className={'col-span-12 flex w-full flex-row items-center space-x-6 md:col-span-5'}>
 					<div className={'h-10 w-10 min-w-[40px]'}>
 						<ImageWithFallback
-							key={`https://assets.smold.app/api/token/${safeChainID}/${toAddress(item?.protocol)}/logo-128.png`}
 							src={`https://assets.smold.app/api/token/${safeChainID}/${toAddress(item?.protocol)}/logo-128.png`}
 							alt={''}
 							unoptimized
@@ -246,7 +244,7 @@ function IncentiveGroup({item}: {item: TGroupedIncentives}): ReactElement {
 					<small className={'block text-neutral-500 md:hidden'}>
 						{'Total incentive (USD)'}
 					</small>
-					<p className={'font-number'}>
+					<p suppressHydrationWarning className={'font-number'}>
 						{`$${formatAmount(item.normalizedSum || 0, 2, 2)}`}
 					</p>
 				</div>
@@ -254,7 +252,7 @@ function IncentiveGroup({item}: {item: TGroupedIncentives}): ReactElement {
 					<small className={'block text-neutral-500 md:hidden'}>
 						{'USD/st-yETH'}
 					</small>
-					<p className={'font-number'}>
+					<p suppressHydrationWarning className={'font-number'}>
 						{`${formatAmount(item.usdPerStETH || 0, 2, 2)}`}
 					</p>
 				</div>
@@ -262,7 +260,7 @@ function IncentiveGroup({item}: {item: TGroupedIncentives}): ReactElement {
 					<small className={'block text-neutral-500 md:hidden'}>
 						{'st-yETH vAPR'}
 					</small>
-					<p className={'font-number'}>
+					<p suppressHydrationWarning className={'font-number'}>
 						{`${formatPercent(item.estimatedAPR, 2)}`}
 					</p>
 				</div>

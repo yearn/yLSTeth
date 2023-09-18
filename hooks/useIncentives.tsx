@@ -141,7 +141,8 @@ function useIncentives(): TUseIncentivesResp {
 				toBlock: i + rangeLimit
 			});
 			for (const log of logs) {
-				if (log.args.choice === 0n) {
+				// Choice is between 1 and X options, where 1 is "Do Nothing / No Change".
+				if (log.args.choice === 1n) {
 					const {amount, depositor, token} = log.args;
 					incentives.push({
 						blockNumber: toBigInt(log.blockNumber as bigint),
@@ -158,25 +159,49 @@ function useIncentives(): TUseIncentivesResp {
 					continue;
 				}
 
-				const protocol = getCurrentEpoch().inclusion.candidates[Number(log.args.choice) + 1];
-				if (!protocol) {
+				// The options are selected by the index in the array of possible LSTs.
+				// As do nothing is not in the array, we need to add 2 to the index to get the correct choice.
+				// Aka, array starting at 0 (so +1 to get 1st option), and +1 again to skip the "Do Nothing" option.
+				// So to get the current array index from choice, we need to subtract 2.
+				const candidate = getCurrentEpoch().inclusion.candidates[Number(log.args.choice) - 2];
+				if (candidate) {
+					const protocolAddress = toAddress(candidate.address);
+					const {amount, depositor, token} = log.args;
+
+					incentives.push({
+						blockNumber: toBigInt(log.blockNumber as bigint),
+						txHash: toHex(log.transactionHash || ''),
+						protocol: toAddress(protocolAddress),
+						protocolName: truncateHex(protocolAddress, 6),
+						protocolSymbol: truncateHex(protocolAddress, 6),
+						incentive: toAddress(token),
+						depositor: toAddress(depositor),
+						amount: toBigInt(amount),
+						value: 0,
+						estimatedAPR: 0
+					});
 					continue;
 				}
-				const protocolAddress = toAddress(protocol.address);
-				const {amount, depositor, token} = log.args;
 
-				incentives.push({
-					blockNumber: toBigInt(log.blockNumber as bigint),
-					txHash: toHex(log.transactionHash || ''),
-					protocol: toAddress(protocolAddress),
-					protocolName: truncateHex(protocolAddress, 6),
-					protocolSymbol: truncateHex(protocolAddress, 6),
-					incentive: toAddress(token),
-					depositor: toAddress(depositor),
-					amount: toBigInt(amount),
-					value: 0,
-					estimatedAPR: 0
-				});
+				const participant = getCurrentEpoch().weight.participants[Number(log.args.choice) - 2];
+				if (participant) {
+					const protocolAddress = toAddress(participant.address);
+					const {amount, depositor, token} = log.args;
+
+					incentives.push({
+						blockNumber: toBigInt(log.blockNumber as bigint),
+						txHash: toHex(log.transactionHash || ''),
+						protocol: toAddress(protocolAddress),
+						protocolName: truncateHex(protocolAddress, 6),
+						protocolSymbol: truncateHex(protocolAddress, 6),
+						incentive: toAddress(token),
+						depositor: toAddress(depositor),
+						amount: toBigInt(amount),
+						value: 0,
+						estimatedAPR: 0
+					});
+					continue;
+				}
 			}
 		}
 		set_incentives(incentives);
@@ -230,7 +255,7 @@ function useIncentives(): TUseIncentivesResp {
 					symbol: symbol,
 					decimals: decimals,
 					chainId: chainID,
-					logoURI: `https://assets.smold.app/api/token/${chainID}/${args.incentive}/logo-128.png`
+					logoURI: `https://assets.smold.app/api/token/1/${toAddress(args.incentive)}/logo-128.png`
 				}
 			});
 		}

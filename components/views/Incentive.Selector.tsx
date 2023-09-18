@@ -2,11 +2,13 @@ import React, {useCallback, useMemo, useState} from 'react';
 import assert from 'assert';
 import ComboboxAddressInput from 'components/common/ComboboxAddressInput';
 import {ImageWithFallback} from 'components/common/ImageWithFallback';
-import useBootstrap from 'contexts/useBootstrap';
+import useLST from 'contexts/useLST';
 import {useTokenList} from 'contexts/useTokenList';
 import {useWallet} from 'contexts/useWallet';
 import {handleInputChangeEventValue, isValidAddress} from 'utils';
-import {approveERC20} from 'utils/actions';
+import {approveERC20, depositIncentive} from 'utils/actions';
+import {NO_CHANGE_LST_LIKE} from 'utils/constants';
+import {getCurrentEpoch} from 'utils/epochs';
 import {ETH_TOKEN} from 'utils/tokens';
 import {zeroAddress} from 'viem';
 import {erc20ABI, useContractRead} from 'wagmi';
@@ -14,8 +16,9 @@ import {useDeepCompareEffect} from '@react-hookz/web';
 import {Button} from '@yearn-finance/web-lib/components/Button';
 import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
 import {useChainID} from '@yearn-finance/web-lib/hooks/useChainID';
-import {toAddress} from '@yearn-finance/web-lib/utils/address';
+import {isZeroAddress, toAddress} from '@yearn-finance/web-lib/utils/address';
 import {cl} from '@yearn-finance/web-lib/utils/cl';
+import {ETH_TOKEN_ADDRESS} from '@yearn-finance/web-lib/utils/constants';
 import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
 import {assertAddress} from '@yearn-finance/web-lib/utils/wagmi/utils';
@@ -58,27 +61,27 @@ function IncentiveMenuTabs({set_currentTab, currentTab}: {
 	);
 }
 
-function IncentiveSelector({possibleLSTs, currentTab, set_currentTab, onOpenModal}: {
+function IncentiveSelector({possibleLSTs, currentTab, set_currentTab}: {
 	possibleLSTs: TDict<TIndexedTokenInfo>;
 	currentTab: 'current' | 'potential';
 	set_currentTab: (tab: 'current' | 'potential') => void;
-	onOpenModal: VoidFunction;
 }): ReactElement {
 	const {address, isActive, provider} = useWeb3();
 	const {safeChainID} = useChainID(Number(process.env.BASE_CHAIN_ID));
 	const {balances, refresh} = useWallet();
 	const {tokenList} = useTokenList();
-	const {periods: {incentiveStatus}} = useBootstrap();
+	const {incentives: {refreshIncentives}} = useLST();
 	const [amountToSend, set_amountToSend] = useState<TNormalizedBN>(toNormalizedBN(0));
 	const [possibleTokensToUse, set_possibleTokensToUse] = useState<TDict<TTokenInfo | undefined>>({});
 	const [lstToIncentive, set_lstToIncentive] = useState<TTokenInfo | undefined>();
 	const [tokenToUse, set_tokenToUse] = useState<TTokenInfo | undefined>();
 	const [approvalStatus, set_approvalStatus] = useState<TTxStatus>(defaultTxStatus);
+	const [depositStatus, set_depositStatus] = useState<TTxStatus>(defaultTxStatus);
 	const {data: allowanceOf, refetch: refetchAllowance} = useContractRead({
 		abi: erc20ABI,
 		address: tokenToUse?.address,
 		functionName: 'allowance',
-		args: [toAddress(address), toAddress(process.env.BOOTSTRAP_ADDRESS)]
+		args: [toAddress(address), toAddress(process.env.VOTE_ADDRESS)]
 	});
 
 	/* 🔵 - Yearn Finance **************************************************************************
@@ -89,6 +92,9 @@ function IncentiveSelector({possibleLSTs, currentTab, set_currentTab, onOpenModa
 	useDeepCompareEffect((): void => {
 		const possibleDestinationsTokens: TDict<TTokenInfo> = {};
 		for (const eachToken of Object.values(tokenList)) {
+			if (eachToken.address === ETH_TOKEN_ADDRESS) {
+				continue;
+			}
 			if (eachToken.chainId === safeChainID) {
 				possibleDestinationsTokens[toAddress(eachToken.address)] = eachToken;
 			}
@@ -160,7 +166,7 @@ function IncentiveSelector({possibleLSTs, currentTab, set_currentTab, onOpenModa
 	}, [allowanceOf, amountToSend.raw]);
 
 	/* 🔵 - Yearn Finance **************************************************************************
-	** Web3 action to incentivize a given protocol with a given token and amount.
+	** Web3 action to approve the deposit of a given token and amount.
 	**********************************************************************************************/
 	const onApprove = useCallback(async (): Promise<void> => {
 		assert(isActive, 'Wallet not connected');
@@ -171,7 +177,7 @@ function IncentiveSelector({possibleLSTs, currentTab, set_currentTab, onOpenModa
 		const result = await approveERC20({
 			connector: provider,
 			contractAddress: tokenToUse.address,
-			spenderAddress: toAddress(process.env.BOOTSTRAP_ADDRESS),
+			spenderAddress: toAddress(process.env.VOTE_ADDRESS),
 			amount: amountToSend.raw,
 			statusHandler: set_approvalStatus
 		});
@@ -189,14 +195,55 @@ function IncentiveSelector({possibleLSTs, currentTab, set_currentTab, onOpenModa
 		}
 	}, [amountToSend.raw, isActive, provider, refresh, tokenToUse, refetchAllowance]);
 
-	const fakeNoChangeToken = useMemo((): TTokenInfo => ({
-		address: zeroAddress,
-		chainId: 1,
-		decimals: 18,
-		logoURI: '/iconNoChange.svg',
-		name: 'Do Nothing / No Change',
-		symbol: 'Do Nothing / No Change'
-	}), []);
+
+	/* 🔵 - Yearn Finance **************************************************************************
+	** Web3 action to incentivize a given protocol with a given token and amount.
+	**********************************************************************************************/
+	const onDepositIncentive = useCallback(async (): Promise<void> => {
+		assert(isActive, 'Wallet not connected');
+		assert(provider, 'Provider not connected');
+		assert(amountToSend.raw > 0n, 'Amount must be greater than 0');
+		assertAddress(tokenToUse?.address, 'Token to use not selected');
+
+		const currentEpochData = getCurrentEpoch();
+		const voteID = currentTab === 'current' ? currentEpochData.weight.id : currentEpochData.inclusion.id;
+		const possibleLST = currentTab === 'current' ? currentEpochData.weight.participants : currentEpochData.inclusion.candidates;
+		const indexOfSelectedLST = possibleLST.findIndex((eachLST): boolean => eachLST?.address === lstToIncentive?.address);
+		if (!isZeroAddress(lstToIncentive?.address)) {
+			assert(indexOfSelectedLST !== -1, 'Selected LST not found in possible LSTs');
+		}
+
+		const result = await depositIncentive({
+			connector: provider,
+			contractAddress: toAddress(process.env.VOTE_ADDRESS),
+			tokenAsIncentive: tokenToUse.address,
+			vote: voteID,
+			// Choice is between 1 and X options, where 1 is "Do Nothing / No Change".
+			// The options are selected by the index in the array of possible LSTs.
+			// As do nothing is not in the array, we need to add 2 to the index to get the correct choice.
+			// Aka, array starting at 0 (so +1 to get 1st option), and +1 again to skip the "Do Nothing" option.
+			choice: isZeroAddress(lstToIncentive?.address) ? 1n : toBigInt(indexOfSelectedLST) + 2n,
+			amount: amountToSend.raw,
+			statusHandler: set_depositStatus
+		});
+		if (result.isSuccessful) {
+			refetchAllowance();
+			await Promise.all([
+				refreshIncentives(),
+				refresh([
+					{...ETH_TOKEN, token: ETH_TOKEN.address},
+					{
+						decimals: tokenToUse.decimals,
+						name: tokenToUse.name,
+						symbol: tokenToUse.symbol,
+						token: tokenToUse.address
+					}
+				])
+			]);
+			set_amountToSend(toNormalizedBN(0));
+
+		}
+	}, [isActive, provider, amountToSend.raw, tokenToUse?.address, tokenToUse?.decimals, tokenToUse?.name, tokenToUse?.symbol, currentTab, lstToIncentive?.address, refetchAllowance, refreshIncentives, refresh]);
 
 	return (
 		<div className={'bg-neutral-100 pt-4'}>
@@ -212,7 +259,7 @@ function IncentiveSelector({possibleLSTs, currentTab, set_currentTab, onOpenModa
 						<ComboboxAddressInput
 							shouldDisplayBalance={false}
 							value={lstToIncentive?.address}
-							possibleValues={{[zeroAddress]: fakeNoChangeToken, ...possibleLSTs}}
+							possibleValues={{[zeroAddress]: NO_CHANGE_LST_LIKE, ...possibleLSTs}}
 							onChangeValue={set_lstToIncentive} />
 						<p className={'hidden pt-1 text-xs lg:block'}>&nbsp;</p>
 					</div>
@@ -272,14 +319,13 @@ function IncentiveSelector({possibleLSTs, currentTab, set_currentTab, onOpenModa
 					<div className={'w-full pt-4 md:pt-0'}>
 						<p className={'hidden pb-1 text-neutral-600 md:block'}>&nbsp;</p>
 						<Button
-							onClick={(): unknown => hasAllowance ? onOpenModal() : onApprove()}
-							isBusy={approvalStatus.pending}
+							onClick={(): unknown => hasAllowance ? onDepositIncentive() : onApprove()}
+							isBusy={hasAllowance ? depositStatus.pending : approvalStatus.pending}
 							isDisabled={
-								!approvalStatus.none
-									|| incentiveStatus !== 'started'
+								!(hasAllowance ? depositStatus.none : approvalStatus.none)
 									|| amountToSend.raw === 0n
 									|| amountToSend.raw > balanceOf.raw
-									|| !isValidAddress(lstToIncentive?.address)
+									|| !(isValidAddress(lstToIncentive?.address) || isZeroAddress(lstToIncentive?.address))
 									|| !isValidAddress(tokenToUse?.address)
 							}
 							className={'yearn--button w-full rounded-md !text-sm'}>

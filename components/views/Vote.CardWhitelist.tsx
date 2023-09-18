@@ -2,7 +2,7 @@ import React, {useCallback, useState} from 'react';
 import {ImageWithFallback} from 'components/common/ImageWithFallback';
 import IconChevronPlain from 'components/icons/IconChevronPlain';
 import IconSpinner from 'components/icons/IconSpinner';
-import useIncentives from 'hooks/useIncentives';
+import useLST from 'contexts/useLST';
 import {getCurrentEpoch} from 'utils/epochs';
 import {truncateHex} from '@yearn-finance/web-lib/utils/address';
 import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
@@ -12,7 +12,7 @@ import type {ReactElement} from 'react';
 import type {TSortDirection} from 'utils/types';
 
 function VoteElement({currentLST}: {currentLST: any}): ReactElement {
-	const {groupIncentiveHistory} = useIncentives();
+	const {incentives: {groupIncentiveHistory}} = useLST();
 	const item = groupIncentiveHistory?.protocols?.[currentLST.address] || undefined;
 
 	return (
@@ -52,7 +52,7 @@ function VoteElement({currentLST}: {currentLST: any}): ReactElement {
 function VoteCardWhitelist(): ReactElement {
 	const [sortBy, set_sortBy] = useState<'totalIncentive'>('totalIncentive');
 	const [sortDirection, set_sortDirection] = useState<TSortDirection>('desc');
-	const {groupIncentiveHistory, isFetchingHistory} = useIncentives();
+	const {incentives: {groupIncentiveHistory, isFetchingHistory}} = useLST();
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	**	Callback method used to sort the vaults list.

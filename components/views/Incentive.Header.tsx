@@ -1,6 +1,6 @@
 import React, {useMemo} from 'react';
+import useLST from 'contexts/useLST';
 import {useEpoch} from 'hooks/useEpoch';
-import useIncentives from 'hooks/useIncentives';
 import {useTimer} from 'hooks/useTimer';
 import {Renderable} from '@yearn-finance/web-lib/components/Renderable';
 import {amountV2} from '@yearn-finance/web-lib/utils/format.number';
@@ -26,7 +26,7 @@ function Timer(): ReactElement {
 }
 
 function IncentiveHeader(): ReactElement {
-	const {groupIncentiveHistory, totalDepositedUSD} = useIncentives();
+	const {incentives: {groupIncentiveHistory, totalDepositedUSD}} = useLST();
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	** Calculate the sum of all the incentives for all the protocols.
