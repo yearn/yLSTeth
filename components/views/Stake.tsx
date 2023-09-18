@@ -24,7 +24,7 @@ import type {ReactElement} from 'react';
 import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import type {TTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 
-function ViewStakeUnstake({rate}: {rate: bigint}): ReactElement {
+function ViewStakeUnstake(): ReactElement {
 	const {isActive, provider, address} = useWeb3();
 	const {refresh} = useWallet();
 	const APR = useAPR();
@@ -32,6 +32,17 @@ function ViewStakeUnstake({rate}: {rate: bigint}): ReactElement {
 	const [fromAmount, set_fromAmount] = useState<TNormalizedBN>(toNormalizedBN(0));
 	const [toAmount, set_toAmount] = useState<TNormalizedBN>(toNormalizedBN(0));
 	const [txStatus, set_txStatus] = useState<TTxStatus>(defaultTxStatus);
+
+	/* 🔵 - Yearn Finance **************************************************************************
+	** Retrieve the yETH/st-yETH rate.
+	** 1 st-yETH = rate
+	**********************************************************************************************/
+	const {data: rate} = useContractRead({
+		address: STYETH_TOKEN.address,
+		abi: ST_YETH_ABI,
+		functionName: 'convertToShares',
+		args: [toBigInt(1e18)]
+	});
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	** If the user wants to stake, he first needs to approve the staking contract to spend his
@@ -60,7 +71,7 @@ function ViewStakeUnstake({rate}: {rate: bigint}): ReactElement {
 	const onUpdateFromAmount = useCallback((newAmount: TNormalizedBN): void => {
 		set_fromAmount(newAmount);
 		if (currentView === 'stake') {
-			set_toAmount(toNormalizedBN(newAmount.raw * (rate || 1n) / toBigInt(1e18)));
+			set_toAmount(toNormalizedBN(newAmount.raw * toBigInt(rate) / toBigInt(1e18)));
 		} else {
 			set_toAmount(toNormalizedBN(newAmount.raw * toBigInt(1e18) / (rate || 1n)));
 		}
@@ -75,7 +86,7 @@ function ViewStakeUnstake({rate}: {rate: bigint}): ReactElement {
 		if (currentView === 'stake') {
 			set_fromAmount(toNormalizedBN(newAmount.raw * toBigInt(1e18) / (rate || 1n)));
 		} else {
-			set_fromAmount(toNormalizedBN(newAmount.raw * (rate || 1n) / toBigInt(1e18)));
+			set_fromAmount(toNormalizedBN(newAmount.raw * toBigInt(rate) / toBigInt(1e18)));
 		}
 	}, [currentView, rate]);
 
@@ -213,9 +224,16 @@ function ViewStakeUnstake({rate}: {rate: bigint}): ReactElement {
 	);
 }
 
-function ViewDetails({rate}: {rate: bigint}): ReactElement {
+function ViewDetails(): ReactElement {
 	const {address} = useWeb3();
 	const {balances} = useWallet();
+
+	const {data: rate} = useContractRead({
+		address: STYETH_TOKEN.address,
+		abi: ST_YETH_ABI,
+		functionName: 'convertToAssets',
+		args: [toBigInt(1e18)]
+	});
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	** Retrieve the user's balance of yETH.
@@ -275,9 +293,9 @@ function ViewDetails({rate}: {rate: bigint}): ReactElement {
 					{'Details'}
 				</h2>
 				<dl className={'grid grid-cols-3 gap-2 pt-4'}>
-					<dt className={'col-span-2'}>{'st-yETH per yETH'}</dt>
+					<dt className={'col-span-2'}>{'yETH per st-yETH'}</dt>
 					<dd suppressHydrationWarning className={'text-right font-bold'}>
-						{formatAmount(toNormalizedBN(rate).normalized, 6, 6)}
+						{formatAmount(toNormalizedBN(toBigInt(rate)).normalized, 6, 6)}
 					</dd>
 
 					<dt className={'col-span-2'}>{'Your share of the pool'}</dt>
@@ -325,22 +343,11 @@ function ViewDetails({rate}: {rate: bigint}): ReactElement {
 }
 
 function ViewStake(): ReactElement {
-	/* 🔵 - Yearn Finance **************************************************************************
-	** Retrieve the yETH/st-yETH rate.
-	** 1 st-yETH = rate
-	**********************************************************************************************/
-	const {data: rate} = useContractRead({
-		address: STYETH_TOKEN.address,
-		abi: ST_YETH_ABI,
-		functionName: 'convertToShares',
-		args: [toBigInt(1e18)]
-	});
-
 	return (
 		<section className={'relative px-4 md:px-72'}>
 			<div className={'grid grid-cols-1 divide-x-0 divide-y-2 divide-neutral-300 md:grid-cols-30 md:divide-x-2 md:divide-y-0'}>
-				<ViewStakeUnstake rate={rate || 0n} />
-				<ViewDetails rate={rate || 0n} />
+				<ViewStakeUnstake />
+				<ViewDetails />
 			</div>
 		</section>
 	);
