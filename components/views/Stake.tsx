@@ -4,6 +4,7 @@ import {RenderAmount} from 'components/common/RenderAmount';
 import TokenInput from 'components/common/TokenInput';
 import IconSwapSVG from 'components/icons/IconSwap';
 import useWallet from 'contexts/useWallet';
+import useAPR from 'hooks/useAPR';
 import BOOTSTRAP_ABI from 'utils/abi/bootstrap.abi';
 import {ST_YETH_ABI} from 'utils/abi/styETH.abi';
 import {approveERC20, stakeYETH, unstakeYETH} from 'utils/actions';
@@ -26,6 +27,7 @@ import type {TTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 function ViewStakeUnstake({rate}: {rate: bigint}): ReactElement {
 	const {isActive, provider, address} = useWeb3();
 	const {refresh} = useWallet();
+	const APR = useAPR();
 	const [currentView, set_currentView] = useState<'stake' | 'unstake'>('stake');
 	const [fromAmount, set_fromAmount] = useState<TNormalizedBN>(toNormalizedBN(0));
 	const [toAmount, set_toAmount] = useState<TNormalizedBN>(toNormalizedBN(0));
@@ -161,8 +163,8 @@ function ViewStakeUnstake({rate}: {rate: bigint}): ReactElement {
 			</h2>
 			<div className={'pt-4'}>
 				<div>
-					<b className={'text-purple-300'}>
-						{'APR: -'}
+					<b suppressHydrationWarning className={'text-purple-300'}>
+						{`APR: ~${formatAmount(APR, 2, 2)}%`}
 					</b>
 				</div>
 

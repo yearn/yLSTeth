@@ -337,12 +337,6 @@ function ViewDetails({exchangeRate}: TViewDetailsProps): ReactElement {
 					<dd suppressHydrationWarning className={'text-right font-bold'}>
 						{`${formatAmount(Number(slippage / 100n), 2, 2)}%`}
 					</dd>
-
-					{/* TODO: ADD PRICE IMPACT */}
-					{/* <dt className={'col-span-2'}>{'Price impact'}</dt>
-					<dd className={'text-right font-bold'}>
-						{'◼︎◼︎◼︎ %'}
-					</dd> */}
 				</dl>
 			</div>
 			<div>

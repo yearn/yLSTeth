@@ -3,6 +3,7 @@ import Link from 'next/link';
 import {ImageWithFallback} from 'components/common/ImageWithFallback';
 import IconChevronPlain from 'components/icons/IconChevronPlain';
 import useLST from 'contexts/useLST';
+import useAPR from 'hooks/useAPR';
 import {IconLinkOut} from '@yearn-finance/web-lib/icons/IconLinkOut';
 import {cl} from '@yearn-finance/web-lib/utils/cl';
 import {toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
@@ -16,6 +17,7 @@ import type {TSortDirection} from 'utils/types';
 
 function LSTInPoolStats(): ReactElement {
 	const {stats, dailyVolume} = useLST();
+	const APR = useAPR();
 	const hasRampStopTime = Boolean(stats?.rampStopTime && stats?.rampStopTime > 0);
 
 	return (
@@ -29,9 +31,9 @@ function LSTInPoolStats(): ReactElement {
 				</div>
 
 				<div>
-					<dt className={'mb-2 text-xs'}>{'Net APY'}</dt>
-					<dd className={'font-number font-bold'}>
-						{'Soon™️'}  {/* TODO: ADD NET APY */}
+					<dt className={'mb-2 text-xs'}>{'APR'}</dt>
+					<dd suppressHydrationWarning className={'font-number font-bold'}>
+						{`~${formatAmount(APR, 2, 2)}%`}
 					</dd>
 				</div>
 

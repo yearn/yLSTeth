@@ -9,6 +9,7 @@ import ViewWithdraw from 'components/views/Withdraw';
 import useLST from 'contexts/useLST';
 import {UIStepContextApp} from 'contexts/useUI';
 import useWallet from 'contexts/useWallet';
+import useAPR from 'hooks/useAPR';
 import BOOTSTRAP_ABI from 'utils/abi/bootstrap.abi';
 import {STYETH_TOKEN, YETH_TOKEN} from 'utils/tokens';
 import {useContractRead} from 'wagmi';
@@ -70,6 +71,7 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 	const {address} = useWeb3();
 	const {balances} = useWallet();
 	const {dailyVolume} = useLST();
+	const APR = useAPR();
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	** Retrieve the locked st-yETH in the bootstrap contract for the current user
@@ -118,10 +120,10 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 
 					<div>
 						<small className={cl('text-xs text-purple-300 group-hover:text-neutral-0', basicTransition)}>
-							{'Net APY'}
+							{'APR'}
 						</small>
-						<b className={cl('block text-lg md:text-2xl leading-6 md:leading-10 text-purple-300 group-hover:text-neutral-0', basicTransition)}>
-							{'Soon™️'}  {/* TODO: ADD NET APY */}
+						<b suppressHydrationWarning className={cl('block text-lg md:text-2xl leading-6 md:leading-10 text-purple-300 group-hover:text-neutral-0', basicTransition)}>
+							{`~${formatAmount(APR, 2, 2)}%`}
 						</b>
 					</div>
 
