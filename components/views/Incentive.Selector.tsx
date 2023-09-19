@@ -61,7 +61,8 @@ function IncentiveMenuTabs({set_currentTab, currentTab}: {
 	);
 }
 
-function IncentiveSelector({possibleLSTs, currentTab, set_currentTab}: {
+function IncentiveSelector({isIncentivePeriodClosed, possibleLSTs, currentTab, set_currentTab}: {
+	isIncentivePeriodClosed: boolean;
 	possibleLSTs: TDict<TIndexedTokenInfo>;
 	currentTab: 'current' | 'potential';
 	set_currentTab: (tab: 'current' | 'potential') => void;
@@ -77,6 +78,7 @@ function IncentiveSelector({possibleLSTs, currentTab, set_currentTab}: {
 	const [tokenToUse, set_tokenToUse] = useState<TTokenInfo | undefined>();
 	const [approvalStatus, set_approvalStatus] = useState<TTxStatus>(defaultTxStatus);
 	const [depositStatus, set_depositStatus] = useState<TTxStatus>(defaultTxStatus);
+
 	const {data: allowanceOf, refetch: refetchAllowance} = useContractRead({
 		abi: erc20ABI,
 		address: tokenToUse?.address,
@@ -323,6 +325,7 @@ function IncentiveSelector({possibleLSTs, currentTab, set_currentTab}: {
 							isBusy={hasAllowance ? depositStatus.pending : approvalStatus.pending}
 							isDisabled={
 								!(hasAllowance ? depositStatus.none : approvalStatus.none)
+									|| isIncentivePeriodClosed
 									|| amountToSend.raw === 0n
 									|| amountToSend.raw > balanceOf.raw
 									|| !(isValidAddress(lstToIncentive?.address) || isZeroAddress(lstToIncentive?.address))
