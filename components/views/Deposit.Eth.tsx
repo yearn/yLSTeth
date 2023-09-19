@@ -3,6 +3,7 @@ import assert from 'assert';
 import TokenInput from 'components/common/TokenInput';
 import useLST from 'contexts/useLST';
 import useWallet from 'contexts/useWallet';
+import useAPR from 'hooks/useAPR';
 import {CURVE_SWAP_ABI} from 'utils/abi/curveswap.abi';
 import {curveExchangeMultiple} from 'utils/actions';
 import {LST} from 'utils/constants';
@@ -16,8 +17,10 @@ import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
 import {type TUseBalancesTokens} from '@yearn-finance/web-lib/hooks/useBalances';
 import {IconChevronBottom} from '@yearn-finance/web-lib/icons/IconChevronBottom';
 import {toAddress} from '@yearn-finance/web-lib/utils/address';
+import {cl} from '@yearn-finance/web-lib/utils/cl';
 import {ETH_TOKEN_ADDRESS, MAX_UINT_256, WETH_TOKEN_ADDRESS} from '@yearn-finance/web-lib/utils/constants';
 import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
+import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
 import {defaultTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 
 import type {TLST} from 'hooks/useLSTData';
@@ -27,17 +30,20 @@ import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber'
 import type {TTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 import type {PoolTemplate} from '@curvefi/api/lib/pools';
 
-function ViewDepositETH({estimateOut, onEstimateOut}: {
+function ViewDepositETH({onChangeTab, estimateOut, onEstimateOut}: {
+	onChangeTab: VoidFunction,
 	estimateOut: TEstOutWithBonusPenalty,
 	onEstimateOut: (val: TEstOutWithBonusPenalty) => void
 }): ReactElement {
 	const {isActive, provider} = useWeb3();
 	const {slippage, onUpdateLST} = useLST();
+	const APR = useAPR();
 	const {refresh} = useWallet();
 	const [txStatus, set_txStatus] = useState<TTxStatus>(defaultTxStatus);
 	const [tokenToReceiveVsEth] = useState<TLST>(YETH_TOKEN as TLST);
 	const [fromEthAmount, set_fromEthAmount] = useState<TNormalizedBN>(toNormalizedBN(0));
 	const [curvePoolFromAPI, set_curvePoolFromAPI] = useState<PoolTemplate | undefined>(undefined);
+	const [hasDeposited, set_hasDeposited] = useState<boolean>(false);
 
 	/** 🔵 - Yearn *************************************************************************************
 	** The following block of code is responsible for initializing the Curve API and fetching the pools.
@@ -122,6 +128,8 @@ function ViewDepositETH({estimateOut, onEstimateOut}: {
 
 
 	const onDeposit = useCallback(async (): Promise<void> => {
+		set_hasDeposited(true);
+		return;
 		assert(isActive, 'Wallet not connected');
 		assert(provider, 'Provider not connected');
 
@@ -139,9 +147,11 @@ function ViewDepositETH({estimateOut, onEstimateOut}: {
 				{...YETH_TOKEN, token: YETH_TOKEN.address},
 				...LST.map((item): TUseBalancesTokens => ({...item, token: item.address}))
 			]);
+			onEstimateOut({value: toBigInt(0), bonusOrPenalty: 0});
 			set_fromEthAmount(toNormalizedBN(0));
+			set_hasDeposited(true);
 		}
-	}, [estimateOut.value, fromEthAmount.raw, isActive, onUpdateLST, provider, refresh]);
+	}, [estimateOut.value, fromEthAmount.raw, isActive, onEstimateOut, onUpdateLST, provider, refresh]);
 
 	return (
 		<>
@@ -182,6 +192,19 @@ function ViewDepositETH({estimateOut, onEstimateOut}: {
 						{'Confirm'}
 					</Button>
 				</div>
+			</div>
+			<div
+				onClick={(): void => onChangeTab()}
+				className={cl('mt-10 flex cursor-pointer flex-row items-center justify-between space-x-4 rounded-md bg-purple-300 p-4 text-white transition-all hover:bg-purple-300/90 hover:shadow-lg', !hasDeposited ? 'hidden pointer-events-none' : 'pointer-events-auto')}>
+				<div>
+					<b className={'text-sm'}>{'Nice deposit!'}</b>
+					<p className={'text-sm'}>
+						{'Now, let\'s go earn you up to '}
+						<b>{formatAmount(APR, 2, 2)}</b>
+						{'% on your yETH'}
+					</p>
+				</div>
+				<IconChevronBottom className={'h-6 w-6 -rotate-90'} />
 			</div>
 		</>
 

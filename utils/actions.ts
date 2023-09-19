@@ -202,6 +202,36 @@ export async function multicall(props: TMulticall): Promise<TTxResponse> {
 }
 
 /* 🔵 - Yearn Finance **********************************************************
+** multicall is a _WRITE_ function that can be used to cast a multicall
+**
+** @app - common
+** @param multicallData - an array of multicalls
+******************************************************************************/
+type TMulticallValue = TWriteTransaction & {
+	multicallData: {
+		target: TAddress,
+		callData: Hex,
+		value: bigint,
+		allowFailure: boolean
+	}[];
+};
+export async function multicallValue(props: TMulticallValue): Promise<TTxResponse> {
+	assert(props.connector, 'No connector');
+	assert(props.multicallData.length > 0, 'Nothing to do');
+	assertAddress(props.contractAddress, 'ContractAddress');
+
+	const value = props.multicallData.reduce((a, b): bigint => a + b.value, 0n);
+	return await handleTx(props, {
+		address: props.contractAddress,
+		abi: MULTICALL_ABI,
+		functionName: 'aggregate3Value',
+		args: [props.multicallData],
+		value: value
+	});
+}
+
+
+/* 🔵 - Yearn Finance **********************************************************
 ** addLiquidityToPool is a _WRITE_ function that deposits some of the LP tokens
 ** into the pool in exchange for yETH.
 **

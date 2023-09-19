@@ -257,7 +257,7 @@ function YETH({router}: {router: Router}): ReactElement {
 	function renderTab(): ReactElement {
 		switch (currentTab.value) {
 			case 0:
-				return <ViewDeposit />;
+				return <ViewDeposit onChangeTab={(): void => set_currentTab(tabs[2])} />;
 			case 1:
 				return <ViewWithdraw />;
 			case 2:
@@ -265,7 +265,7 @@ function YETH({router}: {router: Router}): ReactElement {
 			case 3:
 				return <ViewSwap />;
 			default:
-				return <ViewDeposit />;
+				return <ViewDeposit onChangeTab={(): void => set_currentTab(tabs[2])} />;
 		}
 	}
 

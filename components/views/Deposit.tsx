@@ -11,7 +11,7 @@ import {ViewDepositLST} from './Deposit.LST';
 import type {ReactElement} from 'react';
 import type {TEstOutWithBonusPenalty} from 'utils/types';
 
-function ViewDeposit(): ReactElement {
+function ViewDeposit({onChangeTab}: {onChangeTab: VoidFunction}): ReactElement {
 	const [shouldBalanceTokens, set_shouldBalanceTokens] = useState(true);
 	const [shouldDepositEth, set_shouldDepositEth] = useState<boolean>(true);
 	const [estimateOut, set_estimateOut] = useState<TEstOutWithBonusPenalty>({
@@ -73,6 +73,7 @@ function ViewDeposit(): ReactElement {
 
 						{shouldDepositEth && (
 							<ViewDepositETH
+								onChangeTab={onChangeTab}
 								estimateOut={estimateOut}
 								onEstimateOut={set_estimateOut} />
 						)}
