@@ -2,6 +2,7 @@ import React, {useMemo} from 'react';
 import {RenderAmount} from 'components/common/RenderAmount';
 import Toggle from 'components/common/toggle';
 import useLST from 'contexts/useLST';
+import {cl} from '@yearn-finance/web-lib/utils/cl';
 import {toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
 
@@ -37,7 +38,9 @@ function DepositDetails({label, estimateOut, bonusOrPenalty, shouldBalanceTokens
 				</h2>
 				<dl className={'grid grid-cols-3 gap-2 pt-4'}>
 					<dt className={'col-span-2'}>{`Est. ${label}`}</dt>
-					<dd suppressHydrationWarning className={'text-right font-bold'}>
+					<dd
+						suppressHydrationWarning
+						className={cl('text-right font-bold', shouldDepositEth && -Number(bonusOrPenaltyFormatted) > 0.03 ? 'text-red-900' : '')}>
 						{`${formatAmount(bonusOrPenaltyFormatted, 2, 6)}%`}
 					</dd>
 
@@ -72,11 +75,11 @@ function DepositDetails({label, estimateOut, bonusOrPenalty, shouldBalanceTokens
 					{'Info'}
 				</h2>
 				<p className={'whitespace-break-spaces pt-4 text-neutral-600'}>
-					{'Deposit any of the 5 LSTs (or any combination of them) to receive yETH. You can choose to deposit and stake to receive st-yETH and immediately start earning that sweet, sweet liquid staking yield.'}
+					{'Deposit vanilla ETH or any of the 5 LSTs (in any combination) to receive yETH. Or you can deposit and stake to receive st-yETH and immediately start earning that sweet, sweet liquid staking yield.'}
 				</p>
 				{shouldDepositEth && (
 					<p className={'whitespace-break-spaces pt-4 text-neutral-600'}>
-						{'Swapping ETH for yETH uses the '}
+						{'When you deposit ETH for yETH, we use the '}
 						<a
 							href={`https://etherscan.io/adddress/${process.env.CURVE_SWAP_ADDRESS}`}
 							className={'underline'}

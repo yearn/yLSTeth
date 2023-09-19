@@ -179,7 +179,7 @@ function ViewDepositETH({estimateOut, onEstimateOut}: {
 						isBusy={txStatus.pending}
 						isDisabled={!provider || toBigInt(estimateOut.value) === 0n}
 						className={'w-full md:w-[184px]'}>
-						{'Swap'}
+						{'Confirm'}
 					</Button>
 				</div>
 			</div>

@@ -1,7 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import Link from 'next/link';
 import {ImageWithFallback} from 'components/common/ImageWithFallback';
-import IconCircleCross from 'components/icons/IconCircleCross';
 import IconWarning from 'components/icons/IconWarning';
 import useWallet from 'contexts/useWallet';
 import {handleInputChangeEventValue} from 'utils';
@@ -128,9 +127,9 @@ function TokenInput({
 							</div>
 						)}
 						{shouldCheckBalance && (
-							<IconCircleCross
+							<IconWarning
 								style={{opacity: value.raw > balanceOf.raw ? 1 : 0, pointerEvents: value.raw > balanceOf.raw ? 'auto' : 'none'}}
-								className={'absolute inset-0 h-4 w-4 text-red-900 transition-opacity'} />
+								className={'absolute inset-0 h-4 w-4 text-[#f59e0b] transition-opacity'} />
 						)}
 					</div>
 					<button
