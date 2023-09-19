@@ -128,8 +128,6 @@ function ViewDepositETH({onChangeTab, estimateOut, onEstimateOut}: {
 
 
 	const onDeposit = useCallback(async (): Promise<void> => {
-		set_hasDeposited(true);
-		return;
 		assert(isActive, 'Wallet not connected');
 		assert(provider, 'Provider not connected');
 
