@@ -85,9 +85,11 @@ function ViewLSTDepositForm({token, amount, onUpdateAmount}: {
 				<div className={'ml-2 flex flex-row items-center space-x-2'}>
 					<div className={'relative h-4 w-4'}>
 						<div className={'absolute inset-0'}>
-							<span className={'tooltip'}>
+							<span
+								style={{pointerEvents: (amount.raw > token.poolAllowance.raw) && (amount.raw <= balanceOf.raw) && amount.raw !== 0n ? 'auto' : 'none'}}
+								className={'tooltip'}>
 								<IconWarning
-									style={{opacity: (amount.raw > token.poolAllowance.raw) && (amount.raw <= balanceOf.raw) ? 1 : 0}}
+									style={{opacity: (amount.raw > token.poolAllowance.raw) && (amount.raw <= balanceOf.raw) && amount.raw !== 0n ? 1 : 0}}
 									className={'h-4 w-4 text-neutral-400 transition-opacity'} />
 								<span className={'tooltipLight !-inset-x-24 top-full mt-2 !w-auto'}>
 									<div
@@ -98,9 +100,20 @@ function ViewLSTDepositForm({token, amount, onUpdateAmount}: {
 								</span>
 							</span>
 						</div>
-						<IconCircleCross
-							style={{opacity: amount.raw > balanceOf.raw ? 1 : 0, pointerEvents: amount.raw > balanceOf.raw ? 'auto' : 'none'}}
-							className={'absolute inset-0 h-4 w-4 text-red-900 transition-opacity'} />
+						<span
+							style={{pointerEvents: (amount.raw > token.poolAllowance.raw) && (amount.raw <= balanceOf.raw) && amount.raw !== 0n ? 'auto' : 'none'}}
+							className={'tooltip'}>
+							<IconCircleCross
+								style={{opacity: amount.raw > balanceOf.raw ? 1 : 0, pointerEvents: amount.raw > balanceOf.raw ? 'auto' : 'none'}}
+								className={'absolute inset-0 h-4 w-4 text-red-900 transition-opacity'} />
+							<span className={'tooltipLight !-inset-x-24 top-full mt-2 !w-auto'}>
+								<div
+									suppressHydrationWarning
+									className={'w-fit rounded-md border border-neutral-700 bg-neutral-900 p-1 px-2 text-center text-xs font-medium text-neutral-0'}>
+									{`You don't have enough ${token.symbol}`}
+								</div>
+							</span>
+						</span>
 					</div>
 					<button
 						type={'button'}
