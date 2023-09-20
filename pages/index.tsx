@@ -11,6 +11,7 @@ import {UIStepContextApp} from 'contexts/useUI';
 import useWallet from 'contexts/useWallet';
 import useAPR from 'hooks/useAPR';
 import BOOTSTRAP_ABI from 'utils/abi/bootstrap.abi';
+import {ST_YETH_ABI} from 'utils/abi/styETH.abi';
 import {STYETH_TOKEN, YETH_TOKEN} from 'utils/tokens';
 import {useContractRead} from 'wagmi';
 import {useAnimate} from 'framer-motion';
@@ -19,7 +20,7 @@ import {useMountEffect, useUnmountEffect} from '@react-hookz/web';
 import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
 import {toAddress} from '@yearn-finance/web-lib/utils/address';
 import {cl} from '@yearn-finance/web-lib/utils/cl';
-import {toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
+import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
 
 import type {AnimationScope} from 'framer-motion';
@@ -64,6 +65,50 @@ function Composition(): ReactElement {
 			})}
 		</div>
 	);
+}
+
+function useTimer(): number {
+	const [time, set_time] = useState<number>(0);
+
+	useMountEffect((): VoidFunction => {
+		const interval = setInterval((): void => {
+			set_time((prev): number => prev + 1);
+		}, 1000);
+		return (): void => clearInterval(interval);
+	});
+
+	return time;
+}
+
+function RenderYETHValue({lockedTokens}: {lockedTokens: bigint}): ReactElement {
+	const {balances} = useWallet();
+	const timer = useTimer();
+
+	const totalStYEthAmount = useMemo((): bigint => {
+		return toBigInt(lockedTokens) + toBigInt(balances?.[STYETH_TOKEN.address]?.raw || 0);
+	}, [balances, lockedTokens]);
+
+	/* 🔵 - Yearn Finance **************************************************************************
+	** Retrieve the locked st-yETH in the bootstrap contract for the current user
+	**********************************************************************************************/
+	const {data: yETHValue} = useContractRead({
+		abi: ST_YETH_ABI,
+		address: toAddress(process.env.STYETH_ADDRESS),
+		functionName: 'convertToAssets',
+		args: [totalStYEthAmount],
+		chainId: Number(process.env.DEFAULT_CHAIN_ID),
+		watch: true,
+		enabled: timer > 0
+	});
+
+	return (
+		<p
+			suppressHydrationWarning
+			className={cl('text-sm block md:text-base -mt-2 text-neutral-500 transition-colors group-hover:text-neutral-0')}>
+			{`~ ${formatAmount(Number(toNormalizedBN(toBigInt(yETHValue)).normalized), 6, 6)} yETH`}
+		</p>
+	);
+
 }
 
 function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
@@ -190,7 +235,6 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 											suppressHydrationWarning
 											className={'w-fit rounded-md border border-neutral-700 bg-neutral-900 p-1 px-2 text-center text-xs font-medium text-neutral-0'}>
 											{`Your st-yETH from the yETH bootstrap will be unlocked ${relativeTimeToUnlock}`}
-
 										</div>
 									</span>
 								</span>
@@ -200,6 +244,7 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 										&nbsp;
 								</p>
 							)}
+							<RenderYETHValue lockedTokens={toBigInt(lockedTokens)} />
 						</span>
 					</div>
 				</div>
