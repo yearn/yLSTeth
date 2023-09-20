@@ -43,26 +43,28 @@ function Composition(): ReactElement {
 
 	return (
 		<div className={'flex flex-col space-y-4'}>
-			{lst.map((token, index): ReactElement => {
-				return (
-					<div key={index} className={'flex flex-row justify-between space-x-4'}>
-						<div className={'flex flex-row'}>
-							<div className={'h-6 w-6 min-w-[24px]'}>
-								<ImageWithFallback
-									alt={token.name}
-									unoptimized
-									src={token.logoURI}
-									width={24}
-									height={24} />
+			{[...lst]
+				.sort((a, b): number => Number(b.weightRatio) - Number(a.weightRatio))
+				.map((token, index): ReactElement => {
+					return (
+						<div key={index} className={'flex flex-row justify-between space-x-4'}>
+							<div className={'flex flex-row'}>
+								<div className={'h-6 w-6 min-w-[24px]'}>
+									<ImageWithFallback
+										alt={token.name}
+										unoptimized
+										src={token.logoURI}
+										width={24}
+										height={24} />
+								</div>
+								<p className={cl(basicColorTransition, 'text-sm md:text-base px-2')}>{token.symbol}</p>
 							</div>
-							<p className={cl(basicColorTransition, 'text-sm md:text-base px-2')}>{token.symbol}</p>
+							<b suppressHydrationWarning className={cl(basicColorTransition, 'text-sm md:text-base font-number')}>
+								{`${formatAmount((token?.weightRatio || 0) * 100, 2, 2)}%`}
+							</b>
 						</div>
-						<b suppressHydrationWarning className={cl(basicColorTransition, 'text-sm md:text-base')}>
-							{`${formatAmount((token?.weightRatio || 0) * 100, 2, 2)}%`}
-						</b>
-					</div>
-				);
-			})}
+					);
+				})}
 		</div>
 	);
 }
