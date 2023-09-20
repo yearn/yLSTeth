@@ -104,7 +104,7 @@ function RenderYETHValue({lockedTokens}: {lockedTokens: bigint}): ReactElement {
 	return (
 		<p
 			suppressHydrationWarning
-			className={cl('text-sm block md:text-base -mt-2 text-neutral-500 transition-colors group-hover:text-neutral-0')}>
+			className={cl('text-sm block md:text-base -mt-2 text-neutral-500 transition-colors group-hover:text-neutral-0 font-number')}>
 			{`~ ${formatAmount(Number(toNormalizedBN(toBigInt(yETHValue)).normalized), 6, 6)} yETH`}
 		</p>
 	);
@@ -171,14 +171,14 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 			<div
 				id={'composition'}
 				className={'col-span-12 flex w-full flex-row justify-between py-4 pl-0 transition-colors md:py-8 md:pl-72'}>
-				<div className={'flex flex-col space-y-2'}>
+				<div className={'flex flex-col space-y-4'}>
 					<div>
 						<small className={cl('text-xs', basicLighterColorTransition)}>
 							{'TVL, USD'}
 						</small>
 						<b
 							suppressHydrationWarning
-							className={cl('block text-lg md:text-2xl leading-6 md:leading-10', basicColorTransition)}>
+							className={cl('block text-lg md:text-2xl leading-6 md:leading-8 font-number', basicColorTransition)}>
 							{formatAmount(TVL, 0, 0)}
 						</b>
 					</div>
@@ -189,7 +189,7 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 						</small>
 
 						<span className={'tooltip'}>
-							<b suppressHydrationWarning className={cl('block text-lg md:text-2xl leading-6 md:leading-10 text-purple-300 group-hover:text-neutral-0', basicTransition)}>
+							<b suppressHydrationWarning className={cl('block text-lg md:text-2xl leading-6 md:leading-8 text-purple-300 group-hover:text-neutral-0 font-number', basicTransition)}>
 								{`~${formatAmount(APR, 2, 2)}%`}
 							</b>
 							<span className={'tooltipLight !-inset-x-24 top-full mt-2 !w-auto'}>
@@ -208,7 +208,7 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 						</small>
 						<b
 							suppressHydrationWarning
-							className={cl('block text-lg md:text-2xl leading-6 md:leading-10', basicColorTransition)}>
+							className={cl('block text-lg md:text-2xl leading-6 md:leading-8 font-number', basicColorTransition)}>
 							{formatAmount(balances?.[YETH_TOKEN.address]?.normalized || 0, 6, 6)}
 						</b>
 					</div>
@@ -220,14 +220,14 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 						<span className={'block whitespace-nowrap'}>
 							<b
 								suppressHydrationWarning
-								className={cl('text-lg md:text-2xl leading-6 md:leading-10', basicColorTransition)}>
+								className={cl('text-lg md:text-2xl leading-6 md:leading-8 font-number', basicColorTransition)}>
 								{formatAmount(Number(balances?.[STYETH_TOKEN.address]?.normalized || 0), 6, 6)}
 							</b>
 							{(lockedTokens && lockedTokens >= 0n) ? (
 								<span className={'tooltip'}>
 									<p
 										suppressHydrationWarning
-										className={cl('text-sm block md:text-base -mt-2 text-neutral-500 transition-colors group-hover:text-neutral-0')}>
+										className={cl('text-sm block md:text-base -mt-2 text-neutral-500 transition-colors group-hover:text-neutral-0 font-number pt-2')}>
 										{`+ ${formatAmount(toNormalizedBN(lockedTokens || 0n).normalized, 6, 6)} locked`}
 									</p>
 									<span className={'tooltipLight !-inset-x-24 top-full mt-2 !w-auto'}>
