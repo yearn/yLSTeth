@@ -37,7 +37,7 @@ function DepositDetails({label, estimateOut, bonusOrPenalty, shouldDepositEth}: 
 					<dt className={'col-span-2'}>{`Est. ${label}`}</dt>
 					<dd
 						suppressHydrationWarning
-						className={cl('text-right font-bold', shouldDepositEth && -Number(bonusOrPenaltyFormatted) > 0.03 ? 'text-red-900' : '')}>
+						className={cl('text-right font-bold', (shouldDepositEth && -Number(bonusOrPenaltyFormatted) > 0.03) || (!shouldDepositEth && -Number(bonusOrPenaltyFormatted) > 1) ? 'text-red-900' : '')}>
 						{`${formatAmount(bonusOrPenaltyFormatted, 2, 6)}%`}
 					</dd>
 
