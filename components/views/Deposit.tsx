@@ -12,8 +12,8 @@ import type {ReactElement} from 'react';
 import type {TEstOutWithBonusPenalty} from 'utils/types';
 
 function ViewDeposit({onChangeTab}: {onChangeTab: VoidFunction}): ReactElement {
-	const [shouldBalanceTokens, set_shouldBalanceTokens] = useState(true);
-	const [shouldDepositEth, set_shouldDepositEth] = useState<boolean>(true);
+	const [shouldBalanceTokens, set_shouldBalanceTokens] = useState(false);
+	const [shouldDepositEth, set_shouldDepositEth] = useState<boolean>(false);
 	const [estimateOut, set_estimateOut] = useState<TEstOutWithBonusPenalty>({
 		value: toBigInt(0),
 		bonusOrPenalty: 0
@@ -36,23 +36,7 @@ function ViewDeposit({onChangeTab}: {onChangeTab: VoidFunction}): ReactElement {
 						</div>
 						<div className={'pt-4'}>
 							<div className={'flex flex-row items-center space-x-2'}>
-								<label className={'mr-7 flex cursor-pointer flex-row items-center justify-center space-x-3'}>
-									<input
-										type={'radio'}
-										radioGroup={'depositType'}
-										checked={shouldDepositEth}
-										className={'mt-0.5 h-3 w-3 border-none bg-transparent text-purple-300 outline outline-2 outline-offset-2 outline-neutral-600 checked:bg-purple-300 checked:outline-purple-300 focus-within:bg-purple-300 focus:bg-purple-300'}
-										style={{backgroundImage: 'none'}}
-										onChange={(): void => {
-											set_shouldDepositEth(true);
-										}} />
-									<p
-										title={'Deposit ETH'}
-										className={cl('hover-fix pt-1', shouldDepositEth ? 'text-purple-300 font-bold' : 'text-neutral-600 font-normal')}>
-										{'Deposit ETH'}
-									</p>
-								</label>
-								<label className={'flex cursor-pointer flex-row items-center justify-center space-x-3'}>
+								<label className={'mr-7  flex cursor-pointer flex-row items-center justify-center space-x-3'}>
 									<input
 										type={'radio'}
 										radioGroup={'depositType'}
@@ -66,6 +50,22 @@ function ViewDeposit({onChangeTab}: {onChangeTab: VoidFunction}): ReactElement {
 										title={'Deposit LST'}
 										className={cl('hover-fix pt-1', !shouldDepositEth ? 'text-purple-300 font-bold' : 'text-neutral-600 font-normal')}>
 										{'Deposit LST'}
+									</p>
+								</label>
+								<label className={'flex cursor-pointer flex-row items-center justify-center space-x-3'}>
+									<input
+										type={'radio'}
+										radioGroup={'depositType'}
+										checked={shouldDepositEth}
+										className={'mt-0.5 h-3 w-3 border-none bg-transparent text-purple-300 outline outline-2 outline-offset-2 outline-neutral-600 checked:bg-purple-300 checked:outline-purple-300 focus-within:bg-purple-300 focus:bg-purple-300'}
+										style={{backgroundImage: 'none'}}
+										onChange={(): void => {
+											set_shouldDepositEth(true);
+										}} />
+									<p
+										title={'Deposit ETH'}
+										className={cl('hover-fix pt-1', shouldDepositEth ? 'text-purple-300 font-bold' : 'text-neutral-600 font-normal')}>
+										{'Deposit ETH'}
 									</p>
 								</label>
 							</div>
