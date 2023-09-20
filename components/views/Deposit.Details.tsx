@@ -53,7 +53,7 @@ function DepositDetails({label, estimateOut, bonusOrPenalty, shouldBalanceTokens
 
 					{shouldDepositEth && (
 						<>
-							<dt className={'col-span-2'}>{'Slippage'}</dt>
+							<dt className={'col-span-2'}>{'Slippage tolerance'}</dt>
 							<dd suppressHydrationWarning className={'text-right font-bold'}>
 								{`${formatAmount(Number(slippage) / 100, 2, 2)}%`}
 							</dd>

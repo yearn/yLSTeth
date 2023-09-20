@@ -333,7 +333,7 @@ function ViewDetails({exchangeRate}: TViewDetailsProps): ReactElement {
 						{`${formatAmount(toNormalizedBN(stats.swapFeeRate, 16).normalized, 2, 2)}%`}
 					</dd>
 
-					<dt className={'col-span-2'}>{'Slippage'}</dt>
+					<dt className={'col-span-2'}>{'Slippage tolerance'}</dt>
 					<dd suppressHydrationWarning className={'text-right font-bold'}>
 						{`${formatAmount(Number(slippage) / 100, 2, 2)}%`}
 					</dd>
