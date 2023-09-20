@@ -307,7 +307,9 @@ function ViewDetails(): ReactElement {
 					<dt className={'col-span-2'}>{'Your share of the pool'}</dt>
 					<dd className={'text-right font-bold'}>
 						<RenderAmount
-							value={Number(toNormalizedBN(balanceOf.raw * toBigInt(1e18) / (totalSupply || 1n)).normalized) || 0}
+							value={
+								Number(toNormalizedBN((toBigInt(lockedTokens) + balanceOf.raw) * toBigInt(1e18) / (totalSupply || 1n)).normalized) || 0
+							}
 							symbol={'percent'}
 							decimals={6} />
 					</dd>
