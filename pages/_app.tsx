@@ -48,7 +48,7 @@ function	MyApp(props: AppProps): ReactElement {
 					<LSTContextApp>
 						<TokenListContextApp>
 							<WalletContextApp>
-								<main className={cl('flex flex-col', aeonik.className)}>
+								<main className={cl('flex flex-col mb-32', aeonik.className)}>
 									<AppWrapper {...props} />
 								</main>
 							</WalletContextApp>

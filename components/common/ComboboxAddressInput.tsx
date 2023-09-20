@@ -222,7 +222,6 @@ function ComboboxAddressInput({
 									className={'font-inter w-full cursor-default overflow-x-scroll border-none bg-transparent p-0 outline-none scrollbar-none'}
 									displayValue={(dest: TAddress): string => {
 										if (!isValidAddress(dest)) {
-											console.log(possibleValues);
 											return possibleValues?.[toAddress(dest)]?.name || '';
 										}
 										return (

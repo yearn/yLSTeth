@@ -78,12 +78,11 @@ function IncentiveSelector({possibleLSTs, currentTab, set_currentTab, onOpenModa
 		abi: erc20ABI,
 		address: tokenToUse?.address,
 		functionName: 'allowance',
-		args: [toAddress(address), toAddress(process.env.BOOTSTRAP_ADDRESS)]
+		args: [toAddress(address), toAddress(process.env.VOTE_ADDRESS)]
 	});
 
 	/* 🔵 - Yearn Finance **************************************************************************
-	** On mount, fetch the token list from the tokenlistooor repo for the cowswap token list, which
-	** will be used to populate the token combobox.
+	** On mount, fetch the token list from the tokenlistooor.
 	** Only the tokens in that list will be displayed.
 	**********************************************************************************************/
 	useDeepCompareEffect((): void => {
@@ -171,7 +170,7 @@ function IncentiveSelector({possibleLSTs, currentTab, set_currentTab, onOpenModa
 		const result = await approveERC20({
 			connector: provider,
 			contractAddress: tokenToUse.address,
-			spenderAddress: toAddress(process.env.BOOTSTRAP_ADDRESS),
+			spenderAddress: toAddress(process.env.VOTE_ADDRESS),
 			amount: amountToSend.raw,
 			statusHandler: set_approvalStatus
 		});

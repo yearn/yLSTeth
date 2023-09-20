@@ -37,3 +37,14 @@ export type TEpoch = {
 ** for ascending order.
 **************************************************************************************************/
 export type TSortDirection = '' | 'desc' | 'asc'
+
+
+/** 🔵 - Yearn *************************************************************************************
+** The TEstOutWithBonusPenalty type is used to represent the estimated output with a bonus or
+** penalty. It contains two properties: value and bonusOrPenalty.
+**
+** - The value is a bigint that represents the estimated output value.
+** - The bonusOrPenalty is a number that represents the bonus or penalty applied to the estimated
+** output. It can be positive (for a bonus) or negative (for a penalty).
+**************************************************************************************************/
+export type TEstOutWithBonusPenalty = {value: bigint, bonusOrPenalty: number};
