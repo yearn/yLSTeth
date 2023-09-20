@@ -84,31 +84,41 @@ function ViewDepositLST({shouldBalanceTokens, estimateOut, onEstimateOut}: {
 	**********************************************************************************************/
 	const onUpdateAmounts = useCallback(async (_amounts: TNormalizedBN[]): Promise<void> => {
 		if (_amounts.some((item): boolean => item.raw > 0n)) {
-			const data = await readContracts({
-				contracts: [
-					{
-						abi: ESTIMATOR_ABI,
-						address: toAddress(process.env.ESTIMATOR_ADDRESS),
-						functionName: 'get_add_lp',
-						chainId: Number(process.env.DEFAULT_CHAIN_ID),
-						args: [_amounts.map((item): bigint => item.raw)]
-					},
-					{
-						abi: ESTIMATOR_ABI,
-						address: toAddress(process.env.ESTIMATOR_ADDRESS),
-						functionName: 'get_vb',
-						chainId: Number(process.env.DEFAULT_CHAIN_ID),
-						args: [_amounts.map((item): bigint => item.raw)]
-					}
-				]
-			});
-			const estimateOut = decodeAsBigInt(data?.[0] as never);
-			const vb = decodeAsBigInt(data?.[1] as never);
+			try {
+				const data = await readContracts({
+					contracts: [
+						{
+							abi: ESTIMATOR_ABI,
+							address: toAddress(process.env.ESTIMATOR_ADDRESS),
+							functionName: 'get_add_lp',
+							chainId: Number(process.env.DEFAULT_CHAIN_ID),
+							args: [_amounts.map((item): bigint => item.raw)]
+						},
+						{
+							abi: ESTIMATOR_ABI,
+							address: toAddress(process.env.ESTIMATOR_ADDRESS),
+							functionName: 'get_vb',
+							chainId: Number(process.env.DEFAULT_CHAIN_ID),
+							args: [_amounts.map((item): bigint => item.raw)]
+						}
+					]
+				});
+				const estimateOut = decodeAsBigInt(data?.[0] as never);
+				const vb = decodeAsBigInt(data?.[1] as never);
 
-			onEstimateOut({
-				value: toBigInt(estimateOut),
-				bonusOrPenalty: ((Number(toNormalizedBN(estimateOut).normalized) - Number(toNormalizedBN(vb).normalized)) / Number(toNormalizedBN(vb).normalized) * 100)
-			});
+				onEstimateOut({
+					value: toBigInt(estimateOut),
+					bonusOrPenalty: (
+						(Number(toNormalizedBN(estimateOut).normalized) - Number(toNormalizedBN(vb).normalized))
+						/
+						Number(toNormalizedBN(vb).normalized) * 100
+					)
+				});
+			} catch (error) {
+				onEstimateOut({value: toBigInt(0), bonusOrPenalty: 0});
+			}
+		} else {
+			onEstimateOut({value: toBigInt(0), bonusOrPenalty: 0});
 		}
 	}, [onEstimateOut]);
 	useUpdateEffect((): void => {
