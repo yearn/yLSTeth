@@ -502,7 +502,7 @@ export async function curveExchangeMultiple(props: TCurveExchangeMultiple): Prom
 				[0n, 0n, 0n]
 			],
 			props.amount,
-			0n
+			props.amount * 99n / 100n
 		]
 	});
 }
