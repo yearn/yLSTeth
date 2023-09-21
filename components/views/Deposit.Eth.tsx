@@ -198,7 +198,7 @@ function ViewDepositETH({onChangeTab, estimateOut, onEstimateOut}: {
 					<b className={'text-sm'}>{'Nice deposit!'}</b>
 					<p className={'text-sm'}>
 						{'Now, let\'s go earn you up to '}
-						<b>{formatAmount(APR, 2, 2)}</b>
+						<b suppressHydrationWarning>{formatAmount(APR, 2, 2)}</b>
 						{'% on your yETH'}
 					</p>
 				</div>

@@ -155,7 +155,7 @@ function TokenInput({
 			)}
 			<div className={'grow-1 col-span-7 flex w-full items-center justify-start pl-2 pt-1 text-neutral-600'}>
 				<div className={'flex flex-row items-center space-x-1'}>
-					<small className={'text-xs'}>{`You have ${formatAmount(balanceOf?.normalized || 0, 2, 6)} ${token.symbol}`}</small>
+					<small suppressHydrationWarning className={'text-xs'}>{`You have ${formatAmount(balanceOf?.normalized || 0, 2, 6)} ${token.symbol}`}</small>
 				</div>
 			</div>
 

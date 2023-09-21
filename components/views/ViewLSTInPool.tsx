@@ -85,7 +85,7 @@ function LSTInPoolStats(): ReactElement {
 
 function LSTInPool({scope}: {scope: AnimationScope}): ReactElement {
 	const {lst} = useLST();
-	const [sortBy, set_sortBy] = useState<string>('');
+	const [sortBy, set_sortBy] = useState<string>('ratio');
 	const [sortDirection, set_sortDirection] = useState<TSortDirection>('');
 
 	/* 🔵 - Yearn Finance **************************************************************************
@@ -194,6 +194,9 @@ function LSTInPool({scope}: {scope: AnimationScope}): ReactElement {
 					<div className={'mt-6 grid divide-y divide-neutral-0/20 md:divide-y-0'}>
 						{lst
 							.sort((a, b): number => {
+								if (sortBy === 'ratio') {
+									return sortDirection === 'desc' ? Number(a.weightRatio) - Number(b.weightRatio) : Number(b.weightRatio) - Number(a.weightRatio);
+								}
 								if (sortBy === 'amount') {
 									return sortDirection === 'desc' ? Number(b.virtualPoolSupply.normalized) - Number(a.virtualPoolSupply.normalized) : Number(a.virtualPoolSupply.normalized) - Number(b.virtualPoolSupply.normalized);
 								}
