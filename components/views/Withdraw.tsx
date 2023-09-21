@@ -290,7 +290,7 @@ function ViewDetails(): ReactElement {
 				</h2>
 
 				<dl className={'grid grid-cols-3 gap-2 pt-4'}>
-					<dt className={'col-span-2'}>{'Slippage'}</dt>
+					<dt className={'col-span-2'}>{'Slippage tolerance'}</dt>
 					<dd suppressHydrationWarning className={'text-right font-bold'}>
 						{`${formatAmount(Number(slippage / 100n), 2, 2)}%`}
 					</dd>
