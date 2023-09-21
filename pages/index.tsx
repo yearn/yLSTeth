@@ -98,7 +98,7 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 					className={cl('absolute -left-full top-10 text-neutral-0 opacity-0 transition-all duration-200 ease-in-out group-hover:left-0 group-hover:opacity-100 hidden md:block', basicTransition)}>
 					{'Explore >'}
 				</div>
-				<h1 className={cl('text-5xl md:text-8xl', basicColorTransition)}>
+				<h1 className={cl('text-5xl md:text-8xl font-black', basicColorTransition)}>
 					{'yETH'}
 				</h1>
 			</div>
