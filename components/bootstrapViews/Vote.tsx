@@ -309,7 +309,7 @@ function VoteList(): ReactElement {
 				</div>
 			</div>
 
-			{Object.values(whitelistedLST)
+			{[...Object.values(whitelistedLST)]
 				.sort((a, b): number => {
 					let aValue = 0;
 					let bValue = 0;

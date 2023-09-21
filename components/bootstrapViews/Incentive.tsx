@@ -194,7 +194,7 @@ function IncentiveGroupBreakdown({incentives}: {incentives: TIncentives[]}): Rea
 					</p>
 				</div>
 			</div>
-			{incentives
+			{[...incentives]
 				.sort((a, b): number => {
 					let aValue = 0;
 					let bValue = 0;
@@ -355,7 +355,7 @@ function IncentiveHistory({isPending, incentives}: {isPending: boolean, incentiv
 				<div className={'col-span-1 flex justify-end'} />
 			</div>
 
-			{Object.values(currentTab === 'all' ? incentives.protocols : incentives.user)
+			{[...Object.values(currentTab === 'all' ? incentives.protocols : incentives.user)]
 				.filter((e): boolean => Boolean(e))
 				.sort((a, b): number => {
 					let aValue = 0;

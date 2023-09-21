@@ -115,7 +115,7 @@ function VoteCardWhitelist(): ReactElement {
 				</div>
 			</div>
 
-			{getCurrentEpoch().inclusion.candidates
+			{[...getCurrentEpoch().inclusion.candidates]
 				.filter((e): boolean => Boolean(e))
 				.sort((a, b): number => {
 					const aProtocol = groupIncentiveHistory?.protocols?.[a.address];

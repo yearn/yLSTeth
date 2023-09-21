@@ -258,7 +258,7 @@ function ViewDepositLST({shouldBalanceTokens, estimateOut, onEstimateOut}: {
 						<LSTDepositForm
 							key={token.address}
 							token={token}
-							amount={amounts[index]}
+							amount={amounts[index].raw === -1n ? toNormalizedBN(0) : amounts[index]}
 							onUpdateAmount={(amount): void => onChangeAmount(index, amount)}
 							isDisabled={false} />
 					))}

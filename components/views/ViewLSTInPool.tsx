@@ -192,7 +192,7 @@ function LSTInPool({scope}: {scope: AnimationScope}): ReactElement {
 					</div>
 
 					<div className={'mt-6 grid divide-y divide-neutral-0/20 md:divide-y-0'}>
-						{lst
+						{[...lst]
 							.sort((a, b): number => {
 								if (sortBy === 'ratio') {
 									return sortDirection === 'desc' ? Number(a.weightRatio) - Number(b.weightRatio) : Number(b.weightRatio) - Number(a.weightRatio);

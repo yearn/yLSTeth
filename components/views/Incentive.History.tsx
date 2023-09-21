@@ -143,7 +143,7 @@ function IncentiveGroupBreakdown({incentives}: {incentives: TIncentives[]}): Rea
 					</p>
 				</div>
 			</div>
-			{incentives
+			{[...incentives]
 				.sort((a, b): number => {
 					let aValue = 0;
 					let bValue = 0;
@@ -412,7 +412,7 @@ function IncentiveHistory({possibleLSTs, isPending, incentives}: {
 			<div className={'bg-neutral-200'}>
 				<NoChangeIncentive />
 				{
-					Object.values(possibleLSTs)
+					[...Object.values(possibleLSTs)]
 						.filter((e): boolean => Boolean(e))
 						.sort((lstA, lstB): number => {
 							const a = incentives[shouldDisplayUserIncentive ? 'user' : 'protocols'][toAddress(lstA.address)];
