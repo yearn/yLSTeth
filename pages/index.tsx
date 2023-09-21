@@ -27,10 +27,11 @@ import type {Router} from 'next/router';
 import type {ReactElement} from 'react';
 
 const tabs = [
-	{value: 0, label: 'Deposit', slug: 'deposit'},
-	{value: 1, label: 'Withdraw', slug: 'withdraw'},
-	{value: 2, label: 'Stake/Unstake', slug: 'stake-unstake'},
-	{value: 3, label: 'Swap', slug: 'swap'}
+	{value: 0, label: 'Deposit ETH', slug: 'deposit-eth'},
+	{value: 1, label: 'Deposit LST', slug: 'deposit-lst'},
+	{value: 2, label: 'Withdraw', slug: 'withdraw'},
+	{value: 3, label: 'Stake/Unstake', slug: 'stake-unstake'},
+	{value: 4, label: 'Swap', slug: 'swap'}
 ];
 
 const basicTransition = 'duration-200 ease-in-out';
@@ -267,15 +268,17 @@ function YETH({router}: {router: Router}): ReactElement {
 	function renderTab(): ReactElement {
 		switch (currentTab.value) {
 			case 0:
-				return <ViewDeposit onChangeTab={(): void => set_currentTab(tabs[2])} />;
+				return <ViewDeposit key={'eth'} type={'ETH'} onChangeTab={(): void => set_currentTab(tabs[3])} />;
 			case 1:
-				return <ViewWithdraw />;
+				return <ViewDeposit key={'lst'} type={'LST'} onChangeTab={(): void => set_currentTab(tabs[3])} />;
 			case 2:
-				return <ViewStake />;
+				return <ViewWithdraw />;
 			case 3:
+				return <ViewStake />;
+			case 4:
 				return <ViewSwap />;
 			default:
-				return <ViewDeposit onChangeTab={(): void => set_currentTab(tabs[2])} />;
+				return <ViewDeposit type={'ETH'} onChangeTab={(): void => set_currentTab(tabs[3])} />;
 		}
 	}
 

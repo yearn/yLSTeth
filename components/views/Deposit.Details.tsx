@@ -1,19 +1,16 @@
 import React, {useMemo} from 'react';
 import {RenderAmount} from 'components/common/RenderAmount';
-import Toggle from 'components/common/toggle';
 import useLST from 'contexts/useLST';
 import {cl} from '@yearn-finance/web-lib/utils/cl';
 import {toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
 
-import type {Dispatch, ReactElement} from 'react';
+import type {ReactElement} from 'react';
 
-function DepositDetails({label, estimateOut, bonusOrPenalty, shouldBalanceTokens, set_shouldBalanceTokens, shouldDepositEth}: {
+function DepositDetails({label, estimateOut, bonusOrPenalty, shouldDepositEth}: {
 	label: string,
 	estimateOut: bigint,
 	bonusOrPenalty: number,
-	shouldBalanceTokens: boolean,
-	set_shouldBalanceTokens: Dispatch<boolean>,
 	shouldDepositEth: boolean
 }): ReactElement {
 	const {slippage} = useLST();
@@ -60,22 +57,13 @@ function DepositDetails({label, estimateOut, bonusOrPenalty, shouldBalanceTokens
 						</>
 					)}
 				</dl>
-				{!shouldDepositEth && (
-					<div className={'mt-4 flex flex-row items-center justify-between space-x-2'}>
-						<b className={'text-purple-300'}>{'Balance tokens in proportion'}</b>
-						<Toggle
-							isEnabled={shouldBalanceTokens}
-							onChange={(): void => set_shouldBalanceTokens(!shouldBalanceTokens)}
-						/>
-					</div>
-				)}
 			</div>
 			<div className={shouldDepositEth ? 'pt-2' : ''}>
 				<h2 className={'text-xl font-black'}>
 					{'Info'}
 				</h2>
 				<p className={'whitespace-break-spaces pt-4 text-neutral-600'}>
-					{'Deposit vanilla ETH or any of the 5 LSTs (in any combination) to receive yETH. Or you can deposit and stake to receive st-yETH and immediately start earning that sweet, sweet liquid staking yield.'}
+					{shouldDepositEth ? 'Deposit vanilla ETH via a Curve Swap to receive yETH' : 'Deposit any of the 5 LSTs (in any combination) to receive yETH. Or you can deposit and stake to receive st-yETH and immediately start earning that sweet, sweet liquid staking yield.'}
 				</p>
 				{shouldDepositEth && (
 					<p className={'whitespace-break-spaces pt-4 text-neutral-600'}>
