@@ -1,4 +1,5 @@
 import React, {Fragment, useCallback, useMemo, useState} from 'react';
+import Link from 'next/link';
 import {ImageWithFallback} from 'components/common/ImageWithFallback';
 import IconChevronBoth from 'components/icons/IconChevronBoth';
 import ViewDeposit from 'components/views/Deposit';
@@ -28,8 +29,8 @@ import type {Router} from 'next/router';
 import type {ReactElement} from 'react';
 
 const tabs = [
-	{value: 0, label: 'Deposit ETH', slug: 'deposit-eth'},
-	{value: 1, label: 'Deposit LST', slug: 'deposit-lst'},
+	{value: 0, label: 'Deposit LST', slug: 'deposit-lst'},
+	{value: 1, label: 'Deposit ETH', slug: 'deposit-eth-leg'},
 	{value: 2, label: 'Withdraw', slug: 'withdraw'},
 	{value: 3, label: 'Stake/Unstake', slug: 'stake-unstake'},
 	{value: 4, label: 'Swap', slug: 'swap'}
@@ -315,9 +316,9 @@ function YETH({router}: {router: Router}): ReactElement {
 	function renderTab(): ReactElement {
 		switch (currentTab.value) {
 			case 0:
-				return <ViewDeposit key={'eth'} type={'ETH'} onChangeTab={(): void => set_currentTab(tabs[3])} />;
-			case 1:
 				return <ViewDeposit key={'lst'} type={'LST'} onChangeTab={(): void => set_currentTab(tabs[3])} />;
+			case 1:
+				return <ViewDeposit key={'eth'} type={'ETH'} onChangeTab={(): void => set_currentTab(tabs[3])} />;
 			case 2:
 				return <ViewWithdraw />;
 			case 3:
@@ -325,7 +326,7 @@ function YETH({router}: {router: Router}): ReactElement {
 			case 4:
 				return <ViewSwap />;
 			default:
-				return <ViewDeposit type={'ETH'} onChangeTab={(): void => set_currentTab(tabs[3])} />;
+				return <ViewDeposit key={'lst'} type={'LST'} onChangeTab={(): void => set_currentTab(tabs[3])} />;
 		}
 	}
 
@@ -350,30 +351,46 @@ function YETH({router}: {router: Router}): ReactElement {
 				<div className={'flex w-full flex-col'}>
 					<div className={'relative flex w-full flex-row items-center justify-between rounded-t-md bg-neutral-100 px-4 pt-4 md:px-72'}>
 						<nav className={'z-30 hidden flex-row items-center space-x-10 md:flex'}>
-							{tabs.map((tab): ReactElement => (
-								<button
-									key={`desktop-${tab.value}`}
-									onClick={(): void => {
-										set_currentTab(tab);
-										router.replace(
-											{
-												query: {
-													...router.query,
-													action: tab.slug
-												}
-											},
-											undefined,
-											{shallow: true}
-										);
-									}}>
-									<p
-										title={tab.label}
-										aria-selected={currentTab.value === tab.value}
-										className={'hover-fix tab'}>
-										{tab.label}
-									</p>
-								</button>
-							))}
+							{tabs.map((tab): ReactElement => {
+								if (tab.slug === 'deposit-eth-leg') {
+									return (
+										<Link
+											key={`desktop-${tab.value}`} href={'https://swap.cow.fi/#/1/swap/WETH/yETH'}
+											target={'_blank'}>
+											<p
+												title={tab.label}
+												aria-selected={currentTab.value === tab.value}
+												className={'hover-fix tab !cursor-alias'}>
+												{tab.label}
+											</p>
+										</Link>
+									);
+								}
+								return (
+									<button
+										key={`desktop-${tab.value}`}
+										onClick={(): void => {
+											set_currentTab(tab);
+											router.replace(
+												{
+													query: {
+														...router.query,
+														action: tab.slug
+													}
+												},
+												undefined,
+												{shallow: true}
+											);
+										}}>
+										<p
+											title={tab.label}
+											aria-selected={currentTab.value === tab.value}
+											className={'hover-fix tab'}>
+											{tab.label}
+										</p>
+									</button>
+								);
+							})}
 						</nav>
 						<div className={'relative z-50'}>
 							<Listbox
