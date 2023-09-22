@@ -187,7 +187,7 @@ function ViewSelectedTokens({amounts, set_amounts, selectedLST, set_selectedLST,
 				contractAddress: STYETH_TOKEN.address,
 				index: toBigInt(selectedLST.index),
 				amount: fromAmount.raw,
-				minOut: amounts[selectedLST.index].raw,
+				minOut: amounts[selectedLST.index].raw * (10000n - slippage) / 10000n,
 				statusHandler: set_txStatus
 			});
 			if (result.isSuccessful) {
