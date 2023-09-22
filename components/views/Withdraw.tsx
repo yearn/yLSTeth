@@ -323,7 +323,7 @@ function ViewDetails({isOutOfBand, minOut, tokenToReceive}: {
 					<dl className={'grid grid-cols-3 gap-2 pt-4'}>
 						<dt className={'col-span-2'}>{`Min ${tokenToReceive} to receive`}</dt>
 						<dd suppressHydrationWarning className={'text-right font-bold'}>
-							{`${formatAmount(toNormalizedBN(minOut).normalized, 6, 6)}%`}
+							{formatAmount(toNormalizedBN(minOut).normalized, 6, 6)}
 						</dd>
 					</dl>
 				) : null}

@@ -127,13 +127,11 @@ function ViewSwapBox({
 	** If the user clicks the switch button, we need to swap the fromToken and toToken.
 	**********************************************************************************************/
 	const onSwitchTokens = useCallback((): void => {
-		performBatchedUpdates((): void => {
-			set_lastInput(lastInput === 'from' ? 'to' : 'from');
-			set_selectedFromLST(selectedToLST);
-			set_selectedToLST(selectedFromLST);
-			set_fromAmount(toAmount);
-			set_toAmount(fromAmount);
-		});
+		set_lastInput(lastInput === 'from' ? 'to' : 'from');
+		set_selectedFromLST(selectedToLST);
+		set_selectedToLST(selectedFromLST);
+		set_fromAmount(toAmount);
+		set_toAmount(fromAmount);
 	}, [fromAmount, lastInput, selectedFromLST, selectedToLST, set_fromAmount, set_selectedFromLST, set_selectedToLST, set_toAmount, toAmount]);
 
 	/* 🔵 - Yearn Finance **************************************************************************
@@ -154,10 +152,8 @@ function ViewSwapBox({
 	** with the st-yETH rate.
 	**********************************************************************************************/
 	const onUpdateFromAmount = useCallback((newAmount: TNormalizedBN): void => {
-		performBatchedUpdates((): void => {
-			set_fromAmount(newAmount);
-			set_lastInput('from');
-		});
+		set_fromAmount(newAmount);
+		set_lastInput('from');
 	}, [set_fromAmount]);
 
 	/* 🔵 - Yearn Finance **************************************************************************
@@ -165,10 +161,8 @@ function ViewSwapBox({
 	** with the st-yETH rate.
 	**********************************************************************************************/
 	const onUpdateToAmount = useCallback((newAmount: TNormalizedBN): void => {
-		performBatchedUpdates((): void => {
-			set_toAmount(newAmount);
-			set_lastInput('to');
-		});
+		set_toAmount(newAmount);
+		set_lastInput('to');
 	}, [set_toAmount]);
 
 	/* 🔵 - Yearn Finance **************************************************************************
