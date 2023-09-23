@@ -23,7 +23,7 @@ module.exports = (phase) => withPWA({
 			},
 			{
 				source: '/form',
-				destination: 'https://yearnfinance.typeform.com/apply-for-yeth',
+				destination: 'https://forms.gle/WUk2ASoFUpFXjQk57',
 				permanent: true
 			},
 			{
