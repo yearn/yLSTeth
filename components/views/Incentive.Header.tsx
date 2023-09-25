@@ -1,32 +1,36 @@
 import React, {useMemo} from 'react';
+import useLST from 'contexts/useLST';
 import {useEpoch} from 'hooks/useEpoch';
-import useIncentives from 'hooks/useIncentives';
 import {useTimer} from 'hooks/useTimer';
 import {Renderable} from '@yearn-finance/web-lib/components/Renderable';
 import {amountV2} from '@yearn-finance/web-lib/utils/format.number';
 
 import type {ReactElement} from 'react';
 
-function Timer(): ReactElement {
+function Timer({isIncentivePeriodClosed}: {
+	isIncentivePeriodClosed: boolean
+}): ReactElement {
 	const {voteStart, endPeriod, hasVotingStarted} = useEpoch();
 	const time = useTimer({endTime: hasVotingStarted ? Number(endPeriod) : Number(voteStart)});
 
 	return (
 		<>
 			<b className={'mt-4 block text-4xl font-bold leading-10 text-purple-300'}>
-				{hasVotingStarted ? 'Closed' : 'Live'}
+				{isIncentivePeriodClosed ? 'Closed' : 'Live'}
 			</b>
 			<b
 				suppressHydrationWarning
 				className={'font-number mt-2 text-4xl leading-10 text-purple-300'}>
-				{hasVotingStarted ? `New Epoch in ${time}` : `Epoch ends in ${time}`}
+				{isIncentivePeriodClosed ? `New Epoch in ${time}` : `Epoch ends in ${time}`}
 			</b>
 		</>
 	);
 }
 
-function IncentiveHeader(): ReactElement {
-	const {groupIncentiveHistory, totalDepositedUSD} = useIncentives();
+function IncentiveHeader({isIncentivePeriodClosed}: {
+	isIncentivePeriodClosed: boolean
+}): ReactElement {
+	const {incentives: {groupIncentiveHistory, totalDepositedUSD}} = useLST();
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	** Calculate the sum of all the incentives for all the protocols.
@@ -44,7 +48,7 @@ function IncentiveHeader(): ReactElement {
 			<h1 className={'text-3xl font-black md:text-8xl'}>
 				{'Incentivize'}
 			</h1>
-			<Timer />
+			<Timer isIncentivePeriodClosed={isIncentivePeriodClosed} />
 			<div className={'mt-6 flex w-full flex-col items-start gap-4 md:grid-cols-1 md:flex-row md:gap-6'}>
 				<div className={'w-full'}>
 					<p className={'text-neutral-700'}>

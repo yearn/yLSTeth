@@ -162,6 +162,9 @@ function ComboboxAddressInput({
 	}, [fetchToken, onAddValue, onChangeValue, possibleValues, safeChainID, set_isOpen, tokenData]);
 
 	useEffect((): void => {
+		if (!provider || !isAddress(query)) {
+			return;
+		}
 		fetchTokenData.execute(safeChainID, toAddress(query));
 	}, [fetchTokenData, provider, safeChainID, query]);
 
@@ -210,10 +213,9 @@ function ComboboxAddressInput({
 						<div className={'relative flex w-full flex-row items-center space-x-2'}>
 							<div className={'h-6 w-6 min-w-[24px]'}>
 								<ImageWithFallback
-									key={possibleValues?.[toAddress(value)]?.logoURI || ''}
 									alt={''}
 									unoptimized
-									src={possibleValues?.[toAddress(value)]?.logoURI || ''}
+									src={possibleValues?.[toAddress(value)]?.logoURI || `https://assets.smold.app/api/token/${safeChainID}/${toAddress(value)}/logo-128.png`}
 									width={24}
 									height={24} />
 							</div>

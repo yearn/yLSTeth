@@ -1,4 +1,5 @@
 import type {TTokenInfo} from 'contexts/useTokenList';
+import type {Hex} from 'viem';
 
 /** 🔵 - Yearn *************************************************************************************
 ** The TIndexedTokenInfo type extends the TTokenInfo type by adding an index property. This index
@@ -21,11 +22,11 @@ export type TIndexedTokenInfo = TTokenInfo & {index: number};
 export type TEpoch = {
 	index: number;
 	inclusion: {
-		id: string;
+		id: Hex;
 		candidates: TIndexedTokenInfo[];
 	},
 	weight: {
-		id: string;
+		id: Hex;
 		participants: TIndexedTokenInfo[];
 	}
 }

@@ -1,10 +1,10 @@
 import React, {Fragment, useCallback, useMemo, useState} from 'react';
-import Image from 'next/image';
 import {ImageWithFallback} from 'components/common/ImageWithFallback';
 import Toggle from 'components/common/toggle';
 import IconChevronPlain from 'components/icons/IconChevronPlain';
 import IconSpinner from 'components/icons/IconSpinner';
-import useIncentives from 'hooks/useIncentives';
+import useLST from 'contexts/useLST';
+import {NO_CHANGE_LST_LIKE} from 'utils/constants';
 import {getCurrentEpochNumber} from 'utils/epochs';
 import {useChainID} from '@yearn-finance/web-lib/hooks/useChainID';
 import {IconChevronBottom} from '@yearn-finance/web-lib/icons/IconChevronBottom';
@@ -27,7 +27,6 @@ function IncentiveGroupBreakdownItem({item}: {item: TIncentives}): ReactElement 
 			<div className={'col-span-2 flex w-full flex-row items-center space-x-2'}>
 				<div className={'h-6 w-6 min-w-[24px]'}>
 					<ImageWithFallback
-						key={item.incentiveToken?.logoURI || ''}
 						src={item.incentiveToken?.logoURI || ''}
 						alt={''}
 						unoptimized
@@ -41,17 +40,17 @@ function IncentiveGroupBreakdownItem({item}: {item: TIncentives}): ReactElement 
 				</div>
 			</div>
 			<div className={'col-span-2 flex items-center justify-end'}>
-				<p className={'font-number pr-1 text-xxs md:text-xs'}>
+				<p suppressHydrationWarning className={'font-number pr-1 text-xxs md:text-xs'}>
 					{`${formatAmount(toNormalizedBN(item.amount, item.incentiveToken?.decimals)?.normalized || 0, 6, 6)}`}
 				</p>
 			</div>
 			<div className={'col-span-2 flex items-center justify-end'}>
-				<p className={'font-number pr-1 text-xxs md:text-xs'}>
+				<p suppressHydrationWarning className={'font-number pr-1 text-xxs md:text-xs'}>
 					{`$${formatAmount(item.value, 2, 2)}`}
 				</p>
 			</div>
 			<div className={'col-span-2 flex items-center justify-end'}>
-				<p className={'font-number pr-1 text-xxs md:text-xs'}>
+				<p suppressHydrationWarning className={'font-number pr-1 text-xxs md:text-xs'}>
 					{`${formatPercent(item.estimatedAPR, 4)}`}
 				</p>
 			</div>
@@ -165,7 +164,7 @@ function IncentiveGroupBreakdown({incentives}: {incentives: TIncentives[]}): Rea
 }
 
 function IncentiveGroup({item, shouldDisplayUserIncentive}: {item: TIndexedTokenInfo, shouldDisplayUserIncentive: boolean}): ReactElement {
-	const {groupIncentiveHistory} = useIncentives();
+	const {incentives: {groupIncentiveHistory}} = useLST();
 	const {safeChainID} = useChainID(Number(process.env.BASE_CHAIN_ID));
 	const incentives = groupIncentiveHistory?.[shouldDisplayUserIncentive ? 'user' : 'protocols']?.[item.address] || [];
 
@@ -207,7 +206,7 @@ function IncentiveGroup({item, shouldDisplayUserIncentive}: {item: TIndexedToken
 					<small className={'block text-neutral-500 md:hidden'}>
 						{'Total incentive (USD)'}
 					</small>
-					<p className={'font-number'}>
+					<p suppressHydrationWarning className={'font-number'}>
 						{`$${formatAmount(incentives.normalizedSum || 0, 2, 2)}`}
 					</p>
 				</div>
@@ -215,7 +214,7 @@ function IncentiveGroup({item, shouldDisplayUserIncentive}: {item: TIndexedToken
 					<small className={'block text-neutral-500 md:hidden'}>
 						{'USD/st-yETH'}
 					</small>
-					<p className={'font-number'}>
+					<p suppressHydrationWarning className={'font-number'}>
 						{`${formatAmount(incentives.usdPerStETH || 0, 4, 4)}`}
 					</p>
 				</div>
@@ -223,7 +222,7 @@ function IncentiveGroup({item, shouldDisplayUserIncentive}: {item: TIndexedToken
 					<small className={'block text-neutral-500 md:hidden'}>
 						{'st-yETH vAPR'}
 					</small>
-					<p className={'font-number'}>
+					<p suppressHydrationWarning className={'font-number'}>
 						{`${formatPercent(incentives.estimatedAPR, 4)}`}
 					</p>
 				</div>
@@ -236,56 +235,6 @@ function IncentiveGroup({item, shouldDisplayUserIncentive}: {item: TIndexedToken
 				<IncentiveGroupBreakdown incentives={incentives.incentives || []} />
 			</div>
 		</details>
-	);
-}
-
-function NoChangeIncentive(): ReactElement {
-	return (
-		<div
-			aria-label={'content'}
-			className={'rounded-sm border-b-2 border-neutral-0 bg-neutral-100/50 transition-colors'}>
-			<div className={'grid grid-cols-12 p-4 px-0 md:px-72'}>
-				<div className={'col-span-12 flex w-full flex-row items-center space-x-6 md:col-span-5'}>
-					<div className={'h-10 w-10 min-w-[40px]'}>
-						<Image
-							src={'/iconNoChange.svg'}
-							alt={''}
-							width={40}
-							height={40} />
-					</div>
-					<div className={'flex flex-col'}>
-						<p className={'whitespace-nowrap'}>
-							{'Do Nothing / No Change'}
-						</p>
-					</div>
-				</div>
-				<div className={'col-span-12 mt-4 flex justify-between md:col-span-2 md:mt-0 md:justify-end'}>
-					<small className={'block text-neutral-500 md:hidden'}>
-						{'Total incentive (USD)'}
-					</small>
-					<p suppressHydrationWarning className={'font-number'}>
-						{`$${formatAmount(0 || 0, 2, 2)}`}
-					</p>
-				</div>
-				<div className={'col-span-12 mt-2 flex justify-between md:col-span-2 md:mt-0 md:justify-end'}>
-					<small className={'block text-neutral-500 md:hidden'}>
-						{'USD/st-yETH'}
-					</small>
-					<p suppressHydrationWarning className={'font-number'}>
-						{`${formatAmount(0 || 0, 2, 2)}`}
-					</p>
-				</div>
-				<div className={'col-span-12 mt-2 flex justify-between md:col-span-2 md:mt-0 md:justify-end'}>
-					<small className={'block text-neutral-500 md:hidden'}>
-						{'st-yETH vAPR'}
-					</small>
-					<p suppressHydrationWarning className={'font-number'}>
-						{`${formatPercent(0, 2)}`}
-					</p>
-				</div>
-				<div className={'col-span-1 hidden justify-end md:flex'} />
-			</div>
-		</div>
 	);
 }
 
@@ -410,9 +359,8 @@ function IncentiveHistory({possibleLSTs, isPending, incentives}: {
 			</div>
 
 			<div className={'bg-neutral-200'}>
-				<NoChangeIncentive />
 				{
-					[...Object.values(possibleLSTs)]
+					[NO_CHANGE_LST_LIKE, ...Object.values(possibleLSTs)]
 						.filter((e): boolean => Boolean(e))
 						.sort((lstA, lstB): number => {
 							const a = incentives[shouldDisplayUserIncentive ? 'user' : 'protocols'][toAddress(lstA.address)];

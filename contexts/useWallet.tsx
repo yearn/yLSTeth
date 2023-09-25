@@ -5,14 +5,16 @@ import {useLocalStorageValue, useMountEffect, useUpdateEffect} from '@react-hook
 import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
 import {type TUseBalancesTokens,useBalances} from '@yearn-finance/web-lib/hooks/useBalances';
 import {useChainID} from '@yearn-finance/web-lib/hooks/useChainID';
+import {toAddress} from '@yearn-finance/web-lib/utils/address';
 import {ETH_TOKEN_ADDRESS} from '@yearn-finance/web-lib/utils/constants';
 import {performBatchedUpdates} from '@yearn-finance/web-lib/utils/performBatchedUpdates';
 import {getNetwork} from '@yearn-finance/web-lib/utils/wagmi/utils';
 
+import {type TTokenInfo,useTokenList} from './useTokenList';
+
 import type {Dispatch, ReactElement, SetStateAction} from 'react';
 import type {TDict} from '@yearn-finance/web-lib/types';
 import type {TBalanceData} from '@yearn-finance/web-lib/types/hooks';
-import type {TTokenInfo} from './useTokenList';
 
 
 export type TWalletContext = {
@@ -42,12 +44,15 @@ const defaultProps = {
 const WalletContext = createContext<TWalletContext>(defaultProps);
 export const WalletContextApp = memo(function WalletContextApp({children}: {children: ReactElement}): ReactElement {
 	const {provider, isActive} = useWeb3();
+	const {tokenList} = useTokenList();
 	const {safeChainID} = useChainID();
 	const [walletProvider, set_walletProvider] = useState('NONE');
 	const {value: extraTokens, set: saveExtraTokens} = useLocalStorageValue<TUseBalancesTokens[]>('yeth/tokens', {defaultValue: []});
 
 	const availableTokens = useMemo((): TUseBalancesTokens[] => {
+		const withDefaultTokens = [...Object.values(tokenList)];
 		const tokens: TUseBalancesTokens[] = [];
+
 		/* 🔵 - Yearn Finance **************************************************
 		** First, let's add yETH and st-yETH
 		**********************************************************************/
@@ -78,7 +83,7 @@ export const WalletContextApp = memo(function WalletContextApp({children}: {chil
 		}
 
 		/* 🔵 - Yearn Finance **************************************************
-		** Finally, add all the current LST tokens
+		** Then, add all the current LST tokens
 		**********************************************************************/
 		for (const token of LST) {
 			tokens.push({
@@ -89,8 +94,25 @@ export const WalletContextApp = memo(function WalletContextApp({children}: {chil
 			});
 		}
 
+		/* 🔵 - Yearn Finance **************************************************
+		** Then, add the tokens from the tokenList
+		**********************************************************************/
+		withDefaultTokens
+			.filter((token): boolean => token.chainId === safeChainID)
+			.forEach((token): void => {
+				if (tokens.find((item): boolean => item.token === token.address)) {
+					return;
+				}
+				tokens.push({
+					token: toAddress(token.address),
+					decimals: Number(token.decimals),
+					name: token.name,
+					symbol: token.symbol
+				});
+			});
+
 		return tokens;
-	}, [safeChainID]);
+	}, [safeChainID, tokenList]);
 
 	const {data: balances, update, updateSome, nonce, isLoading} = useBalances({tokens: availableTokens});
 

@@ -22,6 +22,9 @@ export function getCurrentEpochNumber(): number {
 **************************************************************************************************/
 export function getCurrentEpoch(): TEpoch {
 	const currentEpochNumber = getCurrentEpochNumber();
+	if (currentEpochNumber > allEpochs.length - 1) {
+		return allEpochs[allEpochs.length - 1];
+	}
 	return allEpochs[currentEpochNumber];
 }
 

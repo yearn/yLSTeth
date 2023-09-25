@@ -1,5 +1,6 @@
 import React, {useMemo, useState} from 'react';
-import useIncentives from 'hooks/useIncentives';
+import useLST from 'contexts/useLST';
+import {useEpoch} from 'hooks/useEpoch';
 import {getCurrentEpoch} from 'utils/epochs';
 import {toAddress} from '@yearn-finance/web-lib/utils/address';
 
@@ -13,8 +14,20 @@ import type {TDict} from '@yearn-finance/web-lib/types';
 
 function ViewIncentive(): ReactElement {
 	const [currentTab, set_currentTab] = useState<'current' | 'potential'>('current');
-	const {groupIncentiveHistory, isFetchingHistory} = useIncentives();
+	const {incentives: {groupIncentiveHistory, isFetchingHistory}} = useLST();
 	const currentEpoch = getCurrentEpoch();
+	const {endPeriod} = useEpoch();
+
+	/* 🔵 - Yearn Finance **************************************************************************
+	** Incentive period is closed for the 3 last days of the epoch.
+	**********************************************************************************************/
+	const isIncentivePeriodClosed = useMemo((): boolean => {
+		const currentTimestamp = Math.floor(Date.now() / 1000);
+		if (currentTimestamp > endPeriod - 3 * 24 * 3600 && currentTimestamp < endPeriod) {
+			return true;
+		}
+		return false;
+	}, [endPeriod]);
 
 	/** 🔵 - Yearn *************************************************************************************
 	** This memo hook selects either currentEpoch.inclusion.candidates if current tab is potential,
@@ -42,12 +55,12 @@ function ViewIncentive(): ReactElement {
 	return (
 		<section className={'grid grid-cols-1 pt-10 md:mb-20 md:pt-12'}>
 			<div className={'mb-20 md:mb-0'}>
-				<IncentiveHeader />
+				<IncentiveHeader isIncentivePeriodClosed={isIncentivePeriodClosed} />
 				<IncentiveSelector
+					isIncentivePeriodClosed={isIncentivePeriodClosed}
 					possibleLSTs={possibleLSTs}
 					currentTab={currentTab}
-					set_currentTab={set_currentTab}
-					onOpenModal={(): void => undefined} />
+					set_currentTab={set_currentTab} />
 				<div className={'bg-neutral-100'}>
 					<IncentiveHistory
 						possibleLSTs={possibleLSTs}

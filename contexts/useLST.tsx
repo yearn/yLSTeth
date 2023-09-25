@@ -1,11 +1,15 @@
+/* eslint-disable @typescript-eslint/consistent-type-assertions */
+
 import React, {createContext, useContext, useMemo, useState} from 'react';
+import useIncentives from 'hooks/useIncentives';
 import useLSTData from 'hooks/useLSTData';
 import useTVL from 'hooks/useTVL';
 import {YETH_POOL_ABI} from 'utils/abi/yETHPool.abi';
 import {useContractReads} from 'wagmi';
 import {toAddress} from '@yearn-finance/web-lib/utils/address';
-import {toBigInt} from '@yearn-finance/web-lib/utils/format.bigNumber';
+import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 
+import type {TIncentivesFor, TUseIncentivesResp} from 'hooks/useIncentives';
 import type {TLST} from 'hooks/useLSTData';
 
 type TUseLSTProps = {
@@ -20,7 +24,8 @@ type TUseLSTProps = {
 		targetAmplification: bigint
 		swapFeeRate: bigint
 	}
-	onUpdateLST: () => void
+	onUpdateLST: () => void,
+	incentives: TUseIncentivesResp
 }
 const defaultProps: TUseLSTProps = {
 	slippage: 50n,
@@ -34,7 +39,15 @@ const defaultProps: TUseLSTProps = {
 		targetAmplification: toBigInt(0),
 		swapFeeRate: toBigInt(0)
 	},
-	onUpdateLST: (): void => {}
+	onUpdateLST: (): void => {},
+	incentives: {
+		groupIncentiveHistory: {} as TIncentivesFor,
+		isFetchingHistory: false,
+		refreshIncentives: (): void => undefined,
+		totalDepositedETH: toNormalizedBN(0),
+		totalDepositedUSD: 0
+	}
+
 };
 
 const LSTContext = createContext<TUseLSTProps>(defaultProps);
@@ -43,6 +56,7 @@ export const LSTContextApp = ({children}: {children: React.ReactElement}): React
 	const {lst, updateLST} = useLSTData();
 	// const dailyVolume = useDailyVolume();
 	const TVL = useTVL();
+	const incentives = useIncentives();
 
 	const {data: stats, isFetched: areStatsFetched} = useContractReads({
 		contracts: [
@@ -85,8 +99,9 @@ export const LSTContextApp = ({children}: {children: React.ReactElement}): React
 			targetAmplification: toBigInt(stats?.[2]?.result as bigint),
 			swapFeeRate: toBigInt(stats?.[3]?.result as bigint)
 		} : defaultProps.stats,
-		onUpdateLST: updateLST
-	}), [lst, stats, areStatsFetched, updateLST, slippage, TVL]);
+		onUpdateLST: updateLST,
+		incentives
+	}), [lst, stats, areStatsFetched, updateLST, slippage, TVL, incentives]);
 
 	return (
 		<LSTContext.Provider value={contextValue}>

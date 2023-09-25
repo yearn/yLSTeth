@@ -11,6 +11,7 @@ import {assertAddress} from '@yearn-finance/web-lib/utils/wagmi/utils';
 import {STYETH_TOKEN, YETH_TOKEN} from './tokens';
 import {CURVE_SWAP_ABI} from './abi/curveswap.abi';
 import {ST_YETH_ABI} from './abi/styETH.abi';
+import {VOTE_ABI} from './abi/vote.abi';
 import {YETH_POOL_ABI} from './abi/yETHPool.abi';
 import {ZAP_ABI} from './abi/zap.abi';
 
@@ -459,7 +460,36 @@ export async function depositAndStake(props: TDepositAndStake): Promise<TTxRespo
 }
 
 
+/* 🔵 - Yearn Finance **********************************************************
+** depositIncentive is a _WRITE_ function that deposits incentives for a given
+** choice of vote.
+**
+** @app - yETH
+** @param vote - byte32 id of the vote
+** @param choice - index of the choice, 0 always being no change
+** @param tokenAsIncentive - address of the token to incentivize
+** @param amount - The amount of incentives to deposit.
+******************************************************************************/
+type TDepositIncentive = TWriteTransaction & {
+	vote: Hex;
+	choice: bigint;
+	tokenAsIncentive: TAddress;
+	amount: bigint
+};
+export async function depositIncentive(props: TDepositIncentive): Promise<TTxResponse> {
+	assert(props.connector, 'No connector');
+	assert(props.amount > 0n, 'Amount is 0');
+	assert(props.choice >= 0n, 'choice is negative');
+	assertAddress(props.tokenAsIncentive, 'tokenAsIncentive');
+	assertAddress(process.env.VOTE_ADDRESS, 'VOTE_ADDRESS');
 
+	return await handleTx(props, {
+		address: toAddress(process.env.VOTE_ADDRESS),
+		abi: VOTE_ABI,
+		functionName: 'deposit',
+		args: [props.vote, props.choice, props.tokenAsIncentive, props.amount]
+	});
+}
 
 /* 🔵 - Yearn Finance **********************************************************
 ** depositAndStake is a _WRITE_ function that deposits some of the LP tokens

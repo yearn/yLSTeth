@@ -3,7 +3,6 @@ import {ImageWithFallback} from 'components/common/ImageWithFallback';
 import IconChevronPlain from 'components/icons/IconChevronPlain';
 import IconSpinner from 'components/icons/IconSpinner';
 import useLST from 'contexts/useLST';
-import useIncentives from 'hooks/useIncentives';
 import {useChainID} from '@yearn-finance/web-lib/hooks/useChainID';
 import {toAddress, truncateHex} from '@yearn-finance/web-lib/utils/address';
 import {formatAmount, formatPercent} from '@yearn-finance/web-lib/utils/format.number';
@@ -14,7 +13,7 @@ import type {TSortDirection} from 'utils/types';
 
 function VoteCardWeights(): ReactElement {
 	const {lst} = useLST();
-	const {groupIncentiveHistory, isFetchingHistory} = useIncentives();
+	const {incentives: {groupIncentiveHistory, isFetchingHistory}} = useLST();
 	const {safeChainID} = useChainID();
 	const [sortBy, set_sortBy] = useState<'totalIncentive' | 'weight'>('totalIncentive');
 	const [sortDirection, set_sortDirection] = useState<TSortDirection>('desc');
