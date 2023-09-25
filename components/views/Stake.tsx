@@ -164,6 +164,15 @@ function ViewStakeUnstake(): ReactElement {
 		}
 	}, [fromAmount.raw, isActive, provider, refresh]);
 
+	/* 🔵 - Yearn Finance **************************************************************************
+	** If the user clicks the switch button, we need to swap the fromToken and toToken.
+	**********************************************************************************************/
+	const onSwitchTokens = useCallback((): void => {
+		set_currentView(currentView === 'stake' ? 'unstake' : 'stake');
+		set_fromAmount(toAmount);
+		set_toAmount(fromAmount);
+	}, [currentView, fromAmount, toAmount]);
+
 	return (
 		<div className={'col-span-18 py-6 pr-0 md:py-10 md:pr-72'}>
 			<h2 className={'text-xl font-black'}>
@@ -194,7 +203,7 @@ function ViewStakeUnstake(): ReactElement {
 					<div className={'mb-8 mt-6 flex w-full justify-center'}>
 						<button
 							className={'cursor-pointer'}
-							onClick={(): void => set_currentView(currentView === 'stake' ? 'unstake' : 'stake')}>
+							onClick={onSwitchTokens}>
 							<IconSwapSVG />
 						</button>
 					</div>

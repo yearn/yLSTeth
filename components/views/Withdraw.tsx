@@ -81,16 +81,18 @@ function ViewLSTWithdrawForm({token, amount, onSelect, isSelected, shouldHideRad
 	);
 }
 
-function ViewSelectedTokens({amounts, set_amounts}: {
+function ViewSelectedTokens({amounts, set_amounts, selectedLST, set_selectedLST, shouldBalanceTokens, set_shouldBalanceTokens}: {
 	amounts: TNormalizedBN[],
-	set_amounts: (amounts: TNormalizedBN[]) => void
+	set_amounts: (amounts: TNormalizedBN[]) => void,
+	selectedLST: TLST,
+	set_selectedLST: (token: TLST) => void,
+	shouldBalanceTokens: boolean,
+	set_shouldBalanceTokens: (shouldBalance: boolean) => void
 }): ReactElement {
 	const {isActive, provider} = useWeb3();
 	const {refresh} = useWallet();
 	const {lst, slippage} = useLST();
-	const [selectedLST, set_selectedLST] = useState<TLST>(lst[0]);
 	const [txStatus, set_txStatus] = useState<TTxStatus>(defaultTxStatus);
-	const [shouldBalanceTokens, set_shouldBalanceTokens] = useState(true);
 	const [fromAmount, set_fromAmount] = useState<TNormalizedBN>(toNormalizedBN(0));
 
 	/* 🔵 - Yearn Finance **************************************************************************
@@ -110,8 +112,8 @@ function ViewSelectedTokens({amounts, set_amounts}: {
 						args: [newAmount.raw]
 					});
 					set_amounts(amounts.map((_, index): TNormalizedBN => {
-						const amountWithSlippage: bigint = estimatedAmount[index] - toBigInt(estimatedAmount[index] / slippage);
-						return toNormalizedBN(amountWithSlippage);
+						// const amountWithSlippage: bigint = estimatedAmount[index] - toBigInt(estimatedAmount[index] / slippage);
+						return toNormalizedBN(estimatedAmount[index]);
 					}));
 				} catch (error) {
 					set_amounts(amounts.map((): TNormalizedBN => toNormalizedBN(-1n)));
@@ -130,8 +132,8 @@ function ViewSelectedTokens({amounts, set_amounts}: {
 					});
 					set_amounts(amounts.map((_, index): TNormalizedBN => {
 						if (index === selectedLSTIndex) {
-							const amountWithSlippage: bigint = estimatedAmount - toBigInt(estimatedAmount / slippage);
-							return toNormalizedBN(amountWithSlippage);
+							// const amountWithSlippage: bigint = estimatedAmount - toBigInt(estimatedAmount / slippage);
+							return toNormalizedBN(estimatedAmount);
 						}
 						return toNormalizedBN(0);
 					}));
@@ -185,7 +187,7 @@ function ViewSelectedTokens({amounts, set_amounts}: {
 				contractAddress: STYETH_TOKEN.address,
 				index: toBigInt(selectedLST.index),
 				amount: fromAmount.raw,
-				minOut: amounts[selectedLST.index].raw,
+				minOut: amounts[selectedLST.index].raw * (10000n - slippage) / 10000n,
 				statusHandler: set_txStatus
 			});
 			if (result.isSuccessful) {
@@ -296,7 +298,11 @@ function ViewSelectedTokens({amounts, set_amounts}: {
 	);
 }
 
-function ViewDetails({isOutOfBand}: {isOutOfBand: boolean}): ReactElement {
+function ViewDetails({isOutOfBand, minOut, tokenToReceive}: {
+	isOutOfBand: boolean,
+	minOut: bigint,
+	tokenToReceive: string
+}): ReactElement {
 	const {slippage} = useLST();
 
 	return (
@@ -312,6 +318,15 @@ function ViewDetails({isOutOfBand}: {isOutOfBand: boolean}): ReactElement {
 						{`${formatAmount(Number(slippage) / 100, 2, 2)}%`}
 					</dd>
 				</dl>
+
+				{minOut > -1 ? (
+					<dl className={'grid grid-cols-3 gap-2 pt-4'}>
+						<dt className={'col-span-2'}>{`Min ${tokenToReceive} to receive`}</dt>
+						<dd suppressHydrationWarning className={'text-right font-bold'}>
+							{formatAmount(toNormalizedBN(minOut).normalized, 6, 6)}
+						</dd>
+					</dl>
+				) : null}
 
 				<dl className={'pt-4'}>
 					<dd
@@ -335,6 +350,9 @@ function ViewDetails({isOutOfBand}: {isOutOfBand: boolean}): ReactElement {
 }
 
 function ViewWithdraw(): ReactElement {
+	const {lst, slippage} = useLST();
+	const [shouldBalanceTokens, set_shouldBalanceTokens] = useState(true);
+	const [selectedLST, set_selectedLST] = useState<TLST>(lst[0]);
 	const [amounts, set_amounts] = useState<TNormalizedBN[]>([
 		toNormalizedBN(0),
 		toNormalizedBN(0),
@@ -346,8 +364,15 @@ function ViewWithdraw(): ReactElement {
 	return (
 		<section className={'relative px-4 md:px-72'}>
 			<div className={'grid grid-cols-1 divide-x-0 divide-y-2 divide-neutral-300 md:grid-cols-30 md:divide-x-2 md:divide-y-0'}>
-				<ViewSelectedTokens amounts={amounts} set_amounts={set_amounts}/>
-				<ViewDetails isOutOfBand={amounts.some((amount): boolean => amount.raw === -1n)} />
+				<ViewSelectedTokens
+					amounts={amounts} set_amounts={set_amounts}
+					selectedLST={selectedLST} set_selectedLST={set_selectedLST}
+					shouldBalanceTokens={shouldBalanceTokens} set_shouldBalanceTokens={set_shouldBalanceTokens} />
+
+				<ViewDetails
+					minOut={shouldBalanceTokens ? -1n : amounts[selectedLST.index].raw * (10000n - slippage) / 10000n}
+					tokenToReceive={selectedLST.symbol}
+					isOutOfBand={amounts.some((amount): boolean => amount.raw === -1n)} />
 			</div>
 		</section>
 	);

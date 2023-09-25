@@ -52,7 +52,7 @@ const defaultProps: TUseLSTProps = {
 
 const LSTContext = createContext<TUseLSTProps>(defaultProps);
 export const LSTContextApp = ({children}: {children: React.ReactElement}): React.ReactElement => {
-	const [slippage, set_slippage] = useState(50n);
+	const [slippage, set_slippage] = useState(10n);
 	const {lst, updateLST} = useLSTData();
 	// const dailyVolume = useDailyVolume();
 	const TVL = useTVL();
