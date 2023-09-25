@@ -27,6 +27,10 @@ const aeonik = localFont({
 			path: '../public/fonts/Aeonik-Bold.woff2',
 			weight: '700',
 			style: 'normal'
+		}, {
+			path: '../public/fonts/Aeonik-Black.ttf',
+			weight: '900',
+			style: 'normal'
 		}
 	]
 });
@@ -48,7 +52,7 @@ function	MyApp(props: AppProps): ReactElement {
 					<LSTContextApp>
 						<TokenListContextApp>
 							<WalletContextApp>
-								<main className={cl('flex flex-col', aeonik.className)}>
+								<main className={cl('flex flex-col mb-32', aeonik.className)}>
 									<AppWrapper {...props} />
 								</main>
 							</WalletContextApp>

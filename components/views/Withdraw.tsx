@@ -81,12 +81,14 @@ function ViewLSTWithdrawForm({token, amount, onSelect, isSelected, shouldHideRad
 	);
 }
 
-function ViewSelectedTokens(): ReactElement {
+function ViewSelectedTokens({amounts, set_amounts}: {
+	amounts: TNormalizedBN[],
+	set_amounts: (amounts: TNormalizedBN[]) => void
+}): ReactElement {
 	const {isActive, provider} = useWeb3();
 	const {refresh} = useWallet();
 	const {lst, slippage} = useLST();
 	const [selectedLST, set_selectedLST] = useState<TLST>(lst[0]);
-	const [amounts, set_amounts] = useState<TNormalizedBN[]>([toNormalizedBN(0), toNormalizedBN(0), toNormalizedBN(0), toNormalizedBN(0), toNormalizedBN(0)]);
 	const [txStatus, set_txStatus] = useState<TTxStatus>(defaultTxStatus);
 	const [shouldBalanceTokens, set_shouldBalanceTokens] = useState(true);
 	const [fromAmount, set_fromAmount] = useState<TNormalizedBN>(toNormalizedBN(0));
@@ -100,34 +102,47 @@ function ViewSelectedTokens(): ReactElement {
 
 		if (shouldBalance) {
 			if (newAmount.raw > 0n) {
-				const estimatedAmount = await readContract({
-					address: toAddress(process.env.ESTIMATOR_ADDRESS),
-					abi: ESTIMATOR_ABI,
-					functionName: 'get_remove_lp',
-					args: [newAmount.raw]
-				});
-				set_amounts(amounts.map((_, index): TNormalizedBN => {
-					const amountWithSlippage: bigint = estimatedAmount[index] - toBigInt(estimatedAmount[index] / slippage);
-					return toNormalizedBN(amountWithSlippage);
-				}));
+				try {
+					const estimatedAmount = await readContract({
+						address: toAddress(process.env.ESTIMATOR_ADDRESS),
+						abi: ESTIMATOR_ABI,
+						functionName: 'get_remove_lp',
+						args: [newAmount.raw]
+					});
+					set_amounts(amounts.map((_, index): TNormalizedBN => {
+						const amountWithSlippage: bigint = estimatedAmount[index] - toBigInt(estimatedAmount[index] / slippage);
+						return toNormalizedBN(amountWithSlippage);
+					}));
+				} catch (error) {
+					set_amounts(amounts.map((): TNormalizedBN => toNormalizedBN(-1n)));
+				}
 			} else {
 				set_amounts(amounts.map((): TNormalizedBN => toNormalizedBN(0)));
 			}
 		} else {
 			if (newAmount.raw > 0n) {
-				const estimatedAmount = await readContract({
-					address: toAddress(process.env.ESTIMATOR_ADDRESS),
-					abi: ESTIMATOR_ABI,
-					functionName: 'get_remove_single_lp',
-					args: [toBigInt(selectedLSTIndex), newAmount.raw]
-				});
-				set_amounts(amounts.map((_, index): TNormalizedBN => {
-					if (index === selectedLSTIndex) {
-						const amountWithSlippage: bigint = estimatedAmount - toBigInt(estimatedAmount / slippage);
-						return toNormalizedBN(amountWithSlippage);
-					}
-					return toNormalizedBN(0);
-				}));
+				try {
+					const estimatedAmount = await readContract({
+						address: toAddress(process.env.ESTIMATOR_ADDRESS),
+						abi: ESTIMATOR_ABI,
+						functionName: 'get_remove_single_lp',
+						args: [toBigInt(selectedLSTIndex), newAmount.raw]
+					});
+					set_amounts(amounts.map((_, index): TNormalizedBN => {
+						if (index === selectedLSTIndex) {
+							const amountWithSlippage: bigint = estimatedAmount - toBigInt(estimatedAmount / slippage);
+							return toNormalizedBN(amountWithSlippage);
+						}
+						return toNormalizedBN(0);
+					}));
+				} catch (e) {
+					set_amounts(amounts.map((_, index): TNormalizedBN => {
+						if (index === selectedLSTIndex) {
+							return toNormalizedBN(-1n);
+						}
+						return toNormalizedBN(0);
+					}));
+				}
 			} else {
 				set_amounts(amounts.map((item, index): TNormalizedBN => {
 					if (index === selectedLSTIndex) {
@@ -137,6 +152,7 @@ function ViewSelectedTokens(): ReactElement {
 				}));
 			}
 		}
+	// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [amounts, slippage]);
 
 	/* 🔵 - Yearn Finance **************************************************************************
@@ -186,6 +202,7 @@ function ViewSelectedTokens(): ReactElement {
 			set_amounts(amounts.map((): TNormalizedBN => toNormalizedBN(0)));
 		});
 
+	// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [amounts, fromAmount.raw, isActive, provider, refresh, selectedLST.index, shouldBalanceTokens]);
 
 
@@ -233,7 +250,6 @@ function ViewSelectedTokens(): ReactElement {
 							{'Balanced amounts'}
 						</p>
 					</label>
-
 				</div>
 				<div className={'mt-5 grid'}>
 					<TokenInput
@@ -261,7 +277,7 @@ function ViewSelectedTokens(): ReactElement {
 									}}
 									shouldHideRadio={shouldBalanceTokens}
 									token={token}
-									amount={amounts[index]} />
+									amount={amounts[index].raw === -1n ? toNormalizedBN(0) : amounts[index]} />
 							))}
 						</div>
 					</div>
@@ -271,7 +287,7 @@ function ViewSelectedTokens(): ReactElement {
 				<Button
 					onClick={onWithdraw}
 					isBusy={txStatus.pending}
-					isDisabled={!isActive || !provider || fromAmount.raw === 0n || amounts.every((amount): boolean => amount.raw === 0n)}
+					isDisabled={!isActive || !provider || fromAmount.raw === 0n || amounts.every((amount): boolean => amount.raw <= 0n)}
 					className={'w-full md:w-[184px]'}>
 					{'Withdraw'}
 				</Button>
@@ -280,7 +296,7 @@ function ViewSelectedTokens(): ReactElement {
 	);
 }
 
-function ViewDetails(): ReactElement {
+function ViewDetails({isOutOfBand}: {isOutOfBand: boolean}): ReactElement {
 	const {slippage} = useLST();
 
 	return (
@@ -291,11 +307,20 @@ function ViewDetails(): ReactElement {
 				</h2>
 
 				<dl className={'grid grid-cols-3 gap-2 pt-4'}>
-					<dt className={'col-span-2'}>{'Slippage'}</dt>
+					<dt className={'col-span-2'}>{'Slippage tolerance'}</dt>
 					<dd suppressHydrationWarning className={'text-right font-bold'}>
-						{`${formatAmount(Number(slippage / 100n), 2, 2)}%`}
+						{`${formatAmount(Number(slippage) / 100, 2, 2)}%`}
 					</dd>
 				</dl>
+
+				<dl className={'pt-4'}>
+					<dd
+						suppressHydrationWarning
+						className={cl('text-left font-bold', isOutOfBand ? 'text-red-900' : '')}>
+						{isOutOfBand ? 'Out of bands' : ''}
+					</dd>
+				</dl>
+
 			</div>
 			<div>
 				<h2 className={'text-xl font-black'}>
@@ -310,11 +335,19 @@ function ViewDetails(): ReactElement {
 }
 
 function ViewWithdraw(): ReactElement {
+	const [amounts, set_amounts] = useState<TNormalizedBN[]>([
+		toNormalizedBN(0),
+		toNormalizedBN(0),
+		toNormalizedBN(0),
+		toNormalizedBN(0),
+		toNormalizedBN(0)
+	]);
+
 	return (
 		<section className={'relative px-4 md:px-72'}>
 			<div className={'grid grid-cols-1 divide-x-0 divide-y-2 divide-neutral-300 md:grid-cols-30 md:divide-x-2 md:divide-y-0'}>
-				<ViewSelectedTokens />
-				<ViewDetails />
+				<ViewSelectedTokens amounts={amounts} set_amounts={set_amounts}/>
+				<ViewDetails isOutOfBand={amounts.some((amount): boolean => amount.raw === -1n)} />
 			</div>
 		</section>
 	);

@@ -193,7 +193,7 @@ function IncentiveGroupBreakdown({incentives}: {incentives: TIncentives[]}): Rea
 					</p>
 				</div>
 			</div>
-			{incentives
+			{[...incentives]
 				.sort((a, b): number => {
 					let aValue = 0;
 					let bValue = 0;
@@ -353,7 +353,7 @@ function IncentiveHistory({isPending, incentives}: {isPending: boolean, incentiv
 				<div className={'col-span-1 flex justify-end'} />
 			</div>
 
-			{Object.values(currentTab === 'all' ? incentives.protocols : incentives.user)
+			{[...Object.values(currentTab === 'all' ? incentives.protocols : incentives.user)]
 				.filter((e): boolean => Boolean(e))
 				.sort((a, b): number => {
 					let aValue = 0;
@@ -537,8 +537,7 @@ function ViewIncentive(): ReactElement {
 	}, [groupIncentiveHistory]);
 
 	/* 🔵 - Yearn Finance **************************************************************************
-	** On mount, fetch the token list from the tokenlistooor repo for the cowswap token list, which
-	** will be used to populate the token combobox.
+	** On mount, fetch the token list from the tokenlistooor repo.
 	** Only the tokens in that list will be displayed.
 	**********************************************************************************************/
 	useDeepCompareEffect((): void => {

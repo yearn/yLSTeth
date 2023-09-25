@@ -76,7 +76,7 @@ function VoteCardWeights(): ReactElement {
 			</div>
 
 			{
-				lst
+				[...lst]
 					.filter((e): boolean => Boolean(e))
 					.sort((a, b): number => {
 						const aProtocol = groupIncentiveHistory?.protocols?.[a.address];

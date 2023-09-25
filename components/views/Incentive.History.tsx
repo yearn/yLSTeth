@@ -142,7 +142,7 @@ function IncentiveGroupBreakdown({incentives}: {incentives: TIncentives[]}): Rea
 					</p>
 				</div>
 			</div>
-			{incentives
+			{[...incentives]
 				.sort((a, b): number => {
 					let aValue = 0;
 					let bValue = 0;

@@ -1,19 +1,20 @@
 import assert from 'assert';
 import BOOTSTRAP_ABI from 'utils/abi/bootstrap.abi';
 import {MULTICALL_ABI} from 'utils/abi/multicall3.abi';
+import {type Hex,zeroAddress} from 'viem';
 import {erc20ABI, readContract} from '@wagmi/core';
 import {toAddress} from '@yearn-finance/web-lib/utils/address';
-import {MAX_UINT_256} from '@yearn-finance/web-lib/utils/constants';
+import {ETH_TOKEN_ADDRESS, MAX_UINT_256, WETH_TOKEN_ADDRESS} from '@yearn-finance/web-lib/utils/constants';
 import {handleTx, toWagmiProvider} from '@yearn-finance/web-lib/utils/wagmi/provider';
 import {assertAddress} from '@yearn-finance/web-lib/utils/wagmi/utils';
 
-import {STYETH_TOKEN} from './tokens';
+import {STYETH_TOKEN, YETH_TOKEN} from './tokens';
+import {CURVE_SWAP_ABI} from './abi/curveswap.abi';
 import {ST_YETH_ABI} from './abi/styETH.abi';
 import {VOTE_ABI} from './abi/vote.abi';
 import {YETH_POOL_ABI} from './abi/yETHPool.abi';
 import {ZAP_ABI} from './abi/zap.abi';
 
-import type {Hex} from 'viem';
 import type {Connector} from 'wagmi';
 import type {TAddress} from '@yearn-finance/web-lib/types';
 import type {TWriteTransaction} from '@yearn-finance/web-lib/utils/wagmi/provider';
@@ -200,6 +201,36 @@ export async function multicall(props: TMulticall): Promise<TTxResponse> {
 		value: 0n
 	});
 }
+
+/* 🔵 - Yearn Finance **********************************************************
+** multicall is a _WRITE_ function that can be used to cast a multicall
+**
+** @app - common
+** @param multicallData - an array of multicalls
+******************************************************************************/
+type TMulticallValue = TWriteTransaction & {
+	multicallData: {
+		target: TAddress,
+		callData: Hex,
+		value: bigint,
+		allowFailure: boolean
+	}[];
+};
+export async function multicallValue(props: TMulticallValue): Promise<TTxResponse> {
+	assert(props.connector, 'No connector');
+	assert(props.multicallData.length > 0, 'Nothing to do');
+	assertAddress(props.contractAddress, 'ContractAddress');
+
+	const value = props.multicallData.reduce((a, b): bigint => a + b.value, 0n);
+	return await handleTx(props, {
+		address: props.contractAddress,
+		abi: MULTICALL_ABI,
+		functionName: 'aggregate3Value',
+		args: [props.multicallData],
+		value: value
+	});
+}
+
 
 /* 🔵 - Yearn Finance **********************************************************
 ** addLiquidityToPool is a _WRITE_ function that deposits some of the LP tokens
@@ -457,5 +488,51 @@ export async function depositIncentive(props: TDepositIncentive): Promise<TTxRes
 		abi: VOTE_ABI,
 		functionName: 'deposit',
 		args: [props.vote, props.choice, props.tokenAsIncentive, props.amount]
+	});
+}
+
+/* 🔵 - Yearn Finance **********************************************************
+** depositAndStake is a _WRITE_ function that deposits some of the LP tokens
+** into the pool in exchange for st-yETH.
+**
+** @app - yETH
+** @param amount - The amount of collateral to deposit.
+******************************************************************************/
+type TCurveExchangeMultiple = TWriteTransaction & {
+	amount: bigint;
+	estimateOut: bigint;
+};
+export async function curveExchangeMultiple(props: TCurveExchangeMultiple): Promise<TTxResponse> {
+	assert(props.connector, 'No connector');
+	assert(props.estimateOut > 0n, 'EstimateOut is 0');
+	assert(props.amount > 0n, 'Amount is 0');
+	assertAddress(props.contractAddress);
+
+	return await handleTx(props, {
+		address: toAddress(props.contractAddress),
+		abi: CURVE_SWAP_ABI,
+		functionName: 'exchange_multiple',
+		value: props.amount,
+		args: [
+			[
+				ETH_TOKEN_ADDRESS,
+				WETH_TOKEN_ADDRESS,
+				WETH_TOKEN_ADDRESS,
+				toAddress(process.env.CURVE_YETH_POOL_ADDRESS),
+				YETH_TOKEN.address,
+				toAddress(zeroAddress),
+				toAddress(zeroAddress),
+				toAddress(zeroAddress),
+				toAddress(zeroAddress)
+			],
+			[
+				[0n, 0n, 15n],
+				[0n, 1n, 1n],
+				[0n, 0n, 0n],
+				[0n, 0n, 0n]
+			],
+			props.amount,
+			props.amount * 995n / 1000n
+		]
 	});
 }

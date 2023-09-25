@@ -87,8 +87,7 @@ function IncentiveSelector({isIncentivePeriodClosed, possibleLSTs, currentTab, s
 	});
 
 	/* 🔵 - Yearn Finance **************************************************************************
-	** On mount, fetch the token list from the tokenlistooor repo for the cowswap token list, which
-	** will be used to populate the token combobox.
+	** On mount, fetch the token list from the tokenlistooor.
 	** Only the tokens in that list will be displayed.
 	**********************************************************************************************/
 	useDeepCompareEffect((): void => {

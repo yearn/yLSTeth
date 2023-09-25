@@ -1,4 +1,5 @@
-import React, {Fragment, useCallback, useState} from 'react';
+import React, {Fragment, useCallback, useMemo, useState} from 'react';
+import Link from 'next/link';
 import {ImageWithFallback} from 'components/common/ImageWithFallback';
 import IconChevronBoth from 'components/icons/IconChevronBoth';
 import ViewDeposit from 'components/views/Deposit';
@@ -11,6 +12,7 @@ import {UIStepContextApp} from 'contexts/useUI';
 import useWallet from 'contexts/useWallet';
 import useAPR from 'hooks/useAPR';
 import BOOTSTRAP_ABI from 'utils/abi/bootstrap.abi';
+import {ST_YETH_ABI} from 'utils/abi/styETH.abi';
 import {STYETH_TOKEN, YETH_TOKEN} from 'utils/tokens';
 import {useContractRead} from 'wagmi';
 import {useAnimate} from 'framer-motion';
@@ -19,19 +21,19 @@ import {useMountEffect, useUnmountEffect} from '@react-hookz/web';
 import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
 import {toAddress} from '@yearn-finance/web-lib/utils/address';
 import {cl} from '@yearn-finance/web-lib/utils/cl';
-import {toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
+import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
-import {formatDuration} from '@yearn-finance/web-lib/utils/format.time';
 
 import type {AnimationScope} from 'framer-motion';
 import type {Router} from 'next/router';
 import type {ReactElement} from 'react';
 
 const tabs = [
-	{value: 0, label: 'Deposit', slug: 'deposit'},
-	{value: 1, label: 'Withdraw', slug: 'withdraw'},
-	{value: 2, label: 'Stake/Unstake', slug: 'stake-unstake'},
-	{value: 3, label: 'Swap', slug: 'swap'}
+	{value: 0, label: 'Deposit LST', slug: 'deposit-lst'},
+	{value: 1, label: 'Deposit ETH', slug: 'deposit-eth-leg'},
+	{value: 2, label: 'Withdraw', slug: 'withdraw'},
+	{value: 3, label: 'Stake/Unstake', slug: 'stake-unstake'},
+	{value: 4, label: 'Swap', slug: 'swap'}
 ];
 
 const basicTransition = 'duration-200 ease-in-out';
@@ -43,28 +45,74 @@ function Composition(): ReactElement {
 
 	return (
 		<div className={'flex flex-col space-y-4'}>
-			{lst.map((token, index): ReactElement => {
-				return (
-					<div key={index} className={'flex flex-row justify-between space-x-4'}>
-						<div className={'flex flex-row'}>
-							<div className={'h-6 w-6 min-w-[24px]'}>
-								<ImageWithFallback
-									alt={token.name}
-									unoptimized
-									src={token.logoURI}
-									width={24}
-									height={24} />
+			{[...lst]
+				.sort((a, b): number => Number(b.weightRatio) - Number(a.weightRatio))
+				.map((token, index): ReactElement => {
+					return (
+						<div key={index} className={'flex flex-row justify-between space-x-4'}>
+							<div className={'flex flex-row'}>
+								<div className={'h-6 w-6 min-w-[24px]'}>
+									<ImageWithFallback
+										alt={token.name}
+										unoptimized
+										src={token.logoURI}
+										width={24}
+										height={24} />
+								</div>
+								<p className={cl(basicColorTransition, 'text-sm md:text-base px-2')}>{token.symbol}</p>
 							</div>
-							<p className={cl(basicColorTransition, 'text-sm md:text-base px-2')}>{token.symbol}</p>
+							<b suppressHydrationWarning className={cl(basicColorTransition, 'text-sm md:text-base')}>
+								{`${formatAmount((token?.weightRatio || 0) * 100, 2, 2)}%`}
+							</b>
 						</div>
-						<b suppressHydrationWarning className={cl(basicColorTransition, 'text-sm md:text-base')}>
-							{`${formatAmount((token?.weightRatio || 0) * 100, 2, 2)}%`}
-						</b>
-					</div>
-				);
-			})}
+					);
+				})}
 		</div>
 	);
+}
+
+function useTimer(): number {
+	const [time, set_time] = useState<number>(0);
+
+	useMountEffect((): VoidFunction => {
+		const interval = setInterval((): void => {
+			set_time((prev): number => prev + 1);
+		}, 1000);
+		return (): void => clearInterval(interval);
+	});
+
+	return time;
+}
+
+function RenderYETHValue({lockedTokens}: {lockedTokens: bigint}): ReactElement {
+	const {balances} = useWallet();
+	const timer = useTimer();
+
+	const totalStYEthAmount = useMemo((): bigint => {
+		return toBigInt(lockedTokens) + toBigInt(balances?.[STYETH_TOKEN.address]?.raw || 0);
+	}, [balances, lockedTokens]);
+
+	/* 🔵 - Yearn Finance **************************************************************************
+	** Retrieve the locked st-yETH in the bootstrap contract for the current user
+	**********************************************************************************************/
+	const {data: yETHValue} = useContractRead({
+		abi: ST_YETH_ABI,
+		address: toAddress(process.env.STYETH_ADDRESS),
+		functionName: 'convertToAssets',
+		args: [totalStYEthAmount],
+		chainId: Number(process.env.DEFAULT_CHAIN_ID),
+		watch: true,
+		enabled: timer > 0
+	});
+
+	return (
+		<p
+			suppressHydrationWarning
+			className={cl('text-sm block md:text-base -mt-2 text-neutral-500 transition-colors group-hover:text-neutral-0 font-number')}>
+			{`~ ${formatAmount(Number(toNormalizedBN(toBigInt(yETHValue)).normalized), 6, 6)} yETH`}
+		</p>
+	);
+
 }
 
 function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
@@ -84,6 +132,27 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 		chainId: Number(process.env.DEFAULT_CHAIN_ID)
 	});
 
+	const relativeTimeToUnlock = useMemo((): string => {
+		const unlockTime = 1699012800;
+		const timeToUnlock = unlockTime - Math.floor(Date.now() / 1000);
+		const toDays = timeToUnlock / 86400;
+		const toHours = timeToUnlock / 3600;
+		const toMinutes = timeToUnlock / 60;
+		const toSeconds = timeToUnlock;
+		if (toDays > 1) {
+			return `${Math.floor(toDays)} days from now.`;
+		}
+		if (toHours > 1) {
+			return `${Math.floor(toHours)} hours from now.`;
+		}
+		if (toMinutes > 1) {
+			return `${Math.floor(toMinutes)} minutes from now.`;
+		}
+		if (toSeconds > 1) {
+			return `${Math.floor(toSeconds)} seconds from now.`;
+		}
+		return 'Soon';
+	}, []);
 
 	return (
 		<div
@@ -98,7 +167,7 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 					className={cl('absolute -left-full top-10 text-neutral-0 opacity-0 transition-all duration-200 ease-in-out group-hover:left-0 group-hover:opacity-100 hidden md:block', basicTransition)}>
 					{'Explore >'}
 				</div>
-				<h1 className={cl('text-5xl md:text-8xl', basicColorTransition)}>
+				<h1 className={cl('text-5xl md:text-8xl font-black', basicColorTransition)}>
 					{'yETH'}
 				</h1>
 			</div>
@@ -106,14 +175,14 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 			<div
 				id={'composition'}
 				className={'col-span-12 flex w-full flex-row justify-between py-4 pl-0 transition-colors md:py-8 md:pl-72'}>
-				<div className={'flex flex-col space-y-2'}>
+				<div className={'flex flex-col space-y-4'}>
 					<div>
 						<small className={cl('text-xs', basicLighterColorTransition)}>
 							{'TVL, USD'}
 						</small>
 						<b
 							suppressHydrationWarning
-							className={cl('block text-lg md:text-2xl leading-6 md:leading-10', basicColorTransition)}>
+							className={cl('block text-lg md:text-2xl leading-6 md:leading-8 font-number', basicColorTransition)}>
 							{formatAmount(TVL, 0, 0)}
 						</b>
 					</div>
@@ -122,9 +191,19 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 						<small className={cl('text-xs text-purple-300 group-hover:text-neutral-0', basicTransition)}>
 							{'APR'}
 						</small>
-						<b suppressHydrationWarning className={cl('block text-lg md:text-2xl leading-6 md:leading-10 text-purple-300 group-hover:text-neutral-0', basicTransition)}>
-							{`~${formatAmount(APR, 2, 2)}%`}
-						</b>
+
+						<span className={'tooltip'}>
+							<b suppressHydrationWarning className={cl('block text-lg md:text-2xl leading-6 md:leading-8 text-purple-300 group-hover:text-neutral-0 font-number', basicTransition)}>
+								{`~${formatAmount(APR, 2, 2)}%`}
+							</b>
+							<span className={'tooltipLight !-inset-x-24 top-full mt-2 !w-auto'}>
+								<div
+									suppressHydrationWarning
+									className={'w-fit rounded-md border border-neutral-700 bg-neutral-900 p-1 px-2 text-center text-xs font-medium text-neutral-0'}>
+									{'APY is calculated based on last week\'s yETH yield generated by the protocol, streamed to st-yETH holders this week'}
+								</div>
+							</span>
+						</span>
 					</div>
 
 					<div>
@@ -133,7 +212,7 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 						</small>
 						<b
 							suppressHydrationWarning
-							className={cl('block text-lg md:text-2xl leading-6 md:leading-10', basicColorTransition)}>
+							className={cl('block text-lg md:text-2xl leading-6 md:leading-8 font-number', basicColorTransition)}>
 							{formatAmount(balances?.[YETH_TOKEN.address]?.normalized || 0, 6, 6)}
 						</b>
 					</div>
@@ -145,21 +224,21 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 						<span className={'block whitespace-nowrap'}>
 							<b
 								suppressHydrationWarning
-								className={cl('text-lg md:text-2xl leading-6 md:leading-10', basicColorTransition)}>
+								className={cl('text-lg md:text-2xl leading-6 md:leading-8 font-number', basicColorTransition)}>
 								{formatAmount(Number(balances?.[STYETH_TOKEN.address]?.normalized || 0), 6, 6)}
 							</b>
 							{(lockedTokens && lockedTokens >= 0n) ? (
 								<span className={'tooltip'}>
 									<p
 										suppressHydrationWarning
-										className={cl('text-sm block md:text-base -mt-2 text-neutral-500 transition-colors group-hover:text-neutral-0')}>
+										className={cl('text-sm block md:text-base -mt-2 text-neutral-500 transition-colors group-hover:text-neutral-0 font-number pt-2')}>
 										{`+ ${formatAmount(toNormalizedBN(lockedTokens || 0n).normalized, 6, 6)} locked`}
 									</p>
 									<span className={'tooltipLight !-inset-x-24 top-full mt-2 !w-auto'}>
 										<div
 											suppressHydrationWarning
 											className={'w-fit rounded-md border border-neutral-700 bg-neutral-900 p-1 px-2 text-center text-xs font-medium text-neutral-0'}>
-											{`Your st-yETH from the yETH bootstrap will be unlocked ${formatDuration(1699012800, true)}`}
+											{`Your st-yETH from the yETH bootstrap will be unlocked ${relativeTimeToUnlock}`}
 										</div>
 									</span>
 								</span>
@@ -169,6 +248,7 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 										&nbsp;
 								</p>
 							)}
+							<RenderYETHValue lockedTokens={toBigInt(lockedTokens)} />
 						</span>
 					</div>
 				</div>
@@ -236,15 +316,17 @@ function YETH({router}: {router: Router}): ReactElement {
 	function renderTab(): ReactElement {
 		switch (currentTab.value) {
 			case 0:
-				return <ViewDeposit />;
+				return <ViewDeposit key={'lst'} type={'LST'} onChangeTab={(): void => set_currentTab(tabs[3])} />;
 			case 1:
-				return <ViewWithdraw />;
+				return <ViewDeposit key={'eth'} type={'ETH'} onChangeTab={(): void => set_currentTab(tabs[3])} />;
 			case 2:
-				return <ViewStake />;
+				return <ViewWithdraw />;
 			case 3:
+				return <ViewStake />;
+			case 4:
 				return <ViewSwap />;
 			default:
-				return <ViewDeposit />;
+				return <ViewDeposit key={'lst'} type={'LST'} onChangeTab={(): void => set_currentTab(tabs[3])} />;
 		}
 	}
 
@@ -269,30 +351,46 @@ function YETH({router}: {router: Router}): ReactElement {
 				<div className={'flex w-full flex-col'}>
 					<div className={'relative flex w-full flex-row items-center justify-between rounded-t-md bg-neutral-100 px-4 pt-4 md:px-72'}>
 						<nav className={'z-30 hidden flex-row items-center space-x-10 md:flex'}>
-							{tabs.map((tab): ReactElement => (
-								<button
-									key={`desktop-${tab.value}`}
-									onClick={(): void => {
-										set_currentTab(tab);
-										router.replace(
-											{
-												query: {
-													...router.query,
-													action: tab.slug
-												}
-											},
-											undefined,
-											{shallow: true}
-										);
-									}}>
-									<p
-										title={tab.label}
-										aria-selected={currentTab.value === tab.value}
-										className={'hover-fix tab'}>
-										{tab.label}
-									</p>
-								</button>
-							))}
+							{tabs.map((tab): ReactElement => {
+								if (tab.slug === 'deposit-eth-leg') {
+									return (
+										<Link
+											key={`desktop-${tab.value}`} href={'https://swap.cow.fi/#/1/swap/WETH/yETH'}
+											target={'_blank'}>
+											<p
+												title={tab.label}
+												aria-selected={currentTab.value === tab.value}
+												className={'hover-fix tab !cursor-alias'}>
+												{tab.label}
+											</p>
+										</Link>
+									);
+								}
+								return (
+									<button
+										key={`desktop-${tab.value}`}
+										onClick={(): void => {
+											set_currentTab(tab);
+											router.replace(
+												{
+													query: {
+														...router.query,
+														action: tab.slug
+													}
+												},
+												undefined,
+												{shallow: true}
+											);
+										}}>
+										<p
+											title={tab.label}
+											aria-selected={currentTab.value === tab.value}
+											className={'hover-fix tab'}>
+											{tab.label}
+										</p>
+									</button>
+								);
+							})}
 						</nav>
 						<div className={'relative z-50'}>
 							<Listbox
