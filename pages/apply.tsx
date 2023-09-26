@@ -48,7 +48,7 @@ function Apply(): ReactElement {
 							&nbsp;
 							<ul className={'list-outside list-disc pl-4'}>
 								<li className={'font-bold'}>
-									{'Pay a non refundable 1 ETH fee (to prevent spam).'}
+									{'Pay a non refundable 0.1-1 yETH fee (to prevent spam).'}
 								</li>
 								<li className={'font-bold'}>
 									{'Fill in the form.'}
