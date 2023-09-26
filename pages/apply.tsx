@@ -68,7 +68,7 @@ function Apply(): ReactElement {
 									{'0.1-1 yETH'}
 								</div>
 								<p className={'mt-1 text-xs text-neutral-600'}>
-									{`You have: ${formatAmount(balances?.[ETH_TOKEN_ADDRESS]?.normalized || 0, 2, 6)} ETH`}
+									{`You have: ${formatAmount(balances?.[process.env.YETH_ADDRESS]?.normalized || 0, 2, 6)} ETH`}
 								</p>
 							</div>
 							<div className={'flex w-[200px] flex-col'}>
