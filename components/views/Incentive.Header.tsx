@@ -18,7 +18,7 @@ function Timer({isIncentivePeriodClosed}: {
 			<b
 				suppressHydrationWarning
 				className={'font-number mt-2 text-4xl leading-10 text-purple-300'}>
-				{isIncentivePeriodClosed ? `closed` : `closes in ${time}`}
+				{isIncentivePeriodClosed ? 'closed' : `closes in ${time}`}
 			</b>
 		</>
 	);
