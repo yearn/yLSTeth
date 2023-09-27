@@ -10,18 +10,15 @@ import type {ReactElement} from 'react';
 function Timer({isIncentivePeriodClosed}: {
 	isIncentivePeriodClosed: boolean
 }): ReactElement {
-	const {voteStart, endPeriod, hasVotingStarted} = useEpoch();
-	const time = useTimer({endTime: hasVotingStarted ? Number(endPeriod) : Number(voteStart)});
+	const {endPeriod} = useEpoch();
+	const time = useTimer({endTime: Number(endPeriod - 3 * 24 * 3600)});
 
 	return (
 		<>
-			<b className={'mt-4 block text-4xl font-bold leading-10 text-purple-300'}>
-				{isIncentivePeriodClosed ? 'Closed' : 'Live'}
-			</b>
 			<b
 				suppressHydrationWarning
 				className={'font-number mt-2 text-4xl leading-10 text-purple-300'}>
-				{isIncentivePeriodClosed ? `New Epoch in ${time}` : `Epoch ends in ${time}`}
+				{isIncentivePeriodClosed ? `closed` : `closes in ${time}`}
 			</b>
 		</>
 	);
