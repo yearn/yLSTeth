@@ -73,6 +73,15 @@ export const CBETH_TOKEN: TTokenInfo ={
 	logoURI: 'https://assets.smold.app/api/token/1/0xBe9895146f7AF43049ca1c1AE358B0541Ea49704/logo-128.png'
 };
 
+export const MPETH_TOKEN: TTokenInfo ={
+	chainId: 1,
+	address: toAddress('0x48AFbBd342F64EF8a9Ab1C143719b63C2AD81710'),
+	name: 'Meta Pool ETH',
+	symbol: 'mpETH',
+	decimals: 18,
+	logoURI: 'https://assets.smold.app/api/token/1/0x48AFbBd342F64EF8a9Ab1C143719b63C2AD81710/logo-128.png'
+};
+
 /**********************************************************************************************
 ** Other tokens related to yETH ecosystem
 **********************************************************************************************/
