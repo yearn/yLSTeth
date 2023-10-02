@@ -356,7 +356,7 @@ export async function unstakeYETH(props: TUnstakeYETH): Promise<TTxResponse> {
 	return await handleTx(props, {
 		address: STYETH_TOKEN.address,
 		abi: ST_YETH_ABI,
-		functionName: 'withdraw',
+		functionName: 'redeem',
 		args: [props.amount]
 	});
 }
