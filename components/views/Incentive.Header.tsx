@@ -27,7 +27,7 @@ function Timer({isIncentivePeriodClosed}: {
 function IncentiveHeader({isIncentivePeriodClosed}: {
 	isIncentivePeriodClosed: boolean
 }): ReactElement {
-	const {incentives: {groupIncentiveHistory, totalDepositedUSD}} = useLST();
+	const {incentives: {groupIncentiveHistory}, TVL} = useLST();
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	** Calculate the sum of all the incentives for all the protocols.
@@ -61,7 +61,7 @@ function IncentiveHeader({isIncentivePeriodClosed}: {
 						<p className={'whitespace-nowrap pb-2'}>{'Current total deposits, USD'}</p>
 						<b suppressHydrationWarning className={'font-number text-3xl'}>
 							<Renderable shouldRender={true} fallback ={'-'}>
-								{amountV2({value: totalDepositedUSD, decimals: 2, symbol: '$'})}
+								{amountV2({value: TVL, decimals: 2, symbol: '$'})}
 							</Renderable>
 						</b>
 					</div>
