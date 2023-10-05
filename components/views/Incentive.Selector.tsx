@@ -1,4 +1,5 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {useRouter} from 'next/router';
 import assert from 'assert';
 import ComboboxAddressInput from 'components/common/ComboboxAddressInput';
 import {ImageWithFallback} from 'components/common/ImageWithFallback';
@@ -35,16 +36,34 @@ function IncentiveMenuTabs({set_currentTab, currentTab}: {
 	currentTab: 'current' | 'potential';
 	set_currentTab: (tab: 'current' | 'potential') => void;
 }): ReactElement {
+	const router = useRouter();
+
+	useEffect((): void => {
+		const urlParams = new URLSearchParams(window.location.search);
+		const action = urlParams.get('action');
+
+		if (action === 'current' || action === 'potential') {
+			set_currentTab(action);
+		} else if (router.query?.action === 'current' || router.query?.action === 'potential') {
+			set_currentTab(router.query.action);
+		}
+	}, [set_currentTab, router.query]);
+
+
 	return (
 		<div className={'overflow-hidden'}>
 			<div className={'relative -mx-4 px-4 md:px-72 '}>
 				<button
-					onClick={(): void => set_currentTab('current')}
+					onClick={(): void => {
+						router.push({pathname: router.pathname, query: {action: 'current'}});
+					}}
 					className={cl('mx-4 mb-2 text-lg transition-colors', currentTab === 'current' ? 'text-purple-300 font-bold' : 'text-neutral-400')}>
 					{'Weight votes'}
 				</button>
 				<button
-					onClick={(): void => set_currentTab('potential')}
+					onClick={(): void => {
+						router.push({pathname: router.pathname, query: {action: 'potential'}});
+					}}
 					className={cl('mx-4 mb-2 text-lg transition-colors', currentTab === 'potential' ? 'text-purple-300 font-bold' : 'text-neutral-400')}>
 					{'Inclusion votes'}
 				</button>
