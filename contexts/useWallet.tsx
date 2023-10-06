@@ -1,17 +1,17 @@
 import React, {createContext, memo, useCallback, useContext, useMemo, useState} from 'react';
+import {useBalances} from 'hooks/useBalances';
 import {LST} from 'utils/constants';
 import {STYETH_TOKEN, YETH_TOKEN} from 'utils/tokens';
 import {useLocalStorageValue, useMountEffect, useUpdateEffect} from '@react-hookz/web';
 import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
-import {type TUseBalancesTokens,useBalances} from '@yearn-finance/web-lib/hooks/useBalances';
 import {useChainID} from '@yearn-finance/web-lib/hooks/useChainID';
 import {toAddress} from '@yearn-finance/web-lib/utils/address';
 import {ETH_TOKEN_ADDRESS} from '@yearn-finance/web-lib/utils/constants';
-import {performBatchedUpdates} from '@yearn-finance/web-lib/utils/performBatchedUpdates';
 import {getNetwork} from '@yearn-finance/web-lib/utils/wagmi/utils';
 
 import {type TTokenInfo,useTokenList} from './useTokenList';
 
+import type {TUseBalancesTokens} from 'hooks/useBalances';
 import type {Dispatch, ReactElement, SetStateAction} from 'react';
 import type {TDict} from '@yearn-finance/web-lib/types';
 import type {TBalanceData} from '@yearn-finance/web-lib/types/hooks';
@@ -43,7 +43,7 @@ const defaultProps = {
 ******************************************************************************/
 const WalletContext = createContext<TWalletContext>(defaultProps);
 export const WalletContextApp = memo(function WalletContextApp({children}: {children: ReactElement}): ReactElement {
-	const {provider, isActive} = useWeb3();
+	const {isActive} = useWeb3();
 	const {tokenList} = useTokenList();
 	const {safeChainID} = useChainID();
 	const [walletProvider, set_walletProvider] = useState('NONE');
@@ -153,9 +153,7 @@ export const WalletContextApp = memo(function WalletContextApp({children}: {chil
 
 	useMountEffect((): void => {
 		if (!isActive) {
-			performBatchedUpdates((): void => {
-				set_walletProvider('NONE');
-			});
+			set_walletProvider('NONE');
 		}
 	});
 
@@ -169,14 +167,14 @@ export const WalletContextApp = memo(function WalletContextApp({children}: {chil
 	**	Setup and render the Context provider to use in the app.
 	***************************************************************************/
 	const contextValue = useMemo((): TWalletContext => ({
-		balances: provider ? balances : {},
+		balances: isActive ? balances : {},
 		balancesNonce: nonce,
 		isLoading: isLoading || false,
 		refresh: onRefresh,
 		refreshWithList: onRefreshWithList,
 		walletProvider,
 		set_walletProvider
-	}), [provider, balances, nonce, isLoading, onRefresh, onRefreshWithList, walletProvider]);
+	}), [isActive, balances, nonce, isLoading, onRefresh, onRefreshWithList, walletProvider]);
 
 	return (
 		<WalletContext.Provider value={contextValue}>

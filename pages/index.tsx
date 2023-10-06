@@ -8,7 +8,6 @@ import ViewSwap from 'components/views/Swap';
 import LSTInPool from 'components/views/ViewLSTInPool';
 import ViewWithdraw from 'components/views/Withdraw';
 import useLST from 'contexts/useLST';
-import {UIStepContextApp} from 'contexts/useUI';
 import useWallet from 'contexts/useWallet';
 import useAPR from 'hooks/useAPR';
 import BOOTSTRAP_ABI from 'utils/abi/bootstrap.abi';
@@ -454,9 +453,7 @@ export default function Wrapper({router}: {router: Router}): ReactElement {
 		<div
 			id={'yeth-main-page'}
 			className={'relative mx-auto mb-0 flex min-h-screen w-full flex-col bg-neutral-0 pt-20'}>
-			<UIStepContextApp>
-				<YETH router={router} />
-			</UIStepContextApp>
+			<YETH router={router} />
 		</div>
 	);
 }
