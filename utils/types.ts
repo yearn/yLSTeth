@@ -48,4 +48,4 @@ export type TSortDirection = '' | 'desc' | 'asc'
 ** - The bonusOrPenalty is a number that represents the bonus or penalty applied to the estimated
 ** output. It can be positive (for a bonus) or negative (for a penalty).
 **************************************************************************************************/
-export type TEstOutWithBonusPenalty = {value: bigint, bonusOrPenalty: number};
+export type TEstOutWithBonusPenalty = {value: bigint, bonusOrPenalty: number; vb: bigint};

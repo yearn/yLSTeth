@@ -7,9 +7,10 @@ import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
 
 import type {ReactElement} from 'react';
 
-function DepositDetails({label, estimateOut, bonusOrPenalty, shouldDepositEth}: {
+function DepositDetails({label, estimateOut, vb, bonusOrPenalty, shouldDepositEth}: {
 	label: string,
 	estimateOut: bigint,
+	vb: bigint,
 	bonusOrPenalty: number,
 	shouldDepositEth: boolean
 }): ReactElement {
@@ -45,6 +46,13 @@ function DepositDetails({label, estimateOut, bonusOrPenalty, shouldDepositEth}: 
 					<dd suppressHydrationWarning className={'text-right font-bold'}>
 						<RenderAmount
 							value={Number(toNormalizedBN(estimateOut).normalized)}
+							decimals={6} />
+					</dd>
+
+					<dt className={'col-span-2 opacity-60'}>{'ETH staked amount'}</dt>
+					<dd suppressHydrationWarning className={'text-right font-bold opacity-60'}>
+						<RenderAmount
+							value={Number(toNormalizedBN(vb).normalized)}
 							decimals={6} />
 					</dd>
 

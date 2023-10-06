@@ -302,7 +302,7 @@ function useIncentives(): TUseIncentivesResp {
 				}
 				const key = cur.protocol;
 				const amount = toNormalizedBN(cur.amount, cur.incentiveToken?.decimals || 18).normalized;
-				const tokenAddress = toAddress(cur.incentive) === toAddress(process.env.STYETH_ADDRESS) ? toAddress(process.env.YETH_ADDRESS) : toAddress(cur.incentive);
+				const tokenAddress = toAddress(cur.incentive);
 				const price = toNormalizedBN(prices?.[tokenAddress] || 0, 6).normalized;
 				const value = Number(amount) * Number(price);
 				const estimatedAPR = getAPR(value);
@@ -343,7 +343,7 @@ function useIncentives(): TUseIncentivesResp {
 				}
 				const key = cur.protocol;
 				const amount = toNormalizedBN(cur.amount, cur.incentiveToken?.decimals ?? 18).normalized;
-				const tokenAddress = toAddress(cur.incentive) === toAddress(process.env.STYETH_ADDRESS) ? toAddress(process.env.YETH_ADDRESS) : toAddress(cur.incentive);
+				const tokenAddress = toAddress(cur.incentive);
 				const price = toNormalizedBN(prices?.[tokenAddress] || 0, 6).normalized;
 				const value = Number(amount) * Number(price);
 				const estimatedAPR = getAPR(value);

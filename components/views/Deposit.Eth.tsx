@@ -119,7 +119,7 @@ function ViewDepositETH({onChangeTab, estimateOut, onEstimateOut}: {
 		const priceImpact = result[1].status === 'fulfilled' ? result[1].value : 0;
 
 		const estimateOutWith1PercentSlippage: bigint = estimateOut - (estimateOut * currentSlippage / 10000n);
-		onEstimateOut({value: estimateOutWith1PercentSlippage, bonusOrPenalty: -priceImpact});
+		onEstimateOut({value: estimateOutWith1PercentSlippage, vb: 0n, bonusOrPenalty: -priceImpact});
 	}, [curvePoolFromAPI, onEstimateOut]);
 
 	useUpdateEffect((): void => {
@@ -145,7 +145,7 @@ function ViewDepositETH({onChangeTab, estimateOut, onEstimateOut}: {
 				{...YETH_TOKEN, token: YETH_TOKEN.address},
 				...LST.map((item): TUseBalancesTokens => ({...item, token: item.address}))
 			]);
-			onEstimateOut({value: toBigInt(0), bonusOrPenalty: 0});
+			onEstimateOut({value: toBigInt(0), vb: 0n, bonusOrPenalty: 0});
 			set_fromEthAmount(toNormalizedBN(0));
 			set_hasDeposited(true);
 		}

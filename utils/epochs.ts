@@ -3,6 +3,18 @@ import {CBETH_TOKEN, MPETH_TOKEN, SFRXETH_TOKEN, STADERETH_TOKEN, SWETH_TOKEN, W
 
 import type {TEpoch} from './types';
 
+const emptyEpoch: TEpoch = {
+	index: 0,
+	inclusion: {
+		id: '0x0',
+		candidates: []
+	},
+	weight: {
+		id: '0x0',
+		participants: []
+	}
+};
+
 /**************************************************************************************************
 ** Calculate the current epoch based on the current timestamp, the initial period timestamp and
 ** the epoch duration.
@@ -23,7 +35,9 @@ export function getCurrentEpochNumber(): number {
 export function getCurrentEpoch(): TEpoch {
 	const currentEpochNumber = getCurrentEpochNumber();
 	if (currentEpochNumber > allEpochs.length - 1) {
-		return allEpochs[allEpochs.length - 1];
+		const baseEpoch = emptyEpoch;
+		baseEpoch.weight = allEpochs[allEpochs.length - 1].weight;
+		return baseEpoch;
 	}
 	return allEpochs[currentEpochNumber];
 }
@@ -73,9 +87,7 @@ allEpochs.push({
 	index: 0,
 	inclusion: {
 		id: '0x0101000000000000000000000000000000000000000000000000000000000000',
-		candidates: [
-			{...MPETH_TOKEN, index: 0}
-		]
+		candidates: [{...MPETH_TOKEN, index: 0}]
 	},
 	weight: {
 		id: '0x0102000000000000000000000000000000000000000000000000000000000000',

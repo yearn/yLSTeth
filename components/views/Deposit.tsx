@@ -16,11 +16,12 @@ function ViewDeposit({type, onChangeTab}: {type: 'ETH' | 'LST', onChangeTab: Voi
 	const [shouldDepositEth] = useState<boolean>(type === 'ETH');
 	const [estimateOut, set_estimateOut] = useState<TEstOutWithBonusPenalty>({
 		value: toBigInt(0),
-		bonusOrPenalty: 0
+		bonusOrPenalty: 0,
+		vb: toBigInt(0)
 	});
 
 	useUpdateEffect((): void => {
-		set_estimateOut({value: toBigInt(0), bonusOrPenalty: 0});
+		set_estimateOut({value: toBigInt(0), bonusOrPenalty: 0, vb: toBigInt(0)});
 	}, [shouldDepositEth]);
 
 	return (
@@ -65,6 +66,7 @@ function ViewDeposit({type, onChangeTab}: {type: 'ETH' | 'LST', onChangeTab: Voi
 					label={shouldDepositEth ? 'price impact' : 'deposit Bonus/Penalties'}
 					shouldDepositEth={shouldDepositEth}
 					estimateOut={estimateOut.value}
+					vb={estimateOut.vb}
 					bonusOrPenalty={estimateOut.bonusOrPenalty}
 				/>
 			</div>

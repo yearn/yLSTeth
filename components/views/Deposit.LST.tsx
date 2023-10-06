@@ -108,6 +108,7 @@ function ViewDepositLST({shouldBalanceTokens, estimateOut, onEstimateOut}: {
 
 				onEstimateOut({
 					value: toBigInt(estimateOut),
+					vb: toBigInt(vb),
 					bonusOrPenalty: (
 						(Number(toNormalizedBN(estimateOut).normalized) - Number(toNormalizedBN(vb).normalized))
 						/
@@ -115,10 +116,10 @@ function ViewDepositLST({shouldBalanceTokens, estimateOut, onEstimateOut}: {
 					)
 				});
 			} catch (error) {
-				onEstimateOut({value: toBigInt(0), bonusOrPenalty: 0});
+				onEstimateOut({value: toBigInt(0), vb: toBigInt(0), bonusOrPenalty: 0});
 			}
 		} else {
-			onEstimateOut({value: toBigInt(0), bonusOrPenalty: 0});
+			onEstimateOut({value: toBigInt(0), vb: toBigInt(0), bonusOrPenalty: 0});
 		}
 	}, [onEstimateOut]);
 	useUpdateEffect((): void => {
