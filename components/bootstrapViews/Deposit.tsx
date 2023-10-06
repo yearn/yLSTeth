@@ -23,6 +23,7 @@ import {getClient} from '@yearn-finance/web-lib/utils/wagmi/utils';
 import {defaultTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 
 import type {ChangeEvent, ReactElement} from 'react';
+import type {Connector} from 'wagmi';
 import type {TAddress} from '@yearn-finance/web-lib/types';
 import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import type {TTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
@@ -197,7 +198,7 @@ function ViewDeposit(): ReactElement {
 		return Math.round(percent * 100) / 100;
 	}, [amountToSend.normalized, balanceOf.normalized]);
 
-	const onDeposit = useCallback(async (): Promise<void> => {
+	const onDeposit = useCallback(async (provider: Connector | undefined): Promise<void> => {
 		assert(isActive, 'Wallet not connected');
 		assert(provider, 'Provider not connected');
 		assert(amountToSend.raw > 0n, 'Amount must be greater than 0');
@@ -220,7 +221,7 @@ function ViewDeposit(): ReactElement {
 				])
 			]);
 		}
-	}, [amountToSend.raw, isActive, provider, refresh, refetch, filterEvents]);
+	}, [amountToSend.raw, isActive, refresh, refetch, filterEvents]);
 
 	return (
 		<section className={'grid grid-cols-1 pt-10 md:mb-20 md:pt-12'}>
@@ -351,7 +352,9 @@ function ViewDeposit(): ReactElement {
 						<div className={'w-full pt-4 md:pt-0 lg:col-span-3'}>
 							<p className={'hidden pb-1 text-neutral-600 md:block'}>&nbsp;</p>
 							<Button
-								onClick={onDeposit}
+								onClick={(): void => {
+									onDeposit(provider);
+								}}
 								isBusy={depositTxStatus.pending}
 								isDisabled={
 									amountToSend.raw === 0n

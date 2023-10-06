@@ -83,7 +83,7 @@ function ComboboxAddressInput({
 	onAddValue,
 	shouldDisplayBalance
 }: TComboboxAddressInput): ReactElement {
-	const {provider} = useWeb3();
+	const {isActive} = useWeb3();
 	const {balances, refresh} = useWallet();
 	const {safeChainID} = useChainID(Number(process.env.BASE_CHAIN_ID));
 	const [query, set_query] = useState('');
@@ -162,11 +162,11 @@ function ComboboxAddressInput({
 	}, [fetchToken, onAddValue, onChangeValue, possibleValues, safeChainID, set_isOpen, tokenData]);
 
 	useEffect((): void => {
-		if (!provider || !isAddress(query)) {
+		if (!isActive || !isAddress(query)) {
 			return;
 		}
 		fetchTokenData.execute(safeChainID, toAddress(query));
-	}, [fetchTokenData, provider, safeChainID, query]);
+	}, [fetchTokenData, isActive, safeChainID, query]);
 
 	const filteredValues = query === ''
 		? Object.values(possibleValues || [])

@@ -40,7 +40,7 @@ function TokenInput({
 	shouldCheckBalance = true,
 	isDisabled = false
 }: TViewFromToken): ReactElement {
-	const {provider} = useWeb3();
+	const {isActive} = useWeb3();
 	const {balances} = useWallet();
 	const balanceOf = useMemo((): TNormalizedBN => {
 		return toNormalizedBN((balances?.[token.address]?.raw || 0) || 0);
@@ -49,7 +49,7 @@ function TokenInput({
 	const onChangeAmount = useCallback((e: ChangeEvent<HTMLInputElement>): void => {
 		const element = document.getElementById('amountToSend') as HTMLInputElement;
 		const newAmount = handleInputChangeEventValue(e, token?.decimals || 18);
-		if (!provider) {
+		if (!isActive) {
 			return onChange(newAmount);
 		}
 		if (newAmount.raw > balances?.[token.address]?.raw) {
@@ -59,7 +59,7 @@ function TokenInput({
 			return onChange(toNormalizedBN(balances?.[token.address]?.raw || 0));
 		}
 		onChange(newAmount);
-	}, [provider, balances, onChange, token.address, token?.decimals]);
+	}, [isActive, balances, onChange, token.address, token?.decimals]);
 
 	return (
 		<div className={'grid grid-cols-12 gap-x-2'}>

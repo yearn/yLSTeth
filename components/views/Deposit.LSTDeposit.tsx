@@ -19,7 +19,7 @@ function LSTDepositForm({token, amount, onUpdateAmount, isDisabled}: {
 	onUpdateAmount: (amount: TNormalizedBN) => void,
 	isDisabled: boolean
 }): ReactElement {
-	const {provider} = useWeb3();
+	const {isActive} = useWeb3();
 	const {balances} = useWallet();
 
 	const balanceOf = useMemo((): TNormalizedBN => {
@@ -29,7 +29,7 @@ function LSTDepositForm({token, amount, onUpdateAmount, isDisabled}: {
 	const onChangeAmount = useCallback((e: ChangeEvent<HTMLInputElement>): void => {
 		const element = document.getElementById('amountToSend') as HTMLInputElement;
 		const newAmount = handleInputChangeEventValue(e, token?.decimals || 18);
-		if (!provider) {
+		if (!isActive) {
 			return onUpdateAmount(newAmount);
 		}
 		if (newAmount.raw > balances?.[token.address]?.raw) {
@@ -39,7 +39,7 @@ function LSTDepositForm({token, amount, onUpdateAmount, isDisabled}: {
 			return onUpdateAmount(toNormalizedBN(balances?.[token.address]?.raw || 0));
 		}
 		onUpdateAmount(newAmount);
-	}, [balances, provider, onUpdateAmount, token.address, token?.decimals]);
+	}, [balances, isActive, onUpdateAmount, token.address, token?.decimals]);
 
 	return (
 		<div className={'lg:col-span-4'}>

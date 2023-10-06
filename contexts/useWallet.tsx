@@ -1,9 +1,9 @@
 import React, {createContext, memo, useCallback, useContext, useMemo, useState} from 'react';
-import {useBalances} from 'hooks/useBalances';
 import {LST} from 'utils/constants';
 import {STYETH_TOKEN, YETH_TOKEN} from 'utils/tokens';
 import {useLocalStorageValue, useMountEffect, useUpdateEffect} from '@react-hookz/web';
 import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
+import {useBalances} from '@yearn-finance/web-lib/hooks/useBalances';
 import {useChainID} from '@yearn-finance/web-lib/hooks/useChainID';
 import {toAddress} from '@yearn-finance/web-lib/utils/address';
 import {ETH_TOKEN_ADDRESS} from '@yearn-finance/web-lib/utils/constants';
@@ -11,8 +11,8 @@ import {getNetwork} from '@yearn-finance/web-lib/utils/wagmi/utils';
 
 import {type TTokenInfo,useTokenList} from './useTokenList';
 
-import type {TUseBalancesTokens} from 'hooks/useBalances';
 import type {Dispatch, ReactElement, SetStateAction} from 'react';
+import type {TUseBalancesTokens} from '@yearn-finance/web-lib/hooks/useBalances';
 import type {TDict} from '@yearn-finance/web-lib/types';
 import type {TBalanceData} from '@yearn-finance/web-lib/types/hooks';
 
