@@ -5,7 +5,7 @@ import {BootstrapContextApp} from 'contexts/useBootstrap';
 import {LSTContextApp} from 'contexts/useLST';
 import {TokenListContextApp} from 'contexts/useTokenList';
 import {WalletContextApp} from 'contexts/useWallet';
-import {mainnet} from '@wagmi/chains';
+import {mainnet} from 'wagmi/chains';
 import {WithYearn} from '@yearn-finance/web-lib/contexts/WithYearn';
 import {cl} from '@yearn-finance/web-lib/utils/cl';
 import {localhost} from '@yearn-finance/web-lib/utils/wagmi/networks';

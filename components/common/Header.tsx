@@ -104,9 +104,9 @@ export function NetworkSelector({networks}: {networks: number[]}): ReactElement 
 		return (
 			chainsForInjected
 				.filter(({id}): boolean => id !== 1337 && ((networks.length > 0 && networks.includes(id)) || true))
-				.map((network: Chain): TNetwork => (
-					{value: network.id, label: network.name}
-				))
+				.map((network: Chain): TNetwork => {
+					return {value: Number(network.id), label: (network.name || '')};
+				})
 		);
 	}, [connectors, networks]);
 
@@ -240,17 +240,6 @@ function	WalletSelector(): ReactElement {
 	);
 }
 
-const nav: TMenu[] = [
-	// {path: 'https://yearn.fi', label: 'Home', target: '_blank'},
-	{path: '/', label: 'yETH'},
-	// {path: '/deposit', label: 'Deposit'},
-	{path: '/incentivize', label: 'Incentivize'},
-	{path: '/vote', label: 'Vote'},
-	{path: '/claim', label: 'Claim'},
-	{path: '/apply', label: 'Apply'},
-	{path: 'https://docs.yearn.fi/getting-started/products/yeth/overview', label: 'Docs'}
-	// {path: 'https://yeth.yearn.farm/support', label: 'Support'}
-];
 
 function	AppHeader(): ReactElement {
 	const {pathname} = useRouter();
