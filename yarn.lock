@@ -1655,7 +1655,7 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@rainbow-me/rainbowkit@^1.0.11", "@rainbow-me/rainbowkit@^1.1.1":
+"@rainbow-me/rainbowkit@^1.1.1":
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/@rainbow-me/rainbowkit/-/rainbowkit-1.1.1.tgz#be2b4ed95943d9d0ec1af4bb780bbb2663203d9e"
   integrity sha512-6NGeH2SpJYolstt9RXU6XwmvyL29XKc6OYZtctvdM83F/WNkRX+ywwBrfNNES9BAS6QNdOnPa7nIu+ghtFBgnQ==
@@ -2625,7 +2625,7 @@
   dependencies:
     lodash "^4"
 
-"@yearn-finance/web-lib@^3.0.47":
+"@yearn-finance/web-lib@^3.0.53":
   version "3.0.53"
   resolved "https://registry.yarnpkg.com/@yearn-finance/web-lib/-/web-lib-3.0.53.tgz#78690b9b9072ee97ccfea77b4ba78b85b8e9ba91"
   integrity sha512-K5Ok27ruhztL0hY+n9dXR9YUcPo9ktdxqkzKd9cPmjrUjU4rTUfSQiq/t/vFkJH5ixJ/xCsCDrEj2/nfPW6Jvw==
@@ -7291,7 +7291,7 @@ valtio@1.11.2:
     proxy-compare "2.5.1"
     use-sync-external-store "1.2.0"
 
-viem@^1.0.0, viem@^1.15.4:
+viem@^1.0.0, viem@^1.15.4, viem@^1.16.5:
   version "1.16.5"
   resolved "https://registry.yarnpkg.com/viem/-/viem-1.16.5.tgz#99bac3bd6a2ccdff4a097438a8ef23a91f01d414"
   integrity sha512-D8aE6cp/5w6PDtOOkJjkN+FtLyfsNWkfE78N4yTgCt4BG7KsBsePp4O68r1IaTVTVa41anebiZAy9kNEIwAXiw==

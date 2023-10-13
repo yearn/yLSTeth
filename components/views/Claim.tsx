@@ -62,7 +62,7 @@ function ClaimConfirmationModal({claimableIncentive, onUpdateIncentive, onSucces
 		const result = await multicall({
 			connector: provider,
 			contractAddress: toAddress(process.env.BOOTSTRAP_ADDRESS),
-			chainID: Number(process.env.BASE_CHAIN_ID),
+			chainID: Number(process.env.DEFAULT_CHAIN_ID),
 			multicallData: (
 				claimableIncentive
 					.filter((incentive): boolean => incentive.isSelected)
@@ -325,9 +325,9 @@ function Claim(): ReactElement {
 	** @deps: refreshVoteData - The function to refresh the vote data.
 	**********************************************************************************************/
 	const onClaimedSuccess = useCallback(async (): Promise<void> => {
+		getClaimDetailsCallData();
 		set_isModalOpen(false);
-	}, []);
-
+	}, [getClaimDetailsCallData]);
 
 	return (
 		<section className={'grid grid-cols-1 pt-10 md:mb-20 md:pt-12'}>
