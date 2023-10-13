@@ -262,7 +262,8 @@ function Claim(): ReactElement {
 							item.vote,
 							item.incentive,
 							item.amount,
-							item.proof
+							item.proof,
+							address
 						]
 					})
 				}
