@@ -99,6 +99,7 @@ function ViewStakeUnstake(): ReactElement {
 
 		const result = await approveERC20({
 			connector: provider,
+			chainID: Number(process.env.BASE_CHAIN_ID),
 			contractAddress: YETH_TOKEN.address,
 			spenderAddress: STYETH_TOKEN.address,
 			amount: fromAmount.raw,
@@ -124,6 +125,7 @@ function ViewStakeUnstake(): ReactElement {
 
 		const result = await stakeYETH({
 			connector: provider,
+			chainID: Number(process.env.BASE_CHAIN_ID),
 			contractAddress: STYETH_TOKEN.address,
 			amount: fromAmount.raw,
 			statusHandler: set_txStatus
@@ -149,6 +151,7 @@ function ViewStakeUnstake(): ReactElement {
 
 		const result = await unstakeYETH({
 			connector: provider,
+			chainID: Number(process.env.BASE_CHAIN_ID),
 			contractAddress: STYETH_TOKEN.address,
 			amount: fromAmount.raw,
 			statusHandler: set_txStatus

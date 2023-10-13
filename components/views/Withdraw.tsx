@@ -168,6 +168,7 @@ function ViewSelectedTokens({amounts, set_amounts, selectedLST, set_selectedLST,
 		if (shouldBalanceTokens) {
 			const result = await removeLiquidityFromPool({
 				connector: provider,
+				chainID: Number(process.env.BASE_CHAIN_ID),
 				contractAddress: STYETH_TOKEN.address,
 				amount: fromAmount.raw,
 				minOuts: amounts.map((item): bigint => item.raw),
@@ -184,6 +185,7 @@ function ViewSelectedTokens({amounts, set_amounts, selectedLST, set_selectedLST,
 		} else {
 			const result = await removeLiquiditySingleFromPool({
 				connector: provider,
+				chainID: Number(process.env.BASE_CHAIN_ID),
 				contractAddress: STYETH_TOKEN.address,
 				index: toBigInt(selectedLST.index),
 				amount: fromAmount.raw,

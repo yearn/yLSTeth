@@ -297,5 +297,6 @@ allEpochs.push({
 			{...STADERETH_TOKEN, index: 3},
 			{...CBETH_TOKEN, index: 4}
 		]
-	}
+	},
+	merkle: {}
 });

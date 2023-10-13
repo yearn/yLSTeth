@@ -175,6 +175,7 @@ function ViewSwapBox({
 
 		const result = await approveERC20({
 			connector: provider,
+			chainID: Number(process.env.BASE_CHAIN_ID),
 			contractAddress: selectedFromLST.address,
 			spenderAddress: toAddress(process.env.POOL_ADDRESS),
 			amount: fromAmount.raw,
@@ -198,6 +199,7 @@ function ViewSwapBox({
 			const minOutWith1PercentSlippage: bigint = toAmount.raw - (toAmount.raw / (slippage || 1n));
 			const result = await swapLST({
 				connector: provider,
+				chainID: Number(process.env.BASE_CHAIN_ID),
 				contractAddress: toAddress(process.env.POOL_ADDRESS),
 				lstTokenFromIndex: toBigInt(selectedFromLST.index),
 				lstTokenToIndex: toBigInt(selectedToLST.index),
@@ -221,6 +223,7 @@ function ViewSwapBox({
 			const maxInWith1PercentSlippage: bigint = fromAmount.raw + (fromAmount.raw / (slippage || 1n));
 			const result = await swapOutLST({
 				connector: provider,
+				chainID: Number(process.env.BASE_CHAIN_ID),
 				contractAddress: toAddress(process.env.POOL_ADDRESS),
 				lstTokenFromIndex: toBigInt(selectedFromLST.index),
 				lstTokenToIndex: toBigInt(selectedToLST.index),

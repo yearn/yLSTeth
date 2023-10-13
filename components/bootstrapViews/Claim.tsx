@@ -78,6 +78,7 @@ function ClaimConfirmationModal({claimableIncentive, onUpdateIncentive, onSucces
 		const result = await multicall({
 			connector: provider,
 			contractAddress: toAddress(process.env.BOOTSTRAP_ADDRESS),
+			chainID: Number(process.env.BASE_CHAIN_ID),
 			multicallData: (
 				claimableIncentive
 					.filter((incentive): boolean => incentive.isSelected)
@@ -431,6 +432,7 @@ function Claim(): ReactElement {
 	async function onRefund(): Promise<void> {
 		const result = await multicall({
 			connector: provider,
+			chainID: Number(process.env.BASE_CHAIN_ID),
 			contractAddress: toAddress(process.env.BOOTSTRAP_ADDRESS),
 			multicallData: (
 				claimableRefund

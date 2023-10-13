@@ -183,6 +183,7 @@ function ViewDepositLST({shouldBalanceTokens, estimateOut, onEstimateOut}: {
 
 			const result = await approveERC20({
 				connector: provider,
+				chainID: Number(process.env.BASE_CHAIN_ID),
 				contractAddress: item.address,
 				spenderAddress: spender,
 				amount: amount.raw,
@@ -211,6 +212,7 @@ function ViewDepositLST({shouldBalanceTokens, estimateOut, onEstimateOut}: {
 
 		const result = await addLiquidityToPool({
 			connector: provider,
+			chainID: Number(process.env.BASE_CHAIN_ID),
 			contractAddress: toAddress(process.env.POOL_ADDRESS),
 			amounts: amounts.map((item): bigint => item.raw),
 			estimateOut: estimateOut.value,
@@ -233,6 +235,7 @@ function ViewDepositLST({shouldBalanceTokens, estimateOut, onEstimateOut}: {
 
 		const result = await depositAndStake({
 			connector: provider,
+			chainID: Number(process.env.BASE_CHAIN_ID),
 			contractAddress: toAddress(process.env.ZAP_ADDRESS),
 			amounts: amounts.map((item): bigint => item.raw),
 			estimateOut: estimateOut.value,

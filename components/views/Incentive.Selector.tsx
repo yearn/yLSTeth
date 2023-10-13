@@ -196,6 +196,7 @@ function IncentiveSelector({isIncentivePeriodClosed, possibleLSTs, currentTab, s
 
 		const result = await approveERC20({
 			connector: provider,
+			chainID: Number(process.env.BASE_CHAIN_ID),
 			contractAddress: tokenToUse.address,
 			spenderAddress: toAddress(process.env.VOTE_ADDRESS),
 			amount: amountToSend.raw,
@@ -235,6 +236,7 @@ function IncentiveSelector({isIncentivePeriodClosed, possibleLSTs, currentTab, s
 
 		const result = await depositIncentive({
 			connector: provider,
+			chainID: Number(process.env.BASE_CHAIN_ID),
 			contractAddress: toAddress(process.env.VOTE_ADDRESS),
 			tokenAsIncentive: tokenToUse.address,
 			vote: voteID,

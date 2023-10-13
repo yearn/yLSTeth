@@ -43,6 +43,7 @@ function VoteConfirmationModal({whitelistedLST, voteToSend, onSuccess, onCancel}
 
 		const result = await vote({
 			connector: provider,
+			chainID: Number(process.env.BASE_CHAIN_ID),
 			contractAddress: toAddress(process.env.BOOTSTRAP_ADDRESS),
 			protocols: protocols,
 			amounts: amounts,
