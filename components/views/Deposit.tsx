@@ -33,7 +33,7 @@ function ViewDeposit({type, onChangeTab}: {type: 'ETH' | 'LST', onChangeTab: Voi
 							<h2 className={'text-xl font-black'}>
 								{`Deposit ${type}`}
 							</h2>
-							{shouldDepositEth && <SettingsPopover />}
+							<SettingsPopover />
 						</div>
 
 						{!shouldDepositEth && (

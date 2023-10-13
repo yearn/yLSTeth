@@ -31,7 +31,7 @@ function ViewDepositLST({shouldBalanceTokens, estimateOut, onEstimateOut}: {
 	onEstimateOut: (val: TEstOutWithBonusPenalty) => void
 }): ReactElement {
 	const {isActive, provider} = useWeb3();
-	const {lst, onUpdateLST} = useLST();
+	const {lst, slippage, onUpdateLST} = useLST();
 	const {balances, refresh} = useWallet();
 	const [amounts, set_amounts] = useState<TNormalizedBN[]>([toNormalizedBN(0), toNormalizedBN(0), toNormalizedBN(0), toNormalizedBN(0), toNormalizedBN(0)]);
 	const [lastAmountUpdated, set_lastAmountUpdated] = useState(-1);
@@ -213,7 +213,7 @@ function ViewDepositLST({shouldBalanceTokens, estimateOut, onEstimateOut}: {
 			connector: provider,
 			contractAddress: toAddress(process.env.POOL_ADDRESS),
 			amounts: amounts.map((item): bigint => item.raw),
-			estimateOut: estimateOut.value,
+			estimateOut: estimateOut.value * (10000n - slippage) / 10000n,
 			statusHandler: set_txStatusDeposit
 		});
 		if (result.isSuccessful) {
@@ -225,7 +225,7 @@ function ViewDepositLST({shouldBalanceTokens, estimateOut, onEstimateOut}: {
 			]);
 			set_amounts(amounts.map((item): TNormalizedBN => ({...item, raw: 0n})));
 		}
-	}, [amounts, estimateOut, isActive, onUpdateLST, provider, refresh]);
+	}, [amounts, estimateOut.value, isActive, onUpdateLST, provider, refresh, slippage]);
 
 	const onDepositAndStake = useCallback(async (): Promise<void> => {
 		assert(isActive, 'Wallet not connected');
@@ -235,7 +235,7 @@ function ViewDepositLST({shouldBalanceTokens, estimateOut, onEstimateOut}: {
 			connector: provider,
 			contractAddress: toAddress(process.env.ZAP_ADDRESS),
 			amounts: amounts.map((item): bigint => item.raw),
-			estimateOut: estimateOut.value,
+			estimateOut: estimateOut.value * (10000n - slippage) / 10000n,
 			statusHandler: set_txStatusDepositStake
 		});
 		if (result.isSuccessful) {
@@ -248,7 +248,7 @@ function ViewDepositLST({shouldBalanceTokens, estimateOut, onEstimateOut}: {
 			]);
 			set_amounts(amounts.map((item): TNormalizedBN => ({...item, raw: 0n})));
 		}
-	}, [amounts, estimateOut, isActive, onUpdateLST, provider, refresh]);
+	}, [amounts, estimateOut, isActive, onUpdateLST, provider, refresh, slippage]);
 
 
 	return (
@@ -269,7 +269,7 @@ function ViewDepositLST({shouldBalanceTokens, estimateOut, onEstimateOut}: {
 				<div className={'flex w-full flex-row space-x-4'}>
 					<Button
 						onClick={async (): Promise<void> => (
-							shouldApproveDeposit ? onApprove(
+							!shouldApproveDeposit ? onApprove(
 								toAddress(process.env.POOL_ADDRESS),
 								'poolAllowance',
 								set_txStatus

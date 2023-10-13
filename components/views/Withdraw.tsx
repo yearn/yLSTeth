@@ -112,7 +112,6 @@ function ViewSelectedTokens({amounts, set_amounts, selectedLST, set_selectedLST,
 						args: [newAmount.raw]
 					});
 					set_amounts(amounts.map((_, index): TNormalizedBN => {
-						// const amountWithSlippage: bigint = estimatedAmount[index] - toBigInt(estimatedAmount[index] / slippage);
 						return toNormalizedBN(estimatedAmount[index]);
 					}));
 				} catch (error) {
@@ -132,7 +131,6 @@ function ViewSelectedTokens({amounts, set_amounts, selectedLST, set_selectedLST,
 					});
 					set_amounts(amounts.map((_, index): TNormalizedBN => {
 						if (index === selectedLSTIndex) {
-							// const amountWithSlippage: bigint = estimatedAmount - toBigInt(estimatedAmount / slippage);
 							return toNormalizedBN(estimatedAmount);
 						}
 						return toNormalizedBN(0);
@@ -154,8 +152,7 @@ function ViewSelectedTokens({amounts, set_amounts, selectedLST, set_selectedLST,
 				}));
 			}
 		}
-	// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [amounts, slippage]);
+	}, [amounts, set_amounts]);
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	** Web3 action to withdraw some LP tokens from the pool
