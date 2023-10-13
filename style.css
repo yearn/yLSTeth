@@ -31,7 +31,9 @@
 	font-style: normal;
 	font-display: swap;
 }
-.max-w-5xl {@apply max-w-[1232px] px-4;}
+.max-w-5xl {
+	@apply max-w-[1232px] px-4;
+}
 
 #head {
 	@apply transition-colors duration-0 bg-neutral-0;
@@ -46,6 +48,9 @@
 
 #yeth-main-heading {
 	@apply grid cursor-pointer grid-cols-1 md:grid-cols-30 divide-x-0 md:divide-x-2 divide-neutral-300 rounded-md bg-neutral-100 px-4 md:px-72 text-neutral-900 transition-all hover:px-4 md:hover:px-[80px] hover:mx-0 md:hover:-mx-2 hover:divide-neutral-0/20 hover:bg-purple-300 hover:text-neutral-0;
+	& .divider {
+		@apply border-neutral-300 hover:border-neutral-0/20;
+	}
 }
 
 .lpPoolTheme {
@@ -66,6 +71,9 @@
 		}
 		& #composition {
 			@apply h-0 transition-all;
+		}
+		& .divider {
+			@apply border-neutral-0/20;
 		}
 	}
 	& #yeth-lst-in-pool {
@@ -97,26 +105,44 @@
 
 	:root {
 		& .yearn--button {
-			&:invalid {@apply opacity-40;}
+			&:invalid {
+				@apply opacity-40;
+			}
 			&[data-variant="error"] {
 				@apply text-neutral-0 bg-[#dc2626] border border-transparent;
-				&:disabled {@apply bg-[#dc2626] opacity-100 text-neutral-0;}
-				&:not(:disabled):not([aria-busy="true"]):hover {@apply bg-[#dc2626];}
+				&:disabled {
+					@apply bg-[#dc2626] opacity-100 text-neutral-0;
+				}
+				&:not(:disabled):not([aria-busy="true"]):hover {
+					@apply bg-[#dc2626];
+				}
 			}
 			&[data-variant="warning"] {
 				@apply text-neutral-0 bg-[#f59e0b] border border-transparent;
-				&:disabled {@apply bg-neutral-200 opacity-40;}
-				&:not(:disabled):not([aria-busy="true"]):hover {@apply bg-[#f97316];}
+				&:disabled {
+					@apply bg-neutral-200 opacity-40;
+				}
+				&:not(:disabled):not([aria-busy="true"]):hover {
+					@apply bg-[#f97316];
+				}
 			}
 			&[data-variant="filled"] {
 				@apply bg-purple-300 font-bold;
-				&:disabled {@apply bg-purple-300 opacity-40;}
-				&:not(:disabled):not([aria-busy="true"]):hover {@apply bg-purple-300/90;}
+				&:disabled {
+					@apply bg-purple-300 opacity-40;
+				}
+				&:not(:disabled):not([aria-busy="true"]):hover {
+					@apply bg-purple-300/90;
+				}
 			}
 			&[data-variant="reverted"] {
 				@apply text-neutral-900 bg-neutral-0 font-normal border border-transparent;
-				&:disabled {@apply bg-neutral-200 opacity-40;}
-				&:not(:disabled):not([aria-busy="true"]):hover {@apply bg-neutral-200;}
+				&:disabled {
+					@apply bg-neutral-200 opacity-40;
+				}
+				&:not(:disabled):not([aria-busy="true"]):hover {
+					@apply bg-neutral-200;
+				}
 
 				&[aria-busy="true"] svg {
 					@apply text-neutral-900;
@@ -232,7 +258,6 @@
 	}
 }
 
-
 .loader-900 {
 	width: 8px;
 	height: 8px;
@@ -245,27 +270,27 @@
 
 @keyframes flash {
 	0% {
-		background-color: #AAAAAA;
-		box-shadow: 12px 0 #AAAAAA, -12px 0 #000000;
+		background-color: #aaaaaa;
+		box-shadow: 12px 0 #aaaaaa, -12px 0 #000000;
 	}
 	50% {
 		background-color: #000000;
-		box-shadow: 12px 0 #AAAAAA, -12px 0 #AAAAAA;
+		box-shadow: 12px 0 #aaaaaa, -12px 0 #aaaaaa;
 	}
 	100% {
-		background-color: #AAAAAA;
-		box-shadow: 12px 0 #000000, -12px 0 #AAAAAA;
+		background-color: #aaaaaa;
+		box-shadow: 12px 0 #000000, -12px 0 #aaaaaa;
 	}
 }
 
-[type='checkbox'],
-[type='checkbox']:focus {
+[type="checkbox"],
+[type="checkbox"]:focus {
 	@apply outline-none focus:outline-none focus:ring-0 active:ring-0;
 	box-shadow: none !important;
 }
 :root.dark {
-	& [type='checkbox'],
-	& [type='checkbox']:focus {
+	& [type="checkbox"],
+	& [type="checkbox"]:focus {
 		@apply text-neutral-0 border-neutral-300 focus:border-neutral-300;
 	}
 }
@@ -273,14 +298,12 @@
 	@apply text-neutral-900 accent-neutral-900 rounded-sm;
 }
 
-
 .yearn--tab {
 	@apply mx-5 flex h-full flex-col justify-center text-base cursor-pointer font-normal;
 	&.selected {
 		@apply cursor-default font-bold;
 	}
 }
-
 
 .box-0 {
 	@apply bg-neutral-0 border border-neutral-500 rounded-none;
@@ -313,7 +336,6 @@
 	@apply bg-neutral-900 border border-neutral-200 rounded-none text-neutral-0;
 }
 
-
 .tooltip {
 	@apply relative cursor-help;
 }
@@ -344,7 +366,8 @@
 	margin-right: -5px;
 	border-width: 5px;
 	border-style: solid;
-	border-color: hsl(var(--color-neutral-0)) transparent transparent transparent;
+	border-color: hsl(var(--color-neutral-0)) transparent transparent
+		transparent;
 	transform: rotate(180deg);
 }
 
@@ -399,19 +422,17 @@
 }
 
 .detailsTokenList[open] {
-  @apply bg-neutral-0
+	@apply bg-neutral-0;
 }
-
 
 .featureGrid {
-    width: 100%;
-    grid-auto-columns: 1fr;
-    grid-column-gap: 10px;
-    grid-row-gap: 10px;
-    grid-template-columns: repeat(18, minmax(0, 1fr));
-    grid-template-rows: auto auto;
+	width: 100%;
+	grid-auto-columns: 1fr;
+	grid-column-gap: 10px;
+	grid-row-gap: 10px;
+	grid-template-columns: repeat(18, minmax(0, 1fr));
+	grid-template-rows: auto auto;
 }
-
 
 /**************************************************************************************************
 ** AppBox is the style used to make the nices animations on the home page feel nice and smooth
@@ -447,7 +468,6 @@
 		@apply border-neutral-200/60;
 	}
 }
-
 
 /**************************************************************************************************
 ** The WordWrapper css is used for the animation with the text in the header. This animation require
@@ -498,7 +518,7 @@
 
 :root.dark {
 	& .patternSVG {
-		@apply stroke-neutral-300/20
+		@apply stroke-neutral-300/20;
 	}
 	& .patternSVGSquares {
 		@apply fill-neutral-100/60;
@@ -515,17 +535,17 @@
 }
 
 .approvalWizardDivider {
-	&> *:last-child{
+	& > *:last-child {
 		@apply border-b-0 !mb-0 !pb-0;
 	}
 }
 
 .bg-black {
-	background: linear-gradient(84.14deg,#1e243e,#1b2037);
+	background: linear-gradient(84.14deg, #1e243e, #1b2037);
 }
 :root.dark {
 	& .bg-black {
-		background: #1b2036
+		background: #1b2036;
 	}
 }
 
@@ -536,57 +556,54 @@
 	@apply w-full h-full;
 }
 
-
-
-
 @keyframes slideAnimation {
-  from {
-    transform: translateX(0%);
-  }
-  to {
-    transform: translateX(-100%);
-  }
+	from {
+		transform: translateX(0%);
+	}
+	to {
+		transform: translateX(-100%);
+	}
 }
 
 .looper {
-  width: 100%;
-  overflow: hidden;
+	width: 100%;
+	overflow: hidden;
 }
 
 .looper__innerList {
-  display: flex;
-  justify-content: center;
-  width: fit-content;
+	display: flex;
+	justify-content: center;
+	width: fit-content;
 }
 
 .looper__listInstance {
-  display: flex;
-  width: max-content;
+	display: flex;
+	width: max-content;
 
-  animation: slideAnimation linear infinite;
+	animation: slideAnimation linear infinite;
 }
 
 details .chev {
-	@apply -rotate-90 transition-transform
+	@apply -rotate-90 transition-transform;
 }
 details[open] .chev {
-  @apply rotate-0
+	@apply rotate-0;
 }
 
 dialog:modal {
-    position: fixed;
-    inset-block-start: 0px;
-    inset-block-end: 0px;
-    max-width: calc((100% - 6px) - 2em);
-    max-height: calc((100% - 6px) - 2em);
-    user-select: text;
-    visibility: visible;
-    overflow: auto;
+	position: fixed;
+	inset-block-start: 0px;
+	inset-block-end: 0px;
+	max-width: calc((100% - 6px) - 2em);
+	max-height: calc((100% - 6px) - 2em);
+	user-select: text;
+	visibility: visible;
+	overflow: auto;
 }
 dialog::backdrop {
-    position: fixed;
-    inset: 0px;
-    background: rgba(0, 0, 0, 100);
+	position: fixed;
+	inset: 0px;
+	background: rgba(0, 0, 0, 100);
 }
 .small-modal {
 	overflow: hidden;
@@ -599,11 +616,11 @@ dialog::backdrop {
 }
 
 .scrollbar-show::-webkit-scrollbar {
-  -webkit-appearance: none;
-  width: 6px;
+	-webkit-appearance: none;
+	width: 6px;
 }
 .scrollbar-show::-webkit-scrollbar-thumb {
-  border-radius: 0px;
-  background-color: rgba(0, 0, 0, .3);
-  -webkit-box-shadow: 0 0 1px rgba(255, 255, 255, .3);
+	border-radius: 0px;
+	background-color: rgba(0, 0, 0, 0.3);
+	-webkit-box-shadow: 0 0 1px rgba(255, 255, 255, 0.3);
 }

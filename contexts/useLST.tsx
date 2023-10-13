@@ -11,12 +11,14 @@ import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigN
 
 import type {TIncentivesFor, TUseIncentivesResp} from 'hooks/useIncentives';
 import type {TLST} from 'hooks/useLSTData';
+import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 
 type TUseLSTProps = {
 	slippage: bigint
 	set_slippage: (value: bigint) => void
 	dailyVolume: number
-	TVL: number
+	TVL: number,
+	TAL: TNormalizedBN,
 	lst: TLST[],
 	stats: {
 		amplification: bigint
@@ -32,14 +34,15 @@ const defaultProps: TUseLSTProps = {
 	set_slippage: (): void => {},
 	dailyVolume: 0,
 	TVL: 0,
+	TAL: toNormalizedBN(0),
 	lst: [] as unknown as TLST[],
+	onUpdateLST: (): void => {},
 	stats: {
 		amplification: toBigInt(0),
 		rampStopTime: toBigInt(0),
 		targetAmplification: toBigInt(0),
 		swapFeeRate: toBigInt(0)
 	},
-	onUpdateLST: (): void => {},
 	incentives: {
 		groupIncentiveHistory: {} as TIncentivesFor,
 		isFetchingHistory: false,
@@ -55,7 +58,7 @@ export const LSTContextApp = ({children}: {children: React.ReactElement}): React
 	const [slippage, set_slippage] = useState(10n);
 	const {lst, updateLST} = useLSTData();
 	// const dailyVolume = useDailyVolume();
-	const TVL = useTVL();
+	const {TVL, TAL} = useTVL();
 	const incentives = useIncentives();
 
 	const {data: stats, isFetched: areStatsFetched} = useContractReads({
@@ -93,6 +96,7 @@ export const LSTContextApp = ({children}: {children: React.ReactElement}): React
 		dailyVolume: 0,
 		lst,
 		TVL,
+		TAL,
 		stats: areStatsFetched ? {
 			amplification: toBigInt(stats?.[0]?.result as bigint),
 			rampStopTime: toBigInt(stats?.[1]?.result as bigint),
