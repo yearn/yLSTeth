@@ -118,7 +118,7 @@ function ClaimConfirmationModal({claimableIncentive, onUpdateIncentive, onSucces
 					isBusy={claimStatus.pending}
 					isDisabled={!hasSelected || !provider}
 					className={'yearn--button w-full rounded-md !text-sm'}>
-					{`Claim ${formatAmount(totalToClaim, 6, 6)}`}
+					{`Claim $${formatAmount(totalToClaim, 2, 2)}`}
 				</Button>
 				<button
 					onClick={onCancel}
