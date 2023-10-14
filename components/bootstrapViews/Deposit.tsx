@@ -205,6 +205,7 @@ function ViewDeposit(): ReactElement {
 
 		const result = await depositETH({
 			connector: provider,
+			chainID: Number(process.env.BASE_CHAIN_ID),
 			contractAddress: toAddress(process.env.BOOTSTRAP_ADDRESS),
 			amount: amountToSend.raw,
 			statusHandler: set_depositTxStatus

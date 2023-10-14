@@ -133,6 +133,7 @@ function ViewDepositETH({onChangeTab, estimateOut, onEstimateOut}: {
 
 		const result = await curveExchangeMultiple({
 			connector: provider,
+			chainID: Number(process.env.BASE_CHAIN_ID),
 			contractAddress: toAddress(process.env.CURVE_SWAP_ADDRESS),
 			amount: fromEthAmount.raw,
 			estimateOut: toBigInt(estimateOut.value),

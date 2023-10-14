@@ -14,11 +14,11 @@
 	"dependencies": {
 		"@curvefi/api": "^2.46.7",
 		"@headlessui/react": "^1.7.15",
-		"@rainbow-me/rainbowkit": "^1.0.11",
+		"@rainbow-me/rainbowkit": "^1.1.1",
 		"@react-hookz/web": "^23.1.0",
 		"@wagmi/chains": "1.8.0",
 		"@wagmi/core": "^1.4.3",
-		"@yearn-finance/web-lib": "^3.0.47",
+		"@yearn-finance/web-lib": "^3.0.53",
 		"axios": "^1.4.0",
 		"dayjs": "^1.11.9",
 		"framer-motion": "^10.12.22",
@@ -30,7 +30,7 @@
 		"react-lottie": "^1.2.3",
 		"swr": "^2.2.0",
 		"tailwindcss": "^3.3.3",
-		"viem": "^1.15.4",
+		"viem": "^1.16.5",
 		"wagmi": "^1.4.3"
 	},
 	"devDependencies": {

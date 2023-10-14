@@ -1,5 +1,7 @@
+
 import type {TTokenInfo} from 'contexts/useTokenList';
 import type {Hex} from 'viem';
+import type {TAddress} from '@yearn-finance/web-lib/types';
 
 /** 🔵 - Yearn *************************************************************************************
 ** The TIndexedTokenInfo type extends the TTokenInfo type by adding an index property. This index
@@ -19,6 +21,12 @@ export type TIndexedTokenInfo = TTokenInfo & {index: number};
 ** The weight object contains an id and a list of participants. Each participant is a TTokenInfo
 ** object with an additional index property.
 **************************************************************************************************/
+export type TMerkle = {
+	vote: Hex;
+	incentive: TAddress,
+	amount: bigint;
+	proof: Hex[];
+}
 export type TEpoch = {
 	index: number;
 	inclusion: {
@@ -28,6 +36,9 @@ export type TEpoch = {
 	weight: {
 		id: Hex;
 		participants: TIndexedTokenInfo[];
+	},
+	merkle: {
+		[key: Hex]: TMerkle[];
 	}
 }
 

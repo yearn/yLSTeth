@@ -412,6 +412,7 @@ function IncentiveConfirmationModal({
 
 		const result = await incentivize({
 			connector: provider,
+			chainID: Number(process.env.BASE_CHAIN_ID),
 			contractAddress: toAddress(process.env.BOOTSTRAP_ADDRESS),
 			protocolAddress: lstToIncentive.address,
 			incentiveAddress: tokenToUse.address,
@@ -655,6 +656,7 @@ function ViewIncentive(): ReactElement {
 
 		const result = await approveERC20({
 			connector: provider,
+			chainID: Number(process.env.BASE_CHAIN_ID),
 			contractAddress: tokenToUse.address,
 			spenderAddress: toAddress(process.env.BOOTSTRAP_ADDRESS),
 			amount: amountToSend.raw,
