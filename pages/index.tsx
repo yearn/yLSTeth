@@ -177,7 +177,7 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 							className={cl('text-lg md:text-lg leading-6 md:leading-8 font-number', basicColorTransition)}>
 							{formatAmount(Number(balances?.[STYETH_TOKEN.address]?.normalized || 0), 6, 6)}
 						</b>
-						<RenderYETHValue lockedTokens={toBigInt(balances?.[STYETH_TOKEN.address]?.normalized || 0)} />
+						<RenderYETHValue lockedTokens={toBigInt(balances?.[STYETH_TOKEN.address]?.raw)} />
 					</span>
 				</div>
 
