@@ -83,13 +83,8 @@ function useTimer(): number {
 	return time;
 }
 
-function RenderYETHValue({lockedTokens}: {lockedTokens: bigint}): ReactElement {
-	const {balances} = useWallet();
+function RenderYETHValue({amount}: {amount: bigint}): ReactElement {
 	const timer = useTimer();
-
-	const totalStYEthAmount = useMemo((): bigint => {
-		return toBigInt(lockedTokens) + toBigInt(balances?.[STYETH_TOKEN.address]?.raw || 0);
-	}, [balances, lockedTokens]);
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	** Retrieve the locked st-yETH in the bootstrap contract for the current user
@@ -98,7 +93,7 @@ function RenderYETHValue({lockedTokens}: {lockedTokens: bigint}): ReactElement {
 		abi: ST_YETH_ABI,
 		address: toAddress(process.env.STYETH_ADDRESS),
 		functionName: 'convertToAssets',
-		args: [totalStYEthAmount],
+		args: [amount],
 		chainId: Number(process.env.DEFAULT_CHAIN_ID),
 		watch: true,
 		enabled: timer > 0
@@ -177,7 +172,7 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 							className={cl('text-lg md:text-lg leading-6 md:leading-8 font-number', basicColorTransition)}>
 							{formatAmount(Number(balances?.[STYETH_TOKEN.address]?.normalized || 0), 6, 6)}
 						</b>
-						<RenderYETHValue lockedTokens={toBigInt(balances?.[STYETH_TOKEN.address]?.raw)} />
+						<RenderYETHValue amount={toBigInt(balances?.[STYETH_TOKEN.address]?.raw)} />
 					</span>
 				</div>
 
@@ -201,7 +196,7 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 									</div>
 								</span>
 							</span>
-							<RenderYETHValue lockedTokens={toBigInt(lockedTokens)} />
+							<RenderYETHValue amount={toBigInt(lockedTokens)} />
 						</span>
 					</div>
 				) : null}
