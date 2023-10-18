@@ -373,7 +373,7 @@ function YETH({router}: {router: Router}): ReactElement {
 								if (tab.slug === 'deposit-eth-leg') {
 									return (
 										<Link
-											key={`desktop-${tab.value}`} href={'https://swap.cow.fi/#/1/swap/WETH/st-yETH'}
+											key={`desktop-${tab.value}`} href={'https://swap.cow.fi/#/1/swap/ETH/st-yETH'}
 											target={'_blank'}>
 											<p
 												title={tab.label}
