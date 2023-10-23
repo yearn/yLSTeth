@@ -91,7 +91,7 @@ function DepositDetails({label, estimateOut, vb, bonusOrPenalty, shouldDepositEt
 						</a>
 						{'. Alternatively, you can use '}
 						<a
-							href={'https://swap.cow.fi/#/1/swap/WETH/yETH'}
+							href={'https://swap.cow.fi/#/1/swap/ETH/st-yETH'}
 							className={'underline'}
 							target={'_blank'}>
 							{'CoWSwap'}
