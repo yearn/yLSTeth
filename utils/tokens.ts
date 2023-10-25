@@ -82,6 +82,15 @@ export const MPETH_TOKEN: TTokenInfo ={
 	logoURI: 'https://assets.smold.app/api/token/1/0x48AFbBd342F64EF8a9Ab1C143719b63C2AD81710/logo-128.png'
 };
 
+export const RETH_TOKEN: TTokenInfo ={
+	chainId: 1,
+	address: toAddress('0xae78736Cd615f374D3085123A210448E74Fc6393'),
+	name: 'Rocket Pool ETH',
+	symbol: 'rETH',
+	decimals: 18,
+	logoURI: 'https://assets.smold.app/api/token/1/0xae78736Cd615f374D3085123A210448E74Fc6393/logo-128.png'
+};
+
 /**********************************************************************************************
 ** Other tokens related to yETH ecosystem
 **********************************************************************************************/
