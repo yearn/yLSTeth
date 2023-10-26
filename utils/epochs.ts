@@ -1,5 +1,5 @@
 import {EPOCH_DURATION, INITIAL_PERIOD_TIMESTAMP} from 'utils/constants';
-import {CBETH_TOKEN, MPETH_TOKEN, RETH_TOKEN, SFRXETH_TOKEN, STADERETH_TOKEN, SWETH_TOKEN, WSTETH_TOKEN} from 'utils/tokens';
+import {CBETH_TOKEN, MEVETH_TOKEN, MPETH_TOKEN, RETH_TOKEN, SFRXETH_TOKEN, STADERETH_TOKEN, SWETH_TOKEN, WSTETH_TOKEN} from 'utils/tokens';
 
 import type {TEpoch} from './types';
 
@@ -288,7 +288,8 @@ allEpochs.push({
 		id: '0x0201000000000000000000000000000000000000000000000000000000000000',
 		candidates: [
 			{...MPETH_TOKEN, index: 0},
-			{...RETH_TOKEN, index: 1}
+			{...RETH_TOKEN, index: 1},
+			{...MEVETH_TOKEN, index: 2},
 		]
 	},
 	weight: {
