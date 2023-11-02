@@ -1,5 +1,4 @@
 import React, {useMemo} from 'react';
-import useBootstrap from 'contexts/useBootstrap';
 import {useEpoch} from 'hooks/useEpoch';
 import {useTimer} from 'hooks/useTimer';
 import {erc20ABI, useContractRead} from 'wagmi';
@@ -33,16 +32,7 @@ function VoteHeader(): ReactElement {
 		functionName: 'balanceOf',
 		args: [toAddress(address)]
 	});
-	const {whitelistedLST: {whitelistedLST}} = useBootstrap();
-
 	const votePowerNormalized = useMemo((): TNormalizedBN => toNormalizedBN(toBigInt(votePower)), [votePower]);
-	const totalVotesNormalized = useMemo((): number => {
-		let sum = 0n;
-		for (const item of Object.values(whitelistedLST)) {
-			sum += item?.extra?.votes || 0n;
-		}
-		return Number(toNormalizedBN(sum).normalized);
-	}, [whitelistedLST]);
 
 	return (
 		<div className={'mb-10 flex w-full flex-col justify-center'}>
