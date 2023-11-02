@@ -37,6 +37,7 @@ export type TEpoch = {
 		id: Hex;
 		participants: TIndexedTokenInfo[];
 	},
+	incentive_apr: number;
 	merkle: {
 		[key: Hex]: TMerkle[];
 	}
