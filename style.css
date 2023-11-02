@@ -49,7 +49,7 @@
 #yeth-main-heading {
 	@apply grid cursor-pointer grid-cols-1 md:grid-cols-30 divide-x-0 md:divide-x-2 divide-neutral-300 rounded-md bg-neutral-100 px-4 md:px-72 text-neutral-900 transition-all hover:px-4 md:hover:px-[80px] hover:mx-0 md:hover:-mx-2 hover:divide-neutral-0/20 hover:bg-purple-300 hover:text-neutral-0;
 	& .divider {
-		@apply border-neutral-300 hover:border-neutral-0/20;
+		@apply border-neutral-300;
 	}
 }
 
