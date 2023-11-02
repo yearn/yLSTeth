@@ -364,7 +364,7 @@ function IncentiveHistory({epochToDisplay, set_epochToDisplay, currentTab}: {
 								defaultValue={getCurrentEpochNumber()}>
 								{epochs.map((index): ReactElement => (
 									<option key={index} value={index}>
-										{index === getCurrentEpochNumber() ? 'Current' : `Epoch ${index}`}
+										{index === getCurrentEpochNumber() ? 'Current' : `Epoch ${index + 1}`}
 									</option>
 								))}
 							</select>
