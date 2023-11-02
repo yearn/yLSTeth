@@ -1,7 +1,7 @@
 import React, {useMemo, useState} from 'react';
 import useLST from 'contexts/useLST';
 import {useEpoch} from 'hooks/useEpoch';
-import {getCurrentEpoch} from 'utils/epochs';
+import {getCurrentEpochNumber, getEpoch} from 'utils/epochs';
 import {toAddress} from '@yearn-finance/web-lib/utils/address';
 
 import {IncentiveHeader} from './Incentive.Header';
@@ -9,14 +9,17 @@ import {IncentiveHistory} from './Incentive.History';
 import {IncentiveSelector} from './Incentive.Selector';
 
 import type {ReactElement} from 'react';
-import type {TIndexedTokenInfo} from 'utils/types';
+import type {TEpoch, TIndexedTokenInfo} from 'utils/types';
 import type {TDict} from '@yearn-finance/web-lib/types';
 
 function ViewIncentive(): ReactElement {
 	const [currentTab, set_currentTab] = useState<'current' | 'potential'>('current');
+	const [epochToDisplay, set_epochToDisplay] = useState<number>(getCurrentEpochNumber());
 	const {incentives: {groupIncentiveHistory, isFetchingHistory}} = useLST();
-	const currentEpoch = getCurrentEpoch();
 	const {endPeriod} = useEpoch();
+	const currentEpoch = useMemo((): TEpoch => {
+		return getEpoch(epochToDisplay);
+	}, [epochToDisplay]);
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	** Incentive period is closed for the 3 last days of the epoch.
@@ -52,6 +55,8 @@ function ViewIncentive(): ReactElement {
 		return participants;
 	}, [currentTab, currentEpoch]);
 
+	console.warn(currentEpoch);
+
 	return (
 		<section className={'grid grid-cols-1 pt-10 md:mb-20 md:pt-12'}>
 			<div className={'mb-20 md:mb-0'}>
@@ -63,6 +68,8 @@ function ViewIncentive(): ReactElement {
 					set_currentTab={set_currentTab} />
 				<div className={'bg-neutral-100'}>
 					<IncentiveHistory
+						epochToDisplay={epochToDisplay}
+						set_epochToDisplay={set_epochToDisplay}
 						possibleLSTs={possibleLSTs}
 						isPending={isFetchingHistory}
 						incentives={groupIncentiveHistory} />

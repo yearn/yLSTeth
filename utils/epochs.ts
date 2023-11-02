@@ -56,6 +56,17 @@ export function getPreviousEpoch(): TEpoch {
 	return allEpochs[currentEpochNumber - 1];
 }
 
+/**************************************************************************************************
+** This function returns an arbitrary epoch object based on the epoch number passed as a parameter.
+**************************************************************************************************/
+export function getEpoch(epochNumber: number): TEpoch {
+	if (epochNumber > allEpochs.length - 1) {
+		const baseEpoch = emptyEpoch;
+		baseEpoch.weight = allEpochs[allEpochs.length - 1].weight;
+		return baseEpoch;
+	}
+	return allEpochs[epochNumber];
+}
 
 
 /** 🔵 - Yearn *************************************************************************************

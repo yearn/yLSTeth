@@ -238,14 +238,15 @@ function IncentiveGroup({item, shouldDisplayUserIncentive}: {item: TIndexedToken
 	);
 }
 
-function IncentiveHistory({possibleLSTs, isPending, incentives}: {
+function IncentiveHistory({possibleLSTs, isPending, incentives, epochToDisplay, set_epochToDisplay}: {
+	epochToDisplay: number;
+	set_epochToDisplay: (epoch: number) => void;
 	possibleLSTs: TDict<TIndexedTokenInfo>;
 	isPending: boolean;
 	incentives: TIncentivesFor;
 }): ReactElement {
 	const [sortBy, set_sortBy] = useState<string>('totalIncentive');
 	const [sortDirection, set_sortDirection] = useState<TSortDirection>('desc');
-	const [, set_epochToDisplay] = useState<number>(getCurrentEpochNumber());
 	const [shouldDisplayUserIncentive, set_shouldDisplayUserIncentive] = useState<boolean>(false);
 
 	/* 🔵 - Yearn Finance **************************************************************************
@@ -298,7 +299,7 @@ function IncentiveHistory({possibleLSTs, isPending, incentives}: {
 							<select
 								className={'w-full overflow-x-scroll border-none bg-transparent px-0 py-4 outline-none scrollbar-none'}
 								onChange={(e): void => set_epochToDisplay(Number(e.target.value))}
-								value={getCurrentEpochNumber()}
+								value={epochToDisplay}
 								defaultValue={getCurrentEpochNumber()}>
 								{epochs.map((index): ReactElement => (
 									<option key={index} value={index}>
