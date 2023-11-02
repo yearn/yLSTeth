@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
-import {useCallback, useMemo, useState} from 'react';
+import {useMemo, useState} from 'react';
 import {useYDaemonBaseURI} from 'hooks/useYDaemonBaseURI';
 import {YETH_POOL_ABI} from 'utils/abi/yETHPool.abi';
 import {LST} from 'utils/constants';
 import {yDaemonPricesSchema} from 'utils/schemas/yDaemonPricesSchema';
-import {useMountEffect} from '@react-hookz/web';
 import {toAddress} from '@yearn-finance/web-lib/utils/address';
 import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import {getClient} from '@yearn-finance/web-lib/utils/wagmi/utils';
 
+import {useAsyncTrigger} from './useAsyncEffect';
 import {useFetch} from './useFetch';
 
 import type {TYDaemonPrices} from 'utils/schemas/yDaemonPricesSchema';
@@ -38,7 +38,7 @@ function useDailyVolume(): number {
 	**
 	** @deps: none
 	**********************************************************************************************/
-	const filterDailyVolume = useCallback(async (): Promise<void> => {
+	useAsyncTrigger(async (): Promise<void> => {
 		set_isFetchingDailyVolume(true);
 		const publicClient = getClient(Number(process.env.DEFAULT_CHAIN_ID));
 		const rangeLimit = toBigInt(process.env.RANGE_LIMIT);
@@ -71,7 +71,6 @@ function useDailyVolume(): number {
 		set_swapEvents(swapEvents);
 		set_isFetchingDailyVolume(false);
 	}, []);
-	useMountEffect(filterDailyVolume);
 
 
 	/* 🔵 - Yearn Finance **************************************************************************

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 import {useMemo, useState} from 'react';
 import {useYDaemonBaseURI} from 'hooks/useYDaemonBaseURI';
-import {getCurrentEpoch} from 'utils/epochs';
+import {getEpoch, getEpochEndBlock, getEpochEndTimestamp, getEpochStartTimestamp} from 'utils/epochs';
 import {yDaemonPricesSchema} from 'utils/schemas/yDaemonPricesSchema';
 import {parseAbiItem, toHex} from 'viem';
 import {erc20ABI, useContractRead} from 'wagmi';
@@ -14,7 +14,6 @@ import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigN
 import {getClient} from '@yearn-finance/web-lib/utils/wagmi/utils';
 
 import {useAsyncTrigger} from './useAsyncEffect';
-import {useEpoch} from './useEpoch';
 import {useFetch} from './useFetch';
 
 import type {TTokenInfo} from 'contexts/useTokenList';
@@ -23,14 +22,7 @@ import type {Hex} from 'viem';
 import type {TAddress, TDict} from '@yearn-finance/web-lib/types';
 import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 
-export type TIncentivesClaimed = {
-	id: string,
-	protocol: TAddress,
-	incentive: TAddress,
-	claimer: TAddress,
-}
-
-export type TIncentives = {
+type TIncentives = {
 	protocol: TAddress,
 	protocolName: string,
 	protocolSymbol: string,
@@ -44,7 +36,7 @@ export type TIncentives = {
 	incentiveToken?: TTokenInfo
 }
 
-export type TGroupedIncentives = {
+type TGroupedIncentives = {
 	protocol: TAddress,
 	protocolName: string,
 	protocolSymbol: string,
@@ -54,25 +46,27 @@ export type TGroupedIncentives = {
 	incentives: TIncentives[]
 }
 
-export type TIncentivesFor = {
+type TIncentivesFor = {
 	protocols: TDict<TGroupedIncentives>,
 	user: TDict<TGroupedIncentives>
 }
 
-export type TUseIncentivesResp = {
+type TUseIncentivesResp = {
 	groupIncentiveHistory: TIncentivesFor,
 	isFetchingHistory: boolean,
 	refreshIncentives: VoidFunction,
 	totalDepositedETH: TNormalizedBN
 	totalDepositedUSD: number
 };
-function useIncentives(): TUseIncentivesResp {
+function useEpochIncentives(props: {epochNumber: number}): TUseIncentivesResp {
 	const {address} = useWeb3();
-	const {startPeriod} = useEpoch();
 	const [incentives, set_incentives] = useState<TIncentives[]>([]);
 	const [incentiveHistory, set_incentiveHistory] = useState<TIncentives[]>([]);
 	const [isFetchingHistory, set_isFetchingHistory] = useState(false);
 	const {yDaemonBaseUri} = useYDaemonBaseURI({chainID: Number(process.env.BASE_CHAIN_ID)});
+	const epoch = getEpoch(props.epochNumber);
+	const epochTimeStart = getEpochStartTimestamp(props.epochNumber);
+	const epochTimeEnd = getEpochEndTimestamp(props.epochNumber);
 	const {data: prices} = useFetch<TYDaemonPrices>({
 		endpoint: `${yDaemonBaseUri}/prices/all`,
 		schema: yDaemonPricesSchema
@@ -87,7 +81,9 @@ function useIncentives(): TUseIncentivesResp {
 	const {data: totalDepositedETH} = useContractRead({
 		address: toAddress(process.env.YETH_ADDRESS),
 		abi: erc20ABI,
-		functionName: 'totalSupply'
+		functionName: 'totalSupply',
+		enabled: props.epochNumber >= 0,
+		blockNumber: getEpochEndBlock(props.epochNumber)
 	});
 
 	/* 🔵 - Yearn Finance **************************************************************************
@@ -119,25 +115,32 @@ function useIncentives(): TUseIncentivesResp {
 	** @deps: startPeriod - start period of the current epoch
 	**********************************************************************************************/
 	const filterIncentivizeEvents = useAsyncTrigger(async (): Promise<void> => {
-		if (startPeriod === 0) {
+		if (props.epochNumber < 0) {
 			return;
 		}
 		set_isFetchingHistory(true);
 		const publicClient = getClient(Number(process.env.DEFAULT_CHAIN_ID));
 		const rangeLimit = toBigInt(Number(process.env.RANGE_LIMIT));
-		const deploymentTime = toBigInt(startPeriod);
+		const startPeriod = toBigInt(epochTimeStart);
+		const endPeriod = toBigInt(epochTimeEnd);
 		const now = toBigInt(Math.floor(Date.now() / 1000));
 		const currentBlockNumber = await publicClient.getBlockNumber();
 		const blocksPerDay = 7200n;
-		const daySinceDeployment = toBigInt(Math.floor(Number((now - deploymentTime) / 86400n)));
-		const deploymentBlockNumber = currentBlockNumber - blocksPerDay * daySinceDeployment;
+		const daySinceStart = toBigInt(Math.floor(Number((now - startPeriod) / 86400n)));
+		const daySinceEnd = toBigInt(Math.floor(Number((now - endPeriod) / 86400n)));
+		const startsAtBlock = currentBlockNumber - (blocksPerDay * daySinceStart);
+		const endsAtBlock = currentBlockNumber - (blocksPerDay * daySinceEnd);
 		const incentives: TIncentives[] = [];
-		for (let i = deploymentBlockNumber; i < currentBlockNumber; i += rangeLimit) {
+		for (let i = startsAtBlock; i < endsAtBlock; i += rangeLimit) {
+			let toBlock = i + rangeLimit;
+			if (toBlock > endsAtBlock) {
+				toBlock = endsAtBlock;
+			}
 			const logs = await publicClient.getLogs({
 				address: toAddress(process.env.VOTE_ADDRESS),
 				event: parseAbiItem('event Deposit(bytes32 indexed vote, uint256 choice, address indexed token, address depositor, uint256 amount)'),
 				fromBlock: i,
-				toBlock: i + rangeLimit
+				toBlock
 			});
 			for (const log of logs) {
 				// Choice is between 1 and X options, where 1 is "Do Nothing / No Change".
@@ -162,7 +165,7 @@ function useIncentives(): TUseIncentivesResp {
 				// As do nothing is not in the array, we need to add 2 to the index to get the correct choice.
 				// Aka, array starting at 0 (so +1 to get 1st option), and +1 again to skip the "Do Nothing" option.
 				// So to get the current array index from choice, we need to subtract 2.
-				const candidate = getCurrentEpoch().inclusion.candidates[Number(log.args.choice) - 2];
+				const candidate = epoch.inclusion.candidates[Number(log.args.choice) - 2];
 				if (candidate) {
 					const protocolAddress = toAddress(candidate.address);
 					const {amount, depositor, token} = log.args;
@@ -182,7 +185,7 @@ function useIncentives(): TUseIncentivesResp {
 					continue;
 				}
 
-				const participant = getCurrentEpoch().weight.participants[Number(log.args.choice) - 2];
+				const participant = epoch.weight.participants[Number(log.args.choice) - 2];
 				if (participant) {
 					const protocolAddress = toAddress(participant.address);
 					const {amount, depositor, token} = log.args;
@@ -204,7 +207,7 @@ function useIncentives(): TUseIncentivesResp {
 			}
 		}
 		set_incentives(incentives);
-	}, [startPeriod]);
+	}, [epoch, epochTimeStart, props.epochNumber]);
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	** The filtered events are only a bunch of addresses and amounts. Because we are an UI we want
@@ -214,6 +217,9 @@ function useIncentives(): TUseIncentivesResp {
 	** @deps: incentives - list of all the incentives
 	**********************************************************************************************/
 	useAsyncTrigger(async (): Promise<void> => {
+		if (props.epochNumber < 0) {
+			return;
+		}
 		const calls = [];
 		for (const {incentive, protocol} of incentives) {
 			calls.push(...[
@@ -257,7 +263,7 @@ function useIncentives(): TUseIncentivesResp {
 		}
 		set_isFetchingHistory(false);
 		set_incentiveHistory(incentiveList);
-	}, [incentives]);
+	}, [incentives, props.epochNumber]);
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	** For the UI we will need two things:
@@ -294,8 +300,8 @@ function useIncentives(): TUseIncentivesResp {
 				const price = toNormalizedBN(prices?.[tokenAddress] || 0, 6).normalized;
 				const value = Number(amount) * Number(price);
 				const estimatedAPR = getAPR(value);
-				if (!acc[key]) {
-					acc[key] = {
+				if (!acc[toAddress(key)]) {
+					acc[toAddress(key)] = {
 						protocol: cur.protocol,
 						estimatedAPR: estimatedAPR,
 						protocolName: cur.protocolName || truncateHex(cur.protocol, 6),
@@ -307,20 +313,20 @@ function useIncentives(): TUseIncentivesResp {
 					return acc;
 				}
 				//check if the incentive is already in the list
-				const incentiveIndex = acc[key].incentives.findIndex((incentive): boolean => (
+				const incentiveIndex = acc[toAddress(key)].incentives.findIndex((incentive): boolean => (
 					toAddress(incentive.incentive) === toAddress(cur.incentive)
 				));
 				if (incentiveIndex === -1) {
-					acc[key].normalizedSum += value;
-					acc[key].estimatedAPR = getAPR(acc[key].normalizedSum);
-					acc[key].incentives.push({...cur, value, estimatedAPR});
+					acc[toAddress(key)].normalizedSum += value;
+					acc[toAddress(key)].estimatedAPR = getAPR(acc[toAddress(key)].normalizedSum);
+					acc[toAddress(key)].incentives.push({...cur, value, estimatedAPR});
 				} else {
-					acc[key].normalizedSum += value;
-					acc[key].incentives[incentiveIndex].amount += cur.amount;
-					acc[key].incentives[incentiveIndex].value += value;
-					acc[key].incentives[incentiveIndex].estimatedAPR = getAPR(acc[key].incentives[incentiveIndex].value);
+					acc[toAddress(key)].normalizedSum += value;
+					acc[toAddress(key)].incentives[incentiveIndex].amount += cur.amount;
+					acc[toAddress(key)].incentives[incentiveIndex].value += value;
+					acc[toAddress(key)].incentives[incentiveIndex].estimatedAPR = getAPR(acc[toAddress(key)].incentives[incentiveIndex].value);
 				}
-				acc[key].usdPerStETH = acc[key].normalizedSum / Number(toNormalizedBN(toBigInt(totalDepositedETH)).normalized);
+				acc[toAddress(key)].usdPerStETH = acc[toAddress(key)].normalizedSum / Number(toNormalizedBN(toBigInt(totalDepositedETH)).normalized);
 				return acc;
 			}, {} as TDict<TGroupedIncentives>);
 
@@ -335,8 +341,8 @@ function useIncentives(): TUseIncentivesResp {
 				const price = toNormalizedBN(prices?.[tokenAddress] || 0, 6).normalized;
 				const value = Number(amount) * Number(price);
 				const estimatedAPR = getAPR(value);
-				if (!acc[key]) {
-					acc[key] = {
+				if (!acc[toAddress(key)]) {
+					acc[toAddress(key)] = {
 						protocol: cur.protocol,
 						protocolName: cur.protocolName || truncateHex(cur.protocol, 6),
 						protocolSymbol: cur.protocolSymbol || truncateHex(cur.protocol, 6),
@@ -348,20 +354,20 @@ function useIncentives(): TUseIncentivesResp {
 					return acc;
 				}
 				//check if the incentive is already in the list
-				const incentiveIndex = acc[key].incentives.findIndex((incentive): boolean => (
+				const incentiveIndex = acc[toAddress(key)].incentives.findIndex((incentive): boolean => (
 					toAddress(incentive.incentive) === toAddress(cur.incentive)
 				));
 				if (incentiveIndex === -1) {
-					acc[key].normalizedSum += value;
-					acc[key].estimatedAPR = getAPR(acc[key].normalizedSum);
-					acc[key].incentives.push({...cur, value, estimatedAPR});
+					acc[toAddress(key)].normalizedSum += value;
+					acc[toAddress(key)].estimatedAPR = getAPR(acc[toAddress(key)].normalizedSum);
+					acc[toAddress(key)].incentives.push({...cur, value, estimatedAPR});
 				} else {
-					acc[key].normalizedSum += value;
-					acc[key].incentives[incentiveIndex].amount += cur.amount;
-					acc[key].incentives[incentiveIndex].value += value;
-					acc[key].incentives[incentiveIndex].estimatedAPR = getAPR(acc[key].incentives[incentiveIndex].value);
+					acc[toAddress(key)].normalizedSum += value;
+					acc[toAddress(key)].incentives[incentiveIndex].amount += cur.amount;
+					acc[toAddress(key)].incentives[incentiveIndex].value += value;
+					acc[toAddress(key)].incentives[incentiveIndex].estimatedAPR = getAPR(acc[toAddress(key)].incentives[incentiveIndex].value);
 				}
-				acc[key].usdPerStETH = acc[key].normalizedSum / Number(toNormalizedBN(toBigInt(totalDepositedETH)).normalized);
+				acc[toAddress(key)].usdPerStETH = acc[toAddress(key)].normalizedSum / Number(toNormalizedBN(toBigInt(totalDepositedETH)).normalized);
 				return acc;
 			}, {} as TDict<TGroupedIncentives>);
 
@@ -377,4 +383,4 @@ function useIncentives(): TUseIncentivesResp {
 	});
 }
 
-export default useIncentives;
+export default useEpochIncentives;

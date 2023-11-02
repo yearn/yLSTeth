@@ -1,5 +1,6 @@
-import {EPOCH_DURATION, INITIAL_PERIOD_TIMESTAMP} from 'utils/constants';
+import {EPOCH_AVG_BLOCKS, EPOCH_DURATION, INITIAL_PERIOD_BLOCK, INITIAL_PERIOD_TIMESTAMP} from 'utils/constants';
 import {CBETH_TOKEN, MEVETH_TOKEN, MPETH_TOKEN, RETH_TOKEN, SFRXETH_TOKEN, STADERETH_TOKEN, SWETH_TOKEN, WSTETH_TOKEN} from 'utils/tokens';
+import {toBigInt} from '@yearn-finance/web-lib/utils/format.bigNumber';
 
 import type {TEpoch} from './types';
 
@@ -66,6 +67,24 @@ export function getEpoch(epochNumber: number): TEpoch {
 		return baseEpoch;
 	}
 	return allEpochs[epochNumber];
+}
+
+export function getEpochStartTimestamp(epochNumber: number): number {
+	if (epochNumber === -1) {
+		return INITIAL_PERIOD_TIMESTAMP;
+	}
+	return INITIAL_PERIOD_TIMESTAMP + ((epochNumber - 1) * EPOCH_DURATION);
+}
+
+export function getEpochEndTimestamp(epochNumber: number): number {
+	if (epochNumber === -1) {
+		return INITIAL_PERIOD_TIMESTAMP + EPOCH_DURATION;
+	}
+	return INITIAL_PERIOD_TIMESTAMP + (epochNumber * EPOCH_DURATION) + EPOCH_DURATION;
+}
+
+export function getEpochEndBlock(epochNumber: number): bigint {
+	return INITIAL_PERIOD_BLOCK + (toBigInt(epochNumber) * EPOCH_AVG_BLOCKS) + EPOCH_AVG_BLOCKS;
 }
 
 
@@ -292,6 +311,7 @@ allEpochs.push({
 		]
 	}
 });
+
 // Epoch 1
 allEpochs.push({
 	index: 1,
@@ -300,11 +320,32 @@ allEpochs.push({
 		candidates: [
 			{...MPETH_TOKEN, index: 0},
 			{...RETH_TOKEN, index: 1},
-			{...MEVETH_TOKEN, index: 2},
+			{...MEVETH_TOKEN, index: 2}
 		]
 	},
 	weight: {
 		id: '0x0202000000000000000000000000000000000000000000000000000000000000',
+		participants: [
+			{...SFRXETH_TOKEN, index: 0},
+			{...SWETH_TOKEN, index: 1},
+			{...WSTETH_TOKEN, index: 2},
+			{...STADERETH_TOKEN, index: 3},
+			{...CBETH_TOKEN, index: 4}
+		]
+	},
+	merkle: {}
+});
+
+
+// Epoch 2
+allEpochs.push({
+	index: 2,
+	inclusion: {
+		id: '0x0301000000000000000000000000000000000000000000000000000000000000',
+		candidates: []
+	},
+	weight: {
+		id: '0x0302000000000000000000000000000000000000000000000000000000000000',
 		participants: [
 			{...SFRXETH_TOKEN, index: 0},
 			{...SWETH_TOKEN, index: 1},
