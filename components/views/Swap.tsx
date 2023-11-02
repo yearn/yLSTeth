@@ -54,7 +54,7 @@ function ViewSwapBox({
 }: TViewSwapBox): ReactElement {
 	const {isActive, provider, address} = useWeb3();
 	const {lst, onUpdateLST, slippage} = useLST();
-	const {refresh} = useWallet();
+	const {balances, refresh} = useWallet();
 	const [txStatus, set_txStatus] = useState<TTxStatus>(defaultTxStatus);
 	const [lastInput, set_lastInput] = useState<'from' | 'to'>('from');
 
@@ -131,7 +131,6 @@ function ViewSwapBox({
 		]
 	});
 
-
 	/* 🔵 - Yearn Finance **************************************************************************
 	** We use get_dy and get_dx to estimate the amount of tokens we will receive. The difference is:
 	** - get_dy is using exact input amount, calculate output amount
@@ -155,7 +154,6 @@ function ViewSwapBox({
 			} else {
 				set_rate(toNormalizedBN(0n));
 			}
-
 
 			if (lastInput === 'from') {
 				set_toAmount(toNormalizedBN(dy));
@@ -344,7 +342,13 @@ function ViewSwapBox({
 				<div className={'mt-10 flex justify-start'}>
 					<Button
 						isBusy={txStatus.pending}
-						isDisabled={!txStatus.none || fromAmount.raw === 0n || !provider || toAmount.raw === 0n}
+						isDisabled={(
+							!txStatus.none ||
+							fromAmount.raw === 0n ||
+							toAmount.raw === 0n ||
+							!provider ||
+							fromAmount.raw > balances?.[selectedFromLST.address]?.raw
+						)}
 						onClick={(): void => {
 							if (!hasAllowance) {
 								onApprove();

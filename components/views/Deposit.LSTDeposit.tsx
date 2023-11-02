@@ -27,19 +27,12 @@ function LSTDepositForm({token, amount, onUpdateAmount, isDisabled}: {
 	}, [balances, token.address]);
 
 	const onChangeAmount = useCallback((e: ChangeEvent<HTMLInputElement>): void => {
-		const element = document.getElementById('amountToSend') as HTMLInputElement;
 		const newAmount = handleInputChangeEventValue(e, token?.decimals || 18);
 		if (!isActive) {
 			return onUpdateAmount(newAmount);
 		}
-		if (newAmount.raw > balances?.[token.address]?.raw) {
-			if (element?.value) {
-				element.value = formatAmount(balances?.[token.address]?.normalized, 0, 18);
-			}
-			return onUpdateAmount(toNormalizedBN(balances?.[token.address]?.raw || 0));
-		}
 		onUpdateAmount(newAmount);
-	}, [balances, isActive, onUpdateAmount, token.address, token?.decimals]);
+	}, [isActive, onUpdateAmount, token?.decimals]);
 
 	return (
 		<div className={'lg:col-span-4'}>

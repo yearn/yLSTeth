@@ -15,7 +15,6 @@ import {type TUseBalancesTokens} from '@yearn-finance/web-lib/hooks/useBalances'
 import {toAddress} from '@yearn-finance/web-lib/utils/address';
 import {decodeAsBigInt} from '@yearn-finance/web-lib/utils/decoder';
 import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
-import {performBatchedUpdates} from '@yearn-finance/web-lib/utils/performBatchedUpdates';
 import {defaultTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 
 import {LSTDepositForm} from './Deposit.LSTDeposit';
@@ -62,18 +61,14 @@ function ViewDepositLST({shouldBalanceTokens, estimateOut, onEstimateOut}: {
 				const balancedTokenAmount = toBigInt(initialTokenAmount * initialTokenRate * balancedTokenWeight / initialTokenWeight / balancedTokenRate);
 				return toNormalizedBN(balancedTokenAmount);
 			});
-			performBatchedUpdates((): void => {
-				set_amounts(newAmounts);
-				set_lastAmountUpdated(lstIndex);
-			});
+			set_amounts(newAmounts);
+			set_lastAmountUpdated(lstIndex);
 			return;
 		}
 		const newAmounts = [...amounts];
 		newAmounts[lstIndex] = amount;
-		performBatchedUpdates((): void => {
-			set_amounts(newAmounts);
-			set_lastAmountUpdated(lstIndex);
-		});
+		set_amounts(newAmounts);
+		set_lastAmountUpdated(lstIndex);
 	}, [amounts, lst, shouldBalanceTokens]);
 
 	/* 🔵 - Yearn Finance **************************************************************************

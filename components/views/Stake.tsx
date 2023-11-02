@@ -25,7 +25,7 @@ import type {TTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 
 function ViewStakeUnstake(): ReactElement {
 	const {isActive, provider, address} = useWeb3();
-	const {refresh} = useWallet();
+	const {balances, refresh} = useWallet();
 	const APR = useAPR();
 	const [currentView, set_currentView] = useState<'stake' | 'unstake'>('stake');
 	const [fromAmount, set_fromAmount] = useState<TNormalizedBN>(toNormalizedBN(0));
@@ -224,7 +224,12 @@ function ViewStakeUnstake(): ReactElement {
 			<div className={'mt-10 flex justify-start'}>
 				<Button
 					isBusy={txStatus.pending}
-					isDisabled={!txStatus.none || fromAmount.raw === 0n || !provider}
+					isDisabled={(
+						!txStatus.none ||
+						fromAmount.raw === 0n ||
+						!provider ||
+						currentView === 'stake' ? fromAmount.raw > balances?.[YETH_TOKEN.address]?.raw : fromAmount.raw > balances?.[STYETH_TOKEN.address]?.raw
+					)}
 					onClick={(): void => {
 						if (currentView === 'stake' && !hasAllowance) {
 							onApprove();
