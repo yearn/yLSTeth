@@ -55,8 +55,6 @@ function ViewIncentive(): ReactElement {
 		return participants;
 	}, [currentTab, currentEpoch]);
 
-	console.warn(currentEpoch);
-
 	return (
 		<section className={'grid grid-cols-1 pt-10 md:mb-20 md:pt-12'}>
 			<div className={'mb-20 md:mb-0'}>
