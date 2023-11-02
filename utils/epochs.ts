@@ -13,6 +13,7 @@ const emptyEpoch: TEpoch = {
 		id: '0x0',
 		participants: []
 	},
+	incentive_apr: 0,
 	merkle: {}
 };
 
@@ -255,27 +256,6 @@ allEpochs.push({
 		]
 	},
 	incentive_apr: 0,
-	merkle: {}
-});
-// Epoch 3
-allEpochs.push({
-	index: 2,
-	inclusion: {
-		id: '0x0301000000000000000000000000000000000000000000000000000000000000',
-		candidates: []
-	},
-	weight: {
-		id: '0x0302000000000000000000000000000000000000000000000000000000000000',
-		participants: [
-			{...SFRXETH_TOKEN, index: 0},
-			{...SWETH_TOKEN, index: 1},
-			{...WSTETH_TOKEN, index: 2},
-			{...STADERETH_TOKEN, index: 3},
-			{...CBETH_TOKEN, index: 4},
-			{...MEVETH_TOKEN, index: 5}
-		]
-	},
-	incentive_apr: 22.1,
 	merkle: {
 		'0x6D5a7597896A703Fe8c85775B23395a48f971305': [
 			{
@@ -4346,4 +4326,25 @@ allEpochs.push({
 			}
 		]
 	}
+});
+// Epoch 3
+allEpochs.push({
+	index: 2,
+	inclusion: {
+		id: '0x0301000000000000000000000000000000000000000000000000000000000000',
+		candidates: []
+	},
+	weight: {
+		id: '0x0302000000000000000000000000000000000000000000000000000000000000',
+		participants: [
+			{...SFRXETH_TOKEN, index: 0},
+			{...SWETH_TOKEN, index: 1},
+			{...WSTETH_TOKEN, index: 2},
+			{...STADERETH_TOKEN, index: 3},
+			{...CBETH_TOKEN, index: 4},
+			{...MEVETH_TOKEN, index: 5}
+		]
+	},
+	incentive_apr: 22.1,
+	merkle: {}
 });
