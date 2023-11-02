@@ -1,17 +1,16 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import assert from 'assert';
 import SettingsPopover from 'components/common/SettingsPopover';
 import TokenInput from 'components/common/TokenInput';
 import IconSwapSVG from 'components/icons/IconSwap';
 import useLST from 'contexts/useLST';
 import useWallet from 'contexts/useWallet';
+import {useAsyncTrigger} from 'hooks/useAsyncEffect';
 import {ESTIMATOR_ABI} from 'utils/abi/estimator.abi';
 import {approveERC20, swapLST, swapOutLST} from 'utils/actions';
 import {LST} from 'utils/constants';
 import {ETH_TOKEN, YETH_TOKEN} from 'utils/tokens';
-import {erc20ABI, readContracts, useContractRead, useContractReads} from 'wagmi';
-import {useUpdateEffect} from '@react-hookz/web';
-import {readContract} from '@wagmi/core';
+import {erc20ABI, useContractRead, useContractReads} from 'wagmi';
 import {Button} from '@yearn-finance/web-lib/components/Button';
 import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
 import {toAddress} from '@yearn-finance/web-lib/utils/address';
@@ -25,7 +24,6 @@ import {defaultTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 
 import type {TLST} from 'hooks/useLSTData';
 import type {Dispatch, ReactElement, SetStateAction} from 'react';
-import type {TEstOutWithBonusPenalty} from 'utils/types';
 import type {TUseBalancesTokens} from '@yearn-finance/web-lib/hooks/useBalances';
 import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import type {TTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
@@ -38,7 +36,9 @@ type TViewSwapBox = {
 	set_selectedFromLST: Dispatch<SetStateAction<TLST>>
 	set_selectedToLST: Dispatch<SetStateAction<TLST>>
 	set_fromAmount: Dispatch<SetStateAction<TNormalizedBN>>
-	set_toAmount: Dispatch<SetStateAction<TNormalizedBN>>
+	set_toAmount: Dispatch<SetStateAction<TNormalizedBN>>,
+	set_bonusOrPenalty: Dispatch<SetStateAction<number>>,
+	set_rate: Dispatch<SetStateAction<TNormalizedBN>>,
 }
 function ViewSwapBox({
 	selectedFromLST,
@@ -48,7 +48,9 @@ function ViewSwapBox({
 	set_selectedFromLST,
 	set_selectedToLST,
 	set_fromAmount,
-	set_toAmount
+	set_toAmount,
+	set_bonusOrPenalty,
+	set_rate
 }: TViewSwapBox): ReactElement {
 	const {isActive, provider, address} = useWeb3();
 	const {lst, onUpdateLST, slippage} = useLST();
@@ -80,9 +82,7 @@ function ViewSwapBox({
 	** We use useContractReads to call both functions at the same time and display the one we want
 	** based on the user input.
 	**********************************************************************************************/
-	const {data: dyAndDx} = useContractReads({
-		enabled: true,
-		keepPreviousData: false,
+	const {data: dyDxVb, error: dyDxVbError} = useContractReads({
 		contracts: [
 			{
 				abi: ESTIMATOR_ABI,
@@ -97,23 +97,78 @@ function ViewSwapBox({
 				functionName: 'get_dx',
 				chainId: Number(process.env.DEFAULT_CHAIN_ID),
 				args: [toBigInt(selectedToLST.index), toBigInt(selectedFromLST.index), toAmount.raw]
+			},
+			{
+				abi: ESTIMATOR_ABI,
+				address: toAddress(process.env.ESTIMATOR_ADDRESS),
+				functionName: 'get_vb',
+				chainId: Number(process.env.DEFAULT_CHAIN_ID),
+				args: [
+					lst.map((item): bigint => {
+						if (item.index === selectedFromLST.index) {
+							return fromAmount.raw;
+						}
+						return 0n;
+					})
+				]
 			}
 		]
 	});
 
-	useEffect((): void => {
-		if (dyAndDx) {
-			const dy = toBigInt(dyAndDx?.[0]?.result as bigint);
-			const dx = toBigInt(dyAndDx?.[1]?.result as bigint);
+	const {data: vbOut} = useContractRead({
+		enabled: Boolean(dyDxVb),
+		abi: ESTIMATOR_ABI,
+		address: toAddress(process.env.ESTIMATOR_ADDRESS),
+		functionName: 'get_vb',
+		chainId: Number(process.env.DEFAULT_CHAIN_ID),
+		args: [
+			lst.map((item): bigint => {
+				if (item.index === selectedToLST.index) {
+					return toBigInt(dyDxVb?.[0].result);
+				}
+				return 0n;
+			})
+		]
+	});
+
+
+	/* 🔵 - Yearn Finance **************************************************************************
+	** We use get_dy and get_dx to estimate the amount of tokens we will receive. The difference is:
+	** - get_dy is using exact input amount, calculate output amount
+	** - get_dx is using exact output amount, calculate input amount
+	** We use useContractReads to call both functions at the same time and display the one we want
+	** based on the user input.
+	**********************************************************************************************/
+	useAsyncTrigger(async (): Promise<void> => {
+		console.log('loop');
+		if (dyDxVbError) {
+			set_bonusOrPenalty(-100);
+			set_rate(toNormalizedBN(0n));
+		} else if (dyDxVb && vbOut) {
+			const dy = decodeAsBigInt(dyDxVb?.[0]);
+			const dx = decodeAsBigInt(dyDxVb?.[1]);
+			const vbInput = toNormalizedBN(decodeAsBigInt(dyDxVb?.[2]));
+			const vbOutput = toNormalizedBN(vbOut);
+			const bonusOrPenalty = Number(vbOutput.normalized) / Number(vbInput.normalized);
+			set_bonusOrPenalty((bonusOrPenalty > 1 ? bonusOrPenalty - 1 : -(1 - bonusOrPenalty)) * 100);
+			if (fromAmount.raw > 0n) {
+				set_rate(toNormalizedBN(toAmount.raw * toBigInt(1e18) / fromAmount.raw));
+			} else {
+				set_rate(toNormalizedBN(0n));
+			}
+
+
 			if (lastInput === 'from') {
 				set_toAmount(toNormalizedBN(dy));
 			} else {
 				const dxWith1PercentSlippage: bigint = dx + toBigInt(dx / (slippage || 1n));
 				set_fromAmount(toNormalizedBN(dxWith1PercentSlippage));
 			}
+		} else {
+			set_bonusOrPenalty(0);
+			set_rate(toNormalizedBN(0n));
 		}
-	}, [dyAndDx, lastInput, set_fromAmount, set_toAmount, slippage]);
-
+	}, [dyDxVb, dyDxVbError, fromAmount.raw, lastInput, set_bonusOrPenalty, set_fromAmount, set_rate, set_toAmount, slippage, toAmount.raw, vbOut]);
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	** If the user is updating the fromToken, we need to update the toToken if it's the same token
@@ -190,7 +245,6 @@ function ViewSwapBox({
 			]);
 		}
 	}, [fromAmount.raw, isActive, provider, refresh, refreshAllowance, selectedFromLST.address, lst]);
-
 
 	const onSwap = useCallback(async (): Promise<void> => {
 		assert(isActive, 'Wallet not connected');
@@ -313,84 +367,24 @@ type TViewDetailsProps = {
 	selectedToLST: TLST
 	fromAmount: TNormalizedBN
 	toAmount: TNormalizedBN
+	bonusOrPenalty: number
+	rate: TNormalizedBN
 }
 function ViewDetails(props: TViewDetailsProps): ReactElement {
-	const {lst, stats, slippage} = useLST();
-	const [estimateOut, set_estimateOut] = useState<TEstOutWithBonusPenalty & {rate: TNormalizedBN}>({
-		value: toBigInt(0),
-		bonusOrPenalty: 0,
-		vb: toBigInt(0),
-		rate: toNormalizedBN(0)
-	});
-
-	const onUpdateAmounts = useCallback(async (): Promise<void> => {
-		const inputAmounts = lst.map((): TNormalizedBN => toNormalizedBN(0));
-		const outputAmounts = lst.map((): TNormalizedBN => toNormalizedBN(0));
-		inputAmounts[props.selectedFromLST.index] = props.fromAmount;
-		outputAmounts[props.selectedToLST.index] = props.toAmount;
-
-		if (inputAmounts.some((item): boolean => item.raw > 0n) && outputAmounts.some((item): boolean => item.raw > 0n)) {
-			try {
-				const data = await readContracts({
-					contracts: [
-						{
-							abi: ESTIMATOR_ABI,
-							address: toAddress(process.env.ESTIMATOR_ADDRESS),
-							functionName: 'get_vb',
-							chainId: Number(process.env.DEFAULT_CHAIN_ID),
-							args: [inputAmounts.map((item): bigint => item.raw)]
-						},
-						{
-							abi: ESTIMATOR_ABI,
-							address: toAddress(process.env.ESTIMATOR_ADDRESS),
-							functionName: 'get_dy',
-							chainId: Number(process.env.DEFAULT_CHAIN_ID),
-							args: [toBigInt(props.selectedFromLST.index), toBigInt(props.selectedToLST.index), props.fromAmount.raw]
-						}
-					]
-				});
-				const vbInput = toNormalizedBN(decodeAsBigInt(data?.[0] as never));
-				const estimateOut = toNormalizedBN(decodeAsBigInt(data?.[1] as never));
-
-				const vbOut = await readContract({
-					abi: ESTIMATOR_ABI,
-					address: toAddress(process.env.ESTIMATOR_ADDRESS),
-					functionName: 'get_vb',
-					chainId: Number(process.env.DEFAULT_CHAIN_ID),
-					args: [outputAmounts.map((item): bigint => item.raw)]
-				});
-
-				const vbOutput = toNormalizedBN(vbOut);
-				const bonusOrPenalty = Number(vbOutput.normalized) / Number(vbInput.normalized);
-				set_estimateOut({
-					value: toBigInt(estimateOut.raw),
-					vb: toBigInt(vbInput.raw),
-					bonusOrPenalty: (bonusOrPenalty > 1 ? bonusOrPenalty - 1 : -(1 - bonusOrPenalty)) * 100,
-					rate: toNormalizedBN(props.toAmount.raw * toBigInt(1e18) / props.fromAmount.raw)
-				});
-			} catch (error) {
-				set_estimateOut({value: toBigInt(0), vb: toBigInt(0), bonusOrPenalty: 0, rate: toNormalizedBN(0n)});
-			}
-		} else {
-			set_estimateOut({value: toBigInt(0), vb: toBigInt(0), bonusOrPenalty: 0, rate: toNormalizedBN(0n)});
-		}
-	}, [props.fromAmount, lst, props.selectedFromLST.index, props.selectedToLST.index, props.toAmount]);
-	useUpdateEffect((): void => {
-		onUpdateAmounts();
-	}, [onUpdateAmounts]);
+	const {stats, slippage} = useLST();
 
 	const bonusOrPenaltyFormatted = useMemo((): string => {
-		if (Number.isNaN(estimateOut.bonusOrPenalty)) {
+		if (Number.isNaN(props.bonusOrPenalty)) {
 			return formatAmount(0, 2, 2);
 		}
-		if (estimateOut.bonusOrPenalty === 0) {
+		if (props.bonusOrPenalty === 0) {
 			return formatAmount(0, 2, 2);
 		}
-		if (Number(estimateOut.bonusOrPenalty.toFixed(6)) === 0) {
+		if (Number(props.bonusOrPenalty.toFixed(6)) === 0) {
 			return formatAmount(0, 2, 2);
 		}
-		return estimateOut.bonusOrPenalty.toFixed(6);
-	}, [estimateOut.bonusOrPenalty]);
+		return props.bonusOrPenalty.toFixed(6);
+	}, [props.bonusOrPenalty]);
 
 	return (
 		<div className={'col-span-12 py-6 pl-0 md:py-10 md:pl-72'}>
@@ -407,7 +401,7 @@ function ViewDetails(props: TViewDetailsProps): ReactElement {
 					</dd>
 					<dt className={'col-span-2'}>{'Exchange rate (incl. fees)'}</dt>
 					<dd suppressHydrationWarning className={'text-right font-bold'}>
-						{`${formatAmount(estimateOut.rate.normalized, 2, 4)}%`}
+						{`${formatAmount(props.rate.normalized, 2, 4)}%`}
 					</dd>
 
 					<dt className={'col-span-2'}>{'Swap fee'}</dt>
@@ -438,8 +432,10 @@ function ViewSwap(): ReactElement {
 	const {lst} = useLST();
 	const [selectedFromLST, set_selectedFromLST] = useState<TLST>(lst[0]);
 	const [selectedToLST, set_selectedToLST] = useState<TLST>(lst[1]);
+	const [bonusOrPenalty, set_bonusOrPenalty] = useState<number>(0);
 	const [fromAmount, set_fromAmount] = useState<TNormalizedBN>(toNormalizedBN(0));
 	const [toAmount, set_toAmount] = useState<TNormalizedBN>(toNormalizedBN(0));
+	const [rate, set_rate] = useState<TNormalizedBN>(toNormalizedBN(0n));
 
 	return (
 		<section className={'relative px-4 md:px-72'}>
@@ -452,12 +448,18 @@ function ViewSwap(): ReactElement {
 					set_selectedFromLST={set_selectedFromLST}
 					set_selectedToLST={set_selectedToLST}
 					set_fromAmount={set_fromAmount}
-					set_toAmount={set_toAmount} />
+					set_toAmount={set_toAmount}
+					set_bonusOrPenalty={set_bonusOrPenalty}
+					set_rate={set_rate}
+				/>
 				<ViewDetails
 					selectedFromLST={selectedFromLST}
 					selectedToLST={selectedToLST}
 					fromAmount={fromAmount}
-					toAmount={toAmount} />
+					toAmount={toAmount}
+					bonusOrPenalty={bonusOrPenalty}
+					rate={rate}
+				/>
 			</div>
 		</section>
 	);
