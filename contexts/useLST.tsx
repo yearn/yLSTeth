@@ -105,7 +105,7 @@ export const LSTContextApp = ({children}: {children: React.ReactElement}): React
 		} : defaultProps.stats,
 		onUpdateLST: updateLST,
 		incentives
-	}), [lst, stats, areStatsFetched, updateLST, slippage, TVL, incentives]);
+	}), [slippage, lst, TVL, TAL, areStatsFetched, stats, updateLST, incentives]);
 
 	return (
 		<LSTContext.Provider value={contextValue}>
