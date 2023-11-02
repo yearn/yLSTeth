@@ -140,7 +140,6 @@ function ViewSwapBox({
 	** based on the user input.
 	**********************************************************************************************/
 	useAsyncTrigger(async (): Promise<void> => {
-		console.log('loop');
 		if (dyDxVbError) {
 			set_bonusOrPenalty(-100);
 			set_rate(toNormalizedBN(0n));
