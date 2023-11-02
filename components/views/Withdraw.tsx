@@ -298,7 +298,7 @@ function ViewSelectedTokens({amounts, set_amounts, selectedLST, set_selectedLST,
 									}}
 									shouldHideRadio={shouldBalanceTokens}
 									token={token}
-									amount={amounts[index].raw === -1n ? toNormalizedBN(0) : amounts[index]} />
+									amount={toBigInt(amounts[index]?.raw) === -1n ? toNormalizedBN(0) : amounts[index]} />
 							))}
 						</div>
 					</div>
@@ -394,13 +394,7 @@ function ViewWithdraw(): ReactElement {
 	const {lst, slippage} = useLST();
 	const [shouldBalanceTokens, set_shouldBalanceTokens] = useState(true);
 	const [selectedLST, set_selectedLST] = useState<TLST>(lst[0]);
-	const [amounts, set_amounts] = useState<TNormalizedBN[]>([
-		toNormalizedBN(0),
-		toNormalizedBN(0),
-		toNormalizedBN(0),
-		toNormalizedBN(0),
-		toNormalizedBN(0)
-	]);
+	const [amounts, set_amounts] = useState<TNormalizedBN[]>(LST.map((): TNormalizedBN => toNormalizedBN(0)));
 	const [bonusOrPenalty, set_bonusOrPenalty] = useState<number>(0);
 
 	return (

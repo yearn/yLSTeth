@@ -6,7 +6,7 @@ import useWallet from 'contexts/useWallet';
 import {handleInputChangeEventValue} from 'utils';
 import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
 import {cl} from '@yearn-finance/web-lib/utils/cl';
-import {toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
+import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
 
 import type {TLST} from 'hooks/useLSTData';
@@ -71,7 +71,7 @@ function LSTDepositForm({token, amount, onUpdateAmount, isDisabled}: {
 						<div className={'absolute inset-0'}>
 							<span className={'tooltip'}>
 								<IconWarning
-									style={{opacity: (amount.raw > token.poolAllowance.raw) && (amount.raw <= balanceOf.raw) ? 1 : 0}}
+									style={{opacity: (toBigInt(amount.raw) > token.poolAllowance.raw) && (amount.raw <= balanceOf.raw) ? 1 : 0}}
 									className={'h-4 w-4 text-neutral-400 transition-opacity'} />
 								<span className={'tooltipLight !-inset-x-24 top-full mt-2 !w-auto'}>
 									<div

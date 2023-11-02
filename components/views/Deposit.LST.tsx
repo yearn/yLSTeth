@@ -2,6 +2,7 @@ import React, {useCallback, useMemo, useState} from 'react';
 import assert from 'assert';
 import useLST from 'contexts/useLST';
 import useWallet from 'contexts/useWallet';
+import {useAsyncTrigger} from 'hooks/useAsyncEffect';
 import {ESTIMATOR_ABI} from 'utils/abi/estimator.abi';
 import {addLiquidityToPool, approveERC20, depositAndStake} from 'utils/actions';
 import {LST} from 'utils/constants';
@@ -33,13 +34,12 @@ function ViewDepositLST({shouldBalanceTokens, estimateOut, onEstimateOut}: {
 	const {isActive, provider} = useWeb3();
 	const {lst, slippage, onUpdateLST} = useLST();
 	const {balances, refresh} = useWallet();
-	const [amounts, set_amounts] = useState<TNormalizedBN[]>([toNormalizedBN(0), toNormalizedBN(0), toNormalizedBN(0), toNormalizedBN(0), toNormalizedBN(0)]);
+	const [amounts, set_amounts] = useState<TNormalizedBN[]>(LST.map((): TNormalizedBN => toNormalizedBN(0)));
 	const [lastAmountUpdated, set_lastAmountUpdated] = useState(-1);
 	const [txStatus, set_txStatus] = useState<TTxStatus>(defaultTxStatus);
 	const [txStatusApproveDS, set_txStatusApproveDS] = useState<TTxStatus>(defaultTxStatus);
 	const [txStatusDeposit, set_txStatusDeposit] = useState<TTxStatus>(defaultTxStatus);
 	const [txStatusDepositStake, set_txStatusDepositStake] = useState<TTxStatus>(defaultTxStatus);
-
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	** Once the user update the amount of a token, we have two options, depending on the value of
@@ -82,8 +82,8 @@ function ViewDepositLST({shouldBalanceTokens, estimateOut, onEstimateOut}: {
 	** By comparing the `get_add_lp` value and the `get_vb` value we can calculate the bonus or
 	** penalty that will be applied to the deposit.
 	**********************************************************************************************/
-	const onUpdateAmounts = useCallback(async (_amounts: TNormalizedBN[]): Promise<void> => {
-		if (_amounts.some((item): boolean => item.raw > 0n)) {
+	useAsyncTrigger(async (): Promise<void> => {
+		if (amounts.some((item): boolean => item.raw > 0n)) {
 			try {
 				const data = await readContracts({
 					contracts: [
@@ -92,14 +92,14 @@ function ViewDepositLST({shouldBalanceTokens, estimateOut, onEstimateOut}: {
 							address: toAddress(process.env.ESTIMATOR_ADDRESS),
 							functionName: 'get_add_lp',
 							chainId: Number(process.env.DEFAULT_CHAIN_ID),
-							args: [_amounts.map((item): bigint => item.raw)]
+							args: [amounts.map((item): bigint => item.raw)]
 						},
 						{
 							abi: ESTIMATOR_ABI,
 							address: toAddress(process.env.ESTIMATOR_ADDRESS),
 							functionName: 'get_vb',
 							chainId: Number(process.env.DEFAULT_CHAIN_ID),
-							args: [_amounts.map((item): bigint => item.raw)]
+							args: [amounts.map((item): bigint => item.raw)]
 						}
 					]
 				});
@@ -121,10 +121,7 @@ function ViewDepositLST({shouldBalanceTokens, estimateOut, onEstimateOut}: {
 		} else {
 			onEstimateOut({value: toBigInt(0), vb: toBigInt(0), bonusOrPenalty: 0});
 		}
-	}, [onEstimateOut]);
-	useUpdateEffect((): void => {
-		onUpdateAmounts(amounts);
-	}, [amounts]);
+	}, [amounts, onEstimateOut]);
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	** When the user clicks the toggle button, if the toggle is set to true and if the user already
@@ -262,7 +259,7 @@ function ViewDepositLST({shouldBalanceTokens, estimateOut, onEstimateOut}: {
 						<LSTDepositForm
 							key={token.address}
 							token={token}
-							amount={amounts[index].raw === -1n ? toNormalizedBN(0) : amounts[index]}
+							amount={toBigInt(amounts[index]?.raw) === -1n ? toNormalizedBN(0) : amounts[index]}
 							onUpdateAmount={(amount): void => onChangeAmount(index, amount)}
 							isDisabled={false} />
 					))}

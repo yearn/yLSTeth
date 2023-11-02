@@ -5,6 +5,7 @@ import {erc20ABI, useContractReads} from 'wagmi';
 import {useUpdateEffect} from '@react-hookz/web';
 import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
 import {toAddress} from '@yearn-finance/web-lib/utils/address';
+import {decodeAsBigInt} from '@yearn-finance/web-lib/utils/decoder';
 import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 
 import type {TTokenInfo} from 'contexts/useTokenList';
@@ -37,6 +38,7 @@ function useLSTData(): {lst: TLST[], updateLST: () => void} {
 		index
 	})));
 
+
 	const {data, refetch, isFetched} = useContractReads({
 		contracts: [
 			{
@@ -45,77 +47,82 @@ function useLSTData(): {lst: TLST[], updateLST: () => void} {
 				functionName: 'supply',
 				chainId: Number(process.env.DEFAULT_CHAIN_ID)
 			},
-			// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-			...LST.map((_, index) => ({
-				address: toAddress(process.env.POOL_ADDRESS),
-				abi: YETH_POOL_ABI,
-				functionName: 'rate',
-				args: [index],
-				chainId: Number(process.env.DEFAULT_CHAIN_ID)
-			})),
-			// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-			...LST.map((_, index) => ({
-				address: toAddress(process.env.POOL_ADDRESS),
-				abi: YETH_POOL_ABI,
-				functionName: 'weight',
-				args: [index],
-				chainId: Number(process.env.DEFAULT_CHAIN_ID)
-			})),
-			// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-			...LST.map((item) => ({
-				address: item.address,
-				abi: erc20ABI,
-				functionName: 'allowance',
-				args: [address, toAddress(process.env.POOL_ADDRESS)],
-				chainId: Number(process.env.DEFAULT_CHAIN_ID)
-			})) as never[],
-			// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-			...LST.map((item) => ({
-				address: item.address,
-				abi: erc20ABI,
-				functionName: 'balanceOf',
-				args: [toAddress(process.env.POOL_ADDRESS)],
-				chainId: Number(process.env.DEFAULT_CHAIN_ID)
-			})),
-			// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-			...LST.map((_, index) => ({
-				address: toAddress(process.env.POOL_ADDRESS),
-				abi: YETH_POOL_ABI,
-				functionName: 'virtual_balance',
-				args: [index],
-				chainId: Number(process.env.DEFAULT_CHAIN_ID)
-			})),
 			{
 				address: toAddress(process.env.POOL_ADDRESS),
 				abi: YETH_POOL_ABI,
 				functionName: 'vb_prod_sum',
 				chainId: Number(process.env.DEFAULT_CHAIN_ID)
 			},
-			// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-			...LST.map((item) => ({
-				address: item.address,
-				abi: erc20ABI,
-				functionName: 'allowance',
-				args: [address, toAddress(process.env.ZAP_ADDRESS)],
-				chainId: Number(process.env.DEFAULT_CHAIN_ID)
-			})) as never[]
+			...LST.map((item, index): any => {
+				return ([
+					{
+						address: toAddress(process.env.POOL_ADDRESS),
+						abi: YETH_POOL_ABI,
+						functionName: 'rate',
+						args: [index],
+						chainId: Number(process.env.DEFAULT_CHAIN_ID)
+					},
+					{
+						address: toAddress(process.env.POOL_ADDRESS),
+						abi: YETH_POOL_ABI,
+						functionName: 'weight',
+						args: [index],
+						chainId: Number(process.env.DEFAULT_CHAIN_ID)
+					},
+					{
+						address: item.address,
+						abi: erc20ABI,
+						functionName: 'allowance',
+						args: [address, toAddress(process.env.POOL_ADDRESS)],
+						chainId: Number(process.env.DEFAULT_CHAIN_ID)
+					},
+					{
+						address: item.address,
+						abi: erc20ABI,
+						functionName: 'balanceOf',
+						args: [toAddress(process.env.POOL_ADDRESS)],
+						chainId: Number(process.env.DEFAULT_CHAIN_ID)
+					},
+					{
+						address: toAddress(process.env.POOL_ADDRESS),
+						abi: YETH_POOL_ABI,
+						functionName: 'virtual_balance',
+						args: [index],
+						chainId: Number(process.env.DEFAULT_CHAIN_ID)
+					},
+					{
+						address: item.address,
+						abi: erc20ABI,
+						functionName: 'allowance',
+						args: [address, toAddress(process.env.ZAP_ADDRESS)],
+						chainId: Number(process.env.DEFAULT_CHAIN_ID)
+					}
+				]) as any[];
+			}).flat()
 		]
 	});
 
 	useUpdateEffect((): void => {
-		if (!isFetched) {
+		if (!isFetched || !data) {
 			return;
 		}
+		let idx = 0;
+		const supply = toNormalizedBN(decodeAsBigInt(data[idx++]));
+		const vbSum = toNormalizedBN(toBigInt((data[idx++]?.result as [bigint, bigint])?.[1] as bigint) || 0n);
+
+
 		const _lst = LST.map((token, index): TLST => {
-			const supply = toNormalizedBN(toBigInt(data?.[0]?.result as bigint || 0n));
-			const rate = toNormalizedBN(toBigInt(data?.[index + 1]?.result as bigint) || 0n);
-			const weight = toNormalizedBN(toBigInt((data?.[index + 6]?.result as [bigint, bigint, bigint, bigint])?.[0] as bigint) || 0n);
-			const targetWeight = toNormalizedBN(toBigInt((data?.[index + 6]?.result as [bigint, bigint, bigint, bigint])?.[1] as bigint) || 0n);
-			const poolAllowance = toNormalizedBN(toBigInt(data?.[index + 11]?.result as bigint) || 0n);
-			const lstSupply = toNormalizedBN(toBigInt(data?.[index + 16]?.result as bigint) || 0n);
-			const virtualBalance = toNormalizedBN(toBigInt(data?.[index + 21]?.result as bigint) || 0n);
-			const vbSum = toNormalizedBN(toBigInt((data?.[26]?.result as [bigint, bigint])?.[1] as bigint) || 0n);
-			const zapAllowance = toNormalizedBN(toBigInt(data?.[index + 27]?.result as bigint) || 0n);
+			console.log(`token: ${token.symbol} index: ${index}`);
+			const rate = toNormalizedBN(toBigInt(data?.[idx++]?.result as bigint) || 0n);
+
+			const weight = toNormalizedBN(toBigInt((data?.[idx]?.result as [bigint, bigint, bigint, bigint])?.[0] as bigint) || 0n);
+			const targetWeight = toNormalizedBN(toBigInt((data?.[idx++]?.result as [bigint, bigint, bigint, bigint])?.[1] as bigint) || 0n);
+
+			const poolAllowance = toNormalizedBN(toBigInt(data?.[idx++]?.result as bigint) || 0n);
+			const lstSupply = toNormalizedBN(toBigInt(data?.[idx++]?.result as bigint) || 0n);
+
+			const virtualBalance = toNormalizedBN(toBigInt(data?.[idx++]?.result as bigint) || 0n);
+			const zapAllowance = toNormalizedBN(toBigInt(data?.[idx++]?.result as bigint) || 0n);
 
 			return ({
 				...token,

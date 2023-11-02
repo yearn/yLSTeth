@@ -24,6 +24,7 @@ function ViewDeposit({type, onChangeTab}: {type: 'ETH' | 'LST', onChangeTab: Voi
 		set_estimateOut({value: toBigInt(0), bonusOrPenalty: 0, vb: toBigInt(0)});
 	}, [shouldDepositEth]);
 
+
 	return (
 		<section className={'relative px-4 md:px-72'}>
 			<div className={'grid grid-cols-1 divide-x-0 divide-y-2 divide-neutral-300 md:grid-cols-30 md:divide-x-2 md:divide-y-0'}>
