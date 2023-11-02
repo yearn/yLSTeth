@@ -81,13 +81,14 @@ function ViewLSTWithdrawForm({token, amount, onSelect, isSelected, shouldHideRad
 	);
 }
 
-function ViewSelectedTokens({amounts, set_amounts, selectedLST, set_selectedLST, shouldBalanceTokens, set_shouldBalanceTokens}: {
+function ViewSelectedTokens({amounts, set_amounts, selectedLST, set_selectedLST, shouldBalanceTokens, set_shouldBalanceTokens, set_bonusOrPenalty}: {
 	amounts: TNormalizedBN[],
 	set_amounts: (amounts: TNormalizedBN[]) => void,
 	selectedLST: TLST,
 	set_selectedLST: (token: TLST) => void,
 	shouldBalanceTokens: boolean,
-	set_shouldBalanceTokens: (shouldBalance: boolean) => void
+	set_shouldBalanceTokens: (shouldBalance: boolean) => void,
+	set_bonusOrPenalty: (bonusOrPenalty: number) => void
 }): ReactElement {
 	const {isActive, provider} = useWeb3();
 	const {refresh} = useWallet();
@@ -111,13 +112,17 @@ function ViewSelectedTokens({amounts, set_amounts, selectedLST, set_selectedLST,
 						functionName: 'get_remove_lp',
 						args: [newAmount.raw]
 					});
-					set_amounts(amounts.map((_, index): TNormalizedBN => {
+					const updatedAmounts = amounts.map((_, index): TNormalizedBN => {
 						return toNormalizedBN(estimatedAmount[index]);
-					}));
+					});
+					set_bonusOrPenalty(0);
+					set_amounts(updatedAmounts);
 				} catch (error) {
+					set_bonusOrPenalty(0);
 					set_amounts(amounts.map((): TNormalizedBN => toNormalizedBN(-1n)));
 				}
 			} else {
+				set_bonusOrPenalty(0);
 				set_amounts(amounts.map((): TNormalizedBN => toNormalizedBN(0)));
 			}
 		} else {
@@ -129,13 +134,27 @@ function ViewSelectedTokens({amounts, set_amounts, selectedLST, set_selectedLST,
 						functionName: 'get_remove_single_lp',
 						args: [toBigInt(selectedLSTIndex), newAmount.raw]
 					});
-					set_amounts(amounts.map((_, index): TNormalizedBN => {
+					const updatedAmounts = amounts.map((_, index): TNormalizedBN => {
 						if (index === selectedLSTIndex) {
 							return toNormalizedBN(estimatedAmount);
 						}
 						return toNormalizedBN(0);
-					}));
+					});
+					const vb = await readContract({
+						abi: ESTIMATOR_ABI,
+						address: toAddress(process.env.ESTIMATOR_ADDRESS),
+						functionName: 'get_vb',
+						chainId: Number(process.env.DEFAULT_CHAIN_ID),
+						args: [updatedAmounts.map((item): bigint => item.raw)]
+					});
+					set_amounts(updatedAmounts);
+					set_bonusOrPenalty(
+						(Number(toNormalizedBN(vb).normalized) - Number(newAmount.normalized))
+						/
+						Number(newAmount.normalized) * 100
+					);
 				} catch (e) {
+					set_bonusOrPenalty(0);
 					set_amounts(amounts.map((_, index): TNormalizedBN => {
 						if (index === selectedLSTIndex) {
 							return toNormalizedBN(-1n);
@@ -144,6 +163,7 @@ function ViewSelectedTokens({amounts, set_amounts, selectedLST, set_selectedLST,
 					}));
 				}
 			} else {
+				set_bonusOrPenalty(0);
 				set_amounts(amounts.map((item, index): TNormalizedBN => {
 					if (index === selectedLSTIndex) {
 						return toNormalizedBN(0);
@@ -152,7 +172,7 @@ function ViewSelectedTokens({amounts, set_amounts, selectedLST, set_selectedLST,
 				}));
 			}
 		}
-	}, [amounts, set_amounts]);
+	}, [amounts, set_amounts, set_bonusOrPenalty]);
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	** Web3 action to withdraw some LP tokens from the pool
@@ -297,12 +317,25 @@ function ViewSelectedTokens({amounts, set_amounts, selectedLST, set_selectedLST,
 	);
 }
 
-function ViewDetails({isOutOfBand, minOut, tokenToReceive}: {
+function ViewDetails({isOutOfBand, minOut, tokenToReceive, bonusOrPenalty}: {
 	isOutOfBand: boolean,
 	minOut: bigint,
-	tokenToReceive: string
+	tokenToReceive: string,
+	bonusOrPenalty: number,
 }): ReactElement {
 	const {slippage} = useLST();
+	const bonusOrPenaltyFormatted = useMemo((): string => {
+		if (Number.isNaN(bonusOrPenalty)) {
+			return formatAmount(0, 2, 2);
+		}
+		if (bonusOrPenalty === 0) {
+			return formatAmount(0, 2, 2);
+		}
+		if (Number(bonusOrPenalty.toFixed(6)) === 0) {
+			return formatAmount(0, 2, 2);
+		}
+		return bonusOrPenalty.toFixed(6);
+	}, [bonusOrPenalty]);
 
 	return (
 		<div className={'col-span-12 py-6 pl-0 md:py-10 md:pl-72'}>
@@ -310,6 +343,15 @@ function ViewDetails({isOutOfBand, minOut, tokenToReceive}: {
 				<h2 className={'text-xl font-black'}>
 					{'Details'}
 				</h2>
+
+				<dl className={'grid grid-cols-3 gap-2 pt-4'}>
+					<dt className={'col-span-2'}>{'Est. withdraw Bonus/Penalties'}</dt>
+					<dd
+						suppressHydrationWarning
+						className={cl('text-right font-bold', (-Number(bonusOrPenaltyFormatted) > 1) ? 'text-red-900' : '')}>
+						{Number(bonusOrPenaltyFormatted) === -100 ? 'Out of bands' : `${formatAmount(bonusOrPenaltyFormatted, 2, 6)}%`}
+					</dd>
+				</dl>
 
 				<dl className={'grid grid-cols-3 gap-2 pt-4'}>
 					<dt className={'col-span-2'}>{'Slippage tolerance'}</dt>
@@ -359,6 +401,7 @@ function ViewWithdraw(): ReactElement {
 		toNormalizedBN(0),
 		toNormalizedBN(0)
 	]);
+	const [bonusOrPenalty, set_bonusOrPenalty] = useState<number>(0);
 
 	return (
 		<section className={'relative px-4 md:px-72'}>
@@ -366,10 +409,12 @@ function ViewWithdraw(): ReactElement {
 				<ViewSelectedTokens
 					amounts={amounts} set_amounts={set_amounts}
 					selectedLST={selectedLST} set_selectedLST={set_selectedLST}
-					shouldBalanceTokens={shouldBalanceTokens} set_shouldBalanceTokens={set_shouldBalanceTokens} />
+					shouldBalanceTokens={shouldBalanceTokens} set_shouldBalanceTokens={set_shouldBalanceTokens}
+					set_bonusOrPenalty={set_bonusOrPenalty} />
 
 				<ViewDetails
 					minOut={shouldBalanceTokens ? -1n : amounts[selectedLST.index].raw * (10000n - slippage) / 10000n}
+					bonusOrPenalty={bonusOrPenalty}
 					tokenToReceive={selectedLST.symbol}
 					isOutOfBand={amounts.some((amount): boolean => amount.raw === -1n)} />
 			</div>
