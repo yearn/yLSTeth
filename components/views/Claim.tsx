@@ -1,19 +1,21 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {Fragment, useCallback, useMemo, useState} from 'react';
 import useBootstrap from 'contexts/useBootstrap';
+import {useAsyncTrigger} from 'hooks/useAsyncEffect';
 import {useFetch} from 'hooks/useFetch';
 import {useTimer} from 'hooks/useTimer';
 import {useYDaemonBaseURI} from 'hooks/useYDaemonBaseURI';
+import BOOTSTRAP_ABI from 'utils/abi/bootstrap.abi';
 import {VOTE_ABI} from 'utils/abi/vote.abi';
-import {multicall} from 'utils/actions';
+import {multicall, unlockFromBootstrap} from 'utils/actions';
 import {getPreviousEpoch} from 'utils/epochs';
 import {encodeFunctionData, type Hex, type ReadContractParameters} from 'viem';
-import {erc20ABI, readContracts} from 'wagmi';
+import {erc20ABI, readContracts, useContractRead} from 'wagmi';
 import {Button} from '@yearn-finance/web-lib/components/Button';
 import {Modal} from '@yearn-finance/web-lib/components/Modal';
 import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
 import {toAddress, truncateHex} from '@yearn-finance/web-lib/utils/address';
 import {decodeAsBoolean, decodeAsNumber, decodeAsString} from '@yearn-finance/web-lib/utils/decoder';
-import {type TNormalizedBN,toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
+import {type TNormalizedBN,toBigInt,toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
 import {type TYDaemonPrices,yDaemonPricesSchema} from '@yearn-finance/web-lib/utils/schemas/yDaemonPricesSchema';
 import {defaultTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
@@ -170,6 +172,63 @@ function ClaimHeading(): ReactElement {
 	);
 }
 
+function UnlockTokens(): ReactElement {
+	const {provider} = useWeb3();
+	const {address} = useWeb3();
+	const [unlockStatus, set_unlockStatus] = useState<TTxStatus>(defaultTxStatus);
+
+	/* 🔵 - Yearn Finance **************************************************************************
+	** Retrieve the locked st-yETH in the bootstrap contract for the current user
+	**********************************************************************************************/
+	const {data: lockedTokens, refetch} = useContractRead({
+		abi: BOOTSTRAP_ABI,
+		address: toAddress(process.env.BOOTSTRAP_ADDRESS),
+		functionName: 'deposits',
+		args: [toAddress(address)],
+		chainId: Number(process.env.DEFAULT_CHAIN_ID),
+		select: (data): TNormalizedBN => toNormalizedBN(data)
+	});
+
+	/* 🔵 - Yearn Finance **************************************************************************
+	** Web3 actions to unlock the tokens.
+	**********************************************************************************************/
+	async function onUnlock(): Promise<void> {
+		const result = await unlockFromBootstrap({
+			connector: provider,
+			chainID: Number(process.env.DEFAULT_CHAIN_ID),
+			contractAddress: toAddress(process.env.BOOTSTRAP_ADDRESS),
+			amount: toBigInt(lockedTokens?.raw),
+			statusHandler: set_unlockStatus
+		});
+		if (result.isSuccessful) {
+			refetch();
+		}
+	}
+
+	if (toBigInt(lockedTokens?.raw) === 0n) {
+		return <Fragment />;
+	}
+
+	return (
+		<div className={'flex flex-col md:w-1/2 lg:w-[352px]'}>
+			<div className={'mb-4 w-full bg-neutral-100 p-4'}>
+				<p className={'pb-2'}>{'Your locked st-yETH'}</p>
+				<b suppressHydrationWarning className={'font-number text-3xl'}>
+					{`${formatAmount(Number(lockedTokens?.normalized), 6, 6)}`}
+				</b>
+			</div>
+			<Button
+				onClick={onUnlock}
+				isBusy={unlockStatus.pending}
+				isDisabled={!unlockStatus.none || !provider || toBigInt(lockedTokens?.raw) === 0n}
+				className={'yearn--button w-full rounded-md !text-sm'}>
+				{'Unlock'}
+			</Button>
+			<small className={'mt-2 text-center text-neutral-600'}>{'Keeping your st-yETH in the bootstrap contract remains a completely safe option. Doing so won’t disrupt your holdings; however, transferring it out will reset your voting power.'}</small>
+		</div>
+	);
+}
+
 function Claim(): ReactElement {
 	const {address} = useWeb3();
 	const [claimableIncentiveRaw, set_claimableIncentiveRaw] = useState<TClaimDetails[]>([]);
@@ -181,7 +240,7 @@ function Claim(): ReactElement {
 		schema: yDaemonPricesSchema
 	});
 
-	const getClaimDetailsCallData = useCallback(async (): Promise<void> => {
+	const onRefreshClaimableData = useAsyncTrigger(async (): Promise<void> => {
 		if (!address || !previousEpochData) {
 			return;
 		}
@@ -283,10 +342,6 @@ function Claim(): ReactElement {
 		return _claimableIncentiveRaw;
 	}, [prices]);
 
-	useEffect((): void => {
-		getClaimDetailsCallData();
-	}, [getClaimDetailsCallData]);
-
 	const claimableIncentives = useMemo((): TClaimDetails[] => assignValue(claimableIncentiveRaw), [assignValue, claimableIncentiveRaw]);
 
 	/* 🔵 - Yearn Finance **************************************************************************
@@ -325,15 +380,16 @@ function Claim(): ReactElement {
 	** @deps: refreshVoteData - The function to refresh the vote data.
 	**********************************************************************************************/
 	const onClaimedSuccess = useCallback(async (): Promise<void> => {
-		getClaimDetailsCallData();
+		onRefreshClaimableData();
 		set_isModalOpen(false);
-	}, [getClaimDetailsCallData]);
+	}, [onRefreshClaimableData]);
+
 
 	return (
 		<section className={'grid grid-cols-1 pt-10 md:mb-20 md:pt-12'}>
 			<div className={'mb-20 md:mb-0'}>
 				<ClaimHeading />
-				<div className={'flex flex-col gap-10 md:flex-row md:gap-6'}>
+				<div className={'flex flex-col gap-10 md:flex-row md:gap-20'}>
 					<div className={'flex flex-col md:w-1/2 lg:w-[352px]'}>
 						<div className={'mb-4 w-full bg-neutral-100 p-4'}>
 							<p className={'pb-2'}>{'Your claimable incentives, $'}</p>
@@ -348,6 +404,8 @@ function Claim(): ReactElement {
 							{'Claim'}
 						</Button>
 					</div>
+
+					<UnlockTokens />
 				</div>
 			</div>
 			<Modal
