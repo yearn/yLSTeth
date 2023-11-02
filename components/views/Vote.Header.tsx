@@ -57,16 +57,14 @@ function VoteHeader(): ReactElement {
 					</p>
 				</div>
 				<div className={'flex w-full justify-end space-x-4 pb-2 md:w-auto'}>
-					<div className={'w-full min-w-[200px] bg-neutral-100 p-4 md:w-fit'}>
-						<p className={'pb-2'}>{'Total Votes, yETH'}</p>
+					<div className={'pointer-events-none invisible w-full min-w-[100px] bg-neutral-100 p-4 md:w-fit'}>
+						<p className={'pb-2'}>&nbsp;</p>
 						<b suppressHydrationWarning className={'font-number text-3xl'}>
-							<Renderable shouldRender={true} fallback ={'-'}>
-								{formatAmount(totalVotesNormalized, 2, 2)}
-							</Renderable>
+							{'-'}
 						</b>
 					</div>
-					<div className={'w-full min-w-[200px] bg-neutral-100 p-4 md:w-fit'}>
-						<p className={'whitespace-nowrap pb-2'}>{'Your vote power, yETH'}</p>
+					<div className={'w-full min-w-[300px] bg-neutral-100 p-4 md:w-fit'}>
+						<p className={'whitespace-nowrap pb-2'}>{'Your vote power, st-yETH'}</p>
 						<b suppressHydrationWarning className={'font-number text-3xl'}>
 							<Renderable shouldRender={true} fallback ={'-'}>
 								{formatAmount(votePowerNormalized.normalized, 4, 4)}
