@@ -32,9 +32,6 @@ function Apply(): ReactElement {
 				<section className={'grid grid-cols-12 gap-0 px-4 pt-10 md:gap-20 md:pt-12'}>
 					<div className={'col-span-12 md:col-span-6 md:mb-0'}>
 						<div className={'mb-10 flex flex-col justify-center'}>
-							<p className={'text-lg'}>
-								{'Current Phase'}
-							</p>
 							<h1 className={'text-3xl font-black md:text-8xl'}>
 								{'Apply'}
 							</h1>
