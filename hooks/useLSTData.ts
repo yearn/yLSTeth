@@ -20,7 +20,18 @@ export type TLST = {
 	poolSupply: TNormalizedBN,
 	virtualPoolSupply: TNormalizedBN,
 	weightRatio: number,
-	index: number
+	index: number,
+	poolStats?: {
+		amountInPool: TNormalizedBN,
+		amountInPoolPercent: number,
+		currentBeaconEquivalentValue: TNormalizedBN,
+		targetWeight: TNormalizedBN,
+		currentEquilibrumWeight: TNormalizedBN,
+		currentBandPlus: TNormalizedBN,
+		currentBandMin: TNormalizedBN,
+		distanceFromTarget: TNormalizedBN,
+		weightRamps: TNormalizedBN
+	}
 } & TTokenInfo
 
 function useLSTData(): {lst: TLST[], updateLST: () => void} {
@@ -112,17 +123,36 @@ function useLSTData(): {lst: TLST[], updateLST: () => void} {
 
 
 		const _lst = LST.map((token, index): TLST => {
-			console.log(`token: ${token.symbol} index: ${index}`);
 			const rate = toNormalizedBN(toBigInt(data?.[idx++]?.result as bigint) || 0n);
 
-			const weight = toNormalizedBN(toBigInt((data?.[idx]?.result as [bigint, bigint, bigint, bigint])?.[0] as bigint) || 0n);
-			const targetWeight = toNormalizedBN(toBigInt((data?.[idx++]?.result as [bigint, bigint, bigint, bigint])?.[1] as bigint) || 0n);
+			const weight = toNormalizedBN(toBigInt((data?.[idx]?.result as bigint[])?.[0] as bigint) || 0n);
+			const targetWeight = toNormalizedBN(toBigInt((data?.[idx]?.result as bigint[])?.[1] as bigint) || 0n);
+			const currentBandPlus = toNormalizedBN(toBigInt((data?.[idx]?.result as bigint[])?.[2] as bigint) || 0n);
+			const currentBandMin = toNormalizedBN(toBigInt((data?.[idx++]?.result as bigint[])?.[3] as bigint) || 0n);
 
 			const poolAllowance = toNormalizedBN(toBigInt(data?.[idx++]?.result as bigint) || 0n);
 			const lstSupply = toNormalizedBN(toBigInt(data?.[idx++]?.result as bigint) || 0n);
 
 			const virtualBalance = toNormalizedBN(toBigInt(data?.[idx++]?.result as bigint) || 0n);
 			const zapAllowance = toNormalizedBN(toBigInt(data?.[idx++]?.result as bigint) || 0n);
+
+			const amountInPool = lstSupply;
+			const amountInPoolPercent = Number(virtualBalance.normalized) / Number(vbSum.normalized) * 100;
+			const currentBeaconEquivalentValue = virtualBalance;
+			const currentEquilibrumWeight = weight;
+			const distanceFromTarget = toNormalizedBN(targetWeight.raw - currentEquilibrumWeight.raw);
+			const weightRamps = targetWeight;
+
+			console.dir({
+				'Token': token.symbol,
+				'Amount in pool': `${amountInPool.normalized} (${amountInPoolPercent}%)`,
+				'Current beacon chain ETH equivalent value': currentBeaconEquivalentValue.normalized,
+				'Current bands (+/- %)': `${currentBandPlus.normalized} | ${currentBandMin.normalized}`,
+				'Distance from target weight (+/- % point)': distanceFromTarget.normalized,
+				'Current target weight (%)': currentEquilibrumWeight.normalized,
+				'Weight ramps (if any)': weightRamps.normalized
+			});
+
 
 			return ({
 				...token,
@@ -134,7 +164,18 @@ function useLSTData(): {lst: TLST[], updateLST: () => void} {
 				poolAllowance: poolAllowance,
 				zapAllowance: zapAllowance,
 				poolSupply: lstSupply,
-				virtualPoolSupply: toNormalizedBN(virtualBalance.raw * toBigInt(1e18) / (supply.raw || 1n) * 100n)
+				virtualPoolSupply: toNormalizedBN(virtualBalance.raw * toBigInt(1e18) / (supply.raw || 1n) * 100n),
+				poolStats: {
+					amountInPool,
+					amountInPoolPercent,
+					targetWeight,
+					currentBeaconEquivalentValue,
+					currentEquilibrumWeight,
+					currentBandPlus,
+					currentBandMin,
+					distanceFromTarget,
+					weightRamps
+				}
 			});
 		});
 		set_lst(_lst);
