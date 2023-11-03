@@ -76,7 +76,7 @@ function UnlockTokens(): ReactElement {
 	return (
 		<div className={'flex flex-col md:w-1/2 lg:w-[352px]'}>
 			<div className={'mb-4 w-full bg-neutral-100 p-4'}>
-				<p className={'pb-2'}>{'Your locked st-yETH'}</p>
+				<p className={'pb-2'}>{'Your bootstrap st-yETH'}</p>
 				<b suppressHydrationWarning className={'font-number text-3xl'}>
 					{`${formatAmount(Number(lockedTokens?.normalized), 6, 6)}`}
 				</b>
