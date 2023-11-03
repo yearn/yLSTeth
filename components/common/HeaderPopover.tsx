@@ -1,10 +1,11 @@
 import {cloneElement, Fragment, useState} from 'react';
 import Link from 'next/link';
+import Logo from 'components/icons/Logo';
+import {Popover, Transition} from '@headlessui/react';
+
+import {APPS} from './HeaderPopover.apps';
 
 import type {ReactElement} from 'react';
-import { Popover, Transition } from '@headlessui/react';
-import { APPS } from './HeaderPopover.apps';
-import Logo from 'components/icons/Logo';
 
 function LogoPopover(): ReactElement {
 	const [isShowing, set_isShowing] = useState(false);
@@ -31,7 +32,7 @@ function LogoPopover(): ReactElement {
 				leaveTo={'opacity-0 translate-y-1'}>
 				<Popover.Panel
 					className={'absolute left-1/2 z-10 mt-0 w-80 -translate-x-1/2 px-4 pt-4 sm:px-0 md:w-96'}>
-					<div className={'overflow-hidden border border-neutral-200 shadow-lg rounded-lg'}>
+					<div className={'overflow-hidden rounded-lg border border-neutral-200 shadow-lg'}>
 						<div className={'relative grid grid-cols-2 bg-neutral-0 md:grid-cols-3'}>
 							{Object.values(APPS)
 								.map(({name, href, icon}): ReactElement => {
@@ -62,4 +63,4 @@ function LogoPopover(): ReactElement {
 	);
 }
 
-export {LogoPopover}
+export {LogoPopover};
