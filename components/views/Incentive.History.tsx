@@ -4,8 +4,9 @@ import Toggle from 'components/common/toggle';
 import IconChevronPlain from 'components/icons/IconChevronPlain';
 import IconSpinner from 'components/icons/IconSpinner';
 import useLST from 'contexts/useLST';
+import useEpochIncentives from 'hooks/useEpochIncentives';
 import {NO_CHANGE_LST_LIKE} from 'utils/constants';
-import {getCurrentEpochNumber} from 'utils/epochs';
+import {getCurrentEpochNumber, getEpoch} from 'utils/epochs';
 import {useChainID} from '@yearn-finance/web-lib/hooks/useChainID';
 import {IconChevronBottom} from '@yearn-finance/web-lib/icons/IconChevronBottom';
 import {toAddress, truncateHex} from '@yearn-finance/web-lib/utils/address';
@@ -14,7 +15,8 @@ import {toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import {formatAmount, formatPercent} from '@yearn-finance/web-lib/utils/format.number';
 import {performBatchedUpdates} from '@yearn-finance/web-lib/utils/performBatchedUpdates';
 
-import type {TIncentives, TIncentivesFor} from 'hooks/useBootstrapIncentives';
+import type {TIncentives} from 'hooks/useBootstrapIncentives';
+import type {TGroupedIncentives} from 'hooks/useIncentives';
 import type {ReactElement} from 'react';
 import type {TIndexedTokenInfo, TSortDirection} from 'utils/types';
 import type {TDict} from '@yearn-finance/web-lib/types';
@@ -163,16 +165,18 @@ function IncentiveGroupBreakdown({incentives}: {incentives: TIncentives[]}): Rea
 	);
 }
 
-function IncentiveGroup({item, shouldDisplayUserIncentive}: {item: TIndexedTokenInfo, shouldDisplayUserIncentive: boolean}): ReactElement {
-	const {incentives: {groupIncentiveHistory}} = useLST();
+function IncentiveGroup(props: {
+	item: TIndexedTokenInfo,
+	shouldDisplayUserIncentive: boolean,
+	groupedIncentiveHistory: TGroupedIncentives
+}): ReactElement {
 	const {safeChainID} = useChainID(Number(process.env.BASE_CHAIN_ID));
-	const incentives = groupIncentiveHistory?.[shouldDisplayUserIncentive ? 'user' : 'protocols']?.[item.address] || [];
 
-	if (!item) {
+	if (!props.item) {
 		return (<Fragment />);
 	}
 
-	const hasSubIncentives = (incentives.incentives || []).length > 0;
+	const hasSubIncentives = (props.groupedIncentiveHistory?.incentives || []).length > 0;
 	return (
 		<details
 			aria-label={'content'}
@@ -187,7 +191,7 @@ function IncentiveGroup({item, shouldDisplayUserIncentive}: {item: TIndexedToken
 				<div className={'col-span-12 flex w-full flex-row items-center space-x-6 md:col-span-5'}>
 					<div className={'h-10 w-10 min-w-[40px]'}>
 						<ImageWithFallback
-							src={`https://assets.smold.app/api/token/${safeChainID}/${toAddress(item?.address)}/logo-128.png`}
+							src={`https://assets.smold.app/api/token/${safeChainID}/${toAddress(props.item?.address)}/logo-128.png`}
 							alt={''}
 							unoptimized
 							width={40}
@@ -195,10 +199,10 @@ function IncentiveGroup({item, shouldDisplayUserIncentive}: {item: TIndexedToken
 					</div>
 					<div className={'flex flex-col'}>
 						<p className={'whitespace-nowrap'}>
-							{item?.symbol || truncateHex(item.address, 6)}
+							{props.item?.symbol || truncateHex(props.item.address, 6)}
 						</p>
 						<small className={'whitespace-nowrap text-xs'}>
-							{item.name}
+							{props.item.name}
 						</small>
 					</div>
 				</div>
@@ -207,7 +211,7 @@ function IncentiveGroup({item, shouldDisplayUserIncentive}: {item: TIndexedToken
 						{'Total incentive (USD)'}
 					</small>
 					<p suppressHydrationWarning className={'font-number'}>
-						{`$${formatAmount(incentives.normalizedSum || 0, 2, 2)}`}
+						{`$${formatAmount(props.groupedIncentiveHistory?.normalizedSum || 0, 2, 2)}`}
 					</p>
 				</div>
 				<div className={'col-span-12 mt-2 flex justify-between md:col-span-2 md:mt-0 md:justify-end'}>
@@ -215,7 +219,7 @@ function IncentiveGroup({item, shouldDisplayUserIncentive}: {item: TIndexedToken
 						{'USD/st-yETH'}
 					</small>
 					<p suppressHydrationWarning className={'font-number'}>
-						{`${formatAmount(incentives.usdPerStETH || 0, 4, 4)}`}
+						{`${formatAmount(props.groupedIncentiveHistory?.usdPerStETH || 0, 4, 4)}`}
 					</p>
 				</div>
 				<div className={'col-span-12 mt-2 flex justify-between md:col-span-2 md:mt-0 md:justify-end'}>
@@ -223,7 +227,7 @@ function IncentiveGroup({item, shouldDisplayUserIncentive}: {item: TIndexedToken
 						{'st-yETH vAPR'}
 					</small>
 					<p suppressHydrationWarning className={'font-number'}>
-						{`${formatPercent(incentives.estimatedAPR, 4)}`}
+						{`${formatPercent(props.groupedIncentiveHistory?.estimatedAPR, 4)}`}
 					</p>
 				</div>
 				<div className={'col-span-1 hidden justify-end md:flex'}>
@@ -232,32 +236,30 @@ function IncentiveGroup({item, shouldDisplayUserIncentive}: {item: TIndexedToken
 			</summary>
 
 			<div className={hasSubIncentives ? 'block' : 'hidden'}>
-				<IncentiveGroupBreakdown incentives={incentives.incentives || []} />
+				<IncentiveGroupBreakdown incentives={props.groupedIncentiveHistory?.incentives || []} />
 			</div>
 		</details>
 	);
 }
 
-function IncentiveHistory({possibleLSTs, isPending, incentives, epochToDisplay, set_epochToDisplay}: {
+function IncentiveHistory({epochToDisplay, set_epochToDisplay, currentTab}: {
 	epochToDisplay: number;
 	set_epochToDisplay: (epoch: number) => void;
-	possibleLSTs: TDict<TIndexedTokenInfo>;
-	isPending: boolean;
-	incentives: TIncentivesFor;
+	currentTab: 'current' | 'potential';
 }): ReactElement {
+	const {incentives: {groupIncentiveHistory, isFetchingHistory}} = useLST();
 	const [sortBy, set_sortBy] = useState<string>('totalIncentive');
 	const [sortDirection, set_sortDirection] = useState<TSortDirection>('desc');
 	const [shouldDisplayUserIncentive, set_shouldDisplayUserIncentive] = useState<boolean>(false);
+	const isCurrentEpoch = useMemo((): boolean => epochToDisplay === getCurrentEpochNumber(), [epochToDisplay]);
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	**	Callback method used to sort the vaults list.
 	**	The use of useCallback() is to prevent the method from being re-created on every render.
 	**********************************************************************************************/
 	const onSort = useCallback((newSortBy: string, newSortDirection: string): void => {
-		performBatchedUpdates((): void => {
 			set_sortBy(newSortBy);
 			set_sortDirection(newSortDirection as TSortDirection);
-		});
 	}, []);
 
 	const toggleSortDirection = (newSortBy: string): TSortDirection => {
@@ -284,6 +286,65 @@ function IncentiveHistory({possibleLSTs, isPending, incentives, epochToDisplay, 
 		return epochArray;
 	}, []);
 
+	const {groupIncentiveHistory: epochGroupedIncentiveHistory} = useEpochIncentives({epochNumber: isCurrentEpoch ? -1 : epochToDisplay});
+
+	/** 🔵 - Yearn *************************************************************************************
+	** This memo hook selects either currentEpoch.inclusion.candidates if current tab is potential,
+	** or currentEpoch.weight.participants if current tab is current.
+	**************************************************************************************************/
+	const possibleLSTs = useMemo((): TDict<TIndexedTokenInfo> => {
+		const epoch = getEpoch(epochToDisplay);
+		if (currentTab === 'potential') {
+			const candidates: TDict<TIndexedTokenInfo> = {};
+			for (const eachCandidate of epoch.inclusion.candidates) {
+				if (eachCandidate) {
+					candidates[toAddress(eachCandidate.address)] = eachCandidate;
+				}
+			}
+			return candidates;
+		}
+		const participants: TDict<TIndexedTokenInfo> = {};
+		for (const eachParticipant of epoch.weight.participants) {
+			if (eachParticipant) {
+				participants[toAddress(eachParticipant.address)] = eachParticipant;
+			}
+		}
+		return participants;
+	}, [currentTab, epochToDisplay]);
+
+
+	const sortedLSTs = useMemo((): TIndexedTokenInfo[] => {
+		return (
+			[NO_CHANGE_LST_LIKE, ...Object.values(possibleLSTs)]
+				.filter((e): boolean => Boolean(e))
+				.sort((lstA, lstB): number => {
+					let group = groupIncentiveHistory[shouldDisplayUserIncentive ? 'user' : 'protocols'];
+					if (!isCurrentEpoch) {
+						group = epochGroupedIncentiveHistory[shouldDisplayUserIncentive ? 'user' : 'protocols'];
+					}
+
+					const a = group[toAddress(lstA.address)];
+					const b = group[toAddress(lstB.address)];
+					if (!a || !b) {
+						return 0;
+					}
+					let aValue = 0;
+					let bValue = 0;
+					if (sortBy === 'totalIncentive') {
+						aValue = a.normalizedSum;
+						bValue = b.normalizedSum;
+					} else if (sortBy === 'vapr') {
+						aValue = a.estimatedAPR;
+						bValue = b.estimatedAPR;
+					} else if (sortBy === 'usdPerStETH') {
+						aValue = a.usdPerStETH;
+						bValue = b.usdPerStETH;
+					}
+					return sortDirection === 'desc' ? Number(bValue) - Number(aValue) : Number(aValue) - Number(bValue);
+				})
+		);
+	}, [epochGroupedIncentiveHistory, groupIncentiveHistory, isCurrentEpoch, possibleLSTs, shouldDisplayUserIncentive, sortBy, sortDirection]);
+
 	return (
 		<div className={'mt-2 pt-8'}>
 
@@ -303,7 +364,7 @@ function IncentiveHistory({possibleLSTs, isPending, incentives, epochToDisplay, 
 								defaultValue={getCurrentEpochNumber()}>
 								{epochs.map((index): ReactElement => (
 									<option key={index} value={index}>
-										{index === getCurrentEpochNumber() ? 'Current' : `Epoch ${index}`}
+										{index === getCurrentEpochNumber() ? 'Current' : `Epoch ${index + 1}`}
 									</option>
 								))}
 							</select>
@@ -361,33 +422,22 @@ function IncentiveHistory({possibleLSTs, isPending, incentives, epochToDisplay, 
 
 			<div className={'bg-neutral-200'}>
 				{
-					[NO_CHANGE_LST_LIKE, ...Object.values(possibleLSTs)]
-						.filter((e): boolean => Boolean(e))
-						.sort((lstA, lstB): number => {
-							const a = incentives[shouldDisplayUserIncentive ? 'user' : 'protocols'][toAddress(lstA.address)];
-							const b = incentives[shouldDisplayUserIncentive ? 'user' : 'protocols'][toAddress(lstB.address)];
-							if (!a || !b) {
-								return 0;
-							}
-							let aValue = 0;
-							let bValue = 0;
-							if (sortBy === 'totalIncentive') {
-								aValue = a.normalizedSum;
-								bValue = b.normalizedSum;
-							} else if (sortBy === 'vapr') {
-								aValue = a.estimatedAPR;
-								bValue = b.estimatedAPR;
-							} else if (sortBy === 'usdPerStETH') {
-								aValue = a.usdPerStETH;
-								bValue = b.usdPerStETH;
-							}
-							return sortDirection === 'desc' ? Number(bValue) - Number(aValue) : Number(aValue) - Number(bValue);
-						})
-						.map((item): ReactElement => (
-							<IncentiveGroup key={item.address} item={item} shouldDisplayUserIncentive={shouldDisplayUserIncentive} />
-						))}
+					sortedLSTs.map((item): ReactElement => {
+						let group = groupIncentiveHistory[shouldDisplayUserIncentive ? 'user' : 'protocols'];
+						if (!isCurrentEpoch) {
+							group = epochGroupedIncentiveHistory[shouldDisplayUserIncentive ? 'user' : 'protocols'];
+						}
 
-				{isPending && (
+						return (
+							<IncentiveGroup
+								key={`${item.address}_${epochToDisplay}`}
+								groupedIncentiveHistory={group[toAddress(item.address)]}
+								item={item}
+								shouldDisplayUserIncentive={shouldDisplayUserIncentive} />
+						);
+				})}
+
+				{isFetchingHistory && (
 					<div className={'mt-6 flex flex-row items-center justify-center pb-12 pt-6'}>
 						<IconSpinner className={'!h-6 !w-6 !text-neutral-400'} />
 					</div>

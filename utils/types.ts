@@ -29,6 +29,7 @@ export type TMerkle = {
 }
 export type TEpoch = {
 	index: number;
+	incentiveAPR?: number;
 	inclusion: {
 		id: Hex;
 		candidates: TIndexedTokenInfo[];

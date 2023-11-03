@@ -1,5 +1,4 @@
 import React, {useMemo, useState} from 'react';
-import useLST from 'contexts/useLST';
 import {useEpoch} from 'hooks/useEpoch';
 import {getCurrentEpochNumber, getEpoch} from 'utils/epochs';
 import {toAddress} from '@yearn-finance/web-lib/utils/address';
@@ -15,7 +14,6 @@ import type {TDict} from '@yearn-finance/web-lib/types';
 function ViewIncentive(): ReactElement {
 	const [currentTab, set_currentTab] = useState<'current' | 'potential'>('current');
 	const [epochToDisplay, set_epochToDisplay] = useState<number>(getCurrentEpochNumber());
-	const {incentives: {groupIncentiveHistory, isFetchingHistory}} = useLST();
 	const {endPeriod} = useEpoch();
 	const currentEpoch = useMemo((): TEpoch => {
 		return getEpoch(epochToDisplay);
@@ -68,9 +66,7 @@ function ViewIncentive(): ReactElement {
 					<IncentiveHistory
 						epochToDisplay={epochToDisplay}
 						set_epochToDisplay={set_epochToDisplay}
-						possibleLSTs={possibleLSTs}
-						isPending={isFetchingHistory}
-						incentives={groupIncentiveHistory} />
+						currentTab={currentTab} />
 				</div>
 			</div>
 		</section>
