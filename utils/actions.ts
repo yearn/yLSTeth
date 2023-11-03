@@ -536,3 +536,26 @@ export async function curveExchangeMultiple(props: TCurveExchangeMultiple): Prom
 		]
 	});
 }
+
+
+/* 🔵 - Yearn Finance **********************************************************
+** unlock is a _WRITE_ function that unlocks the styETH from the bootstrap
+** contract.
+**
+** @app - yETH
+******************************************************************************/
+type TUnlockFromBootstrap = TWriteTransaction & {
+	amount: bigint;
+};
+export async function unlockFromBootstrap(props: TUnlockFromBootstrap): Promise<TTxResponse> {
+	assert(props.connector, 'No connector');
+	assert(props.amount > 0n);
+	assertAddress(process.env.BOOTSTRAP_ADDRESS, 'BOOTSTRAP_ADDRESS');
+
+	return await handleTx(props, {
+		address: toAddress(process.env.BOOTSTRAP_ADDRESS),
+		abi: BOOTSTRAP_ABI,
+		functionName: 'claim',
+		args: [props.amount]
+	});
+}

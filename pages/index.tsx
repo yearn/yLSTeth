@@ -106,7 +106,6 @@ function RenderYETHValue({amount}: {amount: bigint}): ReactElement {
 			{`~ ${formatAmount(Number(toNormalizedBN(toBigInt(yETHValue)).normalized), 6, 6)} yETH`}
 		</p>
 	);
-
 }
 
 function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
