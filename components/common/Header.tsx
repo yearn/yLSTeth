@@ -2,7 +2,6 @@ import React, {Fragment, useEffect, useMemo, useState} from 'react';
 import Link from 'next/link';
 import {useRouter} from 'next/router';
 import assert from 'assert';
-import Logo from 'components/icons/Logo';
 import {useConnect, usePublicClient} from 'wagmi';
 import {Listbox, Transition} from '@headlessui/react';
 import {useAccountModal, useChainModal} from '@rainbow-me/rainbowkit';
@@ -12,6 +11,8 @@ import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
 import {IconChevronBottom} from '@yearn-finance/web-lib/icons/IconChevronBottom';
 import {IconWallet} from '@yearn-finance/web-lib/icons/IconWallet';
 import {truncateHex} from '@yearn-finance/web-lib/utils/address';
+
+import {LogoPopover} from './HeaderPopover';
 
 import type {ReactElement} from 'react';
 import type {Chain} from '@wagmi/chains';
@@ -279,9 +280,7 @@ function	AppHeader(): ReactElement {
 						</button>
 					</div>
 					<div className={'flex w-1/3 justify-center'}>
-						<Link href={'/'}>
-							<Logo className={'h-10 w-10 rounded-full bg-purple-300 p-1.5'} />
-						</Link>
+						<LogoPopover />
 					</div>
 					<div className={'flex w-1/3 items-center justify-end'}>
 						<NetworkSelector networks={[]} />
