@@ -1,4 +1,4 @@
-import React, {Fragment, useCallback, useMemo, useState} from 'react';
+import React, {Fragment, useCallback, useState} from 'react';
 import Link from 'next/link';
 import {ImageWithFallback} from 'components/common/ImageWithFallback';
 import IconChevronBoth from 'components/icons/IconChevronBoth';
@@ -125,28 +125,6 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 		chainId: Number(process.env.DEFAULT_CHAIN_ID)
 	});
 
-	const relativeTimeToUnlock = useMemo((): string => {
-		const unlockTime = 1699012800;
-		const timeToUnlock = unlockTime - Math.floor(Date.now() / 1000);
-		const toDays = timeToUnlock / 86400;
-		const toHours = timeToUnlock / 3600;
-		const toMinutes = timeToUnlock / 60;
-		const toSeconds = timeToUnlock;
-		if (toDays > 1) {
-			return `${Math.floor(toDays)} days from now.`;
-		}
-		if (toHours > 1) {
-			return `${Math.floor(toHours)} hours from now.`;
-		}
-		if (toMinutes > 1) {
-			return `${Math.floor(toMinutes)} minutes from now.`;
-		}
-		if (toSeconds > 1) {
-			return `${Math.floor(toSeconds)} seconds from now.`;
-		}
-		return 'Soon';
-	}, []);
-
 	function renderYouPosition(): ReactElement {
 		return (
 			<div className={'divider mt-6 grid grid-cols-1 space-y-2 border-t-2 pt-6'}>
@@ -178,7 +156,7 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 				{(lockedTokens && lockedTokens >= 0n) ? (
 					<div>
 						<small className={cl('text-xs', basicLighterColorTransition)}>
-							{'Your locked st-yETH'}
+							{'Your bootstrap st-yETH'}
 						</small>
 						<span className={'flex w-full items-center justify-between whitespace-nowrap'}>
 							<b
