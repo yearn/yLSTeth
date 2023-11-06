@@ -281,28 +281,6 @@ function ViewDetails(): ReactElement {
 		chainId: Number(process.env.DEFAULT_CHAIN_ID)
 	});
 
-	const relativeTimeToUnlock = useMemo((): string => {
-		const unlockTime = 1699012800;
-		const timeToUnlock = unlockTime - Math.floor(Date.now() / 1000);
-		const toDays = timeToUnlock / 86400;
-		const toHours = timeToUnlock / 3600;
-		const toMinutes = timeToUnlock / 60;
-		const toSeconds = timeToUnlock;
-		if (toDays > 1) {
-			return `in ${Math.floor(toDays)} days.`;
-		}
-		if (toHours > 1) {
-			return `in ${Math.floor(toHours)} hours.`;
-		}
-		if (toMinutes > 1) {
-			return `in ${Math.floor(toMinutes)} minutes.`;
-		}
-		if (toSeconds > 1) {
-			return `in ${Math.floor(toSeconds)} seconds.`;
-		}
-		return 'Soon';
-	}, []);
-
 
 	return (
 		<div className={'col-span-12 py-6 pl-0 md:py-10 md:pl-72'}>
@@ -329,14 +307,9 @@ function ViewDetails(): ReactElement {
 
 					{(lockedTokens && lockedTokens >= 0n) ? (
 						<>
-							<dt className={'col-span-2'}>{'Your locked st-yETH'}</dt>
+							<dt className={'col-span-2'}>{'Your bootstrap st-yETH'}</dt>
 							<dd className={'text-right font-bold'}>
 								{formatAmount(toNormalizedBN(lockedTokens || 0n).normalized, 6, 6)}
-							</dd>
-
-							<dt className={'col-span-2'}>{'Unlock date'}</dt>
-							<dd className={'whitespace-nowrap text-right font-bold'}>
-								{relativeTimeToUnlock}
 							</dd>
 						</>
 					) : <Fragment />}
