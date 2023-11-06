@@ -181,20 +181,11 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 							{'Your locked st-yETH'}
 						</small>
 						<span className={'flex w-full items-center justify-between whitespace-nowrap'}>
-							<span className={'tooltip'}>
-								<b
-									suppressHydrationWarning
-									className={cl('text-lg md:text-lg leading-6 md:leading-8 font-number', basicColorTransition)}>
-									{formatAmount(toNormalizedBN(lockedTokens || 0n).normalized, 6, 6)}
-								</b>
-								<span className={'tooltipLight !-inset-x-24 top-full mt-2 !w-auto'}>
-									<div
-										suppressHydrationWarning
-										className={'w-fit rounded-md border border-neutral-700 bg-neutral-900 p-1 px-2 text-center text-xs font-medium text-neutral-0'}>
-										{`Your st-yETH from the yETH bootstrap will be unlocked ${relativeTimeToUnlock}`}
-									</div>
-								</span>
-							</span>
+							<b
+								suppressHydrationWarning
+								className={cl('text-lg md:text-lg leading-6 md:leading-8 font-number', basicColorTransition)}>
+								{formatAmount(toNormalizedBN(lockedTokens || 0n).normalized, 6, 6)}
+							</b>
 							<RenderYETHValue amount={toBigInt(lockedTokens)} />
 						</span>
 					</div>
