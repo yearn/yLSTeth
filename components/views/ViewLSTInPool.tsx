@@ -164,7 +164,7 @@ function LSTInPool({scope}: {scope: AnimationScope}): ReactElement {
 					</div>
 
 					<div className={'hidden grid-cols-12 gap-10 px-4 md:grid md:px-72'}>
-						<div className={'col-span-3'}>
+						<div className={'col-span-4'}>
 							<p className={'text-xs'}>
 								{'Token'}
 							</p>
@@ -194,9 +194,9 @@ function LSTInPool({scope}: {scope: AnimationScope}): ReactElement {
 
 						<button
 							onClick={(): void => onSort('currentWeight', toggleSortDirection('currentWeight'))}
-							className={'group col-span-3 -mr-1.5 flex cursor-pointer flex-row justify-end'}>
+							className={'group col-span-2 -mr-1.5 flex cursor-pointer flex-row justify-end'}>
 							<p className={'text-right text-xs'}>
-								{'Current Weight -> Target'}
+								{'Weight'}
 							</p>
 							<span className={'pl-2'}>
 								{renderChevron(sortBy === 'currentWeight')}
@@ -232,7 +232,7 @@ function LSTInPool({scope}: {scope: AnimationScope}): ReactElement {
 										<div
 											className={'grid grid-cols-6 gap-2 px-4 py-6 hover:bg-neutral-100/10 md:grid-cols-12 md:gap-10 md:px-72 md:py-3'}>
 
-											<div className={'col-span-3 flex flex-row items-center'}>
+											<div className={'col-span-4 flex flex-row items-center'}>
 												<div className={'h-10 w-10 min-w-[40px]'}>
 													<ImageWithFallback
 														alt={token.name}
@@ -276,18 +276,18 @@ function LSTInPool({scope}: {scope: AnimationScope}): ReactElement {
 												</div>
 											</div>
 
-											<div className={'col-span-6 flex w-full flex-row items-center justify-between md:col-span-3 md:justify-end'}>
+											<div className={'col-span-6 flex w-full flex-row items-center justify-between md:col-span-2 md:justify-end'}>
 												<div className={'flex md:hidden'}>
 													<p className={'text-xs text-neutral-0/60'}>{'Current weight -> Target'}</p>
 												</div>
 												<div className={'font-number text-right'}>
 													<b suppressHydrationWarning>
-														{`${formatAmount(Number(token.poolStats?.currentEquilibrumWeight.normalized || 0) * 100, 2, 2)}% -> ${formatAmount(Number(token.poolStats?.weightRamps.normalized || 0) * 100, 2, 2)}%`}
+														{`${formatAmount(Number(token.poolStats?.currentEquilibrumWeight.normalized || 0) * 100, 2, 2)}%`}
 													</b>
 													<small
 														className={'block text-neutral-0/60'}
 														suppressHydrationWarning>
-														&nbsp;
+														{`Target: ${formatAmount(Number(token.poolStats?.weightRamps.normalized || 0) * 100, 2, 2)}%`}
 													</small>
 												</div>
 											</div>
