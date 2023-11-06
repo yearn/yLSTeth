@@ -160,12 +160,13 @@ function LSTInPool({scope}: {scope: AnimationScope}): ReactElement {
 						</h2>
 					</div>
 
-					<div className={'hidden grid-cols-10 gap-10 px-4 md:grid md:px-72'}>
-						<div className={'col-span-6'}>
+					<div className={'hidden grid-cols-12 gap-10 px-4 md:grid md:px-72'}>
+						<div className={'col-span-4'}>
 							<p className={'text-xs'}>
 								{'Token'}
 							</p>
 						</div>
+
 						<button
 							onClick={(): void => onSort('amount', toggleSortDirection('amount'))}
 							className={'group col-span-2 -mr-1.5 flex cursor-pointer flex-row justify-end'}>
@@ -176,15 +177,33 @@ function LSTInPool({scope}: {scope: AnimationScope}): ReactElement {
 								{renderChevron(sortBy === 'amount')}
 							</span>
 						</button>
+
 						<button
-							onClick={(): void => onSort('weight', toggleSortDirection('weight'))}
+							onClick={(): void => onSort('beaconEqu', toggleSortDirection('beaconEqu'))}
 							className={'group col-span-2 -mr-1.5 flex cursor-pointer flex-row justify-end'}>
 							<p className={'text-right text-xs'}>
-								{'Target weight bands'}
+								{'Composition'}
 							</p>
 							<span className={'pl-2'}>
-								{renderChevron(sortBy === 'weight')}
+								{renderChevron(sortBy === 'beaconEqu')}
 							</span>
+						</button>
+
+						<button
+							onClick={(): void => onSort('currentWeight', toggleSortDirection('currentWeight'))}
+							className={'group col-span-2 -mr-1.5 flex cursor-pointer flex-row justify-end'}>
+							<p className={'text-right text-xs'}>
+								{'Weight'}
+							</p>
+							<span className={'pl-2'}>
+								{renderChevron(sortBy === 'currentWeight')}
+							</span>
+						</button>
+
+						<button className={'col-span-2 -mr-1.5 flex cursor-pointer flex-row justify-end'}>
+							<p className={'text-right text-xs'}>
+								{'Bands (-/+ %)'}
+							</p>
 						</button>
 					</div>
 
@@ -203,11 +222,14 @@ function LSTInPool({scope}: {scope: AnimationScope}): ReactElement {
 								return 0;
 							}).map((token): ReactElement => {
 								return (
-									<Link key={token.address} href={`https://etherscan.io/address/${token.address}`} target={'_blank'}>
+									<Link
+										key={token.address}
+										href={`https://etherscan.io/address/${token.address}`}
+										target={'_blank'}>
 										<div
-											className={'grid grid-cols-6 gap-2 px-4 py-6 hover:bg-neutral-100/10 md:grid-cols-10 md:gap-10 md:px-72 md:py-3'}>
+											className={'grid grid-cols-6 gap-2 px-4 py-6 hover:bg-neutral-100/10 md:grid-cols-12 md:gap-10 md:px-72 md:py-3'}>
 
-											<div className={'col-span-6 flex flex-row items-center'}>
+											<div className={'col-span-4 flex flex-row items-center'}>
 												<div className={'h-10 w-10 min-w-[40px]'}>
 													<ImageWithFallback
 														alt={token.name}
@@ -225,24 +247,63 @@ function LSTInPool({scope}: {scope: AnimationScope}): ReactElement {
 												</div>
 												<div className={'font-number text-right'}>
 													<b suppressHydrationWarning>
-														{`${formatAmount(Number(token?.virtualPoolSupply?.normalized || 0), 4, 4)}%`}
+													{`${formatAmount(Number(token.poolStats?.currentBeaconEquivalentValue.normalized || 0), 6, 6)}`}
 													</b>
-													<p suppressHydrationWarning>{formatAmount(token?.poolSupply?.normalized || 0, 6, 6)}</p>
+													<small
+														className={'block whitespace-nowrap text-neutral-0/60'}
+														suppressHydrationWarning>
+														{`~${formatAmount(token.poolStats?.amountInPool.normalized || 0, 6, 6)} ETH`}
+													</small>
 												</div>
 											</div>
-
 
 											<div className={'col-span-6 flex w-full flex-row items-center justify-between md:col-span-2 md:justify-end'}>
 												<div className={'flex md:hidden'}>
-													<p className={'text-xs text-neutral-0/60'}>{'Target Weight Bands'}</p>
+													<p className={'text-xs text-neutral-0/60'}>{'Composition'}</p>
 												</div>
-												<div
-													suppressHydrationWarning
-													className={'font-number flex items-center justify-end text-right'}>
-													{formatAmount(token?.targetWeight?.normalized || 0, 6, 6)}
+												<div className={'font-number text-right'}>
+													<b suppressHydrationWarning>
+													{`${formatAmount(Number(token.poolStats?.amountInPoolPercent || 0), 2, 2)}%`}
+													</b>
+													<small
+														className={'block text-neutral-0/60'}
+														suppressHydrationWarning>
+														&nbsp;
+													</small>
 												</div>
 											</div>
 
+											<div className={'col-span-6 flex w-full flex-row items-center justify-between md:col-span-2 md:justify-end'}>
+												<div className={'flex md:hidden'}>
+													<p className={'text-xs text-neutral-0/60'}>{'Current weight -> Target'}</p>
+												</div>
+												<div className={'font-number text-right'}>
+													<b suppressHydrationWarning>
+														{`${formatAmount(Number(token.poolStats?.currentEquilibrumWeight.normalized || 0) * 100, 2, 2)}%`}
+													</b>
+													<small
+														className={'block text-neutral-0/60'}
+														suppressHydrationWarning>
+														{`Target: ${formatAmount(Number(token.poolStats?.weightRamps.normalized || 0) * 100, 2, 2)}%`}
+													</small>
+												</div>
+											</div>
+
+											<div className={'col-span-6 flex w-full flex-row items-center justify-between md:col-span-2 md:justify-end'}>
+												<div className={'flex md:hidden'}>
+													<p className={'text-xs text-neutral-0/60'}>{'Bands (+/- %)'}</p>
+												</div>
+												<div className={'font-number text-right'}>
+													<b suppressHydrationWarning>
+														{`${formatAmount(Number(token.poolStats?.currentBandPlus.normalized || 0) * 100, 2, 2)}% - ${formatAmount(Number(token.poolStats?.currentBandMin.normalized || 0) * 100, 2, 2)}%`}
+													</b>
+													<small
+														className={'block text-neutral-0/60'}
+														suppressHydrationWarning>
+														&nbsp;
+													</small>
+												</div>
+											</div>
 										</div>
 									</Link>
 								);
