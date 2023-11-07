@@ -63,14 +63,7 @@ function LSTInPoolStats(): ReactElement {
 				{hasRampStopTime && (
 					<>
 						<div>
-							<dt className={'mb-2 text-xs'}>{'Rumping up A'}</dt>
-							<dd suppressHydrationWarning className={'font-number font-bold'} >
-								{`${formatAmount(toNormalizedBN(stats.amplification).normalized, 0, 0)}->${formatAmount(toNormalizedBN(stats.targetAmplification).normalized, 0, 0)}`}
-							</dd>
-						</div>
-
-						<div>
-							<dt className={'mb-2 text-xs'}>{'Rump up A ends on'}</dt>
+							<dt className={'mb-2 text-xs'}>{'Weight ramp ends on'}</dt>
 							<dd className={'font-number font-bold'} suppressHydrationWarning>
 								{formatDate(Number(stats.rampStopTime) * 1000)}
 							</dd>
