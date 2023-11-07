@@ -12,6 +12,7 @@ import useWallet from 'contexts/useWallet';
 import useAPR from 'hooks/useAPR';
 import BOOTSTRAP_ABI from 'utils/abi/bootstrap.abi';
 import {ST_YETH_ABI} from 'utils/abi/styETH.abi';
+import {getCurrentEpoch} from 'utils/epochs';
 import {STYETH_TOKEN, YETH_TOKEN} from 'utils/tokens';
 import {useContractRead} from 'wagmi';
 import {useAnimate} from 'framer-motion';
@@ -172,6 +173,25 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 		);
 	}
 
+	function renderIncentiveAPR(): ReactElement {
+		const epoch = getCurrentEpoch();
+
+		return (
+			<span className={'tooltip'}>
+				<small className={cl('text-xs text-purple-300 group-hover:text-neutral-0', basicTransition)}>
+					{epoch.incentiveAPR ? (`+${epoch.incentiveAPR}% incentive vAPR`) : null}
+				</small>
+				<span className={'tooltipLight !-inset-x-24 top-full mt-2 !w-auto'}>
+					<div
+						suppressHydrationWarning
+						className={'w-fit rounded-md border border-neutral-700 bg-neutral-900 p-1 px-2 text-center text-xs font-medium text-neutral-0'}>
+						{'Based on last epoch\'s voting rewards for a genesis st-yETH holder'}
+					</div>
+				</span>
+			</span>
+		);
+	}
+
 	return (
 		<div
 			ref={scope}
@@ -234,6 +254,7 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 									</div>
 								</span>
 							</span>
+							{renderIncentiveAPR()}
 						</div>
 					</div>
 

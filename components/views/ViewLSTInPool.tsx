@@ -247,12 +247,12 @@ function LSTInPool({scope}: {scope: AnimationScope}): ReactElement {
 												</div>
 												<div className={'font-number text-right'}>
 													<b suppressHydrationWarning>
-													{`${formatAmount(Number(token.poolStats?.currentBeaconEquivalentValue.normalized || 0), 6, 6)}`}
+													{`${formatAmount(token.poolStats?.amountInPool.normalized || 0, 6, 6)}`}
 													</b>
 													<small
 														className={'block whitespace-nowrap text-neutral-0/60'}
 														suppressHydrationWarning>
-														{`~${formatAmount(token.poolStats?.amountInPool.normalized || 0, 6, 6)} ETH`}
+														{`~${formatAmount(Number(token.poolStats?.currentBeaconEquivalentValue.normalized || 0), 6, 6)} ETH`}
 													</small>
 												</div>
 											</div>
