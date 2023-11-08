@@ -383,7 +383,7 @@ function ViewDetails({isOutOfBand, minOut, tokenToReceive, bonusOrPenalty}: {
 					{'Info'}
 				</h2>
 				<p className={'whitespace-break-spaces pt-4 text-neutral-600'}>
-					{'Choose a single LST to withdraw into, or withdraw into all 5 LSTs (balanced by pool composition).'}
+					{'Choose a single LST to withdraw into, or withdraw into all LSTs (balanced by pool composition).'}
 				</p>
 			</div>
 		</div>

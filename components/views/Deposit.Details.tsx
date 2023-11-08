@@ -71,7 +71,7 @@ function DepositDetails({label, estimateOut, vb, bonusOrPenalty, shouldDepositEt
 					{'Info'}
 				</h2>
 				<p className={'whitespace-break-spaces pt-4 text-neutral-600'}>
-					{shouldDepositEth ? 'Deposit vanilla ETH via a Curve Swap to receive yETH' : 'Deposit any of the 5 LSTs (in any combination) to receive yETH. Or you can deposit and stake to receive st-yETH and immediately start earning that sweet, sweet liquid staking yield.'}
+					{shouldDepositEth ? 'Deposit vanilla ETH via a Curve Swap to receive yETH' : 'Deposit any of the LSTs (in any combination) to receive yETH. Or you can deposit and stake to receive st-yETH and immediately start earning that sweet, sweet liquid staking yield.'}
 				</p>
 				{shouldDepositEth && (
 					<p className={'whitespace-break-spaces pt-4 text-neutral-600'}>
