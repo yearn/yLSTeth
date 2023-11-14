@@ -43,7 +43,7 @@ function VoteHeader(): ReactElement {
 			<div className={'mt-6 flex w-full flex-col items-start gap-4 md:grid-cols-1 md:flex-row md:gap-6'}>
 				<div className={'w-full'}>
 					<p className={'text-neutral-700'}>
-						{'st-yETH holders are the house, senate, lords, and commons of yETH governance. Holders vote every epoch on yETH composition, accepting new LSTs into yETH, as well as governance proposals and parameter configurations. Vote power is fixed at the start of voting.'}
+						{'st-yETH holders are the house, senate, lords, and commons of yETH governance. Holders vote every epoch on yETH composition, accepting new LSTs into yETH, as well as governance proposals and parameter configurations. Vote power accrues over time and is snapshotted every Thursday midnight (GMT).'}
 					</p>
 				</div>
 				<div className={'flex w-full justify-end space-x-4 pb-2 md:w-auto'}>

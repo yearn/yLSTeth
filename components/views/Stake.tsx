@@ -321,7 +321,7 @@ function ViewDetails(): ReactElement {
 					{'Info'}
 				</h2>
 				<p className={'whitespace-break-spaces pt-4 text-neutral-600'}>
-					{'Stake your yETH into st-yETH to start earning liquid staking yield.\n\nYou can unstake back into yETH at any time.\n\n'}
+					{'Stake your yETH into st-yETH to start earning liquid staking yield.\n\nYou can unstake back into yETH at any time.\n\nStaked yETH is used in protocol governance, you accrue voting power over time by simply holding st-yETH. Moving or unstaking it resets your voting power.'}
 
 					{(lockedTokens && lockedTokens >= 0n) ? (
 						<>
