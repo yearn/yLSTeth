@@ -4,7 +4,6 @@ import {ImageWithFallback} from 'components/common/ImageWithFallback';
 import IconWarning from 'components/icons/IconWarning';
 import useWallet from 'contexts/useWallet';
 import {handleInputChangeEventValue} from 'utils';
-import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
 import {IconLinkOut} from '@yearn-finance/web-lib/icons/IconLinkOut';
 import {toAddress} from '@yearn-finance/web-lib/utils/address';
 import {cl} from '@yearn-finance/web-lib/utils/cl';
@@ -40,26 +39,15 @@ function TokenInput({
 	shouldCheckBalance = true,
 	isDisabled = false
 }: TViewFromToken): ReactElement {
-	const {isActive} = useWeb3();
 	const {balances} = useWallet();
 	const balanceOf = useMemo((): TNormalizedBN => {
 		return toNormalizedBN((balances?.[token.address]?.raw || 0) || 0);
 	}, [balances, token.address]);
 
 	const onChangeAmount = useCallback((e: ChangeEvent<HTMLInputElement>): void => {
-		const element = document.getElementById('amountToSend') as HTMLInputElement;
 		const newAmount = handleInputChangeEventValue(e, token?.decimals || 18);
-		if (!isActive) {
-			return onChange(newAmount);
-		}
-		if (newAmount.raw > balances?.[token.address]?.raw) {
-			if (element?.value) {
-				element.value = formatAmount(balances?.[token.address]?.normalized, 0, 18);
-			}
-			return onChange(toNormalizedBN(balances?.[token.address]?.raw || 0));
-		}
-		onChange(newAmount);
-	}, [isActive, balances, onChange, token.address, token?.decimals]);
+		return onChange(newAmount);
+	}, [onChange, token?.decimals]);
 
 	return (
 		<div className={'grid grid-cols-12 gap-x-2'}>

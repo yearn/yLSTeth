@@ -18,7 +18,6 @@ import {cl} from '@yearn-finance/web-lib/utils/cl';
 import {MAX_UINT_256} from '@yearn-finance/web-lib/utils/constants';
 import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
-import {performBatchedUpdates} from '@yearn-finance/web-lib/utils/performBatchedUpdates';
 import {defaultTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 
 import type {TLST} from 'hooks/useLSTData';
@@ -83,18 +82,24 @@ function ViewLSTWithdrawForm({token, amount, onSelect, isSelected, shouldHideRad
 
 function ViewSelectedTokens({amounts, set_amounts, selectedLST, set_selectedLST, shouldBalanceTokens, set_shouldBalanceTokens, set_bonusOrPenalty}: {
 	amounts: TNormalizedBN[],
-	set_amounts: (amounts: TNormalizedBN[]) => void,
 	selectedLST: TLST,
-	set_selectedLST: (token: TLST) => void,
 	shouldBalanceTokens: boolean,
+	set_amounts: (amounts: TNormalizedBN[]) => void,
+	set_selectedLST: (token: TLST) => void,
 	set_shouldBalanceTokens: (shouldBalance: boolean) => void,
 	set_bonusOrPenalty: (bonusOrPenalty: number) => void
 }): ReactElement {
 	const {isActive, provider} = useWeb3();
-	const {refresh} = useWallet();
+	const {balances, refresh} = useWallet();
 	const {lst, slippage} = useLST();
 	const [txStatus, set_txStatus] = useState<TTxStatus>(defaultTxStatus);
 	const [fromAmount, set_fromAmount] = useState<TNormalizedBN>(toNormalizedBN(0));
+
+	const balancesOf = useMemo((): TNormalizedBN[] => {
+		return lst.map((token): TNormalizedBN => {
+			return toNormalizedBN((balances?.[token.address]?.raw || 0) || 0);
+		});
+	}, [balances, lst]);
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	** If the user is updating the fromAmount and the fromToken is yETH, then update the toAmount
@@ -218,13 +223,9 @@ function ViewSelectedTokens({amounts, set_amounts, selectedLST, set_selectedLST,
 				]);
 			}
 		}
-		performBatchedUpdates((): void => {
-			set_fromAmount(toNormalizedBN(0));
-			set_amounts(amounts.map((): TNormalizedBN => toNormalizedBN(0)));
-		});
-
-	// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [amounts, fromAmount.raw, isActive, provider, refresh, selectedLST.index, shouldBalanceTokens]);
+		set_fromAmount(toNormalizedBN(0));
+		set_amounts(amounts.map((): TNormalizedBN => toNormalizedBN(0)));
+	}, [amounts, fromAmount.raw, isActive, provider, refresh, selectedLST.index, set_amounts, shouldBalanceTokens, slippage]);
 
 
 	return (
@@ -308,7 +309,13 @@ function ViewSelectedTokens({amounts, set_amounts, selectedLST, set_selectedLST,
 				<Button
 					onClick={onWithdraw}
 					isBusy={txStatus.pending}
-					isDisabled={!isActive || !provider || fromAmount.raw === 0n || amounts.every((amount): boolean => amount.raw <= 0n)}
+					isDisabled={(
+						!isActive ||
+						!provider ||
+						fromAmount.raw === 0n ||
+						amounts.every((amount): boolean => amount.raw <= 0n) ||
+						lst.some((token): boolean => balancesOf[token.index].raw < amounts[token.index].raw)
+					)}
 					className={'w-full md:w-[184px]'}>
 					{'Withdraw'}
 				</Button>
