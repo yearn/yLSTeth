@@ -100,6 +100,15 @@ export const MEVETH_TOKEN: TTokenInfo ={
 	logoURI: 'https://assets.smold.app/api/token/1/0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E/logo-128.png'
 };
 
+export const WEETH_TOKEN: TTokenInfo ={
+	chainId: 1,
+	address: toAddress('0xCd5fE23C85820F7B72D0926FC9b05b43E359b7ee'),
+	name: 'EtherFi Wrapped ETH',
+	symbol: 'weETH',
+	decimals: 18,
+	logoURI: 'https://assets.smold.app/api/token/1/0xCd5fE23C85820F7B72D0926FC9b05b43E359b7ee/logo-128.png'
+};
+
 /**********************************************************************************************
 ** Other tokens related to yETH ecosystem
 **********************************************************************************************/

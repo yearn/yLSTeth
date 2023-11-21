@@ -1,5 +1,5 @@
 import {EPOCH_AVG_BLOCKS, EPOCH_DURATION, INITIAL_PERIOD_BLOCK, INITIAL_PERIOD_TIMESTAMP} from 'utils/constants';
-import {CBETH_TOKEN, MEVETH_TOKEN, MPETH_TOKEN, RETH_TOKEN, SFRXETH_TOKEN, STADERETH_TOKEN, SWETH_TOKEN, WSTETH_TOKEN} from 'utils/tokens';
+import {CBETH_TOKEN, MEVETH_TOKEN, MPETH_TOKEN, RETH_TOKEN, SFRXETH_TOKEN, STADERETH_TOKEN, SWETH_TOKEN, WEETH_TOKEN, WSTETH_TOKEN} from 'utils/tokens';
 import {toBigInt} from '@yearn-finance/web-lib/utils/format.bigNumber';
 
 import type {TEpoch} from './types';
@@ -4349,7 +4349,10 @@ allEpochs.push({
 	incentiveAPR: 22.1,
 	inclusion: {
 		id: '0x0301000000000000000000000000000000000000000000000000000000000000',
-		candidates: []
+		candidates: [
+			{...WEETH_TOKEN, index: 0},
+			{...RETH_TOKEN, index: 1}
+		]
 	},
 	weight: {
 		id: '0x0302000000000000000000000000000000000000000000000000000000000000',
