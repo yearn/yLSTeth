@@ -70,12 +70,12 @@ export const APPS = {
 	},
 	yPrisma: {
 		name: 'yPrisma',
-		href: '/',
+		href: 'https://yprisma.yearn.fi',
 		icon: (
 			<ImageWithFallback
 				priority
 				className={'h-8 w-8'}
-				src={'${process.env.SMOL_ASSETS_URL}/token/1/0xe3668873d944e4a949da05fc8bde419eff543882/logo-128.png'}
+				src={`${process.env.SMOL_ASSETS_URL}/token/1/0xe3668873d944e4a949da05fc8bde419eff543882/logo-128.png`}
 				width={64}
 				height={64}
 				alt={'yPrisma'}
