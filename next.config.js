@@ -47,7 +47,8 @@ module.exports = (phase) => withPWA({
 		ALCHEMY_KEY: process.env.ALCHEMY_KEY,
 		INFURA_PROJECT_ID: process.env.INFURA_PROJECT_ID,
 		WALLETCONNECT_PROJECT_ID: process.env.WALLETCONNECT_PROJECT_ID,
-		YDAEMON_BASE_URI: 'https://ydevmon.ycorpo.com', //'https://ydaemon.yearn.fi',
+		YDAEMON_BASE_URI: 'https://ydaemon.yearn.fi',
+		SMOL_ASSETS_URL: 'https://assets.smold.app/api',
 		BASE_CHAIN_ID: 1, // Expected to work on this chain
 		DEFAULT_CHAIN_ID: 1, // The one we currently use
 

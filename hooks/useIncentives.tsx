@@ -251,7 +251,7 @@ function useIncentives(): TUseIncentivesResp {
 					symbol: symbol,
 					decimals: decimals,
 					chainId: Number(process.env.BASE_CHAIN_ID),
-					logoURI: `https://assets.smold.app/api/token/1/${toAddress(args.incentive)}/logo-128.png`
+					logoURI: `${process.env.SMOL_ASSETS_URL}/token/1/${toAddress(args.incentive)}/logo-128.png`
 				}
 			});
 		}

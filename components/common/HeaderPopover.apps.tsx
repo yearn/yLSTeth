@@ -22,9 +22,10 @@ export const APPS = {
 		icon: (
 			<ImageWithFallback
 				alt={'yCRV'}
-				width={32}
-				height={32}
-				src={`https://assets.smold.app/api/token/1/${YCRV_TOKEN_ADDRESS}/logo-128.png`}
+				width={64}
+				height={64}
+				className={'h-8 w-8'}
+				src={`${process.env.SMOL_ASSETS_URL}/token/1/${YCRV_TOKEN_ADDRESS}/logo-128.png`}
 				loading={'eager'}
 				priority
 			/>
@@ -59,11 +60,25 @@ export const APPS = {
 			<ImageWithFallback
 				alt={'yETH'}
 				className={'h-8 w-8'}
-				width={100}
-				height={100}
-				src={`https://assets.smold.app/api/token/1/${YETH_TOKEN.address}/logo-128.png`}
+				width={64}
+				height={64}
+				src={`${process.env.SMOL_ASSETS_URL}/token/1/${YETH_TOKEN.address}/logo-128.png`}
 				loading={'eager'}
 				priority
+			/>
+		)
+	},
+	yPrisma: {
+		name: 'yPrisma',
+		href: '/',
+		icon: (
+			<ImageWithFallback
+				priority
+				className={'h-8 w-8'}
+				src={'${process.env.SMOL_ASSETS_URL}/token/1/0xe3668873d944e4a949da05fc8bde419eff543882/logo-128.png'}
+				width={64}
+				height={64}
+				alt={'yPrisma'}
 			/>
 		)
 	}
