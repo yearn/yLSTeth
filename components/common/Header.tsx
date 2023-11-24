@@ -242,7 +242,6 @@ function	WalletSelector(): ReactElement {
 }
 
 const nav: TMenu[] = [
-	// {path: 'https://yearn.fi', label: 'Home', target: '_blank'},
 	{path: '/', label: 'yETH'},
 	// {path: '/deposit', label: 'Deposit'},
 	{path: '/incentivize', label: 'Incentivize'},
@@ -250,7 +249,6 @@ const nav: TMenu[] = [
 	{path: '/claim', label: 'Claim'},
 	{path: '/apply', label: 'Apply'},
 	{path: 'https://docs.yearn.fi/getting-started/products/yeth/overview', label: 'Docs'}
-	// {path: 'https://yeth.yearn.farm/support', label: 'Support'}
 ];
 
 function	AppHeader(): ReactElement {

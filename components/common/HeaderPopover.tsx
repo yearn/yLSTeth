@@ -1,9 +1,10 @@
 import {cloneElement, Fragment, useState} from 'react';
 import Link from 'next/link';
-import Logo from 'components/icons/Logo';
+import {YETH_TOKEN} from 'utils/tokens';
 import {Popover, Transition} from '@headlessui/react';
 
 import {APPS} from './HeaderPopover.apps';
+import {ImageWithFallback} from './ImageWithFallback';
 
 import type {ReactElement} from 'react';
 
@@ -18,7 +19,15 @@ function LogoPopover(): ReactElement {
 			<Popover.Button className={'flex items-center'}>
 				<Link href={'/'}>
 					<span className={'sr-only'}>{'Back to home'}</span>
-					<Logo className={'h-10 w-10 rounded-full bg-purple-300 p-1.5'} />
+					<ImageWithFallback
+						alt={'yETH'}
+						className={'h-8 w-8'}
+						width={64}
+						height={64}
+						src={`${process.env.SMOL_ASSETS_URL}/token/1/${YETH_TOKEN.address}/logo-128.png`}
+						loading={'eager'}
+						priority
+					/>
 				</Link>
 			</Popover.Button>
 			<Transition
