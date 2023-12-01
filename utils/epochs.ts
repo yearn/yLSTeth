@@ -4367,3 +4367,25 @@ allEpochs.push({
 	},
 	merkle: {}
 });
+
+// Epoch 3
+allEpochs.push({
+	index: 3,
+	inclusion: {
+		id: '0x0401000000000000000000000000000000000000000000000000000000000000',
+		candidates: []
+	},
+	weight: {
+		id: '0x0402000000000000000000000000000000000000000000000000000000000000',
+		participants: [
+			{...SFRXETH_TOKEN, index: 0},
+			{...SWETH_TOKEN, index: 1},
+			{...WSTETH_TOKEN, index: 2},
+			{...STADERETH_TOKEN, index: 3},
+			{...CBETH_TOKEN, index: 4},
+			{...MEVETH_TOKEN, index: 5},
+			{...RETH_TOKEN, index: 6},
+		]
+	},
+	merkle: {}
+});
