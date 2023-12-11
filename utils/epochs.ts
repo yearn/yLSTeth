@@ -54,7 +54,7 @@ export function getPreviousEpoch(): TEpoch {
 	if (currentEpochNumber > allEpochs.length - 1) {
 		return allEpochs[allEpochs.length - 1];
 	}
-	return allEpochs[currentEpochNumber - 1];
+	return allEpochs[currentEpochNumber - 2];
 }
 
 /**************************************************************************************************
@@ -4384,7 +4384,7 @@ allEpochs.push({
 			{...STADERETH_TOKEN, index: 3},
 			{...CBETH_TOKEN, index: 4},
 			{...MEVETH_TOKEN, index: 5},
-			{...RETH_TOKEN, index: 6},
+			{...RETH_TOKEN, index: 6}
 		]
 	},
 	merkle: {}

@@ -54,7 +54,10 @@ function Claim(): ReactElement {
 				<ClaimHeading />
 				<div className={'flex flex-col gap-10 md:flex-row md:gap-20'}>
 					<ClaimIncentives />
-					<UnlockTokens />
+					<div>
+						<div className={'h-0 md:h-[104px]'} />
+						<UnlockTokens />
+					</div>
 				</div>
 			</div>
 		</section>

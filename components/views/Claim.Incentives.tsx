@@ -3,13 +3,14 @@ import {useAsyncTrigger} from 'hooks/useAsyncEffect';
 import {useFetch} from 'hooks/useFetch';
 import {useYDaemonBaseURI} from 'hooks/useYDaemonBaseURI';
 import {VOTE_ABI} from 'utils/abi/vote.abi';
-import {getPreviousEpoch} from 'utils/epochs';
+import {getCurrentEpochNumber, getEpoch} from 'utils/epochs';
 import {encodeFunctionData, type Hex, type ReadContractParameters} from 'viem';
 import {erc20ABI, readContracts} from 'wagmi';
 import {Button} from '@yearn-finance/web-lib/components/Button';
 import {Modal} from '@yearn-finance/web-lib/components/Modal';
 import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
 import {toAddress} from '@yearn-finance/web-lib/utils/address';
+import {cl} from '@yearn-finance/web-lib/utils/cl';
 import {decodeAsBoolean, decodeAsNumber, decodeAsString} from '@yearn-finance/web-lib/utils/decoder';
 import {type TNormalizedBN,toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
@@ -19,6 +20,7 @@ import {ClaimIncentiveModal} from './Claim.IncentivesModal';
 
 import type {TTokenInfo} from 'contexts/useTokenList';
 import type {ReactElement} from 'react';
+import type {TEpoch} from 'utils/types';
 import type {TAddress} from '@yearn-finance/web-lib/types';
 
 type TClaimDetails = {
@@ -34,23 +36,34 @@ function ClaimIncentives(): ReactElement {
 	const {address} = useWeb3();
 	const [claimableIncentiveRaw, set_claimableIncentiveRaw] = useState<TClaimDetails[]>([]);
 	const [isModalOpen, set_isModalOpen] = useState<boolean>(false);
-	const previousEpochData = getPreviousEpoch();
+	const [epochToDisplay, set_epochToDisplay] = useState<number>(getCurrentEpochNumber() - 1);
 	const {yDaemonBaseUri} = useYDaemonBaseURI({chainID: Number(process.env.BASE_CHAIN_ID)});
 	const {data: prices} = useFetch<TYDaemonPrices>({
 		endpoint: `${yDaemonBaseUri}/prices/all`,
 		schema: yDaemonPricesSchema
 	});
+	const epochs = useMemo((): number[] => {
+		const epochArray = [];
+		for (let i = 0; i <= getCurrentEpochNumber(); i++) {
+			epochArray.push(i);
+		}
+		return epochArray;
+	}, []);
+	const previousEpochData = useMemo((): TEpoch => getEpoch(epochToDisplay), [epochToDisplay]);
 
 	const onRefreshClaimableData = useAsyncTrigger(async (): Promise<void> => {
 		if (!address || !previousEpochData) {
+			set_claimableIncentiveRaw([]);
 			return;
 		}
 		const {merkle} = previousEpochData;
 		if (!merkle) {
+			set_claimableIncentiveRaw([]);
 			return;
 		}
 		const claimableIncentives = merkle[address];
 		if (!claimableIncentives) {
+			set_claimableIncentiveRaw([]);
 			return;
 		}
 		const claimData: TClaimDetails[] = [];
@@ -189,6 +202,22 @@ function ClaimIncentives(): ReactElement {
 		<Fragment>
 			<div className={'flex flex-col gap-10 md:flex-row md:gap-20'}>
 				<div className={'flex flex-col md:w-1/2 lg:w-[352px]'}>
+					<div>
+						<p className={'mb-1 text-neutral-600'}>{'Select epoch'}</p>
+						<div className={cl('grow-1 col-span-5 flex h-10 w-full items-center justify-start rounded-md p-2 bg-neutral-100 md:w-[264px] mb-9')}>
+							<select
+								className={'w-full overflow-x-scroll border-none bg-transparent px-0 py-4 outline-none scrollbar-none'}
+								onChange={(e): void => set_epochToDisplay(Number(e.target.value))}
+								value={epochToDisplay}
+								defaultValue={getCurrentEpochNumber()}>
+								{epochs.map((index): ReactElement => (
+									<option key={index} value={index}>
+										{index === getCurrentEpochNumber() ? 'Current' : `Epoch ${index + 1}`}
+									</option>
+								))}
+							</select>
+						</div>
+					</div>
 					<div className={'mb-4 w-full bg-neutral-100 p-4'}>
 						<p className={'pb-2'}>{'Your claimable incentives, $'}</p>
 						<b suppressHydrationWarning className={'font-number text-3xl'}>
