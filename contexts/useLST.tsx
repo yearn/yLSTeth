@@ -14,21 +14,21 @@ import type {TLST} from 'hooks/useLSTData';
 import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 
 type TUseLSTProps = {
-	slippage: bigint
-	set_slippage: (value: bigint) => void
-	dailyVolume: number
-	TVL: number,
-	TAL: TNormalizedBN,
-	lst: TLST[],
+	slippage: bigint;
+	set_slippage: (value: bigint) => void;
+	dailyVolume: number;
+	TVL: number;
+	TAL: TNormalizedBN;
+	lst: TLST[];
 	stats: {
-		amplification: bigint
-		rampStopTime: bigint
-		targetAmplification: bigint
-		swapFeeRate: bigint
-	}
-	onUpdateLST: () => void,
-	incentives: TUseIncentivesResp
-}
+		amplification: bigint;
+		rampStopTime: bigint;
+		targetAmplification: bigint;
+		swapFeeRate: bigint;
+	};
+	onUpdateLST: () => void;
+	incentives: TUseIncentivesResp;
+};
 const defaultProps: TUseLSTProps = {
 	slippage: 50n,
 	set_slippage: (): void => {},
@@ -50,7 +50,6 @@ const defaultProps: TUseLSTProps = {
 		totalDepositedETH: toNormalizedBN(0),
 		totalDepositedUSD: 0
 	}
-
 };
 
 const LSTContext = createContext<TUseLSTProps>(defaultProps);
@@ -90,30 +89,30 @@ export const LSTContextApp = ({children}: {children: React.ReactElement}): React
 		]
 	});
 
-	const contextValue = useMemo((): TUseLSTProps => ({
-		slippage,
-		set_slippage,
-		dailyVolume: 0,
-		lst,
-		TVL,
-		TAL,
-		stats: areStatsFetched ? {
-			amplification: toBigInt(stats?.[0]?.result as bigint),
-			rampStopTime: toBigInt(stats?.[1]?.result as bigint),
-			targetAmplification: toBigInt(stats?.[2]?.result as bigint),
-			swapFeeRate: toBigInt(stats?.[3]?.result as bigint)
-		} : defaultProps.stats,
-		onUpdateLST: updateLST,
-		incentives
-	}), [slippage, lst, TVL, TAL, areStatsFetched, stats, updateLST, incentives]);
-
-	return (
-		<LSTContext.Provider value={contextValue}>
-			{children}
-		</LSTContext.Provider>
+	const contextValue = useMemo(
+		(): TUseLSTProps => ({
+			slippage,
+			set_slippage,
+			dailyVolume: 0,
+			lst,
+			TVL,
+			TAL,
+			stats: areStatsFetched
+				? {
+						amplification: toBigInt(stats?.[0]?.result as bigint),
+						rampStopTime: toBigInt(stats?.[1]?.result as bigint),
+						targetAmplification: toBigInt(stats?.[2]?.result as bigint),
+						swapFeeRate: toBigInt(stats?.[3]?.result as bigint)
+					}
+				: defaultProps.stats,
+			onUpdateLST: updateLST,
+			incentives
+		}),
+		[slippage, lst, TVL, TAL, areStatsFetched, stats, updateLST, incentives]
 	);
-};
 
+	return <LSTContext.Provider value={contextValue}>{children}</LSTContext.Provider>;
+};
 
 const useLST = (): TUseLSTProps => useContext(LSTContext);
 export default useLST;

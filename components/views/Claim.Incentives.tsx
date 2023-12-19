@@ -12,9 +12,9 @@ import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
 import {toAddress} from '@yearn-finance/web-lib/utils/address';
 import {cl} from '@yearn-finance/web-lib/utils/cl';
 import {decodeAsBoolean, decodeAsNumber, decodeAsString} from '@yearn-finance/web-lib/utils/decoder';
-import {type TNormalizedBN,toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
+import {type TNormalizedBN, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
-import {type TYDaemonPrices,yDaemonPricesSchema} from '@yearn-finance/web-lib/utils/schemas/yDaemonPricesSchema';
+import {type TYDaemonPrices, yDaemonPricesSchema} from '@yearn-finance/web-lib/utils/schemas/yDaemonPricesSchema';
 
 import {ClaimIncentiveModal} from './Claim.IncentivesModal';
 
@@ -24,13 +24,13 @@ import type {TEpoch} from 'utils/types';
 import type {TAddress} from '@yearn-finance/web-lib/types';
 
 type TClaimDetails = {
-	id: string,
-	value: number,
-	amount: TNormalizedBN,
-	token: TTokenInfo,
-	isSelected: boolean,
-	multicall: {target: TAddress, callData: Hex}
-}
+	id: string;
+	value: number;
+	amount: TNormalizedBN;
+	token: TTokenInfo;
+	isSelected: boolean;
+	multicall: {target: TAddress; callData: Hex};
+};
 
 function ClaimIncentives(): ReactElement {
 	const {address} = useWeb3();
@@ -68,38 +68,36 @@ function ClaimIncentives(): ReactElement {
 		}
 		const claimData: TClaimDetails[] = [];
 
-		const calls = claimableIncentives.map((item): ReadContractParameters[] => {
-			return ([
-				{
-					abi: erc20ABI,
-					address: item.incentive,
-					functionName: 'decimals',
-					args: []
-				},
-				{
-					abi: erc20ABI,
-					address: item.incentive,
-					functionName: 'name',
-					args: []
-				},
-				{
-					abi: erc20ABI,
-					address: item.incentive,
-					functionName: 'symbol',
-					args: []
-				},
-				{
-					abi: VOTE_ABI,
-					address: toAddress(process.env.VOTE_ADDRESS),
-					functionName: 'claimed',
-					args: [
-						item.vote,
-						item.incentive,
-						address
-					]
-				}
-			]);
-		}).flat() as any[];
+		const calls = claimableIncentives
+			.map((item): ReadContractParameters[] => {
+				return [
+					{
+						abi: erc20ABI,
+						address: item.incentive,
+						functionName: 'decimals',
+						args: []
+					},
+					{
+						abi: erc20ABI,
+						address: item.incentive,
+						functionName: 'name',
+						args: []
+					},
+					{
+						abi: erc20ABI,
+						address: item.incentive,
+						functionName: 'symbol',
+						args: []
+					},
+					{
+						abi: VOTE_ABI,
+						address: toAddress(process.env.VOTE_ADDRESS),
+						functionName: 'claimed',
+						args: [item.vote, item.incentive, address]
+					}
+				];
+			})
+			.flat() as any[];
 		const data = await readContracts({contracts: calls});
 
 		let callIndex = 0;
@@ -131,13 +129,7 @@ function ClaimIncentives(): ReactElement {
 					callData: encodeFunctionData({
 						abi: VOTE_ABI,
 						functionName: 'claim',
-						args: [
-							item.vote,
-							item.incentive,
-							item.amount,
-							item.proof,
-							address
-						]
+						args: [item.vote, item.incentive, item.amount, item.proof, address]
 					})
 				}
 			});
@@ -145,54 +137,64 @@ function ClaimIncentives(): ReactElement {
 		set_claimableIncentiveRaw(claimData);
 	}, [address, previousEpochData]);
 
-	const assignValue = useCallback((_claimableIncentiveRaw: TClaimDetails[]): TClaimDetails[] => {
-		if (!prices || !_claimableIncentiveRaw) {
+	const assignValue = useCallback(
+		(_claimableIncentiveRaw: TClaimDetails[]): TClaimDetails[] => {
+			if (!prices || !_claimableIncentiveRaw) {
+				return _claimableIncentiveRaw;
+			}
+			for (const incentive of _claimableIncentiveRaw) {
+				const tokenPrice = Number(toNormalizedBN(prices[incentive.token.address] || 0, 6).normalized);
+				incentive.value = tokenPrice * Number(incentive.amount.normalized);
+			}
 			return _claimableIncentiveRaw;
-		}
-		for (const incentive of _claimableIncentiveRaw) {
-			const tokenPrice = Number(toNormalizedBN(prices[incentive.token.address] || 0, 6).normalized);
-			incentive.value = tokenPrice * Number(incentive.amount.normalized);
-		}
-		return _claimableIncentiveRaw;
-	}, [prices]);
+		},
+		[prices]
+	);
 
-	const claimableIncentives = useMemo((): TClaimDetails[] => assignValue(claimableIncentiveRaw), [assignValue, claimableIncentiveRaw]);
-
-	/* 🔵 - Yearn Finance **************************************************************************
-	** Compute the total amount of incentives you already claimed.
-	**
-	** @deps: claimableIncentive - The list of all the incentives you can claim.
-	** @returns: number - The total amount of incentives you can claim.
-	**********************************************************************************************/
-	const totalToClaim = useMemo((): number => (
-		claimableIncentives.reduce((total, incentive): number => total + incentive.value, 0)
-	), [claimableIncentives]);
+	const claimableIncentives = useMemo(
+		(): TClaimDetails[] => assignValue(claimableIncentiveRaw),
+		[assignValue, claimableIncentiveRaw]
+	);
 
 	/* 🔵 - Yearn Finance **************************************************************************
-	** Function triggered when the user clicks a checkbox in the confirmation modal. This will mark
-	** the incentive as selected or not.
-	**
-	** @params: id - The id of the incentive.
-	** @params: isSelected - Whether the incentive should be selected or not.
-	** @deps: claimableIncentives - The list of all the incentives you can claim.
-	**********************************************************************************************/
-	const onUpdateIncentive = useCallback((id: string, isSelected: boolean): void => {
-		const newClaimableIncentive = [...claimableIncentiveRaw];
-		const index = newClaimableIncentive.findIndex((item): boolean => item.id === id);
-		if (index === -1) {
-			return;
-		}
-		newClaimableIncentive[index].isSelected = isSelected;
-		set_claimableIncentiveRaw(newClaimableIncentive);
-	}, [claimableIncentiveRaw]);
+	 ** Compute the total amount of incentives you already claimed.
+	 **
+	 ** @deps: claimableIncentive - The list of all the incentives you can claim.
+	 ** @returns: number - The total amount of incentives you can claim.
+	 **********************************************************************************************/
+	const totalToClaim = useMemo(
+		(): number => claimableIncentives.reduce((total, incentive): number => total + incentive.value, 0),
+		[claimableIncentives]
+	);
 
 	/* 🔵 - Yearn Finance **************************************************************************
-	** Function triggered when the user has successfully claimed an incentive. This will close the
-	** modal and refresh the list of claimed incentives and the vote data.
-	**
-	** @deps: refreshClaimedIncentives - The function to refresh the list of claimed incentives.
-	** @deps: refreshVoteData - The function to refresh the vote data.
-	**********************************************************************************************/
+	 ** Function triggered when the user clicks a checkbox in the confirmation modal. This will mark
+	 ** the incentive as selected or not.
+	 **
+	 ** @params: id - The id of the incentive.
+	 ** @params: isSelected - Whether the incentive should be selected or not.
+	 ** @deps: claimableIncentives - The list of all the incentives you can claim.
+	 **********************************************************************************************/
+	const onUpdateIncentive = useCallback(
+		(id: string, isSelected: boolean): void => {
+			const newClaimableIncentive = [...claimableIncentiveRaw];
+			const index = newClaimableIncentive.findIndex((item): boolean => item.id === id);
+			if (index === -1) {
+				return;
+			}
+			newClaimableIncentive[index].isSelected = isSelected;
+			set_claimableIncentiveRaw(newClaimableIncentive);
+		},
+		[claimableIncentiveRaw]
+	);
+
+	/* 🔵 - Yearn Finance **************************************************************************
+	 ** Function triggered when the user has successfully claimed an incentive. This will close the
+	 ** modal and refresh the list of claimed incentives and the vote data.
+	 **
+	 ** @deps: refreshClaimedIncentives - The function to refresh the list of claimed incentives.
+	 ** @deps: refreshVoteData - The function to refresh the vote data.
+	 **********************************************************************************************/
 	const onClaimedSuccess = useCallback(async (): Promise<void> => {
 		onRefreshClaimableData();
 		set_isModalOpen(false);
@@ -204,27 +206,40 @@ function ClaimIncentives(): ReactElement {
 				<div className={'flex flex-col md:w-1/2 lg:w-[352px]'}>
 					<div>
 						<p className={'mb-1 text-neutral-600'}>{'Select epoch'}</p>
-						<div className={cl('grow-1 col-span-5 flex h-10 w-full items-center justify-start rounded-md p-2 bg-neutral-100 md:w-[264px] mb-9')}>
+						<div
+							className={cl(
+								'grow-1 col-span-5 flex h-10 w-full items-center justify-start rounded-md p-2 bg-neutral-100 md:w-[264px] mb-9'
+							)}>
 							<select
-								className={'w-full overflow-x-scroll border-none bg-transparent px-0 py-4 outline-none scrollbar-none'}
+								className={
+									'w-full overflow-x-scroll border-none bg-transparent px-0 py-4 outline-none scrollbar-none'
+								}
 								onChange={(e): void => set_epochToDisplay(Number(e.target.value))}
 								value={epochToDisplay}
 								defaultValue={getCurrentEpochNumber()}>
-								{epochs.map((index): ReactElement => (
-									<option key={index} value={index}>
-										{index === getCurrentEpochNumber() ? 'Current' : `Epoch ${index + 1}`}
-									</option>
-								))}
+								{epochs.map(
+									(index): ReactElement => (
+										<option
+											key={index}
+											value={index}>
+											{index === getCurrentEpochNumber() ? 'Current' : `Epoch ${index + 1}`}
+										</option>
+									)
+								)}
 							</select>
 						</div>
 					</div>
 					<div className={'mb-4 w-full bg-neutral-100 p-4'}>
 						<p className={'pb-2'}>{'Your claimable incentives, $'}</p>
-						<b suppressHydrationWarning className={'font-number text-3xl'}>
+						<b
+							suppressHydrationWarning
+							className={'font-number text-3xl'}>
 							{`$${formatAmount(totalToClaim, 2, 2)}`}
 						</b>
 						<p
-							className={'font-number block text-sm text-neutral-500 transition-colors group-hover:text-neutral-0 md:text-base'}>
+							className={
+								'font-number block text-sm text-neutral-500 transition-colors group-hover:text-neutral-0 md:text-base'
+							}>
 							&nbsp;
 						</p>
 					</div>
@@ -244,7 +259,8 @@ function ClaimIncentives(): ReactElement {
 					onUpdateIncentive={onUpdateIncentive}
 					claimableIncentive={claimableIncentives}
 					onSuccess={onClaimedSuccess}
-					onCancel={(): void => set_isModalOpen(false)} />
+					onCancel={(): void => set_isModalOpen(false)}
+				/>
 			</Modal>
 		</Fragment>
 	);

@@ -56,9 +56,17 @@ function Phase4({variant}: {variant: string[]}): ReactElement {
 					initial={'initial'}
 					animate={'move'}
 					exit={'exit'}>
-					<p>{'The votes have been counted, the launch roster has been chosen. Now all that’s left to do is deploy the contracts, build the launch composition with the constituent LSTs and write a 100 tweet launch thread.'}</p>
+					<p>
+						{
+							'The votes have been counted, the launch roster has been chosen. Now all that’s left to do is deploy the contracts, build the launch composition with the constituent LSTs and write a 100 tweet launch thread.'
+						}
+					</p>
 					&nbsp;
-					<p>{'Stay tuned anon, soon the yETH basket of risk adjusted epically yielding LSTs will launch into the cryptosphere.'}</p>
+					<p>
+						{
+							'Stay tuned anon, soon the yETH basket of risk adjusted epically yielding LSTs will launch into the cryptosphere.'
+						}
+					</p>
 					&nbsp;
 					<p>{'One token, many benefits. LFG.'}</p>
 				</motion.div>
@@ -71,7 +79,7 @@ function Phase4({variant}: {variant: string[]}): ReactElement {
 				animate={'move'}
 				exit={'exit'}>
 				<div className={'absolute inset-0 top-20 flex h-full w-full justify-center'}>
-					<HeroAsLottie id={'launch'}/>
+					<HeroAsLottie id={'launch'} />
 				</div>
 			</motion.div>
 		</section>

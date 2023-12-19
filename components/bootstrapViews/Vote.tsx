@@ -29,12 +29,12 @@ function Timer(): ReactElement {
 }
 
 type TVoteListItem = {
-	item: TTokenInfo
-	totalVotesRemaining: TNormalizedBN
-	voteToSend: TNormalizedBN
-	onChangeAmount: (e: ChangeEvent<HTMLInputElement>, item: TTokenInfo) => void
-	updateToMax: (item: TTokenInfo) => void
-}
+	item: TTokenInfo;
+	totalVotesRemaining: TNormalizedBN;
+	voteToSend: TNormalizedBN;
+	onChangeAmount: (e: ChangeEvent<HTMLInputElement>, item: TTokenInfo) => void;
+	updateToMax: (item: TTokenInfo) => void;
+};
 function VoteListItem({
 	item,
 	totalVotesRemaining,
@@ -48,11 +48,11 @@ function VoteListItem({
 	} = useBootstrap();
 
 	/* 🔵 - Yearn Finance **************************************************************************
-	** View function to round the amount and check if it is the max amount.
-	**********************************************************************************************/
+	 ** View function to round the amount and check if it is the max amount.
+	 **********************************************************************************************/
 	const isMax = useMemo((): boolean => {
-		const percent = Number(voteToSend?.normalized || 0n) / Number(voteData.votesAvailable.normalized) * 100;
-		return (Math.round(percent * 100) / 100) === 100;
+		const percent = (Number(voteToSend?.normalized || 0n) / Number(voteData.votesAvailable.normalized)) * 100;
+		return Math.round(percent * 100) / 100 === 100;
 	}, [voteToSend?.normalized, voteData.votesAvailable.normalized]);
 
 	return (
@@ -65,55 +65,86 @@ function VoteListItem({
 						alt={''}
 						unoptimized
 						width={40}
-						height={40} />
+						height={40}
+					/>
 				</div>
 				<div className={'flex flex-col'}>
-					<p className={'whitespace-nowrap'}>
-						{item.symbol || truncateHex(item.address, 6)}
-					</p>
-					<small className={'whitespace-nowrap text-xs'}>
-						{item.name}
-					</small>
+					<p className={'whitespace-nowrap'}>{item.symbol || truncateHex(item.address, 6)}</p>
+					<small className={'whitespace-nowrap text-xs'}>{item.name}</small>
 				</div>
 			</div>
 
 			<div className={'col-span-12 grid grid-cols-12 gap-4 md:col-span-6'}>
-				<div className={'col-span-12 flex h-auto items-center justify-between pr-0 md:col-span-4 md:h-10 md:justify-end md:pr-1'}>
+				<div
+					className={
+						'col-span-12 flex h-auto items-center justify-between pr-0 md:col-span-4 md:h-10 md:justify-end md:pr-1'
+					}>
 					<small className={'block text-neutral-500 md:hidden'}>{'Total incentive'}</small>
 					<div className={'text-right'}>
-						<b suppressHydrationWarning className={'font-number'}>
-							<Renderable shouldRender={true} fallback ={'-'}>
-								{`$ ${formatAmount(groupIncentiveHistory.protocols[item.address]?.normalizedSum, 2, 2)}`}
+						<b
+							suppressHydrationWarning
+							className={'font-number'}>
+							<Renderable
+								shouldRender={true}
+								fallback={'-'}>
+								{`$ ${formatAmount(
+									groupIncentiveHistory.protocols[item.address]?.normalizedSum,
+									2,
+									2
+								)}`}
 							</Renderable>
 						</b>
-						<p suppressHydrationWarning className={'font-number whitespace-nowrap text-xs'}>
-							<Renderable shouldRender={true} fallback ={'-'}>
-								{`${formatAmount(groupIncentiveHistory.protocols[item.address]?.usdPerStETH || 0, 2, 2)} USD/st-yETH`}
+						<p
+							suppressHydrationWarning
+							className={'font-number whitespace-nowrap text-xs'}>
+							<Renderable
+								shouldRender={true}
+								fallback={'-'}>
+								{`${formatAmount(
+									groupIncentiveHistory.protocols[item.address]?.usdPerStETH || 0,
+									2,
+									2
+								)} USD/st-yETH`}
 							</Renderable>
 						</p>
 					</div>
 				</div>
 
-				<div className={'col-span-12 flex h-auto items-center justify-between pr-0 md:col-span-2 md:h-10 md:justify-end md:pr-1'}>
+				<div
+					className={
+						'col-span-12 flex h-auto items-center justify-between pr-0 md:col-span-2 md:h-10 md:justify-end md:pr-1'
+					}>
 					<small className={'block text-neutral-500 md:hidden'}>{'Weight'}</small>
-					<p suppressHydrationWarning className={'font-number'}>
+					<p
+						suppressHydrationWarning
+						className={'font-number'}>
 						{formatPercent(item?.extra?.weight || 0, 2, 2)}
 					</p>
 				</div>
 
-				<div className={'col-span-12 flex h-auto items-center justify-between pr-0 md:col-span-3 md:h-10 md:justify-end md:pr-1'}>
-					<small className={'block text-neutral-500 md:hidden'}>
-						{'Total Votes, yETH'}
-					</small>
-					<p suppressHydrationWarning className={'font-number'}>
+				<div
+					className={
+						'col-span-12 flex h-auto items-center justify-between pr-0 md:col-span-3 md:h-10 md:justify-end md:pr-1'
+					}>
+					<small className={'block text-neutral-500 md:hidden'}>{'Total Votes, yETH'}</small>
+					<p
+						suppressHydrationWarning
+						className={'font-number'}>
 						{`${formatAmount(toNormalizedBN(item?.extra?.votes || 0).normalized, 6, 6)}`}
 					</p>
 				</div>
 
-				<div className={'col-span-12 flex h-10 items-center justify-between pr-0 md:col-span-3 md:justify-end md:pr-1'}>
+				<div
+					className={
+						'col-span-12 flex h-10 items-center justify-between pr-0 md:col-span-3 md:justify-end md:pr-1'
+					}>
 					<small className={'block text-neutral-500 md:hidden'}>{'Your Votes'}</small>
-					<p suppressHydrationWarning className={'font-number'}>
-						<Renderable shouldRender={!isLoadingEvents} fallback={'-'}>
+					<p
+						suppressHydrationWarning
+						className={'font-number'}>
+						<Renderable
+							shouldRender={!isLoadingEvents}
+							fallback={'-'}>
 							{`${formatAmount(voteData.votesUsedPerProtocol[item.address]?.normalized || 0, 6, 6)}`}
 						</Renderable>
 					</p>
@@ -124,7 +155,9 @@ function VoteListItem({
 				<div className={'box-500 grow-1 flex h-10 w-full items-center justify-center p-2'}>
 					<input
 						id={`vote-for-${item.address}`}
-						className={'w-full overflow-x-scroll border-none bg-transparent px-0 py-4 font-mono text-sm outline-none scrollbar-none'}
+						className={
+							'w-full overflow-x-scroll border-none bg-transparent px-0 py-4 font-mono text-sm outline-none scrollbar-none'
+						}
 						type={'number'}
 						min={0}
 						maxLength={20}
@@ -134,14 +167,19 @@ function VoteListItem({
 						placeholder={'0'}
 						pattern={'^((?:0|[1-9]+)(?:.(?:d+?[1-9]|[1-9]))?)$'}
 						value={voteToSend?.normalized || ''}
-						onChange={(e): void => onChangeAmount(e, item)} />
+						onChange={(e): void => onChangeAmount(e, item)}
+					/>
 					<div className={'ml-2 flex flex-row space-x-1'}>
 						<button
 							onClick={(): void => updateToMax(item)}
-							className={cl('p-1 text-xs rounded-sm border border-purple-300 transition-colors', isMax ? 'bg-purple-300 text-white' : 'text-purple-300 hover:bg-purple-300 hover:text-white')}>
+							className={cl(
+								'p-1 text-xs rounded-sm border border-purple-300 transition-colors',
+								isMax
+									? 'bg-purple-300 text-white'
+									: 'text-purple-300 hover:bg-purple-300 hover:text-white'
+							)}>
 							{'max'}
 						</button>
-
 					</div>
 				</div>
 			</div>
@@ -172,11 +210,10 @@ function VoteList(): ReactElement {
 		return toNormalizedBN(used);
 	}, [voteToSend]);
 
-
 	/* 🔵 - Yearn Finance **************************************************************************
-	**	Callback method used to sort the vaults list.
-	**	The use of useCallback() is to prevent the method from being re-created on every render.
-	**********************************************************************************************/
+	 **	Callback method used to sort the vaults list.
+	 **	The use of useCallback() is to prevent the method from being re-created on every render.
+	 **********************************************************************************************/
 	const onSort = useCallback((newSortBy: string, newSortDirection: string): void => {
 		performBatchedUpdates((): void => {
 			set_sortBy(newSortBy);
@@ -185,66 +222,80 @@ function VoteList(): ReactElement {
 	}, []);
 
 	const toggleSortDirection = (newSortBy: string): TSortDirection => {
-		return sortBy === newSortBy ? (
-			sortDirection === '' ? 'desc' : sortDirection === 'desc' ? 'asc' : 'desc'
-		) : 'desc';
+		return sortBy === newSortBy
+			? sortDirection === ''
+				? 'desc'
+				: sortDirection === 'desc'
+					? 'asc'
+					: 'desc'
+			: 'desc';
 	};
 
-	const renderChevron = useCallback((shouldSortBy: boolean): ReactElement => {
-		if (shouldSortBy && sortDirection === 'desc') {
-			return <IconChevronPlain className={'yearn--sort-chevron transition-all'} />;
-		}
-		if (shouldSortBy && sortDirection === 'asc') {
-			return <IconChevronPlain className={'yearn--sort-chevron rotate-180 transition-all'} />;
-		}
-		return <IconChevronPlain className={'yearn--sort-chevron--off text-neutral-300 transition-all group-hover:text-neutral-500'} />;
-	}, [sortDirection]);
+	const renderChevron = useCallback(
+		(shouldSortBy: boolean): ReactElement => {
+			if (shouldSortBy && sortDirection === 'desc') {
+				return <IconChevronPlain className={'yearn--sort-chevron transition-all'} />;
+			}
+			if (shouldSortBy && sortDirection === 'asc') {
+				return <IconChevronPlain className={'yearn--sort-chevron rotate-180 transition-all'} />;
+			}
+			return (
+				<IconChevronPlain
+					className={'yearn--sort-chevron--off text-neutral-300 transition-all group-hover:text-neutral-500'}
+				/>
+			);
+		},
+		[sortDirection]
+	);
 
 	/* 🔵 - Yearn Finance **************************************************************************
-	** Change the inputed amount when the user types something in the input field.
-	**********************************************************************************************/
-	const onChangeAmount = useCallback((e: ChangeEvent<HTMLInputElement>, currentLST: TTokenInfo): void => {
-		const element = document.getElementById(`vote-for-${currentLST.address}`) as HTMLInputElement;
-		const currentAmount = handleInputChangeEventValue(e, 18);
-		const totalVotePower = voteData.votesAvailable.raw;
-		const remaining = Object.entries(voteToSend)
-			.filter(([key]): boolean => key !== currentLST.address)
-			.reduce((acc, [, curr]): bigint => acc + curr.raw, 0n);
+	 ** Change the inputed amount when the user types something in the input field.
+	 **********************************************************************************************/
+	const onChangeAmount = useCallback(
+		(e: ChangeEvent<HTMLInputElement>, currentLST: TTokenInfo): void => {
+			const element = document.getElementById(`vote-for-${currentLST.address}`) as HTMLInputElement;
+			const currentAmount = handleInputChangeEventValue(e, 18);
+			const totalVotePower = voteData.votesAvailable.raw;
+			const remaining = Object.entries(voteToSend)
+				.filter(([key]): boolean => key !== currentLST.address)
+				.reduce((acc, [, curr]): bigint => acc + curr.raw, 0n);
 
-		if ((remaining + currentAmount.raw) > totalVotePower) {
+			if (remaining + currentAmount.raw > totalVotePower) {
+				const newAmount = toNormalizedBN(totalVotePower - remaining);
+				if (element?.value) {
+					element.value = formatAmount(newAmount.normalized, 0, 18);
+				}
+				return set_voteToSend((v): TDict<TNormalizedBN> => ({...v, [currentLST.address]: newAmount}));
+			}
+
+			set_voteToSend((v): TDict<TNormalizedBN> => ({...v, [currentLST.address]: currentAmount}));
+		},
+		[voteData.votesAvailable.raw, voteToSend]
+	);
+
+	/* 🔵 - Yearn Finance **************************************************************************
+	 ** Change the inputed amount when the user clicks on the max button to match the maximum
+	 ** remaining voting power.
+	 **********************************************************************************************/
+	const updateToMax = useCallback(
+		(currentLST: TTokenInfo): void => {
+			const element = document.getElementById(`vote-for-${currentLST.address}`) as HTMLInputElement;
+			const totalVotePower = voteData.votesAvailable.raw;
+			const remaining = Object.entries(voteToSend)
+				.filter(([key]): boolean => key !== currentLST.address)
+				.reduce((acc, [, curr]): bigint => acc + curr.raw, 0n);
+
 			const newAmount = toNormalizedBN(totalVotePower - remaining);
 			if (element?.value) {
 				element.value = formatAmount(newAmount.normalized, 0, 18);
 			}
 			return set_voteToSend((v): TDict<TNormalizedBN> => ({...v, [currentLST.address]: newAmount}));
-		}
-
-		set_voteToSend((v): TDict<TNormalizedBN> => ({...v, [currentLST.address]: currentAmount}));
-	}, [voteData.votesAvailable.raw, voteToSend]);
-
-	/* 🔵 - Yearn Finance **************************************************************************
-	** Change the inputed amount when the user clicks on the max button to match the maximum
-	** remaining voting power.
-	**********************************************************************************************/
-	const updateToMax = useCallback((currentLST: TTokenInfo): void => {
-		const element = document.getElementById(`vote-for-${currentLST.address}`) as HTMLInputElement;
-		const totalVotePower = voteData.votesAvailable.raw;
-		const remaining = Object.entries(voteToSend)
-			.filter(([key]): boolean => key !== currentLST.address)
-			.reduce((acc, [, curr]): bigint => acc + curr.raw, 0n);
-
-		const newAmount = toNormalizedBN(totalVotePower - remaining);
-		if (element?.value) {
-			element.value = formatAmount(newAmount.normalized, 0, 18);
-		}
-		return set_voteToSend((v): TDict<TNormalizedBN> => ({...v, [currentLST.address]: newAmount}));
-	}, [voteData.votesAvailable.raw, voteToSend]);
+		},
+		[voteData.votesAvailable.raw, voteToSend]
+	);
 
 	const onVoteSuccess = useCallback(async (): Promise<void> => {
-		await Promise.all([
-			onUpdate(),
-			onUpdateLST()
-		]);
+		await Promise.all([onUpdate(), onUpdateLST()]);
 		performBatchedUpdates((): void => {
 			set_isModalOpen(false);
 			set_voteToSend({});
@@ -254,11 +305,11 @@ function VoteList(): ReactElement {
 
 	return (
 		<div>
-			<div aria-label={'header'} className={'mb-4 hidden grid-cols-12 gap-10 md:grid'}>
+			<div
+				aria-label={'header'}
+				className={'mb-4 hidden grid-cols-12 gap-10 md:grid'}>
 				<div className={'col-span-3'}>
-					<p className={'text-xs text-neutral-500'}>
-						{'LST'}
-					</p>
+					<p className={'text-xs text-neutral-500'}>{'LST'}</p>
 				</div>
 				<div className={'col-span-12 grid grid-cols-12 gap-4 md:col-span-6'}>
 					<div className={'col-span-4 flex justify-end'}>
@@ -266,9 +317,7 @@ function VoteList(): ReactElement {
 							onClick={(): void => onSort('totalIncentive', toggleSortDirection('totalIncentive'))}
 							className={'group flex flex-row text-xs text-neutral-500'}>
 							{'Total incentive'}
-							<span className={'pl-2'}>
-								{renderChevron(sortBy === 'totalIncentive')}
-							</span>
+							<span className={'pl-2'}>{renderChevron(sortBy === 'totalIncentive')}</span>
 						</p>
 					</div>
 					<div className={'col-span-2 flex justify-end'}>
@@ -276,9 +325,7 @@ function VoteList(): ReactElement {
 							onClick={(): void => onSort('weight', toggleSortDirection('weight'))}
 							className={'group flex flex-row text-xs text-neutral-500'}>
 							{'Weight'}
-							<span className={'pl-2'}>
-								{renderChevron(sortBy === 'weight')}
-							</span>
+							<span className={'pl-2'}>{renderChevron(sortBy === 'weight')}</span>
 						</p>
 					</div>
 					<div className={'col-span-3 flex justify-end'}>
@@ -286,9 +333,7 @@ function VoteList(): ReactElement {
 							onClick={(): void => onSort('totalVotes', toggleSortDirection('totalVotes'))}
 							className={'group flex flex-row text-xs text-neutral-500'}>
 							{'Total Votes'}
-							<span className={'pl-2'}>
-								{renderChevron(sortBy === 'totalVotes')}
-							</span>
+							<span className={'pl-2'}>{renderChevron(sortBy === 'totalVotes')}</span>
 						</p>
 					</div>
 					<div className={'col-span-3 flex justify-end'}>
@@ -296,16 +341,12 @@ function VoteList(): ReactElement {
 							onClick={(): void => onSort('yourVotes', toggleSortDirection('yourVotes'))}
 							className={'group flex flex-row text-xs text-neutral-500'}>
 							{'Your Votes'}
-							<span className={'pl-2'}>
-								{renderChevron(sortBy === 'yourVotes')}
-							</span>
+							<span className={'pl-2'}>{renderChevron(sortBy === 'yourVotes')}</span>
 						</p>
 					</div>
 				</div>
 				<div className={'col-span-3 flex justify-start'}>
-					<p className={'group flex flex-row text-xs text-neutral-500'}>
-						{'Vote with your st-yETH'}
-					</p>
+					<p className={'group flex flex-row text-xs text-neutral-500'}>{'Vote with your st-yETH'}</p>
 				</div>
 			</div>
 
@@ -323,8 +364,8 @@ function VoteList(): ReactElement {
 						if (totalVotes === 0) {
 							return 0;
 						}
-						aValue = aVotes / totalVotes * 100;
-						bValue = bVotes / totalVotes * 100;
+						aValue = (aVotes / totalVotes) * 100;
+						bValue = (bVotes / totalVotes) * 100;
 					} else if (sortBy === 'totalVotes') {
 						aValue = Number(toNormalizedBN(toBigInt(a.extra?.votes)).normalized);
 						bValue = Number(toNormalizedBN(toBigInt(b.extra?.votes)).normalized);
@@ -334,15 +375,18 @@ function VoteList(): ReactElement {
 					}
 					return sortDirection === 'desc' ? Number(bValue) - Number(aValue) : Number(aValue) - Number(bValue);
 				})
-				.map((item, index): ReactElement => (
-					<VoteListItem
-						key={`${index}_${nonce}`}
-						item={item}
-						totalVotesRemaining={totalVotesRemaining}
-						voteToSend={voteToSend[item.address]}
-						onChangeAmount={onChangeAmount}
-						updateToMax={updateToMax} />
-				))}
+				.map(
+					(item, index): ReactElement => (
+						<VoteListItem
+							key={`${index}_${nonce}`}
+							item={item}
+							totalVotesRemaining={totalVotesRemaining}
+							voteToSend={voteToSend[item.address]}
+							onChangeAmount={onChangeAmount}
+							updateToMax={updateToMax}
+						/>
+					)
+				)}
 			{isLoading && (
 				<div className={'mt-6 flex flex-row items-center justify-center'}>
 					<IconSpinner className={'!h-6 !w-6 !text-neutral-400'} />
@@ -355,9 +399,7 @@ function VoteList(): ReactElement {
 				<div className={'hidden md:col-span-3 md:flex'} />
 				<div className={'hidden justify-end md:col-span-1 md:flex'} />
 				<div className={'col-span-2 flex h-10 items-center justify-end md:col-span-2'}>
-					<b className={'text-neutral-900'}>
-						{'Total'}
-					</b>
+					<b className={'text-neutral-900'}>{'Total'}</b>
 				</div>
 				<div className={'col-span-5 flex h-10 items-center justify-end md:col-span-2'}>
 					<b className={'font-number text-neutral-900'}>
@@ -380,7 +422,8 @@ function VoteList(): ReactElement {
 					whitelistedLST={whitelistedLST}
 					voteToSend={voteToSend}
 					onSuccess={onVoteSuccess}
-					onCancel={(): void => set_isModalOpen(false)} />
+					onCancel={(): void => set_isModalOpen(false)}
+				/>
 			</Modal>
 		</div>
 	);
@@ -412,23 +455,22 @@ function Vote(): ReactElement {
 		} else {
 			set_className('');
 		}
-
 	}, [voteStatus, className]);
 
 	return (
 		<section className={'grid grid-cols-1 pt-10 md:mb-20 md:pt-12'}>
 			<div className={'mb-20 md:mb-0'}>
 				<div className={'mb-6 flex w-full flex-col justify-center md:w-[52%]'}>
-					<h1 className={'text-3xl font-black md:text-8xl'}>
-						{'Vote'}
-					</h1>
+					<h1 className={'text-3xl font-black md:text-8xl'}>{'Vote'}</h1>
 					<b
 						suppressHydrationWarning
 						className={'font-number mt-4 text-4xl leading-10 text-purple-300'}>
 						<Timer />
 					</b>
 					<p className={'pt-8 text-neutral-700'}>
-						{'Decide how much ETH you want to lock as st-yETH. Remember this ETH will be locked for 16 weeks, during which time period you’ll be able to receive bri... incentives for voting on which LSTs will be included in yETH.'}
+						{
+							'Decide how much ETH you want to lock as st-yETH. Remember this ETH will be locked for 16 weeks, during which time period you’ll be able to receive bri... incentives for voting on which LSTs will be included in yETH.'
+						}
 					</p>
 				</div>
 				<div
@@ -437,17 +479,31 @@ function Vote(): ReactElement {
 					<div className={'mb-6 grid grid-cols-2 gap-0 md:grid-cols-8'}>
 						<div className={'col-span-3 mr-4 bg-neutral-100 p-4'}>
 							<p className={'pb-2'}>{'Total Votes, yETH'}</p>
-							<b suppressHydrationWarning className={'font-number text-3xl'}>
-								<Renderable shouldRender={!isLoading} fallback ={'-'}>
+							<b
+								suppressHydrationWarning
+								className={'font-number text-3xl'}>
+								<Renderable
+									shouldRender={!isLoading}
+									fallback={'-'}>
 									{formatAmount(totalVotesNormalized, 6, 6)}
 								</Renderable>
 							</b>
 						</div>
 						<div className={'col-span-3 bg-neutral-100 p-4'}>
 							<p className={'pb-2'}>{'Your votes, yETH'}</p>
-							<b suppressHydrationWarning className={'font-number text-3xl'}>
-								<Renderable shouldRender={!isLoading} fallback ={'-'}>
-									{totalVotePowerNormalized === 0 ? formatAmount(0, 4, 4) : `${formatAmount(voteData.votesAvailable.normalized, 4, 4)}/${formatAmount(totalVotePowerNormalized, 4, 4)}`}
+							<b
+								suppressHydrationWarning
+								className={'font-number text-3xl'}>
+								<Renderable
+									shouldRender={!isLoading}
+									fallback={'-'}>
+									{totalVotePowerNormalized === 0
+										? formatAmount(0, 4, 4)
+										: `${formatAmount(voteData.votesAvailable.normalized, 4, 4)}/${formatAmount(
+												totalVotePowerNormalized,
+												4,
+												4
+											)}`}
 								</Renderable>
 							</b>
 						</div>

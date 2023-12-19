@@ -14,7 +14,7 @@ function useAPR(): number {
 	const calculateSecondLeftInWeek = (): number => {
 		const secondInWeek = 604800;
 		const currentTimestamp = Math.floor(Date.now() / 1000);
-		return secondInWeek - currentTimestamp % secondInWeek;
+		return secondInWeek - (currentTimestamp % secondInWeek);
 	};
 
 	const estimatedAPR = useMemo((): number => {
@@ -26,11 +26,14 @@ function useAPR(): number {
 		const _unlockedAmount = toNormalizedBN(unlockedAmount);
 		const secondInYear = 31_536_000;
 		const secondLeftInWeek = calculateSecondLeftInWeek();
-		const _estimatedAPR = Number(_streamingAmount.normalized) * secondInYear / secondLeftInWeek / Number(_unlockedAmount.normalized);
+		const _estimatedAPR =
+			(Number(_streamingAmount.normalized) * secondInYear) /
+			secondLeftInWeek /
+			Number(_unlockedAmount.normalized);
 		return _estimatedAPR * 100;
 	}, [data]);
 
-	return (estimatedAPR);
+	return estimatedAPR;
 }
 
 export default useAPR;

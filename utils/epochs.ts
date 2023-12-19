@@ -1,5 +1,15 @@
 import {EPOCH_AVG_BLOCKS, EPOCH_DURATION, INITIAL_PERIOD_BLOCK, INITIAL_PERIOD_TIMESTAMP} from 'utils/constants';
-import {CBETH_TOKEN, MEVETH_TOKEN, MPETH_TOKEN, RETH_TOKEN, SFRXETH_TOKEN, STADERETH_TOKEN, SWETH_TOKEN, WEETH_TOKEN, WSTETH_TOKEN} from 'utils/tokens';
+import {
+	CBETH_TOKEN,
+	MEVETH_TOKEN,
+	MPETH_TOKEN,
+	RETH_TOKEN,
+	SFRXETH_TOKEN,
+	STADERETH_TOKEN,
+	SWETH_TOKEN,
+	WEETH_TOKEN,
+	WSTETH_TOKEN
+} from 'utils/tokens';
 import {toBigInt} from '@yearn-finance/web-lib/utils/format.bigNumber';
 
 import type {TEpoch} from './types';
@@ -18,11 +28,11 @@ const emptyEpoch: TEpoch = {
 };
 
 /**************************************************************************************************
-** Calculate the current epoch based on the current timestamp, the initial period timestamp and
-** the epoch duration.
-** The formula used is: (currentTimestamp - INITIAL_PERIOD_TIMESTAMP) / EPOCH_DURATION
-** The result is then rounded down to the nearest whole number to get the current epoch.
-**************************************************************************************************/
+ ** Calculate the current epoch based on the current timestamp, the initial period timestamp and
+ ** the epoch duration.
+ ** The formula used is: (currentTimestamp - INITIAL_PERIOD_TIMESTAMP) / EPOCH_DURATION
+ ** The result is then rounded down to the nearest whole number to get the current epoch.
+ **************************************************************************************************/
 export function getCurrentEpochNumber(): number {
 	const currentTimestamp = Math.floor(Date.now() / 1000);
 	const currentEpoch = Math.floor((currentTimestamp - INITIAL_PERIOD_TIMESTAMP) / EPOCH_DURATION);
@@ -30,10 +40,10 @@ export function getCurrentEpochNumber(): number {
 }
 
 /**************************************************************************************************
-** This function returns the current epoch object based on the current epoch number.
-** It uses the getCurrentEpochNumber function to get the current epoch number and then
-** retrieves the corresponding epoch object from the allEpochs array.
-**************************************************************************************************/
+ ** This function returns the current epoch object based on the current epoch number.
+ ** It uses the getCurrentEpochNumber function to get the current epoch number and then
+ ** retrieves the corresponding epoch object from the allEpochs array.
+ **************************************************************************************************/
 export function getCurrentEpoch(): TEpoch {
 	const currentEpochNumber = getCurrentEpochNumber();
 	if (currentEpochNumber > allEpochs.length - 1) {
@@ -45,10 +55,10 @@ export function getCurrentEpoch(): TEpoch {
 }
 
 /**************************************************************************************************
-** This function returns the previous epoch object based on the current epoch number.
-** It uses the getCurrentEpochNumber function to get the current epoch number and then
-** retrieves the corresponding epoch object from the allEpochs array.
-**************************************************************************************************/
+ ** This function returns the previous epoch object based on the current epoch number.
+ ** It uses the getCurrentEpochNumber function to get the current epoch number and then
+ ** retrieves the corresponding epoch object from the allEpochs array.
+ **************************************************************************************************/
 export function getPreviousEpoch(): TEpoch {
 	const currentEpochNumber = getCurrentEpochNumber();
 	if (currentEpochNumber > allEpochs.length - 1) {
@@ -58,8 +68,8 @@ export function getPreviousEpoch(): TEpoch {
 }
 
 /**************************************************************************************************
-** This function returns an arbitrary epoch object based on the epoch number passed as a parameter.
-**************************************************************************************************/
+ ** This function returns an arbitrary epoch object based on the epoch number passed as a parameter.
+ **************************************************************************************************/
 export function getEpoch(epochNumber: number): TEpoch {
 	if (epochNumber > allEpochs.length - 1) {
 		const baseEpoch = emptyEpoch;
@@ -73,59 +83,58 @@ export function getEpochStartTimestamp(epochNumber: number): number {
 	if (epochNumber === -1) {
 		return INITIAL_PERIOD_TIMESTAMP;
 	}
-	return INITIAL_PERIOD_TIMESTAMP + ((epochNumber - 1) * EPOCH_DURATION);
+	return INITIAL_PERIOD_TIMESTAMP + epochNumber * EPOCH_DURATION;
 }
 
 export function getEpochEndTimestamp(epochNumber: number): number {
 	if (epochNumber === -1) {
 		return INITIAL_PERIOD_TIMESTAMP + EPOCH_DURATION;
 	}
-	return INITIAL_PERIOD_TIMESTAMP + (epochNumber * EPOCH_DURATION) + EPOCH_DURATION;
+	return INITIAL_PERIOD_TIMESTAMP + EPOCH_DURATION + epochNumber * EPOCH_DURATION;
 }
 
 export function getEpochEndBlock(epochNumber: number): bigint {
-	return INITIAL_PERIOD_BLOCK + (toBigInt(epochNumber) * EPOCH_AVG_BLOCKS) + EPOCH_AVG_BLOCKS;
+	return INITIAL_PERIOD_BLOCK + toBigInt(epochNumber) * EPOCH_AVG_BLOCKS + EPOCH_AVG_BLOCKS;
 }
 
-
 /** 🔵 - Yearn *************************************************************************************
-** To add a new epoch, follow these steps:
-**
-** 1. Copy the first allEpochs.push block.
-** 2. Replace the index with the new epoch number.
-** 3. Replace the list of candidates with the new candidates for this epoch.
-** 4. Replace the list of participants with the new participants for this epoch.
-** 5. Update the ids to the correct voteid.
-**
-** Note:
-** - Both the candidates and participants lists are order sensitive. The first element in the list
-**   will be the choice number 2 in snapshot, as the first one will always be to keep the same as before.
-** - The candidates and participants must respect a specific type that is available in the @tokens.ts file.
-**
-** Here is an example of how to add a new epoch:
-**
-** allEpochs.push({
-** 	index: NEW_EPOCH_NUMBER,
-** 	inclusion: {
-** 		id: 'NEW_VOTE_ID',
-** 		candidates: [
-** 			{...NEW_CANDIDATE_1, index: 0},
-** 			{...NEW_CANDIDATE_2, index: 1},
-** 			{...NEW_CANDIDATE_3, index: 2}
-** 		]
-** 	},
-** 	weight: {
-** 		id: 'NEW_VOTE_ID',
-** 		participants: [
-** 			{...NEW_PARTICIPANT_1, index: 0},
-** 			{...NEW_PARTICIPANT_2, index: 1},
-** 			{...NEW_PARTICIPANT_3, index: 2},
-** 			{...NEW_PARTICIPANT_4, index: 3},
-** 			{...NEW_PARTICIPANT_5, index: 4}
-** 		]
-** 	}
-** });
-**************************************************************************************************/
+ ** To add a new epoch, follow these steps:
+ **
+ ** 1. Copy the first allEpochs.push block.
+ ** 2. Replace the index with the new epoch number.
+ ** 3. Replace the list of candidates with the new candidates for this epoch.
+ ** 4. Replace the list of participants with the new participants for this epoch.
+ ** 5. Update the ids to the correct voteid.
+ **
+ ** Note:
+ ** - Both the candidates and participants lists are order sensitive. The first element in the list
+ **   will be the choice number 2 in snapshot, as the first one will always be to keep the same as before.
+ ** - The candidates and participants must respect a specific type that is available in the @tokens.ts file.
+ **
+ ** Here is an example of how to add a new epoch:
+ **
+ ** allEpochs.push({
+ ** 	index: NEW_EPOCH_NUMBER,
+ ** 	inclusion: {
+ ** 		id: 'NEW_VOTE_ID',
+ ** 		candidates: [
+ ** 			{...NEW_CANDIDATE_1, index: 0},
+ ** 			{...NEW_CANDIDATE_2, index: 1},
+ ** 			{...NEW_CANDIDATE_3, index: 2}
+ ** 		]
+ ** 	},
+ ** 	weight: {
+ ** 		id: 'NEW_VOTE_ID',
+ ** 		participants: [
+ ** 			{...NEW_PARTICIPANT_1, index: 0},
+ ** 			{...NEW_PARTICIPANT_2, index: 1},
+ ** 			{...NEW_PARTICIPANT_3, index: 2},
+ ** 			{...NEW_PARTICIPANT_4, index: 3},
+ ** 			{...NEW_PARTICIPANT_5, index: 4}
+ ** 		]
+ ** 	}
+ ** });
+ **************************************************************************************************/
 const allEpochs: TEpoch[] = [];
 // Epoch 0
 allEpochs.push({
@@ -147,10 +156,10 @@ allEpochs.push({
 	merkle: {
 		'0xD619F816156EFfABF9dDab313cff6b46cad3Fbdd': [
 			{
-				'vote': '0x0102000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xf951E335afb289353dc249e82926178EaC7DEd78',
-				'amount': 44220965648794n,
-				'proof': [
+				vote: '0x0102000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xf951E335afb289353dc249e82926178EaC7DEd78',
+				amount: 44220965648794n,
+				proof: [
 					'0x738b4b1869f79473671786b3fbdc745e74b04d981cdc7145b6e48d2c790274ce',
 					'0x1c594934e32b9ad15fe5bec6b15d83042116d63d9d6f580c0eb9bf382f80c791',
 					'0xdd9028f825608e2faa79f9fbca2c52a1cedb719bbc9c4d3302492b941d321522',
@@ -160,10 +169,10 @@ allEpochs.push({
 		],
 		'0xd67f2ED258deF09d5B7F0021482A5648D65562dC': [
 			{
-				'vote': '0x0102000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xf951E335afb289353dc249e82926178EaC7DEd78',
-				'amount': 147469599903461n,
-				'proof': [
+				vote: '0x0102000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xf951E335afb289353dc249e82926178EaC7DEd78',
+				amount: 147469599903461n,
+				proof: [
 					'0xa14b5ac6583540b2301270fa1d54ca894f696564f3d8f54e53f6f3899e72e02c',
 					'0x1c594934e32b9ad15fe5bec6b15d83042116d63d9d6f580c0eb9bf382f80c791',
 					'0xdd9028f825608e2faa79f9fbca2c52a1cedb719bbc9c4d3302492b941d321522',
@@ -173,10 +182,10 @@ allEpochs.push({
 		],
 		'0x20216577f78eE7D6d5b2b962C744a950efc77437': [
 			{
-				'vote': '0x0102000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xf951E335afb289353dc249e82926178EaC7DEd78',
-				'amount': 65665759040582984n,
-				'proof': [
+				vote: '0x0102000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xf951E335afb289353dc249e82926178EaC7DEd78',
+				amount: 65665759040582984n,
+				proof: [
 					'0xc0150febfcfc365b8ad4a585a83ba6288f50ad963e93d1c657fc6839c0e240ab',
 					'0x18f2ab94b2cf319a1094b7d847d5a53b11d9bc3f5bb66a444d18eed40621478a',
 					'0xdd9028f825608e2faa79f9fbca2c52a1cedb719bbc9c4d3302492b941d321522',
@@ -186,10 +195,10 @@ allEpochs.push({
 		],
 		'0x95adAec801B3e8cb7aa90c6922E23dC987cA2bBf': [
 			{
-				'vote': '0x0102000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xf951E335afb289353dc249e82926178EaC7DEd78',
-				'amount': 542859633294239n,
-				'proof': [
+				vote: '0x0102000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xf951E335afb289353dc249e82926178EaC7DEd78',
+				amount: 542859633294239n,
+				proof: [
 					'0x66edd46e84d24018f3c7c199dc0596fd9322ed639eb0cbb18952798a0bcd1e15',
 					'0x18f2ab94b2cf319a1094b7d847d5a53b11d9bc3f5bb66a444d18eed40621478a',
 					'0xdd9028f825608e2faa79f9fbca2c52a1cedb719bbc9c4d3302492b941d321522',
@@ -199,10 +208,10 @@ allEpochs.push({
 		],
 		'0x324b6194AC36Ad9A94d5125920580459a573e184': [
 			{
-				'vote': '0x0102000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xf951E335afb289353dc249e82926178EaC7DEd78',
-				'amount': 14670082866740770n,
-				'proof': [
+				vote: '0x0102000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xf951E335afb289353dc249e82926178EaC7DEd78',
+				amount: 14670082866740770n,
+				proof: [
 					'0x79d3cc17a36217c90b113ee79f1a634efbd878f0ae8e1b12935eeb59dedadcc6',
 					'0xa4258056b35f39303688a062e263c91ea98f68755340f3a2a9b88aae8f267914',
 					'0x1b94b36705b6e1cfcaad043263af7e4091565d840dff65a9ccb1eca823e52763',
@@ -212,10 +221,10 @@ allEpochs.push({
 		],
 		'0xa8CC9BCf39E981e5629731A18e87A7FCaf4D72B3': [
 			{
-				'vote': '0x0102000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xf951E335afb289353dc249e82926178EaC7DEd78',
-				'amount': 33579081327570841n,
-				'proof': [
+				vote: '0x0102000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xf951E335afb289353dc249e82926178EaC7DEd78',
+				amount: 33579081327570841n,
+				proof: [
 					'0xe2fa5baaa3900c4f53904df221e7e126c4e3c0a251d7ba4a8326cef030f94156',
 					'0xa4258056b35f39303688a062e263c91ea98f68755340f3a2a9b88aae8f267914',
 					'0x1b94b36705b6e1cfcaad043263af7e4091565d840dff65a9ccb1eca823e52763',
@@ -225,10 +234,10 @@ allEpochs.push({
 		],
 		'0x3B15CEc2d922Ab0Ef74688bcC1056461049f89CB': [
 			{
-				'vote': '0x0102000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xf951E335afb289353dc249e82926178EaC7DEd78',
-				'amount': 518476647387n,
-				'proof': [
+				vote: '0x0102000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xf951E335afb289353dc249e82926178EaC7DEd78',
+				amount: 518476647387n,
+				proof: [
 					'0x14143acdd09d18af5617af37272ca1f250d712137c0419648e5d1c9f7845974d',
 					'0xf4903f4047b1f9be1c0fd14c6ab54b099358c99c071aaab7bb55ab7746925cb5',
 					'0xbbfcf5ab1f0f44805bc3c6a5491970058e499f68d20cf1a51a98cb879a1d7d3f',
@@ -238,10 +247,10 @@ allEpochs.push({
 		],
 		'0xdAb4cc54a8BeA0cd7833c9a453E7F4C996b3D100': [
 			{
-				'vote': '0x0102000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xf951E335afb289353dc249e82926178EaC7DEd78',
-				'amount': 3608709522370443n,
-				'proof': [
+				vote: '0x0102000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xf951E335afb289353dc249e82926178EaC7DEd78',
+				amount: 3608709522370443n,
+				proof: [
 					'0x7e7a8e21f1860645468f16730697092a7c8a8abb89914c2df1417a8554dc6915',
 					'0x5a915b71a8293db584806eb36678ba2c4b8b728ac71ef4926b586c899c951fc9',
 					'0xbbfcf5ab1f0f44805bc3c6a5491970058e499f68d20cf1a51a98cb879a1d7d3f',
@@ -276,10 +285,10 @@ allEpochs.push({
 	merkle: {
 		'0x6D5a7597896A703Fe8c85775B23395a48f971305': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 26073122629632502532n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 26073122629632502532n,
+				proof: [
 					'0x3bd604f1245349880daec2cd180aa1b5c9f823e3aade4c963713776f24ecf495',
 					'0x0802d4cd3a5ccd325e8d2d6711614a4c1306c9a96754fcb9b05eb06795eb404a',
 					'0x2fa8292f0100a25477a50dc4bf82e3609c73012d0f1d72c661dbe26d5c5b5781',
@@ -290,10 +299,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 61977043974500231n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 61977043974500231n,
+				proof: [
 					'0x269ad673ddd3d31bf4e54576bee265d6ff407400eb78e21bb7e81880f5045ec4',
 					'0xf65a8931498d48059759c0dff5b1e60bd933ce6faa5560ea9f6868266f46450c',
 					'0x10def4e0ad73ba7c0c784803a190f6a8e6d0ea93bc377650f6291abb0d2cdbdb',
@@ -304,10 +313,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 415634146434341509n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 415634146434341509n,
+				proof: [
 					'0x9d7746096231b1fe43d54b271e349a93d681dfb8f53e7bca1b4688cb5f4e01df',
 					'0xcc173a925bae73c67668beaca539edad216f943714864331779ac19f5012d946',
 					'0x9e0b545a0daffbb268fa5751abae1e0006a094d1afb348aea5add4c74533a7ce',
@@ -318,10 +327,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 929655659617503477n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 929655659617503477n,
+				proof: [
 					'0x544695f2d1c3e7089e962746165a39394b1ff9b7bbeb0e3b039af8e69f13287b',
 					'0xe1a0da451222c1489a04fcc85533fc6e76c5ded50cc95798a6069b86c4b3482d',
 					'0x67dd4fdd2e4c9b2b0d52667d8693060eff0c24b3a5fa9ceff928e8e8e127595a',
@@ -334,10 +343,10 @@ allEpochs.push({
 		],
 		'0x29fF3B5Ad788477a460873dD1FCF78aE95cA565a': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 1303656131481624984n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 1303656131481624984n,
+				proof: [
 					'0xd4ed21fce62122ebd980ecdfaa9f21c5bb927d808a4755e786d25ac1d6036b27',
 					'0x0802d4cd3a5ccd325e8d2d6711614a4c1306c9a96754fcb9b05eb06795eb404a',
 					'0x2fa8292f0100a25477a50dc4bf82e3609c73012d0f1d72c661dbe26d5c5b5781',
@@ -348,10 +357,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 3098852198725011n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 3098852198725011n,
+				proof: [
 					'0x1cf008c6b182f574b8dfde7fb07541cd1e9b91cdbe8a9c000be584b6b2073335',
 					'0xf65a8931498d48059759c0dff5b1e60bd933ce6faa5560ea9f6868266f46450c',
 					'0x10def4e0ad73ba7c0c784803a190f6a8e6d0ea93bc377650f6291abb0d2cdbdb',
@@ -362,10 +371,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 20781707321717073n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 20781707321717073n,
+				proof: [
 					'0x76191ab9aa076e18f1442b4fb41ee429475456a046ade32653335cfff0443ac6',
 					'0xcc173a925bae73c67668beaca539edad216f943714864331779ac19f5012d946',
 					'0x9e0b545a0daffbb268fa5751abae1e0006a094d1afb348aea5add4c74533a7ce',
@@ -376,10 +385,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 46482782980875168n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 46482782980875168n,
+				proof: [
 					'0xc7fe2951c8e5ef7dae9a61cc71c0162a9a482fbb0408655b2ba83cdb10ea6aac',
 					'0xe1a0da451222c1489a04fcc85533fc6e76c5ded50cc95798a6069b86c4b3482d',
 					'0x67dd4fdd2e4c9b2b0d52667d8693060eff0c24b3a5fa9ceff928e8e8e127595a',
@@ -392,10 +401,10 @@ allEpochs.push({
 		],
 		'0xd7F9c6EfDFa2bd42b440E61Bbbd263203025AA32': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 113147586752284630n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 113147586752284630n,
+				proof: [
 					'0x8f01632cf11fed6cdd5c8ac3a47e1fbda273f78b01145d6c7af853dbfc34237b',
 					'0x8805290ef79bd7812587c5be83b111c9878ef9e00759ce994a6c043e75561d38',
 					'0x2fa8292f0100a25477a50dc4bf82e3609c73012d0f1d72c661dbe26d5c5b5781',
@@ -406,10 +415,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 268957157888907n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 268957157888907n,
+				proof: [
 					'0xb4f00a42743d447dbe919a730419a4907c1808626269e125b512771e4ad9d805',
 					'0x2b45f51e1d2eae5dd575cef62d551e1408e88b4648fa01dac3456783d2044b78',
 					'0x10def4e0ad73ba7c0c784803a190f6a8e6d0ea93bc377650f6291abb0d2cdbdb',
@@ -420,10 +429,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 1803696523386247n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 1803696523386247n,
+				proof: [
 					'0xbcf19de69b3e4ed479f267dc38ccd03815fa27aa663802fac6158e8a9ebd2134',
 					'0xc7ca2eedbb6faede93f5d0de11f28cc260cda5d316f3c1f7993f24e61244d828',
 					'0x9e0b545a0daffbb268fa5751abae1e0006a094d1afb348aea5add4c74533a7ce',
@@ -434,10 +443,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 4034357368333617n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 4034357368333617n,
+				proof: [
 					'0x7ed19c78032ba58aeb8a371796b0f22a86a697a5e3d44c26727bd6601a75e4ad',
 					'0xeb523b80ca86d5c889266e6216e67927e1de6c4aaa70ef7ccafb62a884ac269e',
 					'0x67dd4fdd2e4c9b2b0d52667d8693060eff0c24b3a5fa9ceff928e8e8e127595a',
@@ -450,10 +459,10 @@ allEpochs.push({
 		],
 		'0xF83D3292a1da5FAfeb2b46905E3B1C9D544E9ce8': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 3032188265519054629n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 3032188265519054629n,
+				proof: [
 					'0x97fbf6ad9e56d1bb1bd1c2ef7de293f3f992df2e79ef2a2582ba13bcddabbd75',
 					'0x8805290ef79bd7812587c5be83b111c9878ef9e00759ce994a6c043e75561d38',
 					'0x2fa8292f0100a25477a50dc4bf82e3609c73012d0f1d72c661dbe26d5c5b5781',
@@ -464,10 +473,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 7207654723238143n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 7207654723238143n,
+				proof: [
 					'0x58012e433abb4c3c9b1128f622e32e55581332f61e5c6536b178e86c5a3e4569',
 					'0x2b45f51e1d2eae5dd575cef62d551e1408e88b4648fa01dac3456783d2044b78',
 					'0x10def4e0ad73ba7c0c784803a190f6a8e6d0ea93bc377650f6291abb0d2cdbdb',
@@ -478,10 +487,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 48336403716174377n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 48336403716174377n,
+				proof: [
 					'0x62e74c5cc564025a2afe979a4271b87984e8889a7deff2ff31770b079e8e4d8e',
 					'0xc7ca2eedbb6faede93f5d0de11f28cc260cda5d316f3c1f7993f24e61244d828',
 					'0x9e0b545a0daffbb268fa5751abae1e0006a094d1afb348aea5add4c74533a7ce',
@@ -492,10 +501,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 108114820848572153n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 108114820848572153n,
+				proof: [
 					'0xa8bc8d8cfef8ce69514cd4a89aa8b6bfb952eceb41cb25ed6654ce692e1448d3',
 					'0xeb523b80ca86d5c889266e6216e67927e1de6c4aaa70ef7ccafb62a884ac269e',
 					'0x67dd4fdd2e4c9b2b0d52667d8693060eff0c24b3a5fa9ceff928e8e8e127595a',
@@ -508,10 +517,10 @@ allEpochs.push({
 		],
 		'0x314C0695273Ba259Bb60074f2C92c67AC7ae6D40': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 2607312262963249969n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 2607312262963249969n,
+				proof: [
 					'0x7acd4ba846bb0d2cff1d6db93af49d6fe74c6a9e36e4867ba2b0485eedb979d2',
 					'0xda1fe87b2e225ab302d446bce15b80996299bdeebb9b1faa438b0a31876b0f64',
 					'0x346955454d86d76f158250add9ca4b963dfca7586961422c6cd1842b53b85bcc',
@@ -522,10 +531,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 6197704397450022n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 6197704397450022n,
+				proof: [
 					'0x3dff1dd3831e20f9788d0e34868ef0237ba33734ebb49a19b79cbea49ad5138f',
 					'0x703775c77bb83f0ea63138f102d5517ccf5039facde651ec10c70eb72bf0c219',
 					'0xf39000a4d75dd0f1a16c9f1cd2bf9ca6f2195942c5c4cbc869ee277cf7b3d425',
@@ -536,10 +545,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 41563414643434146n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 41563414643434146n,
+				proof: [
 					'0xd8c222a61b0750a01b9c65411efe6a468f4212abccd5428df12bcfc56bbf9a74',
 					'0x0247711fd9ea2bdd19c9e8a96fe8f4f78ad57cc17589127d247a8cfd8a675b27',
 					'0x75f302dac96ddb62f4caa708da8e4a205e1623e94f5c4cef0dbea973eb7df914',
@@ -550,10 +559,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 92965565961750337n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 92965565961750337n,
+				proof: [
 					'0x4d8f044405310c5dceb8f08287c48f0bc470c79210077930dde1b89435f87122',
 					'0x943e4e8453a4a7e47b86502d7d42fec3d1fcdc33bd5c415bf1887055f1abf77f',
 					'0x69f2bad6806ab2bfe205b8ca20ef9f7198d64207684c43c3be58cc70eea11e51',
@@ -566,10 +575,10 @@ allEpochs.push({
 		],
 		'0xf8CaBD50f572295294FF401E70b70C612f91919f': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 353473946442550897n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 353473946442550897n,
+				proof: [
 					'0x8197a2fa1547585bf081ad47f29bc5075d950d6bb96f631dc0798f58a6f4db6f',
 					'0xda1fe87b2e225ab302d446bce15b80996299bdeebb9b1faa438b0a31876b0f64',
 					'0x346955454d86d76f158250add9ca4b963dfca7586961422c6cd1842b53b85bcc',
@@ -580,10 +589,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 840224265950107n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 840224265950107n,
+				proof: [
 					'0xdcff278eafc6d997bb4a419b4abfcfbc7ba22ce84e7dd14a5da0868f61dd7fec',
 					'0x703775c77bb83f0ea63138f102d5517ccf5039facde651ec10c70eb72bf0c219',
 					'0xf39000a4d75dd0f1a16c9f1cd2bf9ca6f2195942c5c4cbc869ee277cf7b3d425',
@@ -594,10 +603,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 5634762053757829n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 5634762053757829n,
+				proof: [
 					'0x94b8969d5b5e198b9357046cdfffb40454a77da3d62c045edad87eb982620baf',
 					'0x0247711fd9ea2bdd19c9e8a96fe8f4f78ad57cc17589127d247a8cfd8a675b27',
 					'0x75f302dac96ddb62f4caa708da8e4a205e1623e94f5c4cef0dbea973eb7df914',
@@ -608,10 +617,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 12603363989251618n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 12603363989251618n,
+				proof: [
 					'0x97b31da96ab1a189d46f55828c32fa96fd386d0210b36eaf687afd9ed1363c6b',
 					'0x943e4e8453a4a7e47b86502d7d42fec3d1fcdc33bd5c415bf1887055f1abf77f',
 					'0x69f2bad6806ab2bfe205b8ca20ef9f7198d64207684c43c3be58cc70eea11e51',
@@ -624,10 +633,10 @@ allEpochs.push({
 		],
 		'0xFFcFA5F7b994AEB4c6931e0A6Cd95d8984e038CE': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 1042924905185300011n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 1042924905185300011n,
+				proof: [
 					'0xc9faef5a091f78c8db8574009f098e506bc6e25865f2c0111225d98149128e2b',
 					'0x1ee6a036a3e509b755c70f45df613fcb5d720f51f28689517c90adc58be39b66',
 					'0x346955454d86d76f158250add9ca4b963dfca7586961422c6cd1842b53b85bcc',
@@ -638,10 +647,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 2479081758980009n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 2479081758980009n,
+				proof: [
 					'0xba8dc1f03e0e9038fae8dc02002d3128f55e21ac5f4c1445fc453b062d269126',
 					'0x29e624c94675ca97d058a7f2dfd03a42616fdf885fd11ae40ed4f069bb685598',
 					'0xf39000a4d75dd0f1a16c9f1cd2bf9ca6f2195942c5c4cbc869ee277cf7b3d425',
@@ -652,10 +661,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 16625365857373658n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 16625365857373658n,
+				proof: [
 					'0xbf49a518af721123b401ef0f611b63960b3ef1f4da3e049d853abe564b955030',
 					'0x6ecc1fb48218fa9011ae0eabc9af31e65d021121d7881bafe9df5d96fdf253ed',
 					'0x75f302dac96ddb62f4caa708da8e4a205e1623e94f5c4cef0dbea973eb7df914',
@@ -666,10 +675,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 37186226384700135n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 37186226384700135n,
+				proof: [
 					'0xece31c89537e202feb90120d55c14c58867aa12d4d0622cbb698e36c357ad24f',
 					'0xd557e2f914ddf28ee29cf795faf980a6b766886fd14a924bd377e96d84f19752',
 					'0x69f2bad6806ab2bfe205b8ca20ef9f7198d64207684c43c3be58cc70eea11e51',
@@ -682,10 +691,10 @@ allEpochs.push({
 		],
 		'0x43D3C255711Eb42148901d2c6AB50FD50F00563d': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 2770139345308607103n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 2770139345308607103n,
+				proof: [
 					'0x447011c3704bec7dd62aac27cc3e32556b120f3ee90389bd8aaf39d92cfd6b94',
 					'0x1ee6a036a3e509b755c70f45df613fcb5d720f51f28689517c90adc58be39b66',
 					'0x346955454d86d76f158250add9ca4b963dfca7586961422c6cd1842b53b85bcc',
@@ -696,10 +705,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 6584752062822047n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 6584752062822047n,
+				proof: [
 					'0x9d4b0b7dbf21e637282e56cda5b734043de35a8ead3066f3d4faf5bf8285af95',
 					'0x29e624c94675ca97d058a7f2dfd03a42616fdf885fd11ae40ed4f069bb685598',
 					'0xf39000a4d75dd0f1a16c9f1cd2bf9ca6f2195942c5c4cbc869ee277cf7b3d425',
@@ -710,10 +719,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 44159056766870921n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 44159056766870921n,
+				proof: [
 					'0xb506521ad24612a862c92c2a94ea5f6ece4d57382b305206eeac452226b1208f',
 					'0x6ecc1fb48218fa9011ae0eabc9af31e65d021121d7881bafe9df5d96fdf253ed',
 					'0x75f302dac96ddb62f4caa708da8e4a205e1623e94f5c4cef0dbea973eb7df914',
@@ -724,10 +733,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 98771280942330710n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 98771280942330710n,
+				proof: [
 					'0x5e15e31c202351cfee47a10d0c2a77d88244d233441ed2747107a37cf2cc2a8a',
 					'0xd557e2f914ddf28ee29cf795faf980a6b766886fd14a924bd377e96d84f19752',
 					'0x69f2bad6806ab2bfe205b8ca20ef9f7198d64207684c43c3be58cc70eea11e51',
@@ -740,10 +749,10 @@ allEpochs.push({
 		],
 		'0x2F8742738E55B7e15d8c1AA213Af1Ff9289C7C6B': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 65182806574081254440n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 65182806574081254440n,
+				proof: [
 					'0xaf54f7e041a5c3cd7691e46aa3c92107c0ca0ce32288b511e3629622ad783f87',
 					'0xd149dcc6f302de05d9428dc473ce3ac41e11ca6a9de0c0c401e6abb19a810755',
 					'0xc8c8c977628d1140c064306adf62035c9e97d46d366b4500912b7b32bf25e493',
@@ -754,10 +763,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 154942609936250575n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 154942609936250575n,
+				proof: [
 					'0x48169e1d89ced02128403dee81c1530bf61db1a9bb2d9bc059f673abfbddca9e',
 					'0xbf0661c00a4e4beb05dd4c57d1103568c5ec1b78cdfe54f04e4aaebb550f51cf',
 					'0x4f358914b34ba36ffeff94013e8ac99234c76c8e17e7b7cb41b30ae3e50be44b',
@@ -768,10 +777,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 1039085366085853743n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 1039085366085853743n,
+				proof: [
 					'0x8e8c696cc250a4e202cd3d87bc75ad3fe0407ff3f5d9f28faadeb1af1aafea04',
 					'0xa9383025b2ac0ff343c7fcb937520b891bb2077502556c140d66a3f58ece2365',
 					'0x55a953f95dcc44a2acefa6e15088607cdbe0e3ae13630f85e729f5108fc4b7b9',
@@ -782,10 +791,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 2324139149043758626n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 2324139149043758626n,
+				proof: [
 					'0x1ff22f8e8f60e1ab2e505714a1aa320e5953105b13ae03ec5644cd73ba26a207',
 					'0x7e1e00997f8fdfa5c3daead7fb70ea706cad00ad6b687d6324dcd81197273f2b',
 					'0xa659d24144f6fbc56b1dc0e595f4682efd943522ca2b210a0d1ff0377cc3c54a',
@@ -798,10 +807,10 @@ allEpochs.push({
 		],
 		'0xd67f2ED258deF09d5B7F0021482A5648D65562dC': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 339502003978552037n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 339502003978552037n,
+				proof: [
 					'0x1a31ad67180ccf2c2695e8b65374a476ac0b74b5a459760602d72c42b726135d',
 					'0xd149dcc6f302de05d9428dc473ce3ac41e11ca6a9de0c0c401e6abb19a810755',
 					'0xc8c8c977628d1140c064306adf62035c9e97d46d366b4500912b7b32bf25e493',
@@ -812,10 +821,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 807012298791395n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 807012298791395n,
+				proof: [
 					'0x70224f47468aae7369bcbfb45fbc1ea530f719a07ecd06d853eaa1ad21542b4b',
 					'0xbf0661c00a4e4beb05dd4c57d1103568c5ec1b78cdfe54f04e4aaebb550f51cf',
 					'0x4f358914b34ba36ffeff94013e8ac99234c76c8e17e7b7cb41b30ae3e50be44b',
@@ -826,10 +835,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 5412033980003675n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 5412033980003675n,
+				proof: [
 					'0x4db3eb5c01223889b0434cbc8c3a33ab437d1c3d9f918485009c335982f30632',
 					'0xa9383025b2ac0ff343c7fcb937520b891bb2077502556c140d66a3f58ece2365',
 					'0x55a953f95dcc44a2acefa6e15088607cdbe0e3ae13630f85e729f5108fc4b7b9',
@@ -840,10 +849,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 12105184481870927n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 12105184481870927n,
+				proof: [
 					'0x03a319c96955a2fb4ccce95bbfad57c28c376e9b88bfcea55dde51be9ea0b704',
 					'0x7e1e00997f8fdfa5c3daead7fb70ea706cad00ad6b687d6324dcd81197273f2b',
 					'0xa659d24144f6fbc56b1dc0e595f4682efd943522ca2b210a0d1ff0377cc3c54a',
@@ -856,10 +865,10 @@ allEpochs.push({
 		],
 		'0x7C0B689A3003e0DBd2d37Ce15e8a2273d91bd7F6': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 344514115624089141n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 344514115624089141n,
+				proof: [
 					'0xac6fc1733e0db509d38b8de82a7393504dd8231ac726b8e949e96d301a1dff80',
 					'0xd8f34502b06d5a321f1387d81c8669c1273a38000cb3f690ba51197b82167b0e',
 					'0xc8c8c977628d1140c064306adf62035c9e97d46d366b4500912b7b32bf25e493',
@@ -870,10 +879,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 818926324904535n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 818926324904535n,
+				proof: [
 					'0xf2d9984562cc5b94909d4a90f020cff66f11ec1f8d79450e1119b4b820515f15',
 					'0xbc5358a524d356000b6af768302cbe46e0b6ded940cb36ea0ade7821dd50be4f',
 					'0x4f358914b34ba36ffeff94013e8ac99234c76c8e17e7b7cb41b30ae3e50be44b',
@@ -884,10 +893,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 5491932532057384n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 5491932532057384n,
+				proof: [
 					'0xa71d8d58d120138d8d0650440e7359a71872a8713e445e4a85fe33d48b65c924',
 					'0x791c0160472a4392095924d8d2561dc7579e2106326ab47740610acbe0536d2c',
 					'0x55a953f95dcc44a2acefa6e15088607cdbe0e3ae13630f85e729f5108fc4b7b9',
@@ -898,10 +907,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 12283894873568036n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 12283894873568036n,
+				proof: [
 					'0x7c073b8466985fe90a53e4c63be1f4e220f8bd7cc1693383919db0e522c3072b',
 					'0x3d145a25c087566c268750dfbc22bf15455224e860ed7541e54d00a67b1b785f',
 					'0xa659d24144f6fbc56b1dc0e595f4682efd943522ca2b210a0d1ff0377cc3c54a',
@@ -914,10 +923,10 @@ allEpochs.push({
 		],
 		'0x992dac69827A200BA112A0303Fe8F79F03c37D9d': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 2971175005720n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 2971175005720n,
+				proof: [
 					'0x9896d601700acca6f8da9feb0ba01652e4fb4f7869f8f2b2c7f8c6bbed2b610e',
 					'0xd8f34502b06d5a321f1387d81c8669c1273a38000cb3f690ba51197b82167b0e',
 					'0xc8c8c977628d1140c064306adf62035c9e97d46d366b4500912b7b32bf25e493',
@@ -928,10 +937,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 7062623322n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 7062623322n,
+				proof: [
 					'0x96e4e02b732dab033ceedf4d87b5302c48f4186621fe0d15bbef0dfd2fc1325c',
 					'0xbc5358a524d356000b6af768302cbe46e0b6ded940cb36ea0ade7821dd50be4f',
 					'0x4f358914b34ba36ffeff94013e8ac99234c76c8e17e7b7cb41b30ae3e50be44b',
@@ -942,10 +951,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 47363785494n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 47363785494n,
+				proof: [
 					'0x1da800faa6c274aba035dc22cdd8f62c7f9153483e7e5256c6c55878058c7323',
 					'0x791c0160472a4392095924d8d2561dc7579e2106326ab47740610acbe0536d2c',
 					'0x55a953f95dcc44a2acefa6e15088607cdbe0e3ae13630f85e729f5108fc4b7b9',
@@ -956,10 +965,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 105939349843n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 105939349843n,
+				proof: [
 					'0xef3cb5ec990b279aca442167edc683eff5eae3373927fa16fa6fd40682534bd3',
 					'0x3d145a25c087566c268750dfbc22bf15455224e860ed7541e54d00a67b1b785f',
 					'0xa659d24144f6fbc56b1dc0e595f4682efd943522ca2b210a0d1ff0377cc3c54a',
@@ -972,10 +981,10 @@ allEpochs.push({
 		],
 		'0xa8CC9BCf39E981e5629731A18e87A7FCaf4D72B3': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 3910968394444874718n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 3910968394444874718n,
+				proof: [
 					'0x1021ed4eb09d7c0462d8ec8020b611b21a85e8c97241bf4a6ac4a47e657f0eee',
 					'0x965357ce43c4754a570bdd86ecb254860f75ebc8f497dd882c9872cd57074576',
 					'0xa6e37b703c40d0406f6186e93fc20e96763494d465e3c67f5e3fc08e5ff94d6d',
@@ -986,10 +995,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 9296556596175033n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 9296556596175033n,
+				proof: [
 					'0x23dab0e466dfd2477b86528d353c69b0cbc5432985469372bd586a442c641f0d',
 					'0xbe2d49e853951d537daa2ca2e06d1ae64e398bd5199d5b09f7483f5564ff0143',
 					'0x8e621c1543d9678bfb61a90c76f97d0ccb829263ba6686fec888cac300011d64',
@@ -1000,10 +1009,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 62345121965151215n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 62345121965151215n,
+				proof: [
 					'0xad8d803c8fd8a3ee926dd8fff9a94c94bf5d21ed4bb2224e6447b6a72e268fae',
 					'0x9caba15d3e7214973fe204d49d4e1776793c8e5e3ac8f374e6e33e290ca371ae',
 					'0x8faafd21da6529ec7489e5e8c656cc582006d9500153f7335789ec674a7f562a',
@@ -1014,10 +1023,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 139448348942625498n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 139448348942625498n,
+				proof: [
 					'0xd5a82cb297fa9054c1610e7dabe32c52fd7978bb7e3b80e4dccddb667680a6cd',
 					'0xae6b804c0a4a8fbab93872a99f6264a0a75414efcd3626678faed4adb75bdefa',
 					'0x9e269e2e0ba0190042f4da485d432e602f4fc31b050caeddfbfd8dd452e3583d',
@@ -1030,10 +1039,10 @@ allEpochs.push({
 		],
 		'0x6de4DbB57fb1fCd7b2e824CaEC2785C3D4890728': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 442819316993551420n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 442819316993551420n,
+				proof: [
 					'0x09dbe8e309ec5bd9fa49c8bdf41ef335142cfe894e87bb2cfce9fceb8fe5c1c4',
 					'0x965357ce43c4754a570bdd86ecb254860f75ebc8f497dd882c9872cd57074576',
 					'0xa6e37b703c40d0406f6186e93fc20e96763494d465e3c67f5e3fc08e5ff94d6d',
@@ -1044,10 +1053,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 1052602431703989n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 1052602431703989n,
+				proof: [
 					'0x481bf0874785d8dff2232dd42657d83a21ea43d6d36a804e21bd70c57b63f8c8',
 					'0xbe2d49e853951d537daa2ca2e06d1ae64e398bd5199d5b09f7483f5564ff0143',
 					'0x8e621c1543d9678bfb61a90c76f97d0ccb829263ba6686fec888cac300011d64',
@@ -1058,10 +1067,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 7059025167705699n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 7059025167705699n,
+				proof: [
 					'0xa5a114357e3940564ee3fbe72722bfd1e563de1f4759a309bf7f2d86651ea232',
 					'0x9caba15d3e7214973fe204d49d4e1776793c8e5e3ac8f374e6e33e290ca371ae',
 					'0x8faafd21da6529ec7489e5e8c656cc582006d9500153f7335789ec674a7f562a',
@@ -1072,10 +1081,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 15789036475559845n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 15789036475559845n,
+				proof: [
 					'0x8b68d81a032ec404bd098ee7f4f412a2f282a85e8aa31cfe42cc8f9f92051877',
 					'0xae6b804c0a4a8fbab93872a99f6264a0a75414efcd3626678faed4adb75bdefa',
 					'0x9e269e2e0ba0190042f4da485d432e602f4fc31b050caeddfbfd8dd452e3583d',
@@ -1088,10 +1097,10 @@ allEpochs.push({
 		],
 		'0x83E81d747529F0Eb6145b149C438aB7f9BBD651C': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 22348865005685888n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 22348865005685888n,
+				proof: [
 					'0xfb1736187fde1de716325db25e998d8899af768159f2c22f64922077c28e4386',
 					'0x71f4810772ecc97c191c48ebe3ea927d9a2dc7605d654fc288a08498331f7e8c',
 					'0xa6e37b703c40d0406f6186e93fc20e96763494d465e3c67f5e3fc08e5ff94d6d',
@@ -1102,10 +1111,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 53124307698509n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 53124307698509n,
+				proof: [
 					'0x958c988c93ebfd236b668860cae7ba236083187e8f8392b9b1152de1e50284bb',
 					'0x699894807077817d7a273f1fdb871a9ed36a0f59ce92d8756492dd5ea1e566d0',
 					'0x8e621c1543d9678bfb61a90c76f97d0ccb829263ba6686fec888cac300011d64',
@@ -1116,10 +1125,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 356265398754253n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 356265398754253n,
+				proof: [
 					'0x5dd65ffc8bd2c8e978429ffc649b37c60747e6ddca7613b1564d72ce5a926515',
 					'0x4110b215cf4e8b6e9518dc832d6443df5dbc7e1c89fde6682e32854cd6f7ec3d',
 					'0x8faafd21da6529ec7489e5e8c656cc582006d9500153f7335789ec674a7f562a',
@@ -1130,10 +1139,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 796864615477639n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 796864615477639n,
+				proof: [
 					'0xf34fb2c7921b1cdbebe59f5f14d742861ffd066991e364d4d809556295cba389',
 					'0x827b0e18832fb6c82ce70e004eaf903f7525d0914e0263633d24cf21eebcb1ce',
 					'0x9e269e2e0ba0190042f4da485d432e602f4fc31b050caeddfbfd8dd452e3583d',
@@ -1146,10 +1155,10 @@ allEpochs.push({
 		],
 		'0x906AfE716e75fBB69B22cAD01Ab19b43de32308b': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 603495534236437257n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 603495534236437257n,
+				proof: [
 					'0xb726af8d1138aeda32203a5d22c0b73eb47e56e8085e3bb16a6661a83a8366aa',
 					'0x71f4810772ecc97c191c48ebe3ea927d9a2dc7605d654fc288a08498331f7e8c',
 					'0xa6e37b703c40d0406f6186e93fc20e96763494d465e3c67f5e3fc08e5ff94d6d',
@@ -1160,10 +1169,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 1434537389137933n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 1434537389137933n,
+				proof: [
 					'0x8999628777663a0730d88a3dc46d66cf430c9eb9f0f44444fb295d4164908a99',
 					'0x699894807077817d7a273f1fdb871a9ed36a0f59ce92d8756492dd5ea1e566d0',
 					'0x8e621c1543d9678bfb61a90c76f97d0ccb829263ba6686fec888cac300011d64',
@@ -1174,10 +1183,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 9620380144425914n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 9620380144425914n,
+				proof: [
 					'0x7a94b4fa0a02544d4836ea88728b26c984ab3564162911b9522d830f5f58d623',
 					'0x4110b215cf4e8b6e9518dc832d6443df5dbc7e1c89fde6682e32854cd6f7ec3d',
 					'0x8faafd21da6529ec7489e5e8c656cc582006d9500153f7335789ec674a7f562a',
@@ -1188,10 +1197,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 21518060837069002n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 21518060837069002n,
+				proof: [
 					'0x74384f5461564ae03f6cf2b3f034f9e3dd450113f382a4b3f1ec85a7e980d3bb',
 					'0x827b0e18832fb6c82ce70e004eaf903f7525d0914e0263633d24cf21eebcb1ce',
 					'0x9e269e2e0ba0190042f4da485d432e602f4fc31b050caeddfbfd8dd452e3583d',
@@ -1204,10 +1213,10 @@ allEpochs.push({
 		],
 		'0x962d00611208f83175dA312277925b88E44708c7': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 11882349310870759928n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 11882349310870759928n,
+				proof: [
 					'0xafaf76896420ac43fb6228ab295584e3a0b8e2d3d874dcdf4ebe843ef118036a',
 					'0x1df409ffea0f36b6a9216e9be91ad37032948c2b02d9a094da0703389b7dbf48',
 					'0xdb68c822932a4268ec1340009503ff189039c17e8d9f12327529aa52882982b3',
@@ -1218,10 +1227,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 28244905538212840n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 28244905538212840n,
+				proof: [
 					'0x146cc38e81836594739147788d47dd9c940d0fb2eb43b87d575f9b09a2a9549b',
 					'0x1f586ad5f9edaf045fb72b89f6d302da7c544e18f0c6ebf5250394c56232bf47',
 					'0x25916510e6d4b6c5134a9cdb90ceb097166c3fa5f19f6432b43a74ce639e712c',
@@ -1232,10 +1241,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 189417669053783945n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 189417669053783945n,
+				proof: [
 					'0xa2e9d761cf90d529a71b49976ba08958b9dac0eb004a2036b2dbb59a4afef745',
 					'0x2608040cf8c08cc87dd60379da500278e53cb43aeb52014a071e5016ed1df63d',
 					'0xa635630c26876564c00c6a92ac22c4944132bb9336a48422e9e38893406fc22b',
@@ -1246,10 +1255,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 423673583073192609n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 423673583073192609n,
+				proof: [
 					'0x1253561ebc266737b16d84b364a5a7a74d20a1d235497783072f5080e07aa7ae',
 					'0x24eca01fc88f2c3d01136e84d6e4f834fc61af2024066c1bea27ffe735813fe6',
 					'0x7bf8aa112134550f28fe5ebc1e0ea1a40e9c7f287812c3e9166705dc5c4e9f10',
@@ -1260,18 +1269,18 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000004',
-				'incentive': '0xdAC17F958D2ee523a2206206994597C13D831ec7',
-				'amount': 21000000000n,
-				'proof': ['0x9613e5adf42dff26b11e806fa859207b6bf7784a5946cce7e8fcdd84e19ee7c1']
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000004',
+				incentive: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+				amount: 21000000000n,
+				proof: ['0x9613e5adf42dff26b11e806fa859207b6bf7784a5946cce7e8fcdd84e19ee7c1']
 			}
 		],
 		'0x71d4811f278150e9d400Fa4B6CC1962C1b29Cebc': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 3910968394444874718n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 3910968394444874718n,
+				proof: [
 					'0x8eb7e037295bce9b23cfd361df64103eb9c0af01420865204474c97d3dfe2eb6',
 					'0x1df409ffea0f36b6a9216e9be91ad37032948c2b02d9a094da0703389b7dbf48',
 					'0xdb68c822932a4268ec1340009503ff189039c17e8d9f12327529aa52882982b3',
@@ -1282,10 +1291,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 9296556596175033n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 9296556596175033n,
+				proof: [
 					'0x1d1b6d5ff6496ac684346a999fa8191c526728a2e98ad54020bbcf14994b9bc2',
 					'0x1f586ad5f9edaf045fb72b89f6d302da7c544e18f0c6ebf5250394c56232bf47',
 					'0x25916510e6d4b6c5134a9cdb90ceb097166c3fa5f19f6432b43a74ce639e712c',
@@ -1296,10 +1305,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 62345121965151215n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 62345121965151215n,
+				proof: [
 					'0x88ad4495fdb3ee3ea4bfbec97239376f26258fa0fb3cbe57cbd96f29da5dca45',
 					'0x2608040cf8c08cc87dd60379da500278e53cb43aeb52014a071e5016ed1df63d',
 					'0xa635630c26876564c00c6a92ac22c4944132bb9336a48422e9e38893406fc22b',
@@ -1310,10 +1319,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 139448348942625498n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 139448348942625498n,
+				proof: [
 					'0x8c093889d7e695aa56c3f62da59016d7d1018a7db56703203337bf8386ec2a7c',
 					'0x24eca01fc88f2c3d01136e84d6e4f834fc61af2024066c1bea27ffe735813fe6',
 					'0x7bf8aa112134550f28fe5ebc1e0ea1a40e9c7f287812c3e9166705dc5c4e9f10',
@@ -1326,10 +1335,10 @@ allEpochs.push({
 		],
 		'0x304e9A1ecE71B1936E3436936fc4b523D199517d': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 5991213558575386360n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 5991213558575386360n,
+				proof: [
 					'0x8173ed7150b42f15a8f4dd392438cc6c45760e289a52ef6eecd3119542545bbe',
 					'0xfcebc21b4a031f1d87cdf2285367ba672707e8c84c4ab432305c473312a0890d',
 					'0xdb68c822932a4268ec1340009503ff189039c17e8d9f12327529aa52882982b3',
@@ -1340,10 +1349,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 14241397605304110n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 14241397605304110n,
+				proof: [
 					'0x85a0162d648cb587b81df5582331b73da8304db28cc3bb54221ca5c13929cdfd',
 					'0xece00c545f50f73e40a549faaae871c66cc94834b9e2f0c4587a4b00e26dbe90',
 					'0x25916510e6d4b6c5134a9cdb90ceb097166c3fa5f19f6432b43a74ce639e712c',
@@ -1354,10 +1363,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 95506509477090310n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 95506509477090310n,
+				proof: [
 					'0x20c05948e945806a8ee843ae710176186e746aba94ab48cb164118d1ff8fc29b',
 					'0x44ba41c2a90bbe12221b65cd1944fa91b004ee3f67106c74e8f38909d9396958',
 					'0xa635630c26876564c00c6a92ac22c4944132bb9336a48422e9e38893406fc22b',
@@ -1368,10 +1377,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 213620964079561661n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 213620964079561661n,
+				proof: [
 					'0x5a547c24ee1cf14e080ac89b935565a235144db822207d7cc1ac4870de6dae23',
 					'0x3973d71aa4bff2e66ae715a43afa1b618bb8784753cf6b823291d9a7088e8678',
 					'0x7bf8aa112134550f28fe5ebc1e0ea1a40e9c7f287812c3e9166705dc5c4e9f10',
@@ -1384,10 +1393,10 @@ allEpochs.push({
 		],
 		'0xEbDb626C95a25f4e304336b1adcAd0521a1Bdca1': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 16165336030372151418n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 16165336030372151418n,
+				proof: [
 					'0xe7a5ddf36f28b6255ca9bf2b562ee73c227ff7fe3e8cd1cd4d1d736c751a6a2e',
 					'0xfcebc21b4a031f1d87cdf2285367ba672707e8c84c4ab432305c473312a0890d',
 					'0xdb68c822932a4268ec1340009503ff189039c17e8d9f12327529aa52882982b3',
@@ -1398,10 +1407,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 38425767264190143n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 38425767264190143n,
+				proof: [
 					'0xe08d9d3462457e80937d5822c86b91f7e030619cad100caf5a877667cbd67895',
 					'0xece00c545f50f73e40a549faaae871c66cc94834b9e2f0c4587a4b00e26dbe90',
 					'0x25916510e6d4b6c5134a9cdb90ceb097166c3fa5f19f6432b43a74ce639e712c',
@@ -1412,10 +1421,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 257693170789291733n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 257693170789291733n,
+				proof: [
 					'0x5e28bac9f919d4fbaa3ce2b4e4ba32416bd9fbd987aaf2aa71d93fb2116d25e5',
 					'0x44ba41c2a90bbe12221b65cd1944fa91b004ee3f67106c74e8f38909d9396958',
 					'0xa635630c26876564c00c6a92ac22c4944132bb9336a48422e9e38893406fc22b',
@@ -1426,10 +1435,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 576386508962852150n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 576386508962852150n,
+				proof: [
 					'0x1c6d25333882ad8b3ce0d9a390a169789709065f41f489104e27ab71476ea7b8',
 					'0x3973d71aa4bff2e66ae715a43afa1b618bb8784753cf6b823291d9a7088e8678',
 					'0x7bf8aa112134550f28fe5ebc1e0ea1a40e9c7f287812c3e9166705dc5c4e9f10',
@@ -1442,10 +1451,10 @@ allEpochs.push({
 		],
 		'0xb957DccaA1CCFB1eB78B495B499801D591d8a403': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 94264452615708603n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 94264452615708603n,
+				proof: [
 					'0x01402967a11a2bddfd210f2373c865ae5081bce9acc9b493dbd4b635d980602e',
 					'0x86fcfe99db1048afbbffc0c8aaab927c22d3ae90a92e33d0da977f4ceafe4723',
 					'0x46bcefc7ab6223489d2464a067df255addf676cf7716cfec30fb1e817cd882fb',
@@ -1456,10 +1465,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 224071056159425n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 224071056159425n,
+				proof: [
 					'0x84a463cbf8ab5907905c31052d0df07a4326cad9b5f661e46c3792d3469e8495',
 					'0x2f319bf4a161db9464aa2250d4809fee93330244514bce557a9bc891f1e57099',
 					'0xf53c2cfb9ed76dfae0be98ee889a62fcfffe8db41d79c58431f6f6341b455b26',
@@ -1470,10 +1479,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 1502678672538530n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 1502678672538530n,
+				proof: [
 					'0xbc8ffe5dd6c63617d0a447be48d7529e6b96a7ea510e215a9358da7fa7a258d6',
 					'0x4d625a77e50089757148569fbdc2f50c617069d704becd2b8107e481e3faee79',
 					'0x32bae48285b99a43df02c6d64f914acc9d8107983c2900158e5c15229a1376bb',
@@ -1484,10 +1493,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 3361065842391378n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 3361065842391378n,
+				proof: [
 					'0xc1f4927f3109a953cbb8a5f7f078780266cf0f8177a0482b37a96828165e51f8',
 					'0x9953ea03adc1228220275dc40e1fcad026cf753ebde500c93c25d3da21ed213c',
 					'0x4f039cb6c6efd989b29b26bd28840d0d287ab6cc37b4a36656ad5113497dd922',
@@ -1500,10 +1509,10 @@ allEpochs.push({
 		],
 		'0x4570d5b4177Cf209944e8E3fB1f2A77021ffD5C5': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 58930411359710736n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 58930411359710736n,
+				proof: [
 					'0x54c5b4c835e08e69fb9cb078b6a0fb3661003d3a9af5365e09f7d4acdf58a6ea',
 					'0x86fcfe99db1048afbbffc0c8aaab927c22d3ae90a92e33d0da977f4ceafe4723',
 					'0x46bcefc7ab6223489d2464a067df255addf676cf7716cfec30fb1e817cd882fb',
@@ -1514,10 +1523,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 140080371199008n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 140080371199008n,
+				proof: [
 					'0xdbaeb1b9d702760685d8beb56e41743f95eeb3b3519bd5e99b51639e1245823d',
 					'0x2f319bf4a161db9464aa2250d4809fee93330244514bce557a9bc891f1e57099',
 					'0xf53c2cfb9ed76dfae0be98ee889a62fcfffe8db41d79c58431f6f6341b455b26',
@@ -1528,10 +1537,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 939415334804614n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 939415334804614n,
+				proof: [
 					'0x94132b305e4756fdc40ff3e24ed060dcac1d3f9dc368a0eabdd9bebb612e15f6',
 					'0x4d625a77e50089757148569fbdc2f50c617069d704becd2b8107e481e3faee79',
 					'0x32bae48285b99a43df02c6d64f914acc9d8107983c2900158e5c15229a1376bb',
@@ -1542,10 +1551,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 2101205567985122n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 2101205567985122n,
+				proof: [
 					'0xb90afabea6db72ac01ae20827a41208fdc624d6e2850d231d4b72c85d51b9586',
 					'0x9953ea03adc1228220275dc40e1fcad026cf753ebde500c93c25d3da21ed213c',
 					'0x4f039cb6c6efd989b29b26bd28840d0d287ab6cc37b4a36656ad5113497dd922',
@@ -1558,10 +1567,10 @@ allEpochs.push({
 		],
 		'0x97e015422aD4B7F09DDBb434c5d42d2A0D5cBdA6': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 141382280289957870n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 141382280289957870n,
+				proof: [
 					'0xfa211b6bc48c4e6f9fc679a7a2ef724768390d82e44f6e0b745cec00de28340a',
 					'0x54578b26d3e5a6f657aa63a0ce2c6282f09f0a47f805ad20c1aa19e0a442c101',
 					'0x46bcefc7ab6223489d2464a067df255addf676cf7716cfec30fb1e817cd882fb',
@@ -1572,10 +1581,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 336072358006983n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 336072358006983n,
+				proof: [
 					'0x5860392be366d105bc2b6e22b2bf0b5b23308106b7e4ef7cb5250b9671f5d99c',
 					'0x3499d69ca64ab960a7686dac90bda0602407e26853e9bbbd76213ab70a926b08',
 					'0xf53c2cfb9ed76dfae0be98ee889a62fcfffe8db41d79c58431f6f6341b455b26',
@@ -1586,10 +1595,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 2253788478809671n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 2253788478809671n,
+				proof: [
 					'0xb570ac43845cf968888d4c2384fc41f393e187213175a13d1cbcf044d73d3040',
 					'0x2fb78bc6174333e7cc3eb4b5c256af0296dd4789623c72617aa966bcbd1351b7',
 					'0x32bae48285b99a43df02c6d64f914acc9d8107983c2900158e5c15229a1376bb',
@@ -1600,10 +1609,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 5041085370104751n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 5041085370104751n,
+				proof: [
 					'0xf9ae46e81cb1abc51085e4f5f16c0d40daa997b059e326629281aa417937e30b',
 					'0x2bb26583b3b385fbc336249e4aa525b3043afc216fd0783858bb469181027736',
 					'0x4f039cb6c6efd989b29b26bd28840d0d287ab6cc37b4a36656ad5113497dd922',
@@ -1616,10 +1625,10 @@ allEpochs.push({
 		],
 		'0x54B2bC420f9d59A4a4Eda1c5121D6FA43Ad80193': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 83058376385979810n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 83058376385979810n,
+				proof: [
 					'0x92f4f5cd8d58479588ab6d211c131c605c8ee350b2a578a9b3a881e28bb3071b',
 					'0x54578b26d3e5a6f657aa63a0ce2c6282f09f0a47f805ad20c1aa19e0a442c101',
 					'0x46bcefc7ab6223489d2464a067df255addf676cf7716cfec30fb1e817cd882fb',
@@ -1630,10 +1639,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 197433683676768n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 197433683676768n,
+				proof: [
 					'0xae97e5fc00e0fdda4d84b49de7df21af4af61a8f8ca925c39209ad5e4175c050',
 					'0x3499d69ca64ab960a7686dac90bda0602407e26853e9bbbd76213ab70a926b08',
 					'0xf53c2cfb9ed76dfae0be98ee889a62fcfffe8db41d79c58431f6f6341b455b26',
@@ -1644,10 +1653,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 1324041537478687n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 1324041537478687n,
+				proof: [
 					'0x0ad1d61d3a070ff627e181d1557ad2c6c18a218ac2b8a5f2547bb349944c4705',
 					'0x2fb78bc6174333e7cc3eb4b5c256af0296dd4789623c72617aa966bcbd1351b7',
 					'0x32bae48285b99a43df02c6d64f914acc9d8107983c2900158e5c15229a1376bb',
@@ -1658,10 +1667,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 2961505255151529n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 2961505255151529n,
+				proof: [
 					'0xb0cc31b48615cd950969595e2724f694dff28aeceafc577a8545ddd45af02ff6',
 					'0x2bb26583b3b385fbc336249e4aa525b3043afc216fd0783858bb469181027736',
 					'0x4f039cb6c6efd989b29b26bd28840d0d287ab6cc37b4a36656ad5113497dd922',
@@ -1674,10 +1683,10 @@ allEpochs.push({
 		],
 		'0x5FcdC32DfC361a32e9d5AB9A384b890C62D0b8AC': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 261909277253243354n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 261909277253243354n,
+				proof: [
 					'0x9158fe8cb558f02646d724f9f388efb5bbf9aa270e9a15744d599b28400475b4',
 					'0x0e018f8aec7fa021aba59513718833e0381400a8203e165bed5caf36af71460b',
 					'0xf532cdd202ccb585c4cec2de06a753f81582f39292afea5fc20c9d13964a1456',
@@ -1688,10 +1697,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 622570722511215n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 622570722511215n,
+				proof: [
 					'0x4859635c729194d7c3e0376dcae45eb8150295f70c9cfec6eb2514e721aab902',
 					'0x70a8c48c5600f003ca5d738572047f4ada6a83fe0e55c1d77f6ee379b7af5094',
 					'0x220ad3821b53f87fb386d3630097a8b686c81dfbb10d1c60e196d824af8621c6',
@@ -1702,10 +1711,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 4175120887540636n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 4175120887540636n,
+				proof: [
 					'0x748f6a8deaa7893e30b096f523394a643decd46fee06cd12878c379f7dcaf0a1',
 					'0xae7034a05ba2d311eb00b656d46705dcf0bdb0f1d36508806184db8730abf9af',
 					'0xeff32e12460b4dc0726d93a8473fd585d211dc1dd3a9aa7dffeca04788d06d28',
@@ -1716,10 +1725,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 9338560837668236n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 9338560837668236n,
+				proof: [
 					'0x134b4867e0cdf4abc878fb247479b9c613abfef007f095103b341d6c8250efff',
 					'0x9117f314e489e922cc56c7c6518db82b496c1a000b4687441e82bd3258012dd3',
 					'0x59c45226407555b30c00ce3c90162eb343536500344ce6cd2e6ff35a40e8f537',
@@ -1732,10 +1741,10 @@ allEpochs.push({
 		],
 		'0x44FdC6E37d0D5a6f58b09E411465A8e903695670': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 260731226296325017n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 260731226296325017n,
+				proof: [
 					'0x008f986743f67a454b37a0f02d4b30ea2948ba0bbb99bdafd135e623381a6dcc',
 					'0x0e018f8aec7fa021aba59513718833e0381400a8203e165bed5caf36af71460b',
 					'0xf532cdd202ccb585c4cec2de06a753f81582f39292afea5fc20c9d13964a1456',
@@ -1746,10 +1755,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 619770439745002n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 619770439745002n,
+				proof: [
 					'0xf343b97ff54bfff6d83ec5a1405ccab1f53927001c4b1aaef84614e3521a748c',
 					'0x70a8c48c5600f003ca5d738572047f4ada6a83fe0e55c1d77f6ee379b7af5094',
 					'0x220ad3821b53f87fb386d3630097a8b686c81dfbb10d1c60e196d824af8621c6',
@@ -1760,10 +1769,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 4156341464343414n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 4156341464343414n,
+				proof: [
 					'0x211a188b99c8eab4c26d7d7cbef8a3554cfe63463d7ffa1b7381c685ee20524d',
 					'0xae7034a05ba2d311eb00b656d46705dcf0bdb0f1d36508806184db8730abf9af',
 					'0xeff32e12460b4dc0726d93a8473fd585d211dc1dd3a9aa7dffeca04788d06d28',
@@ -1774,10 +1783,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 9296556596175034n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 9296556596175034n,
+				proof: [
 					'0x69345ad049840f6913e185be6d9b47060ab8734d8e6b3cb0ef3cc13aa819cefe',
 					'0x9117f314e489e922cc56c7c6518db82b496c1a000b4687441e82bd3258012dd3',
 					'0x59c45226407555b30c00ce3c90162eb343536500344ce6cd2e6ff35a40e8f537',
@@ -1790,10 +1799,10 @@ allEpochs.push({
 		],
 		'0xE9BD9bCE3B1AB61F380547EBaC49B4D0bfAE1c0C': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 177200606829933419n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 177200606829933419n,
+				proof: [
 					'0x8f39f197f8879de7d89c30803adff91b02d001647787af47bbbdd3ca342ea76d',
 					'0x719358c8a1a0c2a2e63ccdc1ae61b81a4e3c3ccb2d5ae1362f7a00a85317cbba',
 					'0xf532cdd202ccb585c4cec2de06a753f81582f39292afea5fc20c9d13964a1456',
@@ -1804,10 +1813,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 421214211961143n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 421214211961143n,
+				proof: [
 					'0xb8edb4b04f5e24f373faaa1fb375857d4e2cb5c357ff804be3686dadb14a2aad',
 					'0x7d9486246c5186613b9bdd9e84ad6e8cd59a26f5c1fb4f67d1848b4185136365',
 					'0x220ad3821b53f87fb386d3630097a8b686c81dfbb10d1c60e196d824af8621c6',
@@ -1818,10 +1827,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 2824771854664683n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 2824771854664683n,
+				proof: [
 					'0x57179a26e7dea094fc178747292c5090434dc639bbd05b2764a29f6444cb88c0',
 					'0x8b6a9287c2508ef9acb80838ec0468991b5f80d5a0b2c661b114900856a6b0bd',
 					'0xeff32e12460b4dc0726d93a8473fd585d211dc1dd3a9aa7dffeca04788d06d28',
@@ -1832,10 +1841,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 6318213179417151n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 6318213179417151n,
+				proof: [
 					'0x783e1f67c2d731fa3197a3a9ccfb2bb589be6bc17f1f18f5ee44a746013072d2',
 					'0x7f2151ccf4202676a5adf9798fada3c059548a0d249bde1780cd4fe32d728644',
 					'0x59c45226407555b30c00ce3c90162eb343536500344ce6cd2e6ff35a40e8f537',
@@ -1848,10 +1857,10 @@ allEpochs.push({
 		],
 		'0xE7cB1Fdfb798425bC0e8B8F7e033fac22517E1f4': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 1014752307709233040n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 1014752307709233040n,
+				proof: [
 					'0x52574779f6959ad8bf73bf7bb90aba46ce6038bdfb1a4ca3d318332942fb4446',
 					'0x719358c8a1a0c2a2e63ccdc1ae61b81a4e3c3ccb2d5ae1362f7a00a85317cbba',
 					'0xf532cdd202ccb585c4cec2de06a753f81582f39292afea5fc20c9d13964a1456',
@@ -1862,10 +1871,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 2412114164133288n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 2412114164133288n,
+				proof: [
 					'0x483aa07fd3311391bf547acae86a21e345731622a00e71941a92286e5cf24ea9',
 					'0x7d9486246c5186613b9bdd9e84ad6e8cd59a26f5c1fb4f67d1848b4185136365',
 					'0x220ad3821b53f87fb386d3630097a8b686c81dfbb10d1c60e196d824af8621c6',
@@ -1876,10 +1885,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 16176263781218984n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 16176263781218984n,
+				proof: [
 					'0xa39c159ecfa45788475ae07d381f34a9e73a8afb11b918d782fad258d24f5b5f',
 					'0x8b6a9287c2508ef9acb80838ec0468991b5f80d5a0b2c661b114900856a6b0bd',
 					'0xeff32e12460b4dc0726d93a8473fd585d211dc1dd3a9aa7dffeca04788d06d28',
@@ -1890,10 +1899,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 36181712461999323n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 36181712461999323n,
+				proof: [
 					'0xbad5747e458543e36693f2f2c44c88f2d7cb8505cf629236ab2ca2699734b6c7',
 					'0x7f2151ccf4202676a5adf9798fada3c059548a0d249bde1780cd4fe32d728644',
 					'0x59c45226407555b30c00ce3c90162eb343536500344ce6cd2e6ff35a40e8f537',
@@ -1906,10 +1915,10 @@ allEpochs.push({
 		],
 		'0x95adAec801B3e8cb7aa90c6922E23dC987cA2bBf': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 260903538148280455n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 260903538148280455n,
+				proof: [
 					'0x6a756002b89e0ae7f9f231286a16e09f25dd64cf55cf48e3f9284a18701491d7',
 					'0x6b7b87a945183551607b976c7f5ae12d6123f2b9f9e0a6b895a0dba0fb6628ef',
 					'0x807a3ce7a9d5684befbba33c41b31f243b0af3fed8662e1eca72a371113bf842',
@@ -1920,10 +1929,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 620180033155721n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 620180033155721n,
+				proof: [
 					'0xf3167d318beba51167f25458f1fc3a2b8cff1e7801ab790c7480342837bf1efe',
 					'0x07d2ce85cca883ae45c89a85de85eee6d95b384adf5304397d97729e173b49cf',
 					'0xef31aabd530c4659d503d7deb44ffc6387b6eb612b18a4ce0f737cdaa4d762b8',
@@ -1934,10 +1943,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 4159088304088134n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 4159088304088134n,
+				proof: [
 					'0xb2e6a17f6c45cb2defa4e14645c69e63be6e990cf7c1e43e5a00d8b3426f9c0a',
 					'0xef84c55ff6cda4e331f8e9f05b30cd6f3f2fb5ffa8f5f14e7ec0748ab307218b',
 					'0x5aa83ced09e847b3025edaf95cf5a9e2ca0bdbf165b744b05067ea57b21b0543',
@@ -1948,10 +1957,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 9302700497335821n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 9302700497335821n,
+				proof: [
 					'0x8899f2783484e6fbcc038ebca4b2cc204462f540f17f926fc21a7eff378a03b5',
 					'0xbee26d7dc7ac1896721dcce8611793ce74ab10eedc7d3a8500836f4632124d99',
 					'0xf9c80a8ab0534857412e0ff78187bd092350c14f1bcb2fdbe4ed3ac9b58c7563',
@@ -1964,10 +1973,10 @@ allEpochs.push({
 		],
 		'0x7609c725d6BC864e83d39B1b4fbe2676d134e47B': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 5627638591590068969n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 5627638591590068969n,
+				proof: [
 					'0xa366aac0124f834716b1bfac3fd3f5f5c194b41ac35025f3fb98d040ba387f2e',
 					'0x6b7b87a945183551607b976c7f5ae12d6123f2b9f9e0a6b895a0dba0fb6628ef',
 					'0x807a3ce7a9d5684befbba33c41b31f243b0af3fed8662e1eca72a371113bf842',
@@ -1978,10 +1987,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 13377162736433166n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 13377162736433166n,
+				proof: [
 					'0x5abbd9399bbbf45eaf0c962029398984a0cbeed6cd226ad719f92fe37e8917cd',
 					'0x07d2ce85cca883ae45c89a85de85eee6d95b384adf5304397d97729e173b49cf',
 					'0xef31aabd530c4659d503d7deb44ffc6387b6eb612b18a4ce0f737cdaa4d762b8',
@@ -1992,10 +2001,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 89710726086876330n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 89710726086876330n,
+				proof: [
 					'0x95fa30cef1ab18a11f0525fa76f341dce7056924965bf6bef42c25627f3bd665',
 					'0xef84c55ff6cda4e331f8e9f05b30cd6f3f2fb5ffa8f5f14e7ec0748ab307218b',
 					'0x5aa83ced09e847b3025edaf95cf5a9e2ca0bdbf165b744b05067ea57b21b0543',
@@ -2006,10 +2015,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 200657441046497503n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 200657441046497503n,
+				proof: [
 					'0xf6603c5ab2d28a5f23f2db894ced17842696eb261ded23c867e3346d73a93132',
 					'0xbee26d7dc7ac1896721dcce8611793ce74ab10eedc7d3a8500836f4632124d99',
 					'0xf9c80a8ab0534857412e0ff78187bd092350c14f1bcb2fdbe4ed3ac9b58c7563',
@@ -2022,10 +2031,10 @@ allEpochs.push({
 		],
 		'0xFAf96688b8564597265FbFf5CA01E5B8FcA76D8B': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 96207244054215382n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 96207244054215382n,
+				proof: [
 					'0xcb27401163713f6ab06f00314b0eab20859f2db9a28e3396414a9f7649803b72',
 					'0x088de2441067afe4e50180df0783bc8ad4512176b25af9869f963aff6196cb70',
 					'0x807a3ce7a9d5684befbba33c41b31f243b0af3fed8662e1eca72a371113bf842',
@@ -2036,10 +2045,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 228689163170542n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 228689163170542n,
+				proof: [
 					'0x13fffdcef65abeecafb5c434558a8fc13ecf1ea120d330da77cc81de360f7db0',
 					'0x70370673aa341a411e17eceae7d03a22813079eaa718899ef997a98b54fff59c',
 					'0xef31aabd530c4659d503d7deb44ffc6387b6eb612b18a4ce0f737cdaa4d762b8',
@@ -2050,10 +2059,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 1533648897038068n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 1533648897038068n,
+				proof: [
 					'0xe04e4262c5193057f14d2f6326a9689ef722bdbffc8897c9c19b99d0b37b2c3d',
 					'0x5b741501c2536268a4d687ce2dc5b3e7b80cd56d83e4b096af18119f410a4dc8',
 					'0x5aa83ced09e847b3025edaf95cf5a9e2ca0bdbf165b744b05067ea57b21b0543',
@@ -2064,10 +2073,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 3430337447558132n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 3430337447558132n,
+				proof: [
 					'0xae2e40822cb5163ece81fd0ecc0518a0aeac37e67dba768f6913daa2efda2c6c',
 					'0x20f3f1f06eda77590ad272c31111c4449684241fd0dc8ad20fa4711373c0ec69',
 					'0xf9c80a8ab0534857412e0ff78187bd092350c14f1bcb2fdbe4ed3ac9b58c7563',
@@ -2080,10 +2089,10 @@ allEpochs.push({
 		],
 		'0x7BFEe91193d9Df2Ac0bFe90191D40F23c773C060': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 13036561314816251266n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 13036561314816251266n,
+				proof: [
 					'0x2d0f7a600fa0b60939a09b068666357329854fba3d61cec9c3b24028a83b00e7',
 					'0x088de2441067afe4e50180df0783bc8ad4512176b25af9869f963aff6196cb70',
 					'0x807a3ce7a9d5684befbba33c41b31f243b0af3fed8662e1eca72a371113bf842',
@@ -2094,10 +2103,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 30988521987250115n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 30988521987250115n,
+				proof: [
 					'0x831c03604afd2061ec69c6777d140cebe8aa5645d5cfba72b825e9153afb645b',
 					'0x70370673aa341a411e17eceae7d03a22813079eaa718899ef997a98b54fff59c',
 					'0xef31aabd530c4659d503d7deb44ffc6387b6eb612b18a4ce0f737cdaa4d762b8',
@@ -2108,10 +2117,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 207817073217170754n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 207817073217170754n,
+				proof: [
 					'0xb7687c1845acd075027dbecf577a76d46abf2defe9be5b33f0b03931f8421ddf',
 					'0x5b741501c2536268a4d687ce2dc5b3e7b80cd56d83e4b096af18119f410a4dc8',
 					'0x5aa83ced09e847b3025edaf95cf5a9e2ca0bdbf165b744b05067ea57b21b0543',
@@ -2122,10 +2131,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 464827829808751738n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 464827829808751738n,
+				proof: [
 					'0x3fe6b66326895a1387be47487bdf0b71e0bcdc7ba84834a948f1d5fd4ee4e03a',
 					'0x20f3f1f06eda77590ad272c31111c4449684241fd0dc8ad20fa4711373c0ec69',
 					'0xf9c80a8ab0534857412e0ff78187bd092350c14f1bcb2fdbe4ed3ac9b58c7563',
@@ -2138,10 +2147,10 @@ allEpochs.push({
 		],
 		'0x3A250F8Ddf4e804383C14587B44EfA9990bcc458': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 801833334766831739n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 801833334766831739n,
+				proof: [
 					'0xc8e53a7e1bcd6872b9eba1029091f5693b5bf46b81b041708981587201ab1622',
 					'0x70297dfc0ea06ceb5e30ea0b5aad7b936d711d30c3f4b7ae350f16fa4db0f9cc',
 					'0xec4b808351016b5d9365296362f4db25f843c9a59b773aed0855887b4def6201',
@@ -2152,10 +2161,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 1905995708875494n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 1905995708875494n,
+				proof: [
 					'0xc1b95a74065ef435f2f2bc1d0eed1b1c284cf79fe8a23abaf663b80bd5828f0f',
 					'0x4ed5dd5940305cbc84d712b7433ffefd2a0e2caba5778b48c3311ae45b5df340',
 					'0x219fd9851fbe7f0d9f763d6d45d76c7ce7010aa63aeff45b894989c9ef8d78a1',
@@ -2166,10 +2175,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 12782102029453428n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 12782102029453428n,
+				proof: [
 					'0x20be651f793fd6985d382713b90120d15452658160b1baa8ad81333e3bf7ee03',
 					'0xf06a105c7b51001a34a7c8a66849ed2b3bedc14aa94e544af7f5e40c8acc1365',
 					'0x02954abff11ce75fd0d97e404a75af1b9e157742de0703bf91300815135f0500',
@@ -2180,10 +2189,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 28589935633132416n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 28589935633132416n,
+				proof: [
 					'0xc896f386bf66d823486eee363e14d8537215ad77c483c51e65fd9dddce8eb280',
 					'0x7ded01b0c35dc0e4a1112fc3f87e054c5bb123204506348dd613967e5ef8e872',
 					'0xb532f7b0eaacd8638eef26e5eb4ee56b03a09a1991c80d30506b8b4b91ab99d4',
@@ -2196,10 +2205,10 @@ allEpochs.push({
 		],
 		'0x6fb737D1Ebb73cda6CFA36Fd16D9273065D1b084': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 134249134695778896n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 134249134695778896n,
+				proof: [
 					'0x57c254fdf533f59e801171dbf9e5f05b99810432e7ded2267808f949db6d6b02',
 					'0x70297dfc0ea06ceb5e30ea0b5aad7b936d711d30c3f4b7ae350f16fa4db0f9cc',
 					'0xec4b808351016b5d9365296362f4db25f843c9a59b773aed0855887b4def6201',
@@ -2210,10 +2219,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 319116534017397n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 319116534017397n,
+				proof: [
 					'0x176617f488492cc676887adf368469d3e1d187fa831b5a16ef406d532f74fb83',
 					'0x4ed5dd5940305cbc84d712b7433ffefd2a0e2caba5778b48c3311ae45b5df340',
 					'0x219fd9851fbe7f0d9f763d6d45d76c7ce7010aa63aeff45b894989c9ef8d78a1',
@@ -2224,10 +2233,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 2140078321321326n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 2140078321321326n,
+				proof: [
 					'0xc2a9d742e5ce670b69ae9a43bafbdc3ddb60ddddd5a74df2c5aa95ab5e2b1e3e',
 					'0xf06a105c7b51001a34a7c8a66849ed2b3bedc14aa94e544af7f5e40c8acc1365',
 					'0x02954abff11ce75fd0d97e404a75af1b9e157742de0703bf91300815135f0500',
@@ -2238,10 +2247,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 4786748010260960n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 4786748010260960n,
+				proof: [
 					'0xfcd4577a93ad924ff2be061a83d62270df750ebf9996ddd38d10fcbdec362538',
 					'0x7ded01b0c35dc0e4a1112fc3f87e054c5bb123204506348dd613967e5ef8e872',
 					'0xb532f7b0eaacd8638eef26e5eb4ee56b03a09a1991c80d30506b8b4b91ab99d4',
@@ -2254,10 +2263,10 @@ allEpochs.push({
 		],
 		'0xb115aFF9Ce430feF6fCDe91099A377795a4319BF': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 3957283147158887632n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 3957283147158887632n,
+				proof: [
 					'0xa30933ae68e46fbd617d5a04d4bf31f8c44871295a2d67e93859c85c70c5ee5d',
 					'0x5ef57a31ca6192468f8e540ce8fcad86e8bcd4042952fa644b351f38515e360b',
 					'0xec4b808351016b5d9365296362f4db25f843c9a59b773aed0855887b4def6201',
@@ -2268,10 +2277,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 9406648950911330n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 9406648950911330n,
+				proof: [
 					'0x0ed3d9cc26514083f7142ca4fe0ee3f46c850b448fbdfaca434a65ea0b4feb25',
 					'0xae9ae42c9350b8dbe93e9b87e55de1fbe3e69e4fb9f3d99d65c8ef9b6156f22e',
 					'0x219fd9851fbe7f0d9f763d6d45d76c7ce7010aa63aeff45b894989c9ef8d78a1',
@@ -2282,10 +2291,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 63083429876522309n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 63083429876522309n,
+				proof: [
 					'0x9370b8a7787a5d112b45637e93e550e58633c6b44cede796bcf443dd5ed7bd42',
 					'0xac8cb2dcc4fa25aa1b5ad75524c54f87a29055ae1d139ebc18e051d5bb813e5d',
 					'0x02954abff11ce75fd0d97e404a75af1b9e157742de0703bf91300815135f0500',
@@ -2296,10 +2305,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 141099734263669957n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 141099734263669957n,
+				proof: [
 					'0x0f79978cde6f83c74f3289c94a4e006623f946d867922276f1e1ce64ca19f48a',
 					'0x93b70f23fba452c1224e3e4fd015a48da3405e8c215610d3e72f11f400eed48b',
 					'0xb532f7b0eaacd8638eef26e5eb4ee56b03a09a1991c80d30506b8b4b91ab99d4',
@@ -2312,10 +2321,10 @@ allEpochs.push({
 		],
 		'0x894b87dfB9e79082d2D0Ac7c16cE40658afd42D1': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 2045657026097574179n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 2045657026097574179n,
+				proof: [
 					'0xb67263fd8f388b973eeabf2f823099bd07ad26e25769c2258aa5796a444f956e',
 					'0x5ef57a31ca6192468f8e540ce8fcad86e8bcd4042952fa644b351f38515e360b',
 					'0xec4b808351016b5d9365296362f4db25f843c9a59b773aed0855887b4def6201',
@@ -2326,10 +2335,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 4862623371360322n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 4862623371360322n,
+				proof: [
 					'0xe53154c99d7feb5e48a65b592d993e145d229edaa085df38da6185e16429be5c',
 					'0xae9ae42c9350b8dbe93e9b87e55de1fbe3e69e4fb9f3d99d65c8ef9b6156f22e',
 					'0x219fd9851fbe7f0d9f763d6d45d76c7ce7010aa63aeff45b894989c9ef8d78a1',
@@ -2340,10 +2349,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 32610014688964120n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 32610014688964120n,
+				proof: [
 					'0x4f0510090646622002840ee7b3cc258a61f27c5e1c7fdce500aecd4bcd152785',
 					'0xac8cb2dcc4fa25aa1b5ad75524c54f87a29055ae1d139ebc18e051d5bb813e5d',
 					'0x02954abff11ce75fd0d97e404a75af1b9e157742de0703bf91300815135f0500',
@@ -2354,10 +2363,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 72939350570404841n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 72939350570404841n,
+				proof: [
 					'0xc05de7d379bff7dc81cefd03907bfcd4500ad8c0ccab01e1bb33e1321758e505',
 					'0x93b70f23fba452c1224e3e4fd015a48da3405e8c215610d3e72f11f400eed48b',
 					'0xb532f7b0eaacd8638eef26e5eb4ee56b03a09a1991c80d30506b8b4b91ab99d4',
@@ -2370,10 +2379,10 @@ allEpochs.push({
 		],
 		'0x3C9F71Ae57FEA4a2E38C9d413705Ed1FDcD9e3Da': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 18772648293335400915n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 18772648293335400915n,
+				proof: [
 					'0x41a615cec6fe051138299974f92b511fd61ebd61df1af214dc411aba89b6ac47',
 					'0xfb78619578cf5440b16a28ec86e07833a764444effe974e59c3f54cfa0fe7de6',
 					'0x0a5f2aff31ba922f7d2e9b4f762c375d449881ddb69285b89a377640671ba615',
@@ -2384,10 +2393,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 44623471661640164n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 44623471661640164n,
+				proof: [
 					'0x3f7740c38d2e99f1b13e1e39e0854b5718d3dc98a171e17baaebae47ec56f6ae',
 					'0x7b37fbf21cbfe6e61d54e865caf09bc4399e616aea78ea673ee88f82fc47b529',
 					'0x944ed1a01d821b9d8bf202e43739c012895b596f6b27af213479b5368168a00a',
@@ -2398,10 +2407,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 299256585432725872n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 299256585432725872n,
+				proof: [
 					'0xdb989b5badd966d7224e18734bb3c69c2f3af06b309a56dadc6f9624bd68b155',
 					'0x4060a191aa8d81db82f6422c8f62ad5f85fd765eff2a840ec0a1adfb15b2504a',
 					'0x1d24734a1f87b2db74045b8e87884be1301e51e326a834766ee5e9373ccee04a',
@@ -2412,10 +2421,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 669352074924602471n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 669352074924602471n,
+				proof: [
 					'0x6ac304886e11480a0ae868eaf246a2925f1c089470ab4bc27bc05bcda136b1e2',
 					'0x390764fc9d373d947a3c598ba2d58682220ddde1b39bc4e54d8e6ff42adef9e5',
 					'0x95c4da489a7d87a0e2b75843ea73bfaa101fcb17cc45872bfbb3d7b48a3b6170',
@@ -2428,10 +2437,10 @@ allEpochs.push({
 		],
 		'0x7343D89A30C8768730B511B756bf1281c9250CDd': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 417446076403213720n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 417446076403213720n,
+				proof: [
 					'0x4972e83636361fdd4c91092fd38c7c0f3f77c7f6d29034cac69f1490340e773a',
 					'0xfb78619578cf5440b16a28ec86e07833a764444effe974e59c3f54cfa0fe7de6',
 					'0x0a5f2aff31ba922f7d2e9b4f762c375d449881ddb69285b89a377640671ba615',
@@ -2442,10 +2451,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 992289040393671n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 992289040393671n,
+				proof: [
 					'0x3eeffe9359888f5f475ac6a0937876cde45e8be01a956e0be6eeda1294f174da',
 					'0x7b37fbf21cbfe6e61d54e865caf09bc4399e616aea78ea673ee88f82fc47b529',
 					'0x944ed1a01d821b9d8bf202e43739c012895b596f6b27af213479b5368168a00a',
@@ -2456,10 +2465,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 6654547907929667n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 6654547907929667n,
+				proof: [
 					'0xc9eebc221cf6d089dd2c696ef0006e63238f423d9a5f0399c884554817902035',
 					'0x4060a191aa8d81db82f6422c8f62ad5f85fd765eff2a840ec0a1adfb15b2504a',
 					'0x1d24734a1f87b2db74045b8e87884be1301e51e326a834766ee5e9373ccee04a',
@@ -2470,10 +2479,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 14884335605905074n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 14884335605905074n,
+				proof: [
 					'0x99925ca7fd8d284f691674d1393ca035284b2fbb44aa53aabba91c6c3c33eabf',
 					'0x390764fc9d373d947a3c598ba2d58682220ddde1b39bc4e54d8e6ff42adef9e5',
 					'0x95c4da489a7d87a0e2b75843ea73bfaa101fcb17cc45872bfbb3d7b48a3b6170',
@@ -2486,10 +2495,10 @@ allEpochs.push({
 		],
 		'0x58B9Cba4015C2f33705080682489956981E8B213': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 338950594185222524n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 338950594185222524n,
+				proof: [
 					'0x6dd5cbf1a7eff6e29d93501b0c504ccb5aac3e4f44e39830445f76082ce1c610',
 					'0xe7f4b9add10d8a9a65aa643f4054c7a83923ecdb50707694a341e890a9e18a36',
 					'0x0a5f2aff31ba922f7d2e9b4f762c375d449881ddb69285b89a377640671ba615',
@@ -2500,10 +2509,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 805701571668502n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 805701571668502n,
+				proof: [
 					'0xa96a18547e500f4824e8532c9974a3a6a5982b48b8595f741fb3a5e744db98d1',
 					'0x7a27b63ef0ca79d78011bbf7bca316d9848cc7bdd0e856ff3397f202a591b860',
 					'0x944ed1a01d821b9d8bf202e43739c012895b596f6b27af213479b5368168a00a',
@@ -2514,10 +2523,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 5403243903646439n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 5403243903646439n,
+				proof: [
 					'0xfc115e748978309345bc84b7d0c5601bde65497c14f966454179a6fef443f344',
 					'0xfcbc11bb2945d3356d18c3c45340a0a4bf61cf59d74505b4e60ee507e92e5221',
 					'0x1d24734a1f87b2db74045b8e87884be1301e51e326a834766ee5e9373ccee04a',
@@ -2528,10 +2537,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 12085523575027544n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 12085523575027544n,
+				proof: [
 					'0xf3b343c26c0ab3bdbe690e8a9b05ff7bd59d8cda6cbd8ca2262a32ffb0069df8',
 					'0x5269251dd15dbc93c816b0e2f032b610521b90bff528a2eb16423e9434f0d697',
 					'0x95c4da489a7d87a0e2b75843ea73bfaa101fcb17cc45872bfbb3d7b48a3b6170',
@@ -2544,10 +2553,10 @@ allEpochs.push({
 		],
 		'0x6780ac060FdcBA20AE02A6197c84Bdc70CF8716B': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 9268828596302577574n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 9268828596302577574n,
+				proof: [
 					'0xa1e3c01345606637c0cc5598473f16039fd0a367d120891977b93000c046b9ea',
 					'0xe7f4b9add10d8a9a65aa643f4054c7a83923ecdb50707694a341e890a9e18a36',
 					'0x0a5f2aff31ba922f7d2e9b4f762c375d449881ddb69285b89a377640671ba615',
@@ -2558,10 +2567,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 22032443358060751n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 22032443358060751n,
+				proof: [
 					'0xf8eb1c73bcb0a931d1414711eba50e32eb49e4bc4b92be36fbfc7e657249aac5',
 					'0x7a27b63ef0ca79d78011bbf7bca316d9848cc7bdd0e856ff3397f202a591b860',
 					'0x944ed1a01d821b9d8bf202e43739c012895b596f6b27af213479b5368168a00a',
@@ -2572,10 +2581,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 147755284888357742n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 147755284888357742n,
+				proof: [
 					'0xf5c164d5a26a24421362d2da365746607475b940a5ee74ed6ebc68c36d702cab',
 					'0xfcbc11bb2945d3356d18c3c45340a0a4bf61cf59d74505b4e60ee507e92e5221',
 					'0x1d24734a1f87b2db74045b8e87884be1301e51e326a834766ee5e9373ccee04a',
@@ -2586,10 +2595,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 330486650370911273n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 330486650370911273n,
+				proof: [
 					'0xe9d55050e1172cd56fd6967cc983eeb1301c6ae44148dc12a55e8fb87c1bd623',
 					'0x5269251dd15dbc93c816b0e2f032b610521b90bff528a2eb16423e9434f0d697',
 					'0x95c4da489a7d87a0e2b75843ea73bfaa101fcb17cc45872bfbb3d7b48a3b6170',
@@ -2602,10 +2611,10 @@ allEpochs.push({
 		],
 		'0xE53D3f2B99FE0Ed6C05977bC0547127836f0D78d': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 192672489706412035n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 192672489706412035n,
+				proof: [
 					'0xebb61f2467d06e82060d60277829ec704f60446ead9c62ee3aee5666340363c5',
 					'0x84593c8b131b45042c8f9189af93b8c38806137747da59d27d3b2d7331f34be3',
 					'0xbe39aea048fce6905617b7f6504a4efc0d276bff8433333bec8e23c7bb5b1be6',
@@ -2616,10 +2625,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 457991608325398n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 457991608325398n,
+				proof: [
 					'0xb6eea151c402ba10ad8241fde5b29834da04917b8bed755f327da831e6430309',
 					'0x3dd9f1ea14ba24605aaf815c1662a965135e35fe91e2ebcf89624679577d2f82',
 					'0x55e5979b061236b70292ca7fe004d4a92e9121db4853bc7434ae6de5d54dfcb6',
@@ -2630,10 +2639,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 3071410622273928n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 3071410622273928n,
+				proof: [
 					'0xa6e4ced56c8469faf4f93c719dab47de09d6b590448b89e03d310411854ce9ea',
 					'0x9d6fdb7533f719fb832595648784dd3fff8d032a8e6c319985c50d28ed2caf04',
 					'0x83e4a640d2a127ddb3a86fef6cbb6313ca77fb5466d7efefb9a02e0f3d283b37',
@@ -2644,10 +2653,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 6869874124880982n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 6869874124880982n,
+				proof: [
 					'0xd20c0994abf06bbf6c13a4178e19631f8b1227667e71fd531e075a7fd4912a19',
 					'0x51c40e46b20e1545458e1dcb2c10fa1dce90c4fe8bd8a3c59cc538897e2b4c3e',
 					'0xf6e29509f81e1776ecf2636e855e0cdc109c86d8ea3ee2fa6ec0a90e1409b97c',
@@ -2660,10 +2669,10 @@ allEpochs.push({
 		],
 		'0x3Ba6eB0e4327B96aDe6D4f3b578724208a590CEF': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 156438735777794983n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 156438735777794983n,
+				proof: [
 					'0xbdbc533d966d94b2d33d125c4abffa5b9d0edc4b0fd4152679d977ecc32bc5ce',
 					'0x84593c8b131b45042c8f9189af93b8c38806137747da59d27d3b2d7331f34be3',
 					'0xbe39aea048fce6905617b7f6504a4efc0d276bff8433333bec8e23c7bb5b1be6',
@@ -2674,10 +2683,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 371862263847001n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 371862263847001n,
+				proof: [
 					'0x851ce6c65d5454c72b04ea5e40be952761f6cc2c046977fb4f96211d75106467',
 					'0x3dd9f1ea14ba24605aaf815c1662a965135e35fe91e2ebcf89624679577d2f82',
 					'0x55e5979b061236b70292ca7fe004d4a92e9121db4853bc7434ae6de5d54dfcb6',
@@ -2688,10 +2697,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 2493804878606048n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 2493804878606048n,
+				proof: [
 					'0xbcd1bca26094c577a4cc4042474cfbf1d543fb175df5a4378e3ab0027714cc99',
 					'0x9d6fdb7533f719fb832595648784dd3fff8d032a8e6c319985c50d28ed2caf04',
 					'0x83e4a640d2a127ddb3a86fef6cbb6313ca77fb5466d7efefb9a02e0f3d283b37',
@@ -2702,10 +2711,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 5577933957705019n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 5577933957705019n,
+				proof: [
 					'0x38c901f2f6109f9a4a0e85c646bfefcc8aa2fcb9bdeb84b88481c8db741e43ce',
 					'0x51c40e46b20e1545458e1dcb2c10fa1dce90c4fe8bd8a3c59cc538897e2b4c3e',
 					'0xf6e29509f81e1776ecf2636e855e0cdc109c86d8ea3ee2fa6ec0a90e1409b97c',
@@ -2718,10 +2727,10 @@ allEpochs.push({
 		],
 		'0xb8145A317275E2B20A78a7615e2fCbaEcC90Bf28': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 638791504425996273n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 638791504425996273n,
+				proof: [
 					'0xcc301e75299ec940861bd1d041f3e1bb00e0121d400d0ba507ec1c379d3f91f0',
 					'0x495f4eb535a11aa102363f4db740a7d0cc1361cdd288150759f8f2baaa55040b',
 					'0xbe39aea048fce6905617b7f6504a4efc0d276bff8433333bec8e23c7bb5b1be6',
@@ -2732,10 +2741,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 1518437577375255n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 1518437577375255n,
+				proof: [
 					'0x0ec2e05440ae2b4ecd0ca1edfaed421e0211e7b4d3b0bd3d5a92e2dc4797e757',
 					'0x3a9145125ccc7039f238454717ca8c07af10b62520ae698e56040ab84d18a3ca',
 					'0x55e5979b061236b70292ca7fe004d4a92e9121db4853bc7434ae6de5d54dfcb6',
@@ -2746,10 +2755,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 10183036587641366n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 10183036587641366n,
+				proof: [
 					'0xdfe971f582bee0c1e61906c3308c1dd4340285f03b3825a74e613c2612ca615b',
 					'0x8cad7e5b6f63c7521d7506b04f4ff63bf90b65f8424fbc85e2215e98714dbae2',
 					'0x83e4a640d2a127ddb3a86fef6cbb6313ca77fb5466d7efefb9a02e0f3d283b37',
@@ -2760,10 +2769,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 22776563660628833n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 22776563660628833n,
+				proof: [
 					'0xbaa595c5f09085a70f50783c734a1eda4a7f9379da0888a5bd6a4734b6d264ef',
 					'0x6a792747407c67c42bf46edf3ad072cb50b5f7bd15afbf8e4cc314fb45efd069',
 					'0xf6e29509f81e1776ecf2636e855e0cdc109c86d8ea3ee2fa6ec0a90e1409b97c',
@@ -2776,10 +2785,10 @@ allEpochs.push({
 		],
 		'0x3B15CEc2d922Ab0Ef74688bcC1056461049f89CB': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 251343997930990224n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 251343997930990224n,
+				proof: [
 					'0x79e471d7c1bfa4a8346f8f29f4b7f0128650d0946a6ea527b0eef139999a548c',
 					'0x495f4eb535a11aa102363f4db740a7d0cc1361cdd288150759f8f2baaa55040b',
 					'0xbe39aea048fce6905617b7f6504a4efc0d276bff8433333bec8e23c7bb5b1be6',
@@ -2790,10 +2799,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 597456554543702n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 597456554543702n,
+				proof: [
 					'0x0b9c7ecafa4ea7b7edcb521b524c09f2d722c16f64b143426461a9262745eb28',
 					'0x3a9145125ccc7039f238454717ca8c07af10b62520ae698e56040ab84d18a3ca',
 					'0x55e5979b061236b70292ca7fe004d4a92e9121db4853bc7434ae6de5d54dfcb6',
@@ -2804,10 +2813,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 4006698757390628n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 4006698757390628n,
+				proof: [
 					'0xfe0e13907f9efb696a1c91e813fc83f4fe5f9c3b62042c098fcabbc5ddbbe3ef',
 					'0x8cad7e5b6f63c7521d7506b04f4ff63bf90b65f8424fbc85e2215e98714dbae2',
 					'0x83e4a640d2a127ddb3a86fef6cbb6313ca77fb5466d7efefb9a02e0f3d283b37',
@@ -2818,10 +2827,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 8961848318155538n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 8961848318155538n,
+				proof: [
 					'0xcddee3281082e59f42950651fb60624508b41c7624892b41b23e3709f64a114a',
 					'0x6a792747407c67c42bf46edf3ad072cb50b5f7bd15afbf8e4cc314fb45efd069',
 					'0xf6e29509f81e1776ecf2636e855e0cdc109c86d8ea3ee2fa6ec0a90e1409b97c',
@@ -2834,10 +2843,10 @@ allEpochs.push({
 		],
 		'0x3295e39F9Ea9Db98929B52f076acb7D1535A23Cb': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 1303656131481624984n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 1303656131481624984n,
+				proof: [
 					'0xbad4503db22234e37aea433593c46df752040184000a70e558f9303657213730',
 					'0x1dbdb0c578a828eadfa0dcf766c1931106d61330c0ff3de23b04be19869b1517',
 					'0xf2262cbd8b7911b7a105d7422e347e4531cc3fd14d1a56a2d29d2fb9f0fc14a3',
@@ -2848,10 +2857,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 3098852198725011n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 3098852198725011n,
+				proof: [
 					'0x002c5f6e8c927cab2b912542061ed87c885c9d725e4822cd94fb5312e4eecc9d',
 					'0x44eb9dc4ae599816a4a42e4f96b94965825758dd7b93910521817c3b75806843',
 					'0x5bc64360c5c31d85b53385081ead7ba017600aa4c6c5140d45cf8e64a836b04d',
@@ -2862,10 +2871,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 20781707321717073n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 20781707321717073n,
+				proof: [
 					'0xaf052552f313fd7c1044e97f72a21c95ac4b7fa3f19796cfa8f4962705cb3496',
 					'0x0ed7b04276b5ee0221d05d95f8868b0486347e02d998f8722abbbbf5a1dae5f2',
 					'0x5631654d2993120ddf8c82265be4c0df37fa4edfcd4d6f87bb499ac6c68d3774',
@@ -2876,10 +2885,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 46482782980875168n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 46482782980875168n,
+				proof: [
 					'0xafe27229cb4ae401da2b30cd9a8f9903c1e6df4b10e99fc7ca6e781f938001e2',
 					'0x25e91ec8c4116f088e20bb4af0fe6ba8692aa39be711583f43a7df752d590cdb',
 					'0xf07e1cf985f8fdb51cbf9cc707a7404fd199f836ef753a066e4632e7777a3e42',
@@ -2892,10 +2901,10 @@ allEpochs.push({
 		],
 		'0xD619F816156EFfABF9dDab313cff6b46cad3Fbdd': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 15993954625714512n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 15993954625714512n,
+				proof: [
 					'0x391fd1b9e4fb5dec2287d18d4c6a819ebabd39442a644074b314c9727065041a',
 					'0x1dbdb0c578a828eadfa0dcf766c1931106d61330c0ff3de23b04be19869b1517',
 					'0xf2262cbd8b7911b7a105d7422e347e4531cc3fd14d1a56a2d29d2fb9f0fc14a3',
@@ -2906,10 +2915,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 38018385570644n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 38018385570644n,
+				proof: [
 					'0xffc80c8f0b799152a2e1f78f39fcbac0ff726bc8bc8dfa08b8205733b9436e39',
 					'0x44eb9dc4ae599816a4a42e4f96b94965825758dd7b93910521817c3b75806843',
 					'0x5bc64360c5c31d85b53385081ead7ba017600aa4c6c5140d45cf8e64a836b04d',
@@ -2920,10 +2929,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 254961163394111n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 254961163394111n,
+				proof: [
 					'0x360610173d7fd5523cd39652ce54eab4c899ce53e77ebdcd1191c73c18ab7139',
 					'0x0ed7b04276b5ee0221d05d95f8868b0486347e02d998f8722abbbbf5a1dae5f2',
 					'0x5631654d2993120ddf8c82265be4c0df37fa4edfcd4d6f87bb499ac6c68d3774',
@@ -2934,10 +2943,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 570275783559670n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 570275783559670n,
+				proof: [
 					'0x22367dd2d34b22eff2d2fa329a72a779a73c87c988fdf277a9eb24cbb51d90e1',
 					'0x25e91ec8c4116f088e20bb4af0fe6ba8692aa39be711583f43a7df752d590cdb',
 					'0xf07e1cf985f8fdb51cbf9cc707a7404fd199f836ef753a066e4632e7777a3e42',
@@ -2950,10 +2959,10 @@ allEpochs.push({
 		],
 		'0x2951B1F7058bd2C05F01954002C450BaC0873847': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 13036561314816251n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 13036561314816251n,
+				proof: [
 					'0x601a515e35c7c4369b42a5c721021158ee450e0ad21e3d987984614860a8ed2f',
 					'0x427b11f4e422d8e4b72f0fec1cfca399c50e3c3301f8e98881c906649883a398',
 					'0xf2262cbd8b7911b7a105d7422e347e4531cc3fd14d1a56a2d29d2fb9f0fc14a3',
@@ -2964,10 +2973,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 30988521987250n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 30988521987250n,
+				proof: [
 					'0x6f4d7867b0ec8fbba1aea5dd211b8d70ffbd44a7aae611f9bc1153022f882af4',
 					'0x6a4dc1ea145780ae1d0bef0d566c8cc9562ec0fd213de4fdb741c8fb9486472c',
 					'0x5bc64360c5c31d85b53385081ead7ba017600aa4c6c5140d45cf8e64a836b04d',
@@ -2978,10 +2987,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 207817073217170n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 207817073217170n,
+				proof: [
 					'0x9beeb79cd42b52ae574fc1eca24ef23d8c8127a3a52c898484829b7f352ea94f',
 					'0x6f53fe4289a121ae0abc0f747de67e33936943dd2d36f9a324a0b4fda858abdb',
 					'0x5631654d2993120ddf8c82265be4c0df37fa4edfcd4d6f87bb499ac6c68d3774',
@@ -2992,10 +3001,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 464827829808751n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 464827829808751n,
+				proof: [
 					'0x16f0eeeb50aa700fffaf8613b0c5a255cfc367d28b30ffc99a76b4e718e65672',
 					'0x9150f5c1e494029fed2bb1a00b20265790abfc71429e56064108eebe01aeaebc',
 					'0xf07e1cf985f8fdb51cbf9cc707a7404fd199f836ef753a066e4632e7777a3e42',
@@ -3008,10 +3017,10 @@ allEpochs.push({
 		],
 		'0x2f463642fa60CB1f1fd1c57af25B34b7a9A99586': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 33743029516701463658n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 33743029516701463658n,
+				proof: [
 					'0xf67a62e404ccddf00b6934c280bd78ff964395debec49a32e3cca0634bc168c7',
 					'0x427b11f4e422d8e4b72f0fec1cfca399c50e3c3301f8e98881c906649883a398',
 					'0xf2262cbd8b7911b7a105d7422e347e4531cc3fd14d1a56a2d29d2fb9f0fc14a3',
@@ -3022,10 +3031,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 80208774909556832n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 80208774909556832n,
+				proof: [
 					'0xf32bfed9ee0568817a70b5924b28fafad11a5b2ad28234d13b98e0a214082794',
 					'0x6a4dc1ea145780ae1d0bef0d566c8cc9562ec0fd213de4fdb741c8fb9486472c',
 					'0x5bc64360c5c31d85b53385081ead7ba017600aa4c6c5140d45cf8e64a836b04d',
@@ -3036,10 +3045,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 537900867130646451n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 537900867130646451n,
+				proof: [
 					'0xe979065da7f4e9413d67bdaeb712fe81548af28c9db53097d85b882c9c3873a2',
 					'0x6f53fe4289a121ae0abc0f747de67e33936943dd2d36f9a324a0b4fda858abdb',
 					'0x5631654d2993120ddf8c82265be4c0df37fa4edfcd4d6f87bb499ac6c68d3774',
@@ -3050,10 +3059,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 1203131623643352480n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 1203131623643352480n,
+				proof: [
 					'0x29727327667d126e25083f024e1c1b822466bc580e7658f816fabeefe127f805',
 					'0x9150f5c1e494029fed2bb1a00b20265790abfc71429e56064108eebe01aeaebc',
 					'0xf07e1cf985f8fdb51cbf9cc707a7404fd199f836ef753a066e4632e7777a3e42',
@@ -3066,10 +3075,10 @@ allEpochs.push({
 		],
 		'0x9d560c8963e8758C1dBf9BeD87D0ff17764b1cA4': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 793814698513997908n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 793814698513997908n,
+				proof: [
 					'0x7f71b4c5ba3f172358c7d9cbd3ca3805a4e1de5476cf38eb50ab311017c5690a',
 					'0xad86a11bb2387500e1756726c5ac4888bd5b809f6e7915aa00d60f034898df62',
 					'0x435a0e5342bbe73c35c9f13c21453bb49a8a9db2e26494af23b34b1a05f8f802',
@@ -3080,10 +3089,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 1886935031766854n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 1886935031766854n,
+				proof: [
 					'0x60172b14ffc8f4fded3327b4f64fde7a5eb210a1a53153d5068add320aae24d5',
 					'0x1e1d3f83318b0944303dddf0a609fcd9a89d4fef30ba3d42a68d3575d66e5201',
 					'0xf84b575f60a2a9c385d3b73f02eaa42d9de720caa363a42873d8eef4501fa8bb',
@@ -3094,10 +3103,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 12654276180518623n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 12654276180518623n,
+				proof: [
 					'0x844b590f5cf03ce5aa5eb1dd16304c95d3fdeea53e1ff0584e0b6ba0c12b73b3',
 					'0xb6e42107eed880fa933b275127274588f194cc6d64456454b6eba4baa39b2d7f',
 					'0xde2114699141993094a5e43e7ddce84207cb9e10a9370797eff5b4398561a776',
@@ -3108,10 +3117,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 28304025476502813n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 28304025476502813n,
+				proof: [
 					'0x5593779cb5f7b058fdf6eb35e3cccd76c8bd5196542843930abb1e5f47541ee7',
 					'0x4b239a185b13f401ee79b9055fe1d7e03997b92e47c0e6533a02aae363bfc000',
 					'0x0e2db5d3a0f57c0b83ca2a3bb89ede7cc5186b7f1b5627288212731702dcc4d0',
@@ -3124,10 +3133,10 @@ allEpochs.push({
 		],
 		'0x80c9aC867b2D36B7e8D74646E074c460a008C0cb': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 547535575222282503n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 547535575222282503n,
+				proof: [
 					'0xdbe26db501e8a6708e8667d14cad73f97822d14286e78f0634331de3e6f61a6d',
 					'0xad86a11bb2387500e1756726c5ac4888bd5b809f6e7915aa00d60f034898df62',
 					'0x435a0e5342bbe73c35c9f13c21453bb49a8a9db2e26494af23b34b1a05f8f802',
@@ -3138,10 +3147,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 1301517923464504n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 1301517923464504n,
+				proof: [
 					'0xdb45437fb99a8e48b00be8e6b169109829f1a869b540cc6e20559d2ce7bc6c98',
 					'0x1e1d3f83318b0944303dddf0a609fcd9a89d4fef30ba3d42a68d3575d66e5201',
 					'0xf84b575f60a2a9c385d3b73f02eaa42d9de720caa363a42873d8eef4501fa8bb',
@@ -3152,10 +3161,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 8728317075121170n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 8728317075121170n,
+				proof: [
 					'0x89a798bad52c03982a58b372f6802be6f3400726ea5638ac4d222b95955eee58',
 					'0xb6e42107eed880fa933b275127274588f194cc6d64456454b6eba4baa39b2d7f',
 					'0xde2114699141993094a5e43e7ddce84207cb9e10a9370797eff5b4398561a776',
@@ -3166,10 +3175,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 19522768851967571n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 19522768851967571n,
+				proof: [
 					'0x69f05ce3fc7794b38cf46808061cfe89653c6a99dcc94073e25adff9fd8e6bb0',
 					'0x4b239a185b13f401ee79b9055fe1d7e03997b92e47c0e6533a02aae363bfc000',
 					'0x0e2db5d3a0f57c0b83ca2a3bb89ede7cc5186b7f1b5627288212731702dcc4d0',
@@ -3182,10 +3191,10 @@ allEpochs.push({
 		],
 		'0x05E959BA29a4ff2FbfC650da9048C81D6cD310E3': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 17280039159417005744n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 17280039159417005744n,
+				proof: [
 					'0xbafc362d3a1a45b2174b954f83c24dbfd41773593550e058f58d527b8b5f85f6',
 					'0xde5eaeede1435f813b03c18e1fadd96d7ff224cd2bf45340ead6729105479caa',
 					'0x435a0e5342bbe73c35c9f13c21453bb49a8a9db2e26494af23b34b1a05f8f802',
@@ -3196,10 +3205,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 41075469251508250n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 41075469251508250n,
+				proof: [
 					'0x3ee6ec33b3b9268dc0da18c6dedaa98d963c93920168259b64cc4a3f013a6a97',
 					'0xcf8a4fcdf41e6134036857c5f8aa4905b9f5787f47406c73166d5822630a1167',
 					'0xf84b575f60a2a9c385d3b73f02eaa42d9de720caa363a42873d8eef4501fa8bb',
@@ -3210,10 +3219,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 275462760191739841n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 275462760191739841n,
+				proof: [
 					'0x196c9e380046ee8bd8fa96e263c0a8d9085621f1d9742c211d70b7e9a343b3c8',
 					'0xb4443d19d3e866bb1747c08de34734cc5719c620953a4c01907094c617702b56',
 					'0xde2114699141993094a5e43e7ddce84207cb9e10a9370797eff5b4398561a776',
@@ -3224,10 +3233,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 616132038772623751n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 616132038772623751n,
+				proof: [
 					'0x4d9a0e33973fbb28287b92ef5aab5c19ade454587fec9bfa8bc4ca7a24e45022',
 					'0x0775c1658bc6002167e389006cdacdbbd249d635f12f3b6b71dfdd344f42d011',
 					'0x0e2db5d3a0f57c0b83ca2a3bb89ede7cc5186b7f1b5627288212731702dcc4d0',
@@ -3240,10 +3249,10 @@ allEpochs.push({
 		],
 		'0x34cd8a21E92b0Abd558Ff02D6cc7a9e12DAf0ff1': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 391096839444487519n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 391096839444487519n,
+				proof: [
 					'0x207d509e4766f72bcb2fd35a2c7046d608a863648dabededc01290d5d69cbdb5',
 					'0xde5eaeede1435f813b03c18e1fadd96d7ff224cd2bf45340ead6729105479caa',
 					'0x435a0e5342bbe73c35c9f13c21453bb49a8a9db2e26494af23b34b1a05f8f802',
@@ -3254,10 +3263,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 929655659617503n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 929655659617503n,
+				proof: [
 					'0xf396ff70fa1a8764b0012dd771466b070e303636391802aa1ff063fd2a989469',
 					'0xcf8a4fcdf41e6134036857c5f8aa4905b9f5787f47406c73166d5822630a1167',
 					'0xf84b575f60a2a9c385d3b73f02eaa42d9de720caa363a42873d8eef4501fa8bb',
@@ -3268,10 +3277,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 6234512196515122n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 6234512196515122n,
+				proof: [
 					'0xfdf89e1b15e24215bf4b1ef600bc79bcd32be4fc57afbd4a1a8b43517f4eedf8',
 					'0xb4443d19d3e866bb1747c08de34734cc5719c620953a4c01907094c617702b56',
 					'0xde2114699141993094a5e43e7ddce84207cb9e10a9370797eff5b4398561a776',
@@ -3282,10 +3291,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 13944834894262551n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 13944834894262551n,
+				proof: [
 					'0x928e967e0bccfb6833a8d7274c18772632f8faf4866fbd7d97bb141e6a8bb820',
 					'0x0775c1658bc6002167e389006cdacdbbd249d635f12f3b6b71dfdd344f42d011',
 					'0x0e2db5d3a0f57c0b83ca2a3bb89ede7cc5186b7f1b5627288212731702dcc4d0',
@@ -3298,10 +3307,10 @@ allEpochs.push({
 		],
 		'0x9adcdC109dc88ADC2E1493829e1bdf59635A4692': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 453756030790944912n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 453756030790944912n,
+				proof: [
 					'0x4be225e42d58b96fbaec901ea8c73a033c8b3a756b21ac585992463b194668e9',
 					'0x14c6d490d0180878921f8ffea37ae1b1163da9cde9f2a4711d4da179fd5036da',
 					'0x6c3c9eccf5e6547676c1fc8d15cdf3f7621c45cda4c4cd0ae26e1382aece0319',
@@ -3312,10 +3321,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 1078599516962478n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 1078599516962478n,
+				proof: [
 					'0x71ffd144c9089257063909fa512b7b70b49744df64de21f7dd826d36b5d7c54d',
 					'0x704403ee40bf38b2164683003511ba30a2f53627d8b7bc0f0325d00c5dc95f44',
 					'0x748cd4dc97602571c4aa08e916bda70c7da3e18963e9cdd3ccd970cca95b51d9',
@@ -3326,10 +3335,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 7233368370418599n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 7233368370418599n,
+				proof: [
 					'0x4a5d0ed1937aac1a7e8e785efd7e24b6f1baae572da3bd33c9bb76d1c25998de',
 					'0x0f3e98899db70eb6c66a2908182fdf8cbc196824f0f4b0095acf6750f9d47f50',
 					'0x08a19d3bcdcea3cf4f74e6811fbcf5b4d55b072675fd074f13bb805d2d0296d2',
@@ -3340,10 +3349,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 16178992754437171n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 16178992754437171n,
+				proof: [
 					'0xfdf83039acd0301e2cc1acb9df49b11bb2264d3664f81b5d9c82901bb57db27d',
 					'0xbaade28eb0c1fa4c3409da8aecbf3047d71a23edd79e3c7ac1e9d4f281d918d4',
 					'0xbc748534b4ee2306890bb055428e97bcbfb37cdc25193dc8d9451d57cf3356ce',
@@ -3356,10 +3365,10 @@ allEpochs.push({
 		],
 		'0x8Ff8aBa1C8bd3c607a650D15ff1E3662aac92B4B': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 115561006925253129n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 115561006925253129n,
+				proof: [
 					'0xc3451e2dca544835ca003f302478e975eba630c92d545977072a923e83223986',
 					'0x14c6d490d0180878921f8ffea37ae1b1163da9cde9f2a4711d4da179fd5036da',
 					'0x6c3c9eccf5e6547676c1fc8d15cdf3f7621c45cda4c4cd0ae26e1382aece0319',
@@ -3370,10 +3379,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 274693971630542n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 274693971630542n,
+				proof: [
 					'0x68d19707c94a910d7dce71c5c269ffac2ba23dc0bbddc360d0103321798c6e85',
 					'0x704403ee40bf38b2164683003511ba30a2f53627d8b7bc0f0325d00c5dc95f44',
 					'0x748cd4dc97602571c4aa08e916bda70c7da3e18963e9cdd3ccd970cca95b51d9',
@@ -3384,10 +3393,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 1842169085642336n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 1842169085642336n,
+				proof: [
 					'0xf02406aace00b9aba611aa266727966dfb145cf8652e1ef6217522170db4e563',
 					'0x0f3e98899db70eb6c66a2908182fdf8cbc196824f0f4b0095acf6750f9d47f50',
 					'0x08a19d3bcdcea3cf4f74e6811fbcf5b4d55b072675fd074f13bb805d2d0296d2',
@@ -3398,10 +3407,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 4120409574458144n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 4120409574458144n,
+				proof: [
 					'0xaa3c162031a753ae11acf6171688cfeec99213e824cdff31c999d5c071989dfb',
 					'0xbaade28eb0c1fa4c3409da8aecbf3047d71a23edd79e3c7ac1e9d4f281d918d4',
 					'0xbc748534b4ee2306890bb055428e97bcbfb37cdc25193dc8d9451d57cf3356ce',
@@ -3414,10 +3423,10 @@ allEpochs.push({
 		],
 		'0x470FdE0dE20c6590CaE7036AA7DABe5dbe5d0fd6': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 260731226296325017n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 260731226296325017n,
+				proof: [
 					'0xff2340f5a7861ddc1e72d24b720f2626b1e899d49bb118e4d4d8000698e3b894',
 					'0x1340343a80ae2987d699f349d1f8c280ed213dfd1af7827f1757ea1623007f7b',
 					'0x6c3c9eccf5e6547676c1fc8d15cdf3f7621c45cda4c4cd0ae26e1382aece0319',
@@ -3428,10 +3437,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 619770439745002n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 619770439745002n,
+				proof: [
 					'0x5af30e8176baa7fe3a399ab983d8aaea6f1800aed3d33340a3ef9808eca3511f',
 					'0x9de081784f298478600dda9cc676fb84168577db4ee5240b4edb398ac3cff388',
 					'0x748cd4dc97602571c4aa08e916bda70c7da3e18963e9cdd3ccd970cca95b51d9',
@@ -3442,10 +3451,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 4156341464343414n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 4156341464343414n,
+				proof: [
 					'0xd79ec21b0c138570d44c5163a148ceb4b98e25cb0ca108e4b2a017d38e9de0e5',
 					'0x926b8191e1ef70b0a0d9512dcdf654507ee79526b9901efd2329c42225a397a6',
 					'0x08a19d3bcdcea3cf4f74e6811fbcf5b4d55b072675fd074f13bb805d2d0296d2',
@@ -3456,10 +3465,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 9296556596175034n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 9296556596175034n,
+				proof: [
 					'0x04fc5f0977419725e5d7fe0ef6f062eb91975caf0862350ae714d59d3bbec392',
 					'0x9ba1912cd23f887206b612dcdb95a25432cb4a2edd2dfc6f0b8bd8fbe901f7be',
 					'0xbc748534b4ee2306890bb055428e97bcbfb37cdc25193dc8d9451d57cf3356ce',
@@ -3472,10 +3481,10 @@ allEpochs.push({
 		],
 		'0x04Df798edaDe87D112a9B89E671f991A0661a24E': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 1303656131481624866n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 1303656131481624866n,
+				proof: [
 					'0xb40e8fa7246aa17b9e6740f4cd0b28f79732dadefa219f556cb3da26b574fa5e',
 					'0x1340343a80ae2987d699f349d1f8c280ed213dfd1af7827f1757ea1623007f7b',
 					'0x6c3c9eccf5e6547676c1fc8d15cdf3f7621c45cda4c4cd0ae26e1382aece0319',
@@ -3486,10 +3495,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 3098852198725010n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 3098852198725010n,
+				proof: [
 					'0x0cf6024072f41bfd77d60bdc709b0505a6ee1b0f6d4717eba42717ac51074e7c',
 					'0x9de081784f298478600dda9cc676fb84168577db4ee5240b4edb398ac3cff388',
 					'0x748cd4dc97602571c4aa08e916bda70c7da3e18963e9cdd3ccd970cca95b51d9',
@@ -3500,10 +3509,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 20781707321717071n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 20781707321717071n,
+				proof: [
 					'0xad51a33df0c6db3c66834f4dba847d36972eedca84e1e142cb7e0a594a4249d4',
 					'0x926b8191e1ef70b0a0d9512dcdf654507ee79526b9901efd2329c42225a397a6',
 					'0x08a19d3bcdcea3cf4f74e6811fbcf5b4d55b072675fd074f13bb805d2d0296d2',
@@ -3514,10 +3523,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 46482782980875164n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 46482782980875164n,
+				proof: [
 					'0x54bfe5fd257d433dd66e243dafc3a93562bb8d6bf6fea02d74d1dab8f3bd01e6',
 					'0x9ba1912cd23f887206b612dcdb95a25432cb4a2edd2dfc6f0b8bd8fbe901f7be',
 					'0xbc748534b4ee2306890bb055428e97bcbfb37cdc25193dc8d9451d57cf3356ce',
@@ -3530,10 +3539,10 @@ allEpochs.push({
 		],
 		'0x98625957C6b96eeECD040e5BD26bd42100D124B2': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 5637110613104824n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 5637110613104824n,
+				proof: [
 					'0x4c1944471916d8118a14a0669feb9f4e56eb374ec58cde817fa9bb34d937f2f6',
 					'0xaa8ab3e53a4931842e423196fe4234673ff0f8c3141884c4e637c7d2eed52868',
 					'0xf8e3725285a31dc6afd7c400533c29eefd2e9c9d8272e3c26e42a6982ea17699',
@@ -3544,10 +3553,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 13399678178955n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 13399678178955n,
+				proof: [
 					'0x9ea99c8ab45722bc1889942eaae6284c2ff1f148a61920f2955e1a33c249f524',
 					'0x6631adaca614c3e04efb22702eb566c2c1ef9caededf7f314d258a99258787da',
 					'0x1357236e13aabb82f0c23bcb2cb644d55f437d04d06c28c670773735a963a2c8',
@@ -3558,10 +3567,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 89861720489549n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 89861720489549n,
+				proof: [
 					'0xdacfd9aa14e3c40619aa773f5943951bc6f46b87030044df0aa63dd3afeab233',
 					'0x2f883ae616390391b8201d18da20c93828dec5ca6ba0043276eaf36a9262d720',
 					'0x3d62fcca7232c5c2294380af9dfb729f9cee5196fe6f606d4e8e5000c187d513',
@@ -3572,10 +3581,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 200995172684333n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 200995172684333n,
+				proof: [
 					'0xe3d754230aa26e8752fb9c8de85375025198c387ce1dc93971e24b937dd03f90',
 					'0x73352cd5dda44a7f68cd32ef8a0c98ab80f4acc8352b48d786be356d8c2ace09',
 					'0xff582c62d9f2c05f162924ab27d3394ac4854b91f2eb08717174bc9e2f0094c7',
@@ -3588,10 +3597,10 @@ allEpochs.push({
 		],
 		'0xEa04a9Fe2CEf51B504e7da8cf1b859454AE27030': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 1825118584074274931n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 1825118584074274931n,
+				proof: [
 					'0xc2abe871eafc7a9d5579ce4740f1b20deeb45c2dd53a40e286f73c78bbf80772',
 					'0xaa8ab3e53a4931842e423196fe4234673ff0f8c3141884c4e637c7d2eed52868',
 					'0xf8e3725285a31dc6afd7c400533c29eefd2e9c9d8272e3c26e42a6982ea17699',
@@ -3602,10 +3611,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 4338393078215015n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 4338393078215015n,
+				proof: [
 					'0x5af8fef30510b82dc203a0625a078c31b3aed97d6ce9ea7e56f23d3b4363ce21',
 					'0x6631adaca614c3e04efb22702eb566c2c1ef9caededf7f314d258a99258787da',
 					'0x1357236e13aabb82f0c23bcb2cb644d55f437d04d06c28c670773735a963a2c8',
@@ -3616,10 +3625,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 29094390250403901n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 29094390250403901n,
+				proof: [
 					'0xe5183b4a9414c2230b4fc66430c4b873721f0fba9a4a2cd1bae270ca75219692',
 					'0x2f883ae616390391b8201d18da20c93828dec5ca6ba0043276eaf36a9262d720',
 					'0x3d62fcca7232c5c2294380af9dfb729f9cee5196fe6f606d4e8e5000c187d513',
@@ -3630,10 +3639,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 65075896173225234n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 65075896173225234n,
+				proof: [
 					'0x9cfdaff60c247aa2d9d8748eed9c275389c33a0ec6f356e4dc6bede8058247cc',
 					'0x73352cd5dda44a7f68cd32ef8a0c98ab80f4acc8352b48d786be356d8c2ace09',
 					'0xff582c62d9f2c05f162924ab27d3394ac4854b91f2eb08717174bc9e2f0094c7',
@@ -3646,10 +3655,10 @@ allEpochs.push({
 		],
 		'0xdAb4cc54a8BeA0cd7833c9a453E7F4C996b3D100': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 2016947922675399375n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 2016947922675399375n,
+				proof: [
 					'0x7e2238d3e287ad1f2514d357cf72a9694eae6193f64127a9b47e83cbeb1a5801',
 					'0x09301395915c728c4d0f1ae41478833438a9ddbcdb0aa29734f642c1f40e0c9b',
 					'0xf8e3725285a31dc6afd7c400533c29eefd2e9c9d8272e3c26e42a6982ea17699',
@@ -3660,10 +3669,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 4794380476539493n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 4794380476539493n,
+				proof: [
 					'0xbb892af6ec029e5e80cc7e7c96e8ba05ed83d159ac409e68ba97f6077d42787b',
 					'0x41a66695ca32e98475e227f1f52339078e14419d8ec32e001f1f44e5253fd17e',
 					'0x1357236e13aabb82f0c23bcb2cb644d55f437d04d06c28c670773735a963a2c8',
@@ -3674,10 +3683,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 32152360120109010n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 32152360120109010n,
+				proof: [
 					'0x4e71bd50b50e0de17c950eef19589f2531172d85011fd758fbfd92ff372f87b7',
 					'0x1bee8a561576707b8515f3f58ba5ef28e2cde6874aa34c296809feaffe009b0a',
 					'0x3d62fcca7232c5c2294380af9dfb729f9cee5196fe6f606d4e8e5000c187d513',
@@ -3688,10 +3697,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 71915707148092397n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 71915707148092397n,
+				proof: [
 					'0x852a9e570891ab66d24e25a89cf63d223e6434894563b1f1ef342c5d9fc7a318',
 					'0x62c920c0b932866adbc34d712ec0dba7706375c65030804f94e1da0d41c43c63',
 					'0xff582c62d9f2c05f162924ab27d3394ac4854b91f2eb08717174bc9e2f0094c7',
@@ -3704,10 +3713,10 @@ allEpochs.push({
 		],
 		'0x228bBB661EF183d80cEc32a04c3A91f9151CBEbb': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 15643873577779498872n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 15643873577779498872n,
+				proof: [
 					'0x63cd42a6f75f18cda77ba6ccd34c0f0885b621c44a627e3111f8640c83f76d65',
 					'0x09301395915c728c4d0f1ae41478833438a9ddbcdb0aa29734f642c1f40e0c9b',
 					'0xf8e3725285a31dc6afd7c400533c29eefd2e9c9d8272e3c26e42a6982ea17699',
@@ -3718,10 +3727,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 37186226384700132n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 37186226384700132n,
+				proof: [
 					'0x2a8ee32a45b416b378f478b6aad30eafd9765be63274f17e67a782b241c17c95',
 					'0x41a66695ca32e98475e227f1f52339078e14419d8ec32e001f1f44e5253fd17e',
 					'0x1357236e13aabb82f0c23bcb2cb644d55f437d04d06c28c670773735a963a2c8',
@@ -3732,10 +3741,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 249380487860604863n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 249380487860604863n,
+				proof: [
 					'0x3c9409a2d2b32918d706768b696e095bc3c89f2ab9582ee5f7466032630231c4',
 					'0x1bee8a561576707b8515f3f58ba5ef28e2cde6874aa34c296809feaffe009b0a',
 					'0x3d62fcca7232c5c2294380af9dfb729f9cee5196fe6f606d4e8e5000c187d513',
@@ -3746,10 +3755,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 557793395770501992n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 557793395770501992n,
+				proof: [
 					'0x1e8e7d3d601d63ca59450501e7f1f09cd02aed619ff9bbfdb21cbca7b4be205f',
 					'0x62c920c0b932866adbc34d712ec0dba7706375c65030804f94e1da0d41c43c63',
 					'0xff582c62d9f2c05f162924ab27d3394ac4854b91f2eb08717174bc9e2f0094c7',
@@ -3762,10 +3771,10 @@ allEpochs.push({
 		],
 		'0x19636BF1F0bB0e813D316A73Cc91f03153b6Db41': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 521462452592650005n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 521462452592650005n,
+				proof: [
 					'0x8c54ba6bf1e90fd46779b1dcd9447c2f10783fd353072b2b8ddf517a65727653',
 					'0x80c22be04042639e95be25807718158be1a22a0c7c09c1c4bbb5078674536675',
 					'0x084a5ff7df6d82165bd1f6a28fe8ff3fa6795912282c7db0508d7f7ad030ba0c',
@@ -3776,10 +3785,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 1239540879490004n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 1239540879490004n,
+				proof: [
 					'0xa7019aa8420188fa1d6050aeac3842b08214a7b6b0457abc17591603f891b25d',
 					'0x0d434f353ddfd23786281ccea3dbe9ae94962efbc0fe5f5060e302f38dbfde90',
 					'0xf62382091fa7a1de3843f9c82caac774895cc727c0083be764103a6fd956d6fa',
@@ -3790,10 +3799,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 8312682928686829n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 8312682928686829n,
+				proof: [
 					'0x89e78772ba5d4406786c7ac863086001eeef68bb25fd7f17f95c58320ce12f39',
 					'0x9d5720e2504b26f5b7b25486e3a03e7d9f99a4c0a5c70de3889731a35b050045',
 					'0x596584e4b73de06aebccb633cffbefb7ee1007e4d8035c8514a7699ed3c80e55',
@@ -3804,10 +3813,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 18593113192350067n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 18593113192350067n,
+				proof: [
 					'0x94d10d53809474113e918ef05bfb6781400de67425f1f0319c6321350080188e',
 					'0x2f0a719775dc6dd382ebdb9af8ac02baee084e597707187cdd8addd9b7f47805',
 					'0x8021681db223d1a9d39cc00e975dfaed46bf2739dbe0b90894946e20d7cfd6e7',
@@ -3820,10 +3829,10 @@ allEpochs.push({
 		],
 		'0x0e04CAB2146752790F9D4a7d68806d0531f967CA': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 6291233052101052833n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 6291233052101052833n,
+				proof: [
 					'0x2459be98b82b7b8789685508271f643226343b4f20a8cd4d5e3d6012f3b38a38',
 					'0x80c22be04042639e95be25807718158be1a22a0c7c09c1c4bbb5078674536675',
 					'0x084a5ff7df6d82165bd1f6a28fe8ff3fa6795912282c7db0508d7f7ad030ba0c',
@@ -3834,10 +3843,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 14954558111913886n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 14954558111913886n,
+				proof: [
 					'0x5f9508ec0bd698539790a01e4d0fc7349f5d5eca581773bd39ab80405abae089',
 					'0x0d434f353ddfd23786281ccea3dbe9ae94962efbc0fe5f5060e302f38dbfde90',
 					'0xf62382091fa7a1de3843f9c82caac774895cc727c0083be764103a6fd956d6fa',
@@ -3848,10 +3857,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 100289148974343402n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 100289148974343402n,
+				proof: [
 					'0xf8e64c23a873e6bdd1fc92bb37ad5c92267216fc97988d5b6329c58be7ad01e0',
 					'0x9d5720e2504b26f5b7b25486e3a03e7d9f99a4c0a5c70de3889731a35b050045',
 					'0x596584e4b73de06aebccb633cffbefb7ee1007e4d8035c8514a7699ed3c80e55',
@@ -3862,10 +3871,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 224318371678708294n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 224318371678708294n,
+				proof: [
 					'0x7b05b9e55fc29d20823da897811a946dded39d5c98cae9196d83db99d9b0db49',
 					'0x2f0a719775dc6dd382ebdb9af8ac02baee084e597707187cdd8addd9b7f47805',
 					'0x8021681db223d1a9d39cc00e975dfaed46bf2739dbe0b90894946e20d7cfd6e7',
@@ -3878,10 +3887,10 @@ allEpochs.push({
 		],
 		'0x2120783b3794Aba5A099328b0c0b8BDdaDc250A0': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 49929556017842578n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 49929556017842578n,
+				proof: [
 					'0xfd0f2f7285b988a0d67556b3b66bbedaab59bda66e9f1b18387efc506e353814',
 					'0x8c387fb2728993b4a66ece2e0d564e62a579bd1a3b74536f206cbba8f19530a3',
 					'0x084a5ff7df6d82165bd1f6a28fe8ff3fa6795912282c7db0508d7f7ad030ba0c',
@@ -3892,10 +3901,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 118684912923631n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 118684912923631n,
+				proof: [
 					'0x6bb19f62cd51a6e4c8d5eabf56e0320548a1d73350b28270aa856a4588311c89',
 					'0x4c6e931813109e62efe78093919c6cccfba79f35aa2a7c828ebca618adf274a1',
 					'0xf62382091fa7a1de3843f9c82caac774895cc727c0083be764103a6fd956d6fa',
@@ -3906,10 +3915,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 795931837245155n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 795931837245155n,
+				proof: [
 					'0x95bd37f4939e4d8de8d14f4b3e6dcd8139f6b3b918756a9859ac2cf9d760e7b8',
 					'0x583313156035403bbae9f30e64efccedd94b02bc21e6b8a52011208b36469165',
 					'0x596584e4b73de06aebccb633cffbefb7ee1007e4d8035c8514a7699ed3c80e55',
@@ -3920,10 +3929,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 1780273693854474n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 1780273693854474n,
+				proof: [
 					'0xb0b25bce3500d76a38895ed664859ec91dd1a9490abb97685df897170e1b2565',
 					'0xdbf56d0cf6c97786fecb1cab3163c68ef97767776f20de03599f6b9f78cbf038',
 					'0x8021681db223d1a9d39cc00e975dfaed46bf2739dbe0b90894946e20d7cfd6e7',
@@ -3936,10 +3945,10 @@ allEpochs.push({
 		],
 		'0x7115b222b2CcdE533A27A75D3E8629832E6DC1e3': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 2777697848626221215n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 2777697848626221215n,
+				proof: [
 					'0xebc5d49555b21c894d420b57c725e9e39af3a9f0712ebb429f92b8840c791033',
 					'0x8c387fb2728993b4a66ece2e0d564e62a579bd1a3b74536f206cbba8f19530a3',
 					'0x084a5ff7df6d82165bd1f6a28fe8ff3fa6795912282c7db0508d7f7ad030ba0c',
@@ -3950,10 +3959,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 6602718982210704n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 6602718982210704n,
+				proof: [
 					'0x12911d5c226ba89dc2761d8c46cc5d511da8cc1cc9e1103ec53871c71dae310c',
 					'0x4c6e931813109e62efe78093919c6cccfba79f35aa2a7c828ebca618adf274a1',
 					'0xf62382091fa7a1de3843f9c82caac774895cc727c0083be764103a6fd956d6fa',
@@ -3964,10 +3973,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 44279547592590708n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 44279547592590708n,
+				proof: [
 					'0x1a94097555fa531e0661d80b25e393f8cf3218ea349bcc01128039c2d593b08f',
 					'0x583313156035403bbae9f30e64efccedd94b02bc21e6b8a52011208b36469165',
 					'0x596584e4b73de06aebccb633cffbefb7ee1007e4d8035c8514a7699ed3c80e55',
@@ -3978,10 +3987,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 99040784733160565n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 99040784733160565n,
+				proof: [
 					'0x8b5dfc4f49b3735520ec6c0bf14e6ff48968b3820f465d5633bf566107d2d6c8',
 					'0xdbf56d0cf6c97786fecb1cab3163c68ef97767776f20de03599f6b9f78cbf038',
 					'0x8021681db223d1a9d39cc00e975dfaed46bf2739dbe0b90894946e20d7cfd6e7',
@@ -3994,10 +4003,10 @@ allEpochs.push({
 		],
 		'0x7AAEE144a14Ec3ba0E468C9Dcf4a89Fdb62C5AA6': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 782193678888975038n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 782193678888975038n,
+				proof: [
 					'0xda60ae38c2e30c1d4a8d71879f2c76ebc3930a9105fa4c6eded798820855356b',
 					'0xb3cb04e18a4e51d800ac7e67cf4580ab8b39abd8b7adefd8c29fe7a9727080b4',
 					'0xa5d16ac4dbbae9e7df0b62a136073256f0e803a83720fbfb836d2c7e0cfed0af',
@@ -4008,10 +4017,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 1859311319235006n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 1859311319235006n,
+				proof: [
 					'0x4b26636aaed8ba209c412d157b48e1796f0a40cfae9e862f56b6a28bea01953f',
 					'0x359f86a8b2fdfb4f850b2cfa151ecd36407133b1697047bc0f2184c46e02cb02',
 					'0xe3686f0fdd86aee2062dc667e9703e03a80f2714734c8629399921783a0f81d9',
@@ -4022,10 +4031,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 12469024393030244n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 12469024393030244n,
+				proof: [
 					'0x3118fc3a5c3ae9d5ed8ea10afa5e14a48fde42d7d6ac083391d306449542a304',
 					'0xcda77227244da12702c105805ea7bb646ecb83eb58fe90d8dfd85bf09ad8ffbb',
 					'0xf5bdcad2b1cd5dbc5d239ac283dfbc70cd96834995e3e7e7532a3816daac3bac',
@@ -4036,10 +4045,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 27889669788525102n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 27889669788525102n,
+				proof: [
 					'0x94162452d62f99fd4d0ccde9803e6006392a246ce54d3c42ced48ee5512f73e3',
 					'0x5ade19658771b56759061322897e78da2501dbca301a2e7bd894db3ba2da4b30',
 					'0xd88d1156b3ffe971742e1ad5447bb2eb7de14dcb9ef2cef7533dd4b88aea90fb',
@@ -4052,10 +4061,10 @@ allEpochs.push({
 		],
 		'0x4d0bddEc656ED7C3b33AB581b6f14c9ab5C205d4': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 95166897598158630273n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 95166897598158630273n,
+				proof: [
 					'0x11c22e2943e754291b93dc34db7210cb2c879448a3131da9651bddc665388c1a',
 					'0xb3cb04e18a4e51d800ac7e67cf4580ab8b39abd8b7adefd8c29fe7a9727080b4',
 					'0xa5d16ac4dbbae9e7df0b62a136073256f0e803a83720fbfb836d2c7e0cfed0af',
@@ -4066,10 +4075,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 226216210506925836n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 226216210506925836n,
+				proof: [
 					'0x973b9b06c9041e75f1aab999008593055ae770672302eec6f1e77c12a1330e34',
 					'0x359f86a8b2fdfb4f850b2cfa151ecd36407133b1697047bc0f2184c46e02cb02',
 					'0xe3686f0fdd86aee2062dc667e9703e03a80f2714734c8629399921783a0f81d9',
@@ -4080,10 +4089,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 1517064634485346446n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 1517064634485346446n,
+				proof: [
 					'0x0f08c9e790be23444f5d04e9eb734500c43fb8b30a5e9acc0359fdd6e1a104fb',
 					'0xcda77227244da12702c105805ea7bb646ecb83eb58fe90d8dfd85bf09ad8ffbb',
 					'0xf5bdcad2b1cd5dbc5d239ac283dfbc70cd96834995e3e7e7532a3816daac3bac',
@@ -4094,10 +4103,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 3393243157603887551n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 3393243157603887551n,
+				proof: [
 					'0xe62c648d20f14bb6b54ed97ff89b427e71e0eda1f605d069b201f10911df8cde',
 					'0x5ade19658771b56759061322897e78da2501dbca301a2e7bd894db3ba2da4b30',
 					'0xd88d1156b3ffe971742e1ad5447bb2eb7de14dcb9ef2cef7533dd4b88aea90fb',
@@ -4110,10 +4119,10 @@ allEpochs.push({
 		],
 		'0x22f2fC3A942c68b7e01E021bc49EEc3e8df360C1': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 9593626296918747n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 9593626296918747n,
+				proof: [
 					'0xa4910830f0e43fcce9e5345b160325ba467c894c89223f92730edea1695bfe22',
 					'0x9fc33905c854df066fc99b9863642a7c73e801657cad1b360ce299004300dccc',
 					'0xa5d16ac4dbbae9e7df0b62a136073256f0e803a83720fbfb836d2c7e0cfed0af',
@@ -4124,10 +4133,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 22804502833247n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 22804502833247n,
+				proof: [
 					'0xf9cf14a529ceb66056212d9d54850c2487a5af760735634cb937bce3a11ba843',
 					'0x10749a26155853404aed12faad748369b409210456135cf1a8b84e804af86ea5',
 					'0xe3686f0fdd86aee2062dc667e9703e03a80f2714734c8629399921783a0f81d9',
@@ -4138,10 +4147,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 152932916159343n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 152932916159343n,
+				proof: [
 					'0xddac99cf03802371b8ebdd5154c6126892dad2ee4ed86972d5c1023ec54bad99',
 					'0x2f853c8aa7864dafecdd52b822c5a7affb90183fe8b82d82b4659cf1046a0128',
 					'0xf5bdcad2b1cd5dbc5d239ac283dfbc70cd96834995e3e7e7532a3816daac3bac',
@@ -4152,10 +4161,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 342067542498707n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 342067542498707n,
+				proof: [
 					'0x08c25dac1b8e192724fd8ce6f52eb8cba5ed2e7c5cf1b57520e34155fe0b7f4e',
 					'0x4198bae6b525fbebb72213ed11b1d8ad6c9a17649a61be2057dfc3387d2d14ce',
 					'0xd88d1156b3ffe971742e1ad5447bb2eb7de14dcb9ef2cef7533dd4b88aea90fb',
@@ -4168,10 +4177,10 @@ allEpochs.push({
 		],
 		'0x029F1c62662CbBfe79CE55B285FeE4E2db081a06': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 8593895427545454192n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 8593895427545454192n,
+				proof: [
 					'0xd0c975413c946fd4b268524bb9b8e6d4d9626f16a4e803bcbb143d428d18d5f8',
 					'0x9fc33905c854df066fc99b9863642a7c73e801657cad1b360ce299004300dccc',
 					'0xa5d16ac4dbbae9e7df0b62a136073256f0e803a83720fbfb836d2c7e0cfed0af',
@@ -4182,10 +4191,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 20428095337529901n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 20428095337529901n,
+				proof: [
 					'0xb2f2a4a4b6929300a8ec6f4736d5f9bae4cd27f13711c489617c050be74b6e30',
 					'0x10749a26155853404aed12faad748369b409210456135cf1a8b84e804af86ea5',
 					'0xe3686f0fdd86aee2062dc667e9703e03a80f2714734c8629399921783a0f81d9',
@@ -4196,10 +4205,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 136996110566147057n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 136996110566147057n,
+				proof: [
 					'0x9f315bf70d44d1bc32278dc8af1680c28baf77d37e25375aada7329bb0a266b6',
 					'0x2f853c8aa7864dafecdd52b822c5a7affb90183fe8b82d82b4659cf1046a0128',
 					'0xf5bdcad2b1cd5dbc5d239ac283dfbc70cd96834995e3e7e7532a3816daac3bac',
@@ -4210,10 +4219,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 306421430062948520n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 306421430062948520n,
+				proof: [
 					'0x6690112f74a588c1e864bfdedd562d51607acf3fa1eb566846c65969e242f0f9',
 					'0x4198bae6b525fbebb72213ed11b1d8ad6c9a17649a61be2057dfc3387d2d14ce',
 					'0xd88d1156b3ffe971742e1ad5447bb2eb7de14dcb9ef2cef7533dd4b88aea90fb',
@@ -4226,10 +4235,10 @@ allEpochs.push({
 		],
 		'0x20EADfcaf91BD98674FF8fc341D148E1731576A4': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 26073122629632502532n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 26073122629632502532n,
+				proof: [
 					'0x2ab3a506f9a5746b5188ea59c3e44b6b6ea899818028ac0499f0ef73da741361',
 					'0x299ed84b64123ec64e25794894bbb42e43db8eb84c972eaee657a9999ddef3c0',
 					'0xd02ada35ce5a83b55b694bed729c508ae5494bf69fed302157c702f6da864be7',
@@ -4240,10 +4249,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 61977043974500231n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 61977043974500231n,
+				proof: [
 					'0x9cc8e3b05b12818a9b2b86aba6fe76c082f5ef0fca13463a7fd223c41bf35aa0',
 					'0xe2fc06ff3f7110795cf78bef0de360118aa33469209f072bdb8d0d79099a12aa',
 					'0x51c5966cf3b5a8b6e91c4cd87d67de055f063c2c7898e881a857e828c5229861',
@@ -4254,10 +4263,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 415634146434341509n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 415634146434341509n,
+				proof: [
 					'0x51e4ed73998fc1352c5e7c746c691c3dafa4823fe3d115fa1ca48062d853bdf9',
 					'0x8e617bc46e45b6fa380f7987381df1bbb363b13fe4a67a8f0e436fc81138f3dd',
 					'0x943289b1a6ca1c8af1d94a9ae7b74a4aaf47fc51c5c14e3d0fb67d968fc83b9a',
@@ -4268,10 +4277,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 929655659617503477n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 929655659617503477n,
+				proof: [
 					'0xaf6c3d25b58f02a0f21fdd3adc94e8e8a908bc6db0104584bc1bb2e9fadde070',
 					'0x5f409c05d17c46d9a02ab942dd775c8eb0911ca07b646970c32d4fccf0bc2127',
 					'0xfa41a0b92b7d1e634375563d64900d31a3504b2886bf78f1dda68aae9234037f',
@@ -4284,10 +4293,10 @@ allEpochs.push({
 		],
 		'0xA67D2c03c3cfe6177a60cAed0a4cfDA7C7a563e0': [
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000000',
-				'incentive': '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
-				'amount': 528517401558547129n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000000',
+				incentive: '0xd084944d3c05CD115C09d072B9F44bA3E0E45921',
+				amount: 528517401558547129n,
+				proof: [
 					'0x7e9ff3c48e47119eb8aa6de3385345207bcb8f95adda43b4edae09742dfceff5',
 					'0x299ed84b64123ec64e25794894bbb42e43db8eb84c972eaee657a9999ddef3c0',
 					'0xd02ada35ce5a83b55b694bed729c508ae5494bf69fed302157c702f6da864be7',
@@ -4298,10 +4307,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000001',
-				'incentive': '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
-				'amount': 1256310826400787n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000001',
+				incentive: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+				amount: 1256310826400787n,
+				proof: [
 					'0x3a1e5acbdd1c7cec180f50f391ec0ce83e16ff6e0f4d940e902d14d986db655a',
 					'0xe2fc06ff3f7110795cf78bef0de360118aa33469209f072bdb8d0d79099a12aa',
 					'0x51c5966cf3b5a8b6e91c4cd87d67de055f063c2c7898e881a857e828c5229861',
@@ -4312,10 +4321,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000002',
-				'incentive': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-				'amount': 8425146546230127n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000002',
+				incentive: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				amount: 8425146546230127n,
+				proof: [
 					'0x2ebb935967ecbc171b2fd74bd3e9d24b88ab9f9bdb5b7c14db659c3b12486c76',
 					'0x8e617bc46e45b6fa380f7987381df1bbb363b13fe4a67a8f0e436fc81138f3dd',
 					'0x943289b1a6ca1c8af1d94a9ae7b74a4aaf47fc51c5c14e3d0fb67d968fc83b9a',
@@ -4326,10 +4335,10 @@ allEpochs.push({
 				]
 			},
 			{
-				'vote': '0x0201000000000000000000000000000000000000000000000000000000000003',
-				'incentive': '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
-				'amount': 18844662396011806n,
-				'proof': [
+				vote: '0x0201000000000000000000000000000000000000000000000000000000000003',
+				incentive: '0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E',
+				amount: 18844662396011806n,
+				proof: [
 					'0x91221e536e78aa1879fd5a6c000e5dd6dd250819d9fe79e8391451a1057c8619',
 					'0x5f409c05d17c46d9a02ab942dd775c8eb0911ca07b646970c32d4fccf0bc2127',
 					'0xfa41a0b92b7d1e634375563d64900d31a3504b2886bf78f1dda68aae9234037f',

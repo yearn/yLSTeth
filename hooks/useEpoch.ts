@@ -1,12 +1,12 @@
-import {useEffect,useState} from 'react';
+import {useEffect, useState} from 'react';
 import {EPOCH_DURATION, INITIAL_PERIOD_TIMESTAMP, VOTE_START_DELAY} from 'utils/constants';
 import {performBatchedUpdates} from '@yearn-finance/web-lib/utils/performBatchedUpdates';
 
 /**************************************************************************************************
-** This hook returns the start and end period for the current timestamp.
-** It calculates the start and end period based on the INITIAL_PERIOD_TIMESTAMP and EPOCH_DURATION.
-**************************************************************************************************/
-export function useEpoch(): {startPeriod: number; endPeriod: number, voteStart: number, hasVotingStarted: boolean} {
+ ** This hook returns the start and end period for the current timestamp.
+ ** It calculates the start and end period based on the INITIAL_PERIOD_TIMESTAMP and EPOCH_DURATION.
+ **************************************************************************************************/
+export function useEpoch(): {startPeriod: number; endPeriod: number; voteStart: number; hasVotingStarted: boolean} {
 	const [startPeriod, set_startPeriod] = useState(0);
 	const [endPeriod, set_endPeriod] = useState(0);
 	const [voteStart, set_voteStart] = useState(0);

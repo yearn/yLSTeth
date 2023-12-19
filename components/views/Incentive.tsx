@@ -20,8 +20,8 @@ function ViewIncentive(): ReactElement {
 	}, [epochToDisplay]);
 
 	/* 🔵 - Yearn Finance **************************************************************************
-	** Incentive period is closed for the 3 last days of the epoch.
-	**********************************************************************************************/
+	 ** Incentive period is closed for the 3 last days of the epoch.
+	 **********************************************************************************************/
 	const isIncentivePeriodClosed = useMemo((): boolean => {
 		const currentTimestamp = Math.floor(Date.now() / 1000);
 		if (currentTimestamp > endPeriod - 3 * 24 * 3600 && currentTimestamp < endPeriod) {
@@ -31,9 +31,9 @@ function ViewIncentive(): ReactElement {
 	}, [endPeriod]);
 
 	/** 🔵 - Yearn *************************************************************************************
-	** This memo hook selects either currentEpoch.inclusion.candidates if current tab is potential,
-	** or currentEpoch.weight.participants if current tab is current.
-	**************************************************************************************************/
+	 ** This memo hook selects either currentEpoch.inclusion.candidates if current tab is potential,
+	 ** or currentEpoch.weight.participants if current tab is current.
+	 **************************************************************************************************/
 	const possibleLSTs = useMemo((): TDict<TIndexedTokenInfo> => {
 		if (currentTab === 'potential') {
 			const candidates: TDict<TIndexedTokenInfo> = {};
@@ -61,12 +61,14 @@ function ViewIncentive(): ReactElement {
 					isIncentivePeriodClosed={isIncentivePeriodClosed}
 					possibleLSTs={possibleLSTs}
 					currentTab={currentTab}
-					set_currentTab={set_currentTab} />
+					set_currentTab={set_currentTab}
+				/>
 				<div className={'bg-neutral-100'}>
 					<IncentiveHistory
 						epochToDisplay={epochToDisplay}
 						set_epochToDisplay={set_epochToDisplay}
-						currentTab={currentTab} />
+						currentTab={currentTab}
+					/>
 				</div>
 			</div>
 		</section>

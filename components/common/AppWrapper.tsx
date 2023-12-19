@@ -6,7 +6,6 @@ import {AnimatePresence, motion} from 'framer-motion';
 import type {AppProps} from 'next/app';
 import type {ReactElement} from 'react';
 
-
 const transition = {duration: 0.3, ease: [0.17, 0.67, 0.83, 1], height: {duration: 0}};
 const thumbnailVariants = {
 	initial: {y: 20, opacity: 0, transition, height: 0},
@@ -14,8 +13,8 @@ const thumbnailVariants = {
 	exit: {y: -20, opacity: 1, transition, height: 'auto'}
 };
 
-function	AppWrapper(props: AppProps): ReactElement {
-	const	{Component, pageProps, router} = props;
+function AppWrapper(props: AppProps): ReactElement {
+	const {Component, pageProps, router} = props;
 
 	return (
 		<React.Fragment>
@@ -32,7 +31,8 @@ function	AppWrapper(props: AppProps): ReactElement {
 						<Component
 							key={router.pathname}
 							router={props.router}
-							{...pageProps} />
+							{...pageProps}
+						/>
 					</motion.div>
 				</AnimatePresence>
 			</div>

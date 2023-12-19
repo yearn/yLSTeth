@@ -56,11 +56,23 @@ function Phase3({variant}: {variant: string[]}): ReactElement {
 					initial={'initial'}
 					animate={'move'}
 					exit={'exit'}>
-					<p>{'Depositors who locked their ETH for st-yETH can check out the proposals from different LST protocols to be included in yETH.'}</p>
+					<p>
+						{
+							'Depositors who locked their ETH for st-yETH can check out the proposals from different LST protocols to be included in yETH.'
+						}
+					</p>
 					&nbsp;
-					<p>{'No need for game theory here, vote for whoever you feel should be in the basket and you’ll receive your share of incentives from the LSTs that are successful, whether your voted for them or not.'}</p>
+					<p>
+						{
+							'No need for game theory here, vote for whoever you feel should be in the basket and you’ll receive your share of incentives from the LSTs that are successful, whether your voted for them or not.'
+						}
+					</p>
 					&nbsp;
-					<p>{'Your vote matters anon, as it will help decide the launch composition of yETH. Your voting power is equal to the amount of st-yETH you’re holding and you can spread your votes over multiple protocols or go all in on one. Your vote, your choice.'}</p>
+					<p>
+						{
+							'Your vote matters anon, as it will help decide the launch composition of yETH. Your voting power is equal to the amount of st-yETH you’re holding and you can spread your votes over multiple protocols or go all in on one. Your vote, your choice.'
+						}
+					</p>
 					&nbsp;
 					<p>{'If only regular democracy came with incentives... sigh.'}</p>
 				</motion.div>
@@ -74,13 +86,17 @@ function Phase3({variant}: {variant: string[]}): ReactElement {
 					<div className={'mt-6'}>
 						<b>{'Current whitelisted Protocols'}</b>
 						<div className={'mt-4 flex flex-row flex-wrap gap-2'}>
-							{((process.env.WHITELISTED_PROTOCOLS || []) as string[]).map((protocolName, index): ReactElement => (
-								<div
-									key={`${protocolName}_${index}`}
-									className={'rounded-full bg-purple-300 px-4 py-2 text-xs font-bold text-neutral-0'}>
-									{protocolName}
-								</div>
-							))}
+							{((process.env.WHITELISTED_PROTOCOLS || []) as string[]).map(
+								(protocolName, index): ReactElement => (
+									<div
+										key={`${protocolName}_${index}`}
+										className={
+											'rounded-full bg-purple-300 px-4 py-2 text-xs font-bold text-neutral-0'
+										}>
+										{protocolName}
+									</div>
+								)
+							)}
 						</div>
 					</div>
 				</motion.div>
@@ -94,10 +110,9 @@ function Phase3({variant}: {variant: string[]}): ReactElement {
 				animate={'move'}
 				exit={'exit'}>
 				<div className={'absolute inset-0 top-20 flex h-full w-full justify-center'}>
-					<HeroAsLottie id={'voting'}/>
+					<HeroAsLottie id={'voting'} />
 				</div>
 			</motion.div>
-
 		</section>
 	);
 }

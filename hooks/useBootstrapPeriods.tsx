@@ -13,7 +13,7 @@ export type TUseBootstrapPeriodsResp = {
 	incentiveStatus: 'started' | 'ended' | 'none';
 	depositStatus: 'started' | 'ended' | 'none';
 	voteStatus: 'started' | 'ended' | 'none';
-}
+};
 export type TPeriods = {
 	WHITELIST_BEGIN: string;
 	WHITELIST_END: string;
@@ -23,7 +23,7 @@ export type TPeriods = {
 	DEPOSIT_END: string;
 	VOTE_BEGIN: string;
 	VOTE_END: string;
-}
+};
 
 function useBootstrapPeriods(): TUseBootstrapPeriodsResp {
 	const nowBigInt = toBigInt(Math.round(new Date().getTime() / 1000));
@@ -39,36 +39,44 @@ function useBootstrapPeriods(): TUseBootstrapPeriodsResp {
 	return {
 		whitelistBegin,
 		whitelistEnd,
-		whitelistStatus: (
-			(whitelistBegin > BigInt(0) && whitelistEnd > BigInt(0))
-				?
-				whitelistBegin > nowBigInt ? 'none' :
-					whitelistBegin < nowBigInt && nowBigInt < whitelistEnd ? 'started' : 'ended' : 'none'
-		),
+		whitelistStatus:
+			whitelistBegin > BigInt(0) && whitelistEnd > BigInt(0)
+				? whitelistBegin > nowBigInt
+					? 'none'
+					: whitelistBegin < nowBigInt && nowBigInt < whitelistEnd
+						? 'started'
+						: 'ended'
+				: 'none',
 		incentiveBegin,
 		incentiveEnd,
-		incentiveStatus: (
-			(incentiveBegin > BigInt(0) && incentiveEnd > BigInt(0))
-				?
-				incentiveBegin > nowBigInt ? 'none' :
-					incentiveBegin < nowBigInt && nowBigInt < incentiveEnd ? 'started' : 'ended' : 'none'
-		),
+		incentiveStatus:
+			incentiveBegin > BigInt(0) && incentiveEnd > BigInt(0)
+				? incentiveBegin > nowBigInt
+					? 'none'
+					: incentiveBegin < nowBigInt && nowBigInt < incentiveEnd
+						? 'started'
+						: 'ended'
+				: 'none',
 		depositBegin,
 		depositEnd,
-		depositStatus: (
-			(depositBegin > BigInt(0) && depositEnd > BigInt(0))
-				?
-				depositBegin > nowBigInt ? 'none' :
-					depositBegin < nowBigInt && nowBigInt < depositEnd ? 'started' : 'ended' : 'none'
-		),
+		depositStatus:
+			depositBegin > BigInt(0) && depositEnd > BigInt(0)
+				? depositBegin > nowBigInt
+					? 'none'
+					: depositBegin < nowBigInt && nowBigInt < depositEnd
+						? 'started'
+						: 'ended'
+				: 'none',
 		voteBegin,
 		voteEnd,
-		voteStatus: (
-			(voteBegin > BigInt(0) && voteEnd > BigInt(0))
-				?
-				voteBegin > nowBigInt ? 'none' :
-					voteBegin < nowBigInt && nowBigInt < voteEnd ? 'started' : 'ended' : 'none'
-		)
+		voteStatus:
+			voteBegin > BigInt(0) && voteEnd > BigInt(0)
+				? voteBegin > nowBigInt
+					? 'none'
+					: voteBegin < nowBigInt && nowBigInt < voteEnd
+						? 'started'
+						: 'ended'
+				: 'none'
 	};
 }
 

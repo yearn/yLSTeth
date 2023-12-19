@@ -13,30 +13,39 @@ import type {TAddress, TDict} from '@yearn-finance/web-lib/types';
 import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import type {TTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 
-function VoteConfirmationModal({whitelistedLST, voteToSend, onSuccess, onCancel}: {
-	whitelistedLST: TDict<TTokenInfo>,
-	voteToSend: TDict<TNormalizedBN>,
-	onSuccess: VoidFunction,
-	onCancel: VoidFunction
+function VoteConfirmationModal({
+	whitelistedLST,
+	voteToSend,
+	onSuccess,
+	onCancel
+}: {
+	whitelistedLST: TDict<TTokenInfo>;
+	voteToSend: TDict<TNormalizedBN>;
+	onSuccess: VoidFunction;
+	onCancel: VoidFunction;
 }): ReactElement {
 	const {isActive, provider} = useWeb3();
 	const [voteStatus, set_voteStatus] = useState<TTxStatus>(defaultTxStatus);
 
-	const protocols = useMemo((): TAddress[] => (
-		Object.values(whitelistedLST)
-			.filter((lst): boolean => voteToSend[lst.address]?.raw > 0n)
-			.map((lst): TAddress => lst.address)
-	), [whitelistedLST, voteToSend]);
+	const protocols = useMemo(
+		(): TAddress[] =>
+			Object.values(whitelistedLST)
+				.filter((lst): boolean => voteToSend[lst.address]?.raw > 0n)
+				.map((lst): TAddress => lst.address),
+		[whitelistedLST, voteToSend]
+	);
 
-	const amounts = useMemo((): bigint[] => (
-		Object.values(voteToSend)
-			.filter((amount): boolean => amount.raw > 0n)
-			.map((amount): bigint => amount.raw)
-	), [voteToSend]);
+	const amounts = useMemo(
+		(): bigint[] =>
+			Object.values(voteToSend)
+				.filter((amount): boolean => amount.raw > 0n)
+				.map((amount): bigint => amount.raw),
+		[voteToSend]
+	);
 
 	/* 🔵 - Yearn Finance **************************************************************************
-	** Web3 action to incentivize a given protocol with a given token and amount.
-	**********************************************************************************************/
+	 ** Web3 action to incentivize a given protocol with a given token and amount.
+	 **********************************************************************************************/
 	const onVote = useCallback(async (): Promise<void> => {
 		assert(isActive, 'Wallet not connected');
 		assert(provider, 'Provider not connected');
@@ -64,30 +73,31 @@ function VoteConfirmationModal({whitelistedLST, voteToSend, onSuccess, onCancel}
 				</div>
 				{Object.values(whitelistedLST)
 					.filter((lst): boolean => voteToSend[lst.address]?.raw > 0n)
-					.map((lst): ReactElement => (
-						<div
-							key={lst.address}
-							className={'flex flex-row items-center justify-between'}>
-							<p>{lst.symbol || truncateHex(lst.address, 6)}</p>
-							<b>{formatAmount(voteToSend[lst.address]?.normalized, 6, 6)}</b>
-						</div>
-					))}
+					.map(
+						(lst): ReactElement => (
+							<div
+								key={lst.address}
+								className={'flex flex-row items-center justify-between'}>
+								<p>{lst.symbol || truncateHex(lst.address, 6)}</p>
+								<b>{formatAmount(voteToSend[lst.address]?.normalized, 6, 6)}</b>
+							</div>
+						)
+					)}
 			</div>
 
 			<div className={'mt-20'}>
 				<Button
 					onClick={onVote}
 					isBusy={voteStatus.pending}
-					isDisabled={
-						protocols.length !== amounts.length
-						|| protocols.length === 0
-					}
+					isDisabled={protocols.length !== amounts.length || protocols.length === 0}
 					className={'yearn--button w-full rounded-md !text-sm'}>
 					{'Confirm'}
 				</Button>
 				<button
 					onClick={onCancel}
-					className={'mt-2 h-10 w-full text-center text-neutral-500 transition-colors hover:text-neutral-900'}>
+					className={
+						'mt-2 h-10 w-full text-center text-neutral-500 transition-colors hover:text-neutral-900'
+					}>
 					{'Cancel'}
 				</button>
 			</div>

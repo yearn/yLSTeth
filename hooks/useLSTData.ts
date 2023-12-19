@@ -12,43 +12,46 @@ import type {TTokenInfo} from 'contexts/useTokenList';
 import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 
 export type TLST = {
-	rate: TNormalizedBN,
-	weight: TNormalizedBN,
-	targetWeight: TNormalizedBN,
-	poolAllowance: TNormalizedBN,
-	zapAllowance: TNormalizedBN,
-	poolSupply: TNormalizedBN,
-	virtualPoolSupply: TNormalizedBN,
-	weightRatio: number,
-	index: number,
+	rate: TNormalizedBN;
+	weight: TNormalizedBN;
+	targetWeight: TNormalizedBN;
+	poolAllowance: TNormalizedBN;
+	zapAllowance: TNormalizedBN;
+	poolSupply: TNormalizedBN;
+	virtualPoolSupply: TNormalizedBN;
+	weightRatio: number;
+	index: number;
 	poolStats?: {
-		amountInPool: TNormalizedBN,
-		amountInPoolPercent: number,
-		currentBeaconEquivalentValue: TNormalizedBN,
-		targetWeight: TNormalizedBN,
-		currentEquilibrumWeight: TNormalizedBN,
-		currentBandPlus: TNormalizedBN,
-		currentBandMin: TNormalizedBN,
-		distanceFromTarget: number,
-		weightRamps: TNormalizedBN
-	}
-} & TTokenInfo
+		amountInPool: TNormalizedBN;
+		amountInPoolPercent: number;
+		currentBeaconEquivalentValue: TNormalizedBN;
+		targetWeight: TNormalizedBN;
+		currentEquilibrumWeight: TNormalizedBN;
+		currentBandPlus: TNormalizedBN;
+		currentBandMin: TNormalizedBN;
+		distanceFromTarget: number;
+		weightRamps: TNormalizedBN;
+	};
+} & TTokenInfo;
 
-function useLSTData(): {lst: TLST[], updateLST: () => void} {
+function useLSTData(): {lst: TLST[]; updateLST: () => void} {
 	const {address} = useWeb3();
-	const [lst, set_lst] = useState(LST.map((token, index): TLST => ({
-		...token,
-		rate: toNormalizedBN(0),
-		weight: toNormalizedBN(0),
-		targetWeight: toNormalizedBN(0),
-		poolAllowance: toNormalizedBN(0),
-		zapAllowance: toNormalizedBN(0),
-		poolSupply: toNormalizedBN(0),
-		virtualPoolSupply: toNormalizedBN(0),
-		weightRatio: 0,
-		index
-	})));
-
+	const [lst, set_lst] = useState(
+		LST.map(
+			(token, index): TLST => ({
+				...token,
+				rate: toNormalizedBN(0),
+				weight: toNormalizedBN(0),
+				targetWeight: toNormalizedBN(0),
+				poolAllowance: toNormalizedBN(0),
+				zapAllowance: toNormalizedBN(0),
+				poolSupply: toNormalizedBN(0),
+				virtualPoolSupply: toNormalizedBN(0),
+				weightRatio: 0,
+				index
+			})
+		)
+	);
 
 	const {data, refetch, isFetched} = useContractReads({
 		contracts: [
@@ -65,7 +68,7 @@ function useLSTData(): {lst: TLST[], updateLST: () => void} {
 				chainId: Number(process.env.DEFAULT_CHAIN_ID)
 			},
 			...LST.map((item, index): any => {
-				return ([
+				return [
 					{
 						address: toAddress(process.env.POOL_ADDRESS),
 						abi: YETH_POOL_ABI,
@@ -108,7 +111,7 @@ function useLSTData(): {lst: TLST[], updateLST: () => void} {
 						args: [address, toAddress(process.env.ZAP_ADDRESS)],
 						chainId: Number(process.env.DEFAULT_CHAIN_ID)
 					}
-				]) as any[];
+				] as any[];
 			}).flat()
 		]
 	});
@@ -120,7 +123,6 @@ function useLSTData(): {lst: TLST[], updateLST: () => void} {
 		let idx = 0;
 		const supply = toNormalizedBN(decodeAsBigInt(data[idx++]));
 		const vbSum = toNormalizedBN(toBigInt((data[idx++]?.result as [bigint, bigint])?.[1] as bigint) || 0n);
-
 
 		const _lst = LST.map((token, index): TLST => {
 			const rate = toNormalizedBN(toBigInt(data?.[idx++]?.result as bigint) || 0n);
@@ -137,12 +139,12 @@ function useLSTData(): {lst: TLST[], updateLST: () => void} {
 			const zapAllowance = toNormalizedBN(toBigInt(data?.[idx++]?.result as bigint) || 0n);
 
 			const amountInPool = lstSupply;
-			const amountInPoolPercent = Number(virtualBalance.normalized) / Number(vbSum.normalized) * 100;
+			const amountInPoolPercent = (Number(virtualBalance.normalized) / Number(vbSum.normalized)) * 100;
 			const currentBeaconEquivalentValue = virtualBalance;
 			const currentEquilibrumWeight = weight;
 			const weightRamps = targetWeight;
 
-			return ({
+			return {
 				...token,
 				index,
 				rate,
@@ -152,7 +154,7 @@ function useLSTData(): {lst: TLST[], updateLST: () => void} {
 				poolAllowance: poolAllowance,
 				zapAllowance: zapAllowance,
 				poolSupply: lstSupply,
-				virtualPoolSupply: toNormalizedBN(virtualBalance.raw * toBigInt(1e18) / (supply.raw || 1n) * 100n),
+				virtualPoolSupply: toNormalizedBN(((virtualBalance.raw * toBigInt(1e18)) / (supply.raw || 1n)) * 100n),
 				poolStats: {
 					amountInPool,
 					amountInPoolPercent,
@@ -161,12 +163,10 @@ function useLSTData(): {lst: TLST[], updateLST: () => void} {
 					currentEquilibrumWeight,
 					currentBandPlus,
 					currentBandMin,
-					distanceFromTarget: (
-						amountInPoolPercent - (Number(currentEquilibrumWeight.normalized) * 100)
-					),
+					distanceFromTarget: amountInPoolPercent - Number(currentEquilibrumWeight.normalized) * 100,
 					weightRamps
 				}
-			});
+			};
 		});
 		set_lst(_lst);
 	}, [data, isFetched]);

@@ -13,7 +13,7 @@ import {localhost} from '@yearn-finance/web-lib/utils/wagmi/networks';
 import type {AppProps} from 'next/app';
 import type {ReactElement} from 'react';
 
-import	'../style.css';
+import '../style.css';
 
 const aeonik = localFont({
 	variable: '--font-aeonik',
@@ -23,11 +23,13 @@ const aeonik = localFont({
 			path: '../public/fonts/Aeonik-Regular.woff2',
 			weight: '400',
 			style: 'normal'
-		}, {
+		},
+		{
 			path: '../public/fonts/Aeonik-Bold.woff2',
 			weight: '700',
 			style: 'normal'
-		}, {
+		},
+		{
 			path: '../public/fonts/Aeonik-Black.ttf',
 			weight: '900',
 			style: 'normal'
@@ -35,11 +37,16 @@ const aeonik = localFont({
 	]
 });
 
-
-function	MyApp(props: AppProps): ReactElement {
+function MyApp(props: AppProps): ReactElement {
 	return (
 		<>
-			<style jsx global>{`html {font-family: ${aeonik.style.fontFamily};}`}</style>
+			<style
+				jsx
+				global>{`
+				html {
+					font-family: ${aeonik.style.fontFamily};
+				}
+			`}</style>
 			<WithYearn
 				supportedChains={[mainnet, localhost]}
 				options={{

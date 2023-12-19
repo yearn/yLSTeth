@@ -3,7 +3,7 @@ import {useMountEffect, useUpdateEffect} from '@react-hookz/web';
 
 import type {Dispatch, SetStateAction} from 'react';
 
-export enum	Step {
+export enum Step {
 	ADDRESS = 'address',
 	APPLY = 'apply',
 	APPLIED = 'applied',
@@ -12,15 +12,14 @@ export enum	Step {
 }
 
 export type TSelected = {
-	currentStep: Step,
-	set_currentStep: Dispatch<SetStateAction<Step>>,
-}
+	currentStep: Step;
+	set_currentStep: Dispatch<SetStateAction<Step>>;
+};
 
-const	defaultProps: TSelected = {
+const defaultProps: TSelected = {
 	currentStep: Step.ADDRESS,
 	set_currentStep: (): void => undefined
 };
-
 
 function scrollToTargetAdjusted(element: HTMLElement): void {
 	const headerOffset = 81 - 16;
@@ -35,15 +34,15 @@ function scrollToTargetAdjusted(element: HTMLElement): void {
 	});
 }
 
-const	UIStepContext = createContext<TSelected>(defaultProps);
+const UIStepContext = createContext<TSelected>(defaultProps);
 export const UIStepContextApp = ({children}: {children: React.ReactElement}): React.ReactElement => {
-	const	[currentStep, set_currentStep] = useState<Step>(Step.ADDRESS);
+	const [currentStep, set_currentStep] = useState<Step>(Step.ADDRESS);
 
 	/**********************************************************************************************
-	** This effect is used to handle some UI transitions and sections jumps. Once the current step
-	** changes, we need to scroll to the correct section.
-	** This effect is triggered only on mount to set the initial scroll position.
-	**********************************************************************************************/
+	 ** This effect is used to handle some UI transitions and sections jumps. Once the current step
+	 ** changes, we need to scroll to the correct section.
+	 ** This effect is triggered only on mount to set the initial scroll position.
+	 **********************************************************************************************/
 	useMountEffect((): void => {
 		setTimeout((): void => {
 			if (currentStep === Step.ADDRESS) {
@@ -55,11 +54,11 @@ export const UIStepContextApp = ({children}: {children: React.ReactElement}): Re
 	});
 
 	/**********************************************************************************************
-	** This effect is used to handle some UI transitions and sections jumps. Once the current step
-	** changes, we need to scroll to the correct section.
-	** This effect is ignored on mount but will be triggered on every update to set the correct
-	** scroll position.
-	**********************************************************************************************/
+	 ** This effect is used to handle some UI transitions and sections jumps. Once the current step
+	 ** changes, we need to scroll to the correct section.
+	 ** This effect is ignored on mount but will be triggered on every update to set the correct
+	 ** scroll position.
+	 **********************************************************************************************/
 	useUpdateEffect((): void => {
 		setTimeout((): void => {
 			let currentStepContainer;
@@ -71,7 +70,7 @@ export const UIStepContextApp = ({children}: {children: React.ReactElement}): Re
 			} else if ([Step.APPLY, Step.APPLIED, Step.WHITELISTED, Step.CLOSED].includes(currentStep)) {
 				currentStepContainer = document?.getElementById('whitelistView');
 			}
-			const	currentElementHeight = currentStepContainer?.offsetHeight;
+			const currentElementHeight = currentStepContainer?.offsetHeight;
 			if (scalooor?.style) {
 				scalooor.style.height = `calc(100vh - ${currentElementHeight}px - ${headerHeight}px + 36px)`;
 			}
@@ -81,10 +80,13 @@ export const UIStepContextApp = ({children}: {children: React.ReactElement}): Re
 		}, 0);
 	}, [currentStep]);
 
-	const	contextValue = useMemo((): TSelected => ({
-		currentStep,
-		set_currentStep
-	}), [currentStep]);
+	const contextValue = useMemo(
+		(): TSelected => ({
+			currentStep,
+			set_currentStep
+		}),
+		[currentStep]
+	);
 
 	return (
 		<UIStepContext.Provider value={contextValue}>

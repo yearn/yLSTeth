@@ -61,21 +61,25 @@ function Phase1({variant}: {variant: string[]}): ReactElement {
 					initial={'initial'}
 					animate={'move'}
 					exit={'exit'}>
-					<p>{'Want your LST to be included in yETH’s basket of tokens? You’ve come to the right place. Get whitelisted for your LST to take part in yETH Bootstrapping.'}</p>
+					<p>
+						{
+							'Want your LST to be included in yETH’s basket of tokens? You’ve come to the right place. Get whitelisted for your LST to take part in yETH Bootstrapping.'
+						}
+					</p>
 					&nbsp;
 					<ul className={'list-outside list-disc pl-4'}>
-						<li className={'font-bold'}>
-							{'Pay a non refundable 1 ETH fee (to prevent spam).'}
-						</li>
-						<li className={'font-bold'}>
-							{'Fill in the form.'}
-						</li>
+						<li className={'font-bold'}>{'Pay a non refundable 1 ETH fee (to prevent spam).'}</li>
+						<li className={'font-bold'}>{'Fill in the form.'}</li>
 						<li className={'font-bold'}>
 							{'Wait for the Yearn rug detection unit to check your application.'}
 						</li>
 					</ul>
 					&nbsp;
-					<p>{'Applications are checked for obvious scams, but nothing further. Genuine applications will be Whitelisted to take part in the super fun Bootstrapping Incentive Games. Yay.'}</p>
+					<p>
+						{
+							'Applications are checked for obvious scams, but nothing further. Genuine applications will be Whitelisted to take part in the super fun Bootstrapping Incentive Games. Yay.'
+						}
+					</p>
 				</motion.div>
 
 				<motion.div

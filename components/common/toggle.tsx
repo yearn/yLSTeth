@@ -3,7 +3,11 @@ import {cl} from '@yearn-finance/web-lib/utils/cl';
 
 import type {ReactElement} from 'react';
 
-export default function Toggle({isEnabled, onChange, bgOffColor = 'bg-neutral-300'}: {
+export default function Toggle({
+	isEnabled,
+	onChange,
+	bgOffColor = 'bg-neutral-300'
+}: {
 	isEnabled: boolean;
 	onChange: (isEnabled: boolean) => void;
 	bgOffColor?: string;

@@ -3,7 +3,7 @@ import {ImageWithFallback} from 'components/common/ImageWithFallback';
 import IconCheck from 'components/icons/IconCheck';
 import IconChevronBoth from 'components/icons/IconChevronBoth';
 import IconSpinner from 'components/icons/IconSpinner';
-import {type TTokenInfo,useTokenList} from 'contexts/useTokenList';
+import {type TTokenInfo, useTokenList} from 'contexts/useTokenList';
 import {useWallet} from 'contexts/useWallet';
 import {isValidAddress} from 'utils';
 import {isAddress} from 'viem';
@@ -28,14 +28,24 @@ type TComboboxAddressInput = {
 	onChangeValue: Dispatch<SetStateAction<TTokenInfo | undefined>>;
 	onAddValue?: Dispatch<SetStateAction<TDict<TTokenInfo | undefined>>>;
 	shouldDisplayBalance?: boolean;
-}
+};
 
-function ComboboxOption({option, shouldDisplayBalance = true}: {option: TTokenInfo | undefined, shouldDisplayBalance?: boolean}): ReactElement {
+function ComboboxOption({
+	option,
+	shouldDisplayBalance = true
+}: {
+	option: TTokenInfo | undefined;
+	shouldDisplayBalance?: boolean;
+}): ReactElement {
 	const {balances} = useWallet();
 
 	return (
 		<Combobox.Option
-			className={({active: isActive}): string => `relative cursor-pointer select-none p-2 ${isActive ? 'bg-purple-300/10 text-neutral-900' : 'text-neutral-900'}`}
+			className={({active: isActive}): string =>
+				`relative cursor-pointer select-none p-2 ${
+					isActive ? 'bg-purple-300/10 text-neutral-900' : 'text-neutral-900'
+				}`
+			}
 			value={toAddress(option?.address)}>
 			{({selected: isSelected}): ReactElement => (
 				<div className={'flex w-full flex-row items-center space-x-2'}>
@@ -46,14 +56,19 @@ function ComboboxOption({option, shouldDisplayBalance = true}: {option: TTokenIn
 							unoptimized
 							src={option?.logoURI || ''}
 							width={24}
-							height={24} />
+							height={24}
+						/>
 					</div>
 					<div className={'font-sans flex flex-col text-neutral-900'}>
 						<span>
 							{`${option?.symbol || truncateHex(toAddress(option?.address), 4)}`}
 							{shouldDisplayBalance && isValidAddress(option?.address) ? (
 								<small className={'text-xs text-neutral-600'}>
-									{` - ${formatAmount(balances?.[toAddress(option?.address)]?.normalized || 0, 2, 6)} available`}
+									{` - ${formatAmount(
+										balances?.[toAddress(option?.address)]?.normalized || 0,
+										2,
+										6
+									)} available`}
 								</small>
 							) : null}
 						</span>
@@ -65,8 +80,7 @@ function ComboboxOption({option, shouldDisplayBalance = true}: {option: TTokenIn
 						</small>
 					</div>
 					{isSelected ? (
-						<span
-							className={'absolute inset-y-0 right-8 flex items-center'}>
+						<span className={'absolute inset-y-0 right-8 flex items-center'}>
 							<IconCheck className={'absolute h-4 w-4 text-neutral-900'} />
 						</span>
 					) : null}
@@ -91,75 +105,84 @@ function ComboboxAddressInput({
 	const [isLoadingTokenData, set_isLoadingTokenData] = useState(false);
 	const {tokenList} = useTokenList();
 
-	const fetchToken = useCallback(async (
-		_safeChainID: number,
-		_query: TAddress
-	): Promise<{name: string, symbol: string, decimals: number} | undefined> => {
-		if (!isAddress(_query)) {
-			return (undefined);
-		}
+	const fetchToken = useCallback(
+		async (
+			_safeChainID: number,
+			_query: TAddress
+		): Promise<{name: string; symbol: string; decimals: number} | undefined> => {
+			if (!isAddress(_query)) {
+				return undefined;
+			}
 
-		if (tokenList[_query]) {
-			return ({
-				name: tokenList[_query].name,
-				symbol: tokenList[_query].symbol,
-				decimals: tokenList[_query].decimals
+			if (tokenList[_query]) {
+				return {
+					name: tokenList[_query].name,
+					symbol: tokenList[_query].symbol,
+					decimals: tokenList[_query].decimals
+				};
+			}
+
+			const results = await multicall({
+				contracts: [
+					{address: _query, abi: erc20ABI, functionName: 'name'},
+					{address: _query, abi: erc20ABI, functionName: 'symbol'},
+					{address: _query, abi: erc20ABI, functionName: 'decimals'}
+				],
+				chainId: _safeChainID
 			});
-		}
-
-		const results = await multicall({
-			contracts: [
-				{address: _query, abi: erc20ABI, functionName: 'name'},
-				{address: _query, abi: erc20ABI, functionName: 'symbol'},
-				{address: _query, abi: erc20ABI, functionName: 'decimals'}
-			],
-			chainId: _safeChainID
-		});
-		const name = decodeAsString(results[0]);
-		const symbol = decodeAsString(results[1]);
-		const decimals = decodeAsNumber(results[2]);
-		await refresh([{decimals, name, symbol, token: _query}]);
-		return ({name, symbol, decimals});
-	}, [refresh, tokenList]);
+			const name = decodeAsString(results[0]);
+			const symbol = decodeAsString(results[1]);
+			const decimals = decodeAsNumber(results[2]);
+			await refresh([{decimals, name, symbol, token: _query}]);
+			return {name, symbol, decimals};
+		},
+		[refresh, tokenList]
+	);
 
 	const [{result: tokenData}, fetchTokenData] = useAsync(fetchToken);
 
-	const onChange = useCallback(async (_selected: TAddress): Promise<void> => {
-		let _tokenData = tokenData;
-		if (!tokenData || (!tokenData.name && !tokenData.symbol && !tokenData.decimals)) {
-			set_isLoadingTokenData(true);
-			_tokenData = await fetchToken(safeChainID, _selected);
-			set_isLoadingTokenData(false);
-		}
-		performBatchedUpdates((): void => {
-			onAddValue?.((prev: TDict<TTokenInfo | undefined>): TDict<TTokenInfo | undefined> => {
-				if (prev[_selected]) {
-					return (prev);
-				}
-				return ({
-					...prev,
-					[toAddress(_selected)]: {
-						address: toAddress(_selected),
-						name: _tokenData?.name || '',
-						symbol: _tokenData?.symbol || '',
-						decimals: _tokenData?.decimals || 18,
-						chainId: safeChainID,
-						logoURI: `https://assets.smold.app/api/token/${safeChainID}/${toAddress(_selected)}/logo-128.png`
-
+	const onChange = useCallback(
+		async (_selected: TAddress): Promise<void> => {
+			let _tokenData = tokenData;
+			if (!tokenData || (!tokenData.name && !tokenData.symbol && !tokenData.decimals)) {
+				set_isLoadingTokenData(true);
+				_tokenData = await fetchToken(safeChainID, _selected);
+				set_isLoadingTokenData(false);
+			}
+			performBatchedUpdates((): void => {
+				onAddValue?.((prev: TDict<TTokenInfo | undefined>): TDict<TTokenInfo | undefined> => {
+					if (prev[_selected]) {
+						return prev;
 					}
+					return {
+						...prev,
+						[toAddress(_selected)]: {
+							address: toAddress(_selected),
+							name: _tokenData?.name || '',
+							symbol: _tokenData?.symbol || '',
+							decimals: _tokenData?.decimals || 18,
+							chainId: safeChainID,
+							logoURI: `https://assets.smold.app/api/token/${safeChainID}/${toAddress(
+								_selected
+							)}/logo-128.png`
+						}
+					};
 				});
+				onChangeValue({
+					address: toAddress(_selected),
+					name: _tokenData?.name || '',
+					symbol: _tokenData?.symbol || '',
+					decimals: _tokenData?.decimals || 18,
+					chainId: safeChainID,
+					logoURI:
+						possibleValues[toAddress(_selected)]?.logoURI ||
+						`https://assets.smold.app/api/token/${safeChainID}/${toAddress(_selected)}/logo-128.png`
+				});
+				set_isOpen(false);
 			});
-			onChangeValue({
-				address: toAddress(_selected),
-				name: _tokenData?.name || '',
-				symbol: _tokenData?.symbol || '',
-				decimals: _tokenData?.decimals || 18,
-				chainId: safeChainID,
-				logoURI: possibleValues[toAddress(_selected)]?.logoURI || `https://assets.smold.app/api/token/${safeChainID}/${toAddress(_selected)}/logo-128.png`
-			});
-			set_isOpen(false);
-		});
-	}, [fetchToken, onAddValue, onChangeValue, possibleValues, safeChainID, set_isOpen, tokenData]);
+		},
+		[fetchToken, onAddValue, onChangeValue, possibleValues, safeChainID, set_isOpen, tokenData]
+	);
 
 	useEffect((): void => {
 		if (!isActive || !isAddress(query)) {
@@ -168,14 +191,15 @@ function ComboboxAddressInput({
 		fetchTokenData.execute(safeChainID, toAddress(query));
 	}, [fetchTokenData, isActive, safeChainID, query]);
 
-	const filteredValues = query === ''
-		? Object.values(possibleValues || [])
-		: Object.values(possibleValues || []).filter((dest): boolean =>
-			`${dest?.name}_${dest?.symbol}_${dest?.address}`
-				.toLowerCase()
-				.replace(/\s+/g, '')
-				.includes(query.toLowerCase().replace(/\s+/g, ''))
-		);
+	const filteredValues =
+		query === ''
+			? Object.values(possibleValues || [])
+			: Object.values(possibleValues || []).filter((dest): boolean =>
+					`${dest?.name}_${dest?.symbol}_${dest?.address}`
+						.toLowerCase()
+						.replace(/\s+/g, '')
+						.includes(query.toLowerCase().replace(/\s+/g, ''))
+				);
 
 	const filteredBalances = useMemo((): [TTokenInfo[], TTokenInfo[]] => {
 		const withBalance = [];
@@ -189,7 +213,7 @@ function ComboboxAddressInput({
 				}
 			}
 		}
-		return ([withBalance, withoutBalance]);
+		return [withBalance, withoutBalance];
 	}, [balances, filteredValues]);
 
 	return (
@@ -201,7 +225,8 @@ function ComboboxAddressInput({
 						e.stopPropagation();
 						e.preventDefault();
 						set_isOpen(false);
-					}} />
+					}}
+				/>
 			) : null}
 			<Combobox<unknown>
 				value={value}
@@ -209,19 +234,32 @@ function ComboboxAddressInput({
 				<div className={'relative'}>
 					<Combobox.Button
 						onClick={(): void => set_isOpen((o: boolean): boolean => !o)}
-						className={'grow-1 col-span-12 flex h-10 w-full items-center rounded-md bg-neutral-0 p-2 md:col-span-9'}>
+						className={
+							'grow-1 col-span-12 flex h-10 w-full items-center rounded-md bg-neutral-0 p-2 md:col-span-9'
+						}>
 						<div className={'relative flex w-full flex-row items-center space-x-2'}>
 							<div className={'h-6 w-6 min-w-[24px]'}>
 								<ImageWithFallback
 									alt={''}
 									unoptimized
-									src={possibleValues?.[toAddress(value)]?.logoURI || `https://assets.smold.app/api/token/${safeChainID}/${toAddress(value)}/logo-128.png`}
+									src={
+										possibleValues?.[toAddress(value)]?.logoURI ||
+										`https://assets.smold.app/api/token/${safeChainID}/${toAddress(
+											value
+										)}/logo-128.png`
+									}
 									width={24}
-									height={24} />
+									height={24}
+								/>
 							</div>
-							<p className={'w-full overflow-x-hidden text-ellipsis whitespace-nowrap pr-2 font-normal text-neutral-900 scrollbar-none'}>
+							<p
+								className={
+									'w-full overflow-x-hidden text-ellipsis whitespace-nowrap pr-2 font-normal text-neutral-900 scrollbar-none'
+								}>
 								<Combobox.Input
-									className={'font-inter w-full cursor-default overflow-x-scroll border-none bg-transparent p-0 outline-none scrollbar-none'}
+									className={
+										'font-inter w-full cursor-default overflow-x-scroll border-none bg-transparent p-0 outline-none scrollbar-none'
+									}
 									displayValue={(dest: TAddress): string => {
 										if (!isValidAddress(dest)) {
 											return possibleValues?.[toAddress(dest)]?.name || '';
@@ -241,16 +279,23 @@ function ComboboxAddressInput({
 											set_isOpen(true);
 											set_query(event.target.value);
 										});
-									}} />
+									}}
+								/>
 							</p>
 						</div>
 						{isLoadingTokenData && (
 							<div className={'absolute right-8'}>
-								<IconSpinner className={'h-4 w-4 text-neutral-500 transition-colors group-hover:text-neutral-900'} />
+								<IconSpinner
+									className={
+										'h-4 w-4 text-neutral-500 transition-colors group-hover:text-neutral-900'
+									}
+								/>
 							</div>
 						)}
 						<div className={'absolute right-2 md:right-3'}>
-							<IconChevronBoth className={'h-4 w-4 text-neutral-500 transition-colors group-hover:text-neutral-900'} />
+							<IconChevronBoth
+								className={'h-4 w-4 text-neutral-500 transition-colors group-hover:text-neutral-900'}
+							/>
 						</div>
 					</Combobox.Button>
 					<Transition
@@ -263,9 +308,15 @@ function ComboboxAddressInput({
 						leaveFrom={'transform scale-100 opacity-100'}
 						leaveTo={'transform scale-95 opacity-0'}
 						afterLeave={(): void => set_query('')}>
-						<Combobox.Options className={'scrollbar-show absolute left-0 z-50 mt-1 flex max-h-52 w-full min-w-fit flex-col overflow-y-scroll rounded-md bg-neutral-0 shadow-lg md:min-w-[400px]'}>
+						<Combobox.Options
+							className={
+								'scrollbar-show absolute left-0 z-50 mt-1 flex max-h-52 w-full min-w-fit flex-col overflow-y-scroll rounded-md bg-neutral-0 shadow-lg md:min-w-[400px]'
+							}>
 							{Object.values(possibleValues || []).length === 0 ? (
-								<div className={'relative flex cursor-default select-none items-center justify-center px-4 py-2 text-neutral-500'}>
+								<div
+									className={
+										'relative flex cursor-default select-none items-center justify-center px-4 py-2 text-neutral-500'
+									}>
 									<IconSpinner />
 								</div>
 							) : filteredValues.length === 0 && query !== '' && (!tokenData || !onAddValue) ? (
@@ -282,17 +333,18 @@ function ComboboxAddressInput({
 										symbol: tokenData.symbol,
 										decimals: tokenData.decimals,
 										logoURI: ''
-									}} />
-
+									}}
+								/>
 							) : (
-								[...filteredBalances[0], ...filteredBalances[1]]
-									.slice(0, 100)
-									.map((dest): ReactElement => (
+								[...filteredBalances[0], ...filteredBalances[1]].slice(0, 100).map(
+									(dest): ReactElement => (
 										<ComboboxOption
 											key={`${dest.address}_${dest.chainId}`}
 											shouldDisplayBalance={shouldDisplayBalance}
-											option={dest} />
-									))
+											option={dest}
+										/>
+									)
+								)
 							)}
 						</Combobox.Options>
 					</Transition>

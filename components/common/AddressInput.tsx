@@ -9,12 +9,18 @@ import {isZeroAddress, toAddress} from '@yearn-finance/web-lib/utils/address';
 import type {ReactElement} from 'react';
 import type {TAddress} from '@yearn-finance/web-lib/types';
 
-function AddressInput({value, onChangeValue, onConfirm, className, shouldBeDisabled}: {
-	value: TAddress,
-	onChangeValue: (value: TAddress) => void,
-	onConfirm: (newReceiver: TAddress) => void,
-	className?: string,
-	shouldBeDisabled?: boolean,
+function AddressInput({
+	value,
+	onChangeValue,
+	onConfirm,
+	className,
+	shouldBeDisabled
+}: {
+	value: TAddress;
+	onChangeValue: (value: TAddress) => void;
+	onConfirm: (newReceiver: TAddress) => void;
+	className?: string;
+	shouldBeDisabled?: boolean;
 }): ReactElement {
 	const [isValidValue, set_isValidValue] = useState<boolean | 'undetermined'>('undetermined');
 	const [isValidish, set_isValidish] = useState<boolean | 'undetermined'>('undetermined');
@@ -63,12 +69,21 @@ function AddressInput({value, onChangeValue, onConfirm, className, shouldBeDisab
 						set_isValidValue('undetermined');
 						onChangeValue(e.target.value as never);
 					}}
-					className={'w-full overflow-x-scroll border-none bg-transparent px-0 py-4 font-mono text-sm outline-none scrollbar-none'} />
+					className={
+						'w-full overflow-x-scroll border-none bg-transparent px-0 py-4 font-mono text-sm outline-none scrollbar-none'
+					}
+				/>
 				<div className={'pointer-events-none relative h-4 w-4'}>
 					<IconCheck
-						className={`absolute h-4 w-4 text-[#16a34a] transition-opacity ${isValidValue === true || isValidish === true ? 'opacity-100' : 'opacity-0'}`} />
+						className={`absolute h-4 w-4 text-[#16a34a] transition-opacity ${
+							isValidValue === true || isValidish === true ? 'opacity-100' : 'opacity-0'
+						}`}
+					/>
 					<IconCircleCross
-						className={`absolute h-4 w-4 text-[#e11d48] transition-opacity ${(isValidValue === false && toAddress(value) !== toAddress()) ? 'opacity-100' : 'opacity-0'}`} />
+						className={`absolute h-4 w-4 text-[#e11d48] transition-opacity ${
+							isValidValue === false && toAddress(value) !== toAddress() ? 'opacity-100' : 'opacity-0'
+						}`}
+					/>
 				</div>
 			</div>
 
@@ -82,7 +97,7 @@ function AddressInput({value, onChangeValue, onConfirm, className, shouldBeDisab
 							onConfirm(toAddress(value));
 						}
 					}}
-					disabled={!(isValidValue === true || isValidish === true )|| shouldBeDisabled}>
+					disabled={!(isValidValue === true || isValidish === true) || shouldBeDisabled}>
 					{'Take me to the form'}
 				</Button>
 			</div>

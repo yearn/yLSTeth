@@ -32,7 +32,10 @@ import type {TDict} from '@yearn-finance/web-lib/types';
 import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 import type {TTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 
-function IncentiveMenuTabs({set_currentTab, currentTab}: {
+function IncentiveMenuTabs({
+	set_currentTab,
+	currentTab
+}: {
 	currentTab: 'current' | 'potential';
 	set_currentTab: (tab: 'current' | 'potential') => void;
 }): ReactElement {
@@ -49,7 +52,6 @@ function IncentiveMenuTabs({set_currentTab, currentTab}: {
 		}
 	}, [set_currentTab, router.query]);
 
-
 	return (
 		<div className={'overflow-hidden'}>
 			<div className={'relative -mx-4 px-4 md:px-72 '}>
@@ -57,22 +59,40 @@ function IncentiveMenuTabs({set_currentTab, currentTab}: {
 					onClick={(): void => {
 						router.push({pathname: router.pathname, query: {action: 'current'}});
 					}}
-					className={cl('mx-4 mb-2 text-lg transition-colors', currentTab === 'current' ? 'text-purple-300 font-bold' : 'text-neutral-400')}>
+					className={cl(
+						'mx-4 mb-2 text-lg transition-colors',
+						currentTab === 'current' ? 'text-purple-300 font-bold' : 'text-neutral-400'
+					)}>
 					{'Weight votes'}
 				</button>
 				<button
 					onClick={(): void => {
 						router.push({pathname: router.pathname, query: {action: 'potential'}});
 					}}
-					className={cl('mx-4 mb-2 text-lg transition-colors', currentTab === 'potential' ? 'text-purple-300 font-bold' : 'text-neutral-400')}>
+					className={cl(
+						'mx-4 mb-2 text-lg transition-colors',
+						currentTab === 'potential' ? 'text-purple-300 font-bold' : 'text-neutral-400'
+					)}>
 					{'Inclusion votes'}
 				</button>
 				<div className={'absolute bottom-0 left-0 flex h-0.5 w-full flex-row bg-neutral-300 px-4 md:px-72'}>
-					<div className={cl('h-full w-fit transition-colors ml-4', currentTab === 'current' ? 'bg-purple-300' : 'bg-transparent')}>
-						<button className={'pointer-events-none invisible h-0 p-0 text-lg font-bold opacity-0'}>{'Weight votes'}</button>
+					<div
+						className={cl(
+							'h-full w-fit transition-colors ml-4',
+							currentTab === 'current' ? 'bg-purple-300' : 'bg-transparent'
+						)}>
+						<button className={'pointer-events-none invisible h-0 p-0 text-lg font-bold opacity-0'}>
+							{'Weight votes'}
+						</button>
 					</div>
-					<div className={cl('h-full w-fit transition-colors ml-4', currentTab === 'potential' ? 'bg-purple-300' : 'bg-transparent')}>
-						<button className={'pointer-events-none invisible h-0 p-0 text-lg font-bold opacity-0'}>{'Inclusion votes'}</button>
+					<div
+						className={cl(
+							'h-full w-fit transition-colors ml-4',
+							currentTab === 'potential' ? 'bg-purple-300' : 'bg-transparent'
+						)}>
+						<button className={'pointer-events-none invisible h-0 p-0 text-lg font-bold opacity-0'}>
+							{'Inclusion votes'}
+						</button>
 					</div>
 				</div>
 			</div>
@@ -80,7 +100,12 @@ function IncentiveMenuTabs({set_currentTab, currentTab}: {
 	);
 }
 
-function IncentiveSelector({isIncentivePeriodClosed, possibleLSTs, currentTab, set_currentTab}: {
+function IncentiveSelector({
+	isIncentivePeriodClosed,
+	possibleLSTs,
+	currentTab,
+	set_currentTab
+}: {
 	isIncentivePeriodClosed: boolean;
 	possibleLSTs: TDict<TIndexedTokenInfo>;
 	currentTab: 'current' | 'potential';
@@ -90,7 +115,9 @@ function IncentiveSelector({isIncentivePeriodClosed, possibleLSTs, currentTab, s
 	const {safeChainID} = useChainID(Number(process.env.BASE_CHAIN_ID));
 	const {balances, refresh} = useWallet();
 	const {tokenList} = useTokenList();
-	const {incentives: {refreshIncentives}} = useLST();
+	const {
+		incentives: {refreshIncentives}
+	} = useLST();
 	const [amountToSend, set_amountToSend] = useState<TNormalizedBN>(toNormalizedBN(0));
 	const [possibleTokensToUse, set_possibleTokensToUse] = useState<TDict<TTokenInfo | undefined>>({});
 	const [lstToIncentive, set_lstToIncentive] = useState<TTokenInfo | undefined>();
@@ -106,9 +133,9 @@ function IncentiveSelector({isIncentivePeriodClosed, possibleLSTs, currentTab, s
 	});
 
 	/* 🔵 - Yearn Finance **************************************************************************
-	** On mount, fetch the token list from the tokenlistooor.
-	** Only the tokens in that list will be displayed.
-	**********************************************************************************************/
+	 ** On mount, fetch the token list from the tokenlistooor.
+	 ** Only the tokens in that list will be displayed.
+	 **********************************************************************************************/
 	useDeepCompareEffect((): void => {
 		const possibleDestinationsTokens: TDict<TTokenInfo> = {};
 		for (const eachToken of Object.values(tokenList)) {
@@ -123,71 +150,71 @@ function IncentiveSelector({isIncentivePeriodClosed, possibleLSTs, currentTab, s
 	}, [tokenList, safeChainID]);
 
 	/* 🔵 - Yearn Finance **************************************************************************
-	** On balance or token change, update the balance of the token to use.
-	**********************************************************************************************/
+	 ** On balance or token change, update the balance of the token to use.
+	 **********************************************************************************************/
 	const balanceOf = useMemo((): TNormalizedBN => {
 		if (!tokenToUse) {
 			return toNormalizedBN(0);
 		}
-		return toNormalizedBN((balances?.[tokenToUse.address]?.raw || 0) || 0, tokenToUse.decimals || 18);
+		return toNormalizedBN(balances?.[tokenToUse.address]?.raw || 0 || 0, tokenToUse.decimals || 18);
 	}, [balances, tokenToUse]);
 
 	/* 🔵 - Yearn Finance **************************************************************************
-	** Change the inputed amount when the user types something in the input field.
-	**********************************************************************************************/
-	const onChangeAmount = useCallback((e: ChangeEvent<HTMLInputElement>): void => {
-		if (!tokenToUse) {
-			return;
-		}
-		const element = document.getElementById('amountToSend') as HTMLInputElement;
-		const newAmount = handleInputChangeEventValue(e, tokenToUse?.decimals || 18);
-		if (newAmount.raw > balances?.[tokenToUse.address]?.raw) {
-			if (element?.value) {
-				element.value = formatAmount(balances?.[tokenToUse.address]?.normalized, 0, 18);
+	 ** Change the inputed amount when the user types something in the input field.
+	 **********************************************************************************************/
+	const onChangeAmount = useCallback(
+		(e: ChangeEvent<HTMLInputElement>): void => {
+			if (!tokenToUse) {
+				return;
 			}
-			return set_amountToSend(toNormalizedBN(
-				balances?.[tokenToUse.address]?.raw || 0,
-				tokenToUse.decimals || 18
-			));
-		}
-		set_amountToSend(newAmount);
-	}, [balances, tokenToUse]);
+			const element = document.getElementById('amountToSend') as HTMLInputElement;
+			const newAmount = handleInputChangeEventValue(e, tokenToUse?.decimals || 18);
+			if (newAmount.raw > balances?.[tokenToUse.address]?.raw) {
+				if (element?.value) {
+					element.value = formatAmount(balances?.[tokenToUse.address]?.normalized, 0, 18);
+				}
+				return set_amountToSend(
+					toNormalizedBN(balances?.[tokenToUse.address]?.raw || 0, tokenToUse.decimals || 18)
+				);
+			}
+			set_amountToSend(newAmount);
+		},
+		[balances, tokenToUse]
+	);
 
 	/* 🔵 - Yearn Finance **************************************************************************
-	** Change the inputed amount when the user select a percentage to set.
-	**********************************************************************************************/
-	const updateToPercent = useCallback((percent: number): void => {
-		if (!tokenToUse) {
-			return;
-		}
-		const element = document.getElementById('amountToSend') as HTMLInputElement;
-		const newAmount = toNormalizedBN(
-			(balanceOf.raw * BigInt(percent)) / 100n,
-			tokenToUse.decimals || 18
-		);
-		if (newAmount.raw > balances?.[tokenToUse.address]?.raw) {
-			if (element?.value) {
-				element.value = formatAmount(
-					balances?.[tokenToUse.address]?.normalized, 0, 18);
+	 ** Change the inputed amount when the user select a percentage to set.
+	 **********************************************************************************************/
+	const updateToPercent = useCallback(
+		(percent: number): void => {
+			if (!tokenToUse) {
+				return;
 			}
-			return set_amountToSend(toNormalizedBN(
-				balances?.[tokenToUse.address]?.raw || 0,
-				tokenToUse.decimals || 18
-			));
-		}
-		set_amountToSend(newAmount);
-	}, [balanceOf, balances, tokenToUse]);
+			const element = document.getElementById('amountToSend') as HTMLInputElement;
+			const newAmount = toNormalizedBN((balanceOf.raw * BigInt(percent)) / 100n, tokenToUse.decimals || 18);
+			if (newAmount.raw > balances?.[tokenToUse.address]?.raw) {
+				if (element?.value) {
+					element.value = formatAmount(balances?.[tokenToUse.address]?.normalized, 0, 18);
+				}
+				return set_amountToSend(
+					toNormalizedBN(balances?.[tokenToUse.address]?.raw || 0, tokenToUse.decimals || 18)
+				);
+			}
+			set_amountToSend(newAmount);
+		},
+		[balanceOf, balances, tokenToUse]
+	);
 
 	/* 🔵 - Yearn Finance **************************************************************************
-	** View function to check if the user has enough allowance for the token/amount to send.
-	**********************************************************************************************/
+	 ** View function to check if the user has enough allowance for the token/amount to send.
+	 **********************************************************************************************/
 	const hasAllowance = useMemo((): boolean => {
-		return (toBigInt(allowanceOf) >= amountToSend.raw);
+		return toBigInt(allowanceOf) >= amountToSend.raw;
 	}, [allowanceOf, amountToSend.raw]);
 
 	/* 🔵 - Yearn Finance **************************************************************************
-	** Web3 action to approve the deposit of a given token and amount.
-	**********************************************************************************************/
+	 ** Web3 action to approve the deposit of a given token and amount.
+	 **********************************************************************************************/
 	const onApprove = useCallback(async (): Promise<void> => {
 		assert(isActive, 'Wallet not connected');
 		assert(provider, 'Provider not connected');
@@ -216,10 +243,9 @@ function IncentiveSelector({isIncentivePeriodClosed, possibleLSTs, currentTab, s
 		}
 	}, [amountToSend.raw, isActive, provider, refresh, tokenToUse, refetchAllowance]);
 
-
 	/* 🔵 - Yearn Finance **************************************************************************
-	** Web3 action to incentivize a given protocol with a given token and amount.
-	**********************************************************************************************/
+	 ** Web3 action to incentivize a given protocol with a given token and amount.
+	 **********************************************************************************************/
 	const onDepositIncentive = useCallback(async (): Promise<void> => {
 		assert(isActive, 'Wallet not connected');
 		assert(provider, 'Provider not connected');
@@ -228,8 +254,11 @@ function IncentiveSelector({isIncentivePeriodClosed, possibleLSTs, currentTab, s
 
 		const currentEpochData = getCurrentEpoch();
 		const voteID = currentTab === 'current' ? currentEpochData.weight.id : currentEpochData.inclusion.id;
-		const possibleLST = currentTab === 'current' ? currentEpochData.weight.participants : currentEpochData.inclusion.candidates;
-		const indexOfSelectedLST = possibleLST.findIndex((eachLST): boolean => eachLST?.address === lstToIncentive?.address);
+		const possibleLST =
+			currentTab === 'current' ? currentEpochData.weight.participants : currentEpochData.inclusion.candidates;
+		const indexOfSelectedLST = possibleLST.findIndex(
+			(eachLST): boolean => eachLST?.address === lstToIncentive?.address
+		);
 		if (!isZeroAddress(lstToIncentive?.address)) {
 			assert(indexOfSelectedLST !== -1, 'Selected LST not found in possible LSTs');
 		}
@@ -263,15 +292,28 @@ function IncentiveSelector({isIncentivePeriodClosed, possibleLSTs, currentTab, s
 				])
 			]);
 			set_amountToSend(toNormalizedBN(0));
-
 		}
-	}, [isActive, provider, amountToSend.raw, tokenToUse?.address, tokenToUse?.decimals, tokenToUse?.name, tokenToUse?.symbol, currentTab, lstToIncentive?.address, refetchAllowance, refreshIncentives, refresh]);
+	}, [
+		isActive,
+		provider,
+		amountToSend.raw,
+		tokenToUse?.address,
+		tokenToUse?.decimals,
+		tokenToUse?.name,
+		tokenToUse?.symbol,
+		currentTab,
+		lstToIncentive?.address,
+		refetchAllowance,
+		refreshIncentives,
+		refresh
+	]);
 
 	return (
 		<div className={'bg-neutral-100 pt-4'}>
 			<IncentiveMenuTabs
 				currentTab={currentTab}
-				set_currentTab={set_currentTab} />
+				set_currentTab={set_currentTab}
+			/>
 			<div className={'p-4 md:px-72 md:py-10'}>
 				<b className={'text-xl font-black'}>{'Select LST to incentivize '}</b>
 
@@ -282,23 +324,30 @@ function IncentiveSelector({isIncentivePeriodClosed, possibleLSTs, currentTab, s
 							shouldDisplayBalance={false}
 							value={lstToIncentive?.address}
 							possibleValues={{[zeroAddress]: NO_CHANGE_LST_LIKE, ...possibleLSTs}}
-							onChangeValue={set_lstToIncentive} />
+							onChangeValue={set_lstToIncentive}
+						/>
 						<p className={'hidden pt-1 text-xs lg:block'}>&nbsp;</p>
 					</div>
 
 					<div className={'pt-2 md:pt-0'}>
-						<p className={'truncate pb-1 text-sm text-neutral-600 md:text-base'}>{'Select token to incentivize with'}</p>
+						<p className={'truncate pb-1 text-sm text-neutral-600 md:text-base'}>
+							{'Select token to incentivize with'}
+						</p>
 						<ComboboxAddressInput
 							value={tokenToUse?.address}
 							possibleValues={possibleTokensToUse}
 							onAddValue={set_possibleTokensToUse}
-							onChangeValue={set_tokenToUse} />
+							onChangeValue={set_tokenToUse}
+						/>
 						<p className={'hidden pt-1 text-xs lg:block'}>&nbsp;</p>
 					</div>
 
 					<div className={'pt-2 md:pt-0'}>
 						<p className={'pb-1 text-sm text-neutral-600 md:text-base'}>{'Amount'}</p>
-						<div className={'grow-1 flex h-10 w-full items-center justify-center rounded-md bg-neutral-0 p-2'}>
+						<div
+							className={
+								'grow-1 flex h-10 w-full items-center justify-center rounded-md bg-neutral-0 p-2'
+							}>
 							<div className={'mr-2 h-6 w-6 min-w-[24px]'}>
 								<ImageWithFallback
 									alt={''}
@@ -306,11 +355,14 @@ function IncentiveSelector({isIncentivePeriodClosed, possibleLSTs, currentTab, s
 									key={tokenToUse?.logoURI || ''}
 									src={tokenToUse?.logoURI || ''}
 									width={24}
-									height={24} />
+									height={24}
+								/>
 							</div>
 							<input
 								id={'amountToSend'}
-								className={'w-full overflow-x-scroll border-none bg-transparent px-0 py-4 font-mono text-sm outline-none scrollbar-none'}
+								className={
+									'w-full overflow-x-scroll border-none bg-transparent px-0 py-4 font-mono text-sm outline-none scrollbar-none'
+								}
 								type={'number'}
 								min={0}
 								maxLength={20}
@@ -320,13 +372,16 @@ function IncentiveSelector({isIncentivePeriodClosed, possibleLSTs, currentTab, s
 								placeholder={'0'}
 								pattern={'^((?:0|[1-9]+)(?:.(?:d+?[1-9]|[1-9]))?)$'}
 								value={amountToSend?.normalized || ''}
-								onChange={onChangeAmount} />
+								onChange={onChangeAmount}
+							/>
 							<div className={'ml-2 flex flex-row space-x-1'}>
 								<button
 									type={'button'}
 									tabIndex={-1}
 									onClick={(): void => updateToPercent(100)}
-									className={cl('px-2 py-1 text-xs rounded-md border border-purple-300 transition-colors bg-purple-300 text-white')}>
+									className={cl(
+										'px-2 py-1 text-xs rounded-md border border-purple-300 transition-colors bg-purple-300 text-white'
+									)}>
 									{'Max'}
 								</button>
 							</div>
@@ -341,15 +396,15 @@ function IncentiveSelector({isIncentivePeriodClosed, possibleLSTs, currentTab, s
 					<div className={'w-full pt-4 md:pt-0'}>
 						<p className={'hidden pb-1 text-neutral-600 md:block'}>&nbsp;</p>
 						<Button
-							onClick={(): unknown => hasAllowance ? onDepositIncentive() : onApprove()}
+							onClick={(): unknown => (hasAllowance ? onDepositIncentive() : onApprove())}
 							isBusy={hasAllowance ? depositStatus.pending : approvalStatus.pending}
 							isDisabled={
-								!(hasAllowance ? depositStatus.none : approvalStatus.none)
-									|| isIncentivePeriodClosed
-									|| amountToSend.raw === 0n
-									|| amountToSend.raw > balanceOf.raw
-									|| !(isValidAddress(lstToIncentive?.address) || isZeroAddress(lstToIncentive?.address))
-									|| !isValidAddress(tokenToUse?.address)
+								!(hasAllowance ? depositStatus.none : approvalStatus.none) ||
+								isIncentivePeriodClosed ||
+								amountToSend.raw === 0n ||
+								amountToSend.raw > balanceOf.raw ||
+								!(isValidAddress(lstToIncentive?.address) || isZeroAddress(lstToIncentive?.address)) ||
+								!isValidAddress(tokenToUse?.address)
 							}
 							className={'yearn--button w-full rounded-md !text-sm'}>
 							{hasAllowance ? 'Submit' : 'Approve'}

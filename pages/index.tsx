@@ -38,7 +38,10 @@ const tabs = [
 
 const basicTransition = 'duration-200 ease-in-out';
 const basicColorTransition = cl(basicTransition, 'text-neutral-900 transition-colors group-hover:text-neutral-0');
-const basicLighterColorTransition = cl(basicTransition, 'text-neutral-600 transition-colors group-hover:text-neutral-0');
+const basicLighterColorTransition = cl(
+	basicTransition,
+	'text-neutral-600 transition-colors group-hover:text-neutral-0'
+);
 
 function Composition(): ReactElement {
 	const {lst} = useLST();
@@ -49,7 +52,9 @@ function Composition(): ReactElement {
 				.sort((a, b): number => Number(b.weightRatio) - Number(a.weightRatio))
 				.map((token, index): ReactElement => {
 					return (
-						<div key={index} className={'flex flex-row justify-between space-x-4'}>
+						<div
+							key={index}
+							className={'flex flex-row justify-between space-x-4'}>
 							<div className={'flex flex-row'}>
 								<div className={'h-6 w-6 min-w-[24px]'}>
 									<ImageWithFallback
@@ -57,11 +62,14 @@ function Composition(): ReactElement {
 										unoptimized
 										src={token.logoURI}
 										width={24}
-										height={24} />
+										height={24}
+									/>
 								</div>
 								<p className={cl(basicColorTransition, 'text-sm md:text-base px-2')}>{token.symbol}</p>
 							</div>
-							<b suppressHydrationWarning className={cl(basicColorTransition, 'text-sm md:text-base')}>
+							<b
+								suppressHydrationWarning
+								className={cl(basicColorTransition, 'text-sm md:text-base')}>
 								{`${formatAmount((token?.weightRatio || 0) * 100, 2, 2)}%`}
 							</b>
 						</div>
@@ -88,8 +96,8 @@ function RenderYETHValue({amount}: {amount: bigint}): ReactElement {
 	const timer = useTimer();
 
 	/* 🔵 - Yearn Finance **************************************************************************
-	** Retrieve the locked st-yETH in the bootstrap contract for the current user
-	**********************************************************************************************/
+	 ** Retrieve the locked st-yETH in the bootstrap contract for the current user
+	 **********************************************************************************************/
 	const {data: yETHValue} = useContractRead({
 		abi: ST_YETH_ABI,
 		address: toAddress(process.env.STYETH_ADDRESS),
@@ -103,7 +111,9 @@ function RenderYETHValue({amount}: {amount: bigint}): ReactElement {
 	return (
 		<p
 			suppressHydrationWarning
-			className={cl('text-sm block md:text-base text-neutral-500 transition-colors group-hover:text-neutral-0 font-number')}>
+			className={cl(
+				'text-sm block md:text-base text-neutral-500 transition-colors group-hover:text-neutral-0 font-number'
+			)}>
 			{`~ ${formatAmount(Number(toNormalizedBN(toBigInt(yETHValue)).normalized), 6, 6)} yETH`}
 		</p>
 	);
@@ -116,8 +126,8 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 	const APR = useAPR();
 
 	/* 🔵 - Yearn Finance **************************************************************************
-	** Retrieve the locked st-yETH in the bootstrap contract for the current user
-	**********************************************************************************************/
+	 ** Retrieve the locked st-yETH in the bootstrap contract for the current user
+	 **********************************************************************************************/
 	const {data: lockedTokens} = useContractRead({
 		abi: BOOTSTRAP_ABI,
 		address: toAddress(process.env.BOOTSTRAP_ADDRESS),
@@ -130,39 +140,42 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 		return (
 			<div className={'divider mt-6 grid grid-cols-1 space-y-2 border-t-2 pt-6'}>
 				<div>
-					<small className={cl('text-xs', basicLighterColorTransition)}>
-						{'Your yETH'}
-					</small>
+					<small className={cl('text-xs', basicLighterColorTransition)}>{'Your yETH'}</small>
 					<b
 						suppressHydrationWarning
-						className={cl('block text-lg md:text-lg leading-6 md:leading-8 font-number', basicColorTransition)}>
+						className={cl(
+							'block text-lg md:text-lg leading-6 md:leading-8 font-number',
+							basicColorTransition
+						)}>
 						{formatAmount(balances?.[YETH_TOKEN.address]?.normalized || 0, 6, 6)}
 					</b>
 				</div>
 
 				<div>
-					<small className={cl('text-xs', basicLighterColorTransition)}>
-						{'Your st-yETH'}
-					</small>
+					<small className={cl('text-xs', basicLighterColorTransition)}>{'Your st-yETH'}</small>
 					<span className={'flex w-full items-center justify-between whitespace-nowrap'}>
 						<b
 							suppressHydrationWarning
-							className={cl('text-lg md:text-lg leading-6 md:leading-8 font-number', basicColorTransition)}>
+							className={cl(
+								'text-lg md:text-lg leading-6 md:leading-8 font-number',
+								basicColorTransition
+							)}>
 							{formatAmount(Number(balances?.[STYETH_TOKEN.address]?.normalized || 0), 6, 6)}
 						</b>
 						<RenderYETHValue amount={toBigInt(balances?.[STYETH_TOKEN.address]?.raw)} />
 					</span>
 				</div>
 
-				{(lockedTokens && lockedTokens >= 0n) ? (
+				{lockedTokens && lockedTokens >= 0n ? (
 					<div>
-						<small className={cl('text-xs', basicLighterColorTransition)}>
-							{'Your bootstrap st-yETH'}
-						</small>
+						<small className={cl('text-xs', basicLighterColorTransition)}>{'Your bootstrap st-yETH'}</small>
 						<span className={'flex w-full items-center justify-between whitespace-nowrap'}>
 							<b
 								suppressHydrationWarning
-								className={cl('text-lg md:text-lg leading-6 md:leading-8 font-number', basicColorTransition)}>
+								className={cl(
+									'text-lg md:text-lg leading-6 md:leading-8 font-number',
+									basicColorTransition
+								)}>
 								{formatAmount(toNormalizedBN(lockedTokens || 0n).normalized, 6, 6)}
 							</b>
 							<RenderYETHValue amount={toBigInt(lockedTokens)} />
@@ -179,13 +192,15 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 		return (
 			<span className={'tooltip'}>
 				<small className={cl('text-xs text-purple-300 group-hover:text-neutral-0', basicTransition)}>
-					{epoch.incentiveAPR ? (`+${epoch.incentiveAPR}% incentive vAPR`) : null}
+					{epoch.incentiveAPR ? `+${epoch.incentiveAPR}% incentive vAPR` : null}
 				</small>
 				<span className={'tooltipLight !-inset-x-24 top-full mt-2 !w-auto'}>
 					<div
 						suppressHydrationWarning
-						className={'w-fit rounded-md border border-neutral-700 bg-neutral-900 p-1 px-2 text-center text-xs font-medium text-neutral-0'}>
-						{'Based on last epoch\'s voting rewards for a genesis st-yETH holder'}
+						className={
+							'w-fit rounded-md border border-neutral-700 bg-neutral-900 p-1 px-2 text-center text-xs font-medium text-neutral-0'
+						}>
+						{"Based on last epoch's voting rewards for a genesis st-yETH holder"}
 					</div>
 				</span>
 			</span>
@@ -202,12 +217,13 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 				className={'relative col-span-18 flex items-end py-6 pr-0 md:py-8 md:pr-72'}>
 				<div
 					id={'yeth-title-explore'}
-					className={cl('absolute -left-full top-10 text-neutral-0 opacity-0 transition-all duration-200 ease-in-out group-hover:left-0 group-hover:opacity-100 hidden md:block', basicTransition)}>
+					className={cl(
+						'absolute -left-full top-10 text-neutral-0 opacity-0 transition-all duration-200 ease-in-out group-hover:left-0 group-hover:opacity-100 hidden md:block',
+						basicTransition
+					)}>
 					{'Explore >'}
 				</div>
-				<h1 className={cl('text-5xl md:text-8xl font-black', basicColorTransition)}>
-					{'yETH'}
-				</h1>
+				<h1 className={cl('text-5xl md:text-8xl font-black', basicColorTransition)}>{'yETH'}</h1>
 			</div>
 
 			<div
@@ -216,41 +232,53 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 				<div className={'flex w-full flex-row justify-between'}>
 					<div className={'flex flex-col space-y-4'}>
 						<div>
-							<small className={cl('text-xs', basicLighterColorTransition)}>
-								{'TVL, USD'}
-							</small>
+							<small className={cl('text-xs', basicLighterColorTransition)}>{'TVL, USD'}</small>
 							<b
 								suppressHydrationWarning
-								className={cl('block text-lg md:text-lg leading-6 md:leading-8 font-number', basicColorTransition)}>
+								className={cl(
+									'block text-lg md:text-lg leading-6 md:leading-8 font-number',
+									basicColorTransition
+								)}>
 								{formatAmount(TVL, 0, 0)}
 							</b>
 						</div>
 
 						<div>
-							<small className={cl('text-xs', basicLighterColorTransition)}>
-								{'TVL, ETH'}
-							</small>
+							<small className={cl('text-xs', basicLighterColorTransition)}>{'TVL, ETH'}</small>
 							<b
 								suppressHydrationWarning
-								className={cl('block text-lg md:text-lg leading-6 md:leading-8 font-number', basicColorTransition)}>
+								className={cl(
+									'block text-lg md:text-lg leading-6 md:leading-8 font-number',
+									basicColorTransition
+								)}>
 								{formatAmount(TAL.normalized, 4, 4)}
 							</b>
 						</div>
 
 						<div>
-							<small className={cl('text-xs text-purple-300 group-hover:text-neutral-0', basicTransition)}>
+							<small
+								className={cl('text-xs text-purple-300 group-hover:text-neutral-0', basicTransition)}>
 								{'APR'}
 							</small>
 
 							<span className={'tooltip'}>
-								<b suppressHydrationWarning className={cl('block text-lg md:text-2xl leading-6 md:leading-8 text-purple-300 group-hover:text-neutral-0 font-number', basicTransition)}>
+								<b
+									suppressHydrationWarning
+									className={cl(
+										'block text-lg md:text-2xl leading-6 md:leading-8 text-purple-300 group-hover:text-neutral-0 font-number',
+										basicTransition
+									)}>
 									{`~${formatAmount(APR, 2, 2)}%`}
 								</b>
 								<span className={'tooltipLight !-inset-x-24 top-full mt-2 !w-auto'}>
 									<div
 										suppressHydrationWarning
-										className={'w-fit rounded-md border border-neutral-700 bg-neutral-900 p-1 px-2 text-center text-xs font-medium text-neutral-0'}>
-										{'APY is calculated based on last week\'s yETH yield generated by the protocol, streamed to st-yETH holders this week'}
+										className={
+											'w-fit rounded-md border border-neutral-700 bg-neutral-900 p-1 px-2 text-center text-xs font-medium text-neutral-0'
+										}>
+										{
+											"APY is calculated based on last week's yETH yield generated by the protocol, streamed to st-yETH holders this week"
+										}
 									</div>
 								</span>
 							</span>
@@ -260,9 +288,7 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 
 					<div className={'flex flex-col space-y-2'}>
 						<div>
-							<small className={cl('text-xs', basicLighterColorTransition)}>
-								{'Composition'}
-							</small>
+							<small className={cl('text-xs', basicLighterColorTransition)}>{'Composition'}</small>
 						</div>
 						<Composition />
 					</div>
@@ -277,7 +303,7 @@ function YETH({router}: {router: Router}): ReactElement {
 	const [tabsCope, animateTabs] = useAnimate();
 	const [headingScope, headingAnimate] = useAnimate();
 	const [lpPoolScope, lpPoolAnimate] = useAnimate();
-	const [currentTab, set_currentTab] = useState<typeof tabs[0]>(tabs[0]);
+	const [currentTab, set_currentTab] = useState<(typeof tabs)[0]>(tabs[0]);
 	const [shouldRenderPool, set_shouldRenderPool] = useState(false);
 
 	useMountEffect((): void => {
@@ -298,34 +324,57 @@ function YETH({router}: {router: Router}): ReactElement {
 		document.body.classList.remove('lpPoolTheme');
 	});
 
-	const triggerPoolView = useCallback((direction: boolean): void => {
-		set_shouldRenderPool((prev): boolean => {
-			if (direction === prev) {
-				return prev;
-			}
-			if (direction) {
-				animateTabs(tabsCope.current, {opacity: 0, y: '100vh'}, {duration: 0.8, ease: 'easeInOut'});
-				headingAnimate('#title', {y: -144}, {duration: 0.6, ease: 'easeInOut'});
-				headingAnimate('#composition', {opacity: 0, y: -144}, {duration: 0.6, ease: 'easeInOut'});
-				lpPoolAnimate(lpPoolScope.current, {opacity: 1, height: 'auto', pointerEvents: 'auto'}, {duration: 0.8, ease: 'easeInOut'});
-				document.body.classList.add('lpPoolTheme');
-				return true;
-			}
-			animateTabs(tabsCope.current, {opacity: 1, y: 0}, {duration: 0.8, ease: 'easeInOut'});
-			headingAnimate('#title', {opacity: 1, y: 0}, {duration: 0.6, ease: 'easeInOut'});
-			headingAnimate('#composition', {opacity: 1, y: 0}, {duration: 0.6, ease: 'easeInOut'});
-			lpPoolAnimate(lpPoolScope.current, {height: 0, opacity: 0, pointerEvents: 'none'}, {duration: 0.8, ease: 'easeInOut'});
-			document.body.classList.remove('lpPoolTheme');
-			return false;
-		});
-	}, [animateTabs, headingAnimate, lpPoolAnimate, lpPoolScope, tabsCope]);
+	const triggerPoolView = useCallback(
+		(direction: boolean): void => {
+			set_shouldRenderPool((prev): boolean => {
+				if (direction === prev) {
+					return prev;
+				}
+				if (direction) {
+					animateTabs(tabsCope.current, {opacity: 0, y: '100vh'}, {duration: 0.8, ease: 'easeInOut'});
+					headingAnimate('#title', {y: -144}, {duration: 0.6, ease: 'easeInOut'});
+					headingAnimate('#composition', {opacity: 0, y: -144}, {duration: 0.6, ease: 'easeInOut'});
+					lpPoolAnimate(
+						lpPoolScope.current,
+						{opacity: 1, height: 'auto', pointerEvents: 'auto'},
+						{duration: 0.8, ease: 'easeInOut'}
+					);
+					document.body.classList.add('lpPoolTheme');
+					return true;
+				}
+				animateTabs(tabsCope.current, {opacity: 1, y: 0}, {duration: 0.8, ease: 'easeInOut'});
+				headingAnimate('#title', {opacity: 1, y: 0}, {duration: 0.6, ease: 'easeInOut'});
+				headingAnimate('#composition', {opacity: 1, y: 0}, {duration: 0.6, ease: 'easeInOut'});
+				lpPoolAnimate(
+					lpPoolScope.current,
+					{height: 0, opacity: 0, pointerEvents: 'none'},
+					{duration: 0.8, ease: 'easeInOut'}
+				);
+				document.body.classList.remove('lpPoolTheme');
+				return false;
+			});
+		},
+		[animateTabs, headingAnimate, lpPoolAnimate, lpPoolScope, tabsCope]
+	);
 
 	function renderTab(): ReactElement {
 		switch (currentTab.value) {
 			case 0:
-				return <ViewDeposit key={'lst'} type={'LST'} onChangeTab={(): void => set_currentTab(tabs[3])} />;
+				return (
+					<ViewDeposit
+						key={'lst'}
+						type={'LST'}
+						onChangeTab={(): void => set_currentTab(tabs[3])}
+					/>
+				);
 			case 1:
-				return <ViewDeposit key={'eth'} type={'ETH'} onChangeTab={(): void => set_currentTab(tabs[3])} />;
+				return (
+					<ViewDeposit
+						key={'eth'}
+						type={'ETH'}
+						onChangeTab={(): void => set_currentTab(tabs[3])}
+					/>
+				);
 			case 2:
 				return <ViewWithdraw />;
 			case 3:
@@ -333,7 +382,13 @@ function YETH({router}: {router: Router}): ReactElement {
 			case 4:
 				return <ViewSwap />;
 			default:
-				return <ViewDeposit key={'lst'} type={'LST'} onChangeTab={(): void => set_currentTab(tabs[3])} />;
+				return (
+					<ViewDeposit
+						key={'lst'}
+						type={'LST'}
+						onChangeTab={(): void => set_currentTab(tabs[3])}
+					/>
+				);
 		}
 	}
 
@@ -343,11 +398,14 @@ function YETH({router}: {router: Router}): ReactElement {
 				<YETHHeading scope={headingScope} />
 			</div>
 
-
-			<div className={cl('absolute top-10 text-neutral-0 duration-[600ms] ease-in-out transition-all', shouldRenderPool ? 'left-8 md:left-72 opacity-100 pointer-events-auto' : 'left-0 opacity-0 pointer-events-none')}>
-				<button onClick={(): void => triggerPoolView(false)}>
-					{'< Back to actions'}
-				</button>
+			<div
+				className={cl(
+					'absolute top-10 text-neutral-0 duration-[600ms] ease-in-out transition-all',
+					shouldRenderPool
+						? 'left-8 md:left-72 opacity-100 pointer-events-auto'
+						: 'left-0 opacity-0 pointer-events-none'
+				)}>
+				<button onClick={(): void => triggerPoolView(false)}>{'< Back to actions'}</button>
 			</div>
 
 			<LSTInPool scope={lpPoolScope} />
@@ -356,13 +414,17 @@ function YETH({router}: {router: Router}): ReactElement {
 				ref={tabsCope}
 				className={'relative mt-4'}>
 				<div className={'flex w-full flex-col'}>
-					<div className={'relative flex w-full flex-row items-center justify-between rounded-t-md bg-neutral-100 px-4 pt-4 md:px-72'}>
+					<div
+						className={
+							'relative flex w-full flex-row items-center justify-between rounded-t-md bg-neutral-100 px-4 pt-4 md:px-72'
+						}>
 						<nav className={'z-30 hidden flex-row items-center space-x-10 md:flex'}>
 							{tabs.map((tab): ReactElement => {
 								if (tab.slug === 'deposit-eth-leg') {
 									return (
 										<Link
-											key={`desktop-${tab.value}`} href={'https://swap.cow.fi/#/1/swap/ETH/st-yETH'}
+											key={`desktop-${tab.value}`}
+											href={'https://swap.cow.fi/#/1/swap/ETH/st-yETH'}
 											target={'_blank'}>
 											<p
 												title={tab.label}
@@ -412,13 +474,18 @@ function YETH({router}: {router: Router}): ReactElement {
 								{({open}): ReactElement => (
 									<>
 										<Listbox.Button
-											className={'flex h-10 w-40 flex-row items-center border-0 border-b-2 border-neutral-900 bg-neutral-100 p-0 font-bold focus:border-neutral-900 md:hidden'}>
+											className={
+												'flex h-10 w-40 flex-row items-center border-0 border-b-2 border-neutral-900 bg-neutral-100 p-0 font-bold focus:border-neutral-900 md:hidden'
+											}>
 											<div className={'relative flex flex-row items-center'}>
 												{currentTab?.label || 'Menu'}
 											</div>
 											<div className={'absolute right-0'}>
 												<IconChevronBoth
-													className={`h-6 w-6 transition-transform ${open ? '-rotate-180' : 'rotate-0'}`} />
+													className={`h-6 w-6 transition-transform ${
+														open ? '-rotate-180' : 'rotate-0'
+													}`}
+												/>
 											</div>
 										</Listbox.Button>
 										<Transition
@@ -431,14 +498,16 @@ function YETH({router}: {router: Router}): ReactElement {
 											leaveFrom={'transform scale-100 opacity-100'}
 											leaveTo={'transform scale-95 opacity-0'}>
 											<Listbox.Options className={'yearn--listbox-menu'}>
-												{tabs.map((tab): ReactElement => (
-													<Listbox.Option
-														className={'yearn--listbox-menu-item'}
-														key={tab.value}
-														value={tab.value}>
-														{tab.label}
-													</Listbox.Option>
-												))}
+												{tabs.map(
+													(tab): ReactElement => (
+														<Listbox.Option
+															className={'yearn--listbox-menu-item'}
+															key={tab.value}
+															value={tab.value}>
+															{tab.label}
+														</Listbox.Option>
+													)
+												)}
 											</Listbox.Options>
 										</Transition>
 									</>
@@ -447,9 +516,7 @@ function YETH({router}: {router: Router}): ReactElement {
 						</div>
 					</div>
 					<div className={'z-10 -mt-0.5 h-0.5 w-full bg-neutral-300'} />
-					<div className={'relative col-span-12 rounded-b-md bg-neutral-100'}>
-						{renderTab()}
-					</div>
+					<div className={'relative col-span-12 rounded-b-md bg-neutral-100'}>{renderTab()}</div>
 				</div>
 			</div>
 		</div>

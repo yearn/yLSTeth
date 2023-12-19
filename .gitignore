@@ -1,8 +1,7 @@
 .DS_Store
 node_modules
 /dist
-ipfs
-
+tsconfig.tsbuildinfo
 
 # local env files
 .env.local
@@ -16,7 +15,6 @@ pnpm-debug.log*
 
 # Editor directories and files
 .idea
-.vscode
 *.suo
 *.ntvs*
 *.njsproj
@@ -26,13 +24,16 @@ pnpm-debug.log*
 .env
 .next
 .vercel
-tsconfig.tsbuildinfo
-
+.tsconfig.tsbuildinfo
+_app
 
 # Auto Generated PWA files
-**/sw.js.map
-**/workbox-*.js.map
-**/worker-*.js.map
+**/public/sw.js
+**/public/workbox-*.js
+**/public/worker-*.js
+**/public/sw.js.map
+**/public/workbox-*.js.map
+**/public/worker-*.js.map
 
-public/sw.js
-public/workbox-*.js
+# Sentry Auth Token
+.sentryclirc

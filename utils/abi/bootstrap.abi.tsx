@@ -1,1072 +1,1072 @@
 const BOOTSTRAP_ABI = [
 	{
-		'anonymous': false,
-		'inputs': [
+		anonymous: false,
+		inputs: [
 			{
-				'indexed': true,
-				'name': 'protocol',
-				'type': 'address'
+				indexed: true,
+				name: 'protocol',
+				type: 'address'
 			}
 		],
-		'name': 'Apply',
-		'type': 'event'
+		name: 'Apply',
+		type: 'event'
 	},
 	{
-		'anonymous': false,
-		'inputs': [
+		anonymous: false,
+		inputs: [
 			{
-				'indexed': true,
-				'name': 'protocol',
-				'type': 'address'
+				indexed: true,
+				name: 'protocol',
+				type: 'address'
 			}
 		],
-		'name': 'Whitelist',
-		'type': 'event'
+		name: 'Whitelist',
+		type: 'event'
 	},
 	{
-		'anonymous': false,
-		'inputs': [
+		anonymous: false,
+		inputs: [
 			{
-				'indexed': true,
-				'name': 'protocol',
-				'type': 'address'
+				indexed: true,
+				name: 'protocol',
+				type: 'address'
 			},
 			{
-				'indexed': true,
-				'name': 'incentive',
-				'type': 'address'
+				indexed: true,
+				name: 'incentive',
+				type: 'address'
 			},
 			{
-				'indexed': true,
-				'name': 'depositor',
-				'type': 'address'
+				indexed: true,
+				name: 'depositor',
+				type: 'address'
 			},
 			{
-				'indexed': false,
-				'name': 'amount',
-				'type': 'uint256'
+				indexed: false,
+				name: 'amount',
+				type: 'uint256'
 			}
 		],
-		'name': 'Incentivize',
-		'type': 'event'
+		name: 'Incentivize',
+		type: 'event'
 	},
 	{
-		'anonymous': false,
-		'inputs': [
+		anonymous: false,
+		inputs: [
 			{
-				'indexed': true,
-				'name': 'depositor',
-				'type': 'address'
+				indexed: true,
+				name: 'depositor',
+				type: 'address'
 			},
 			{
-				'indexed': true,
-				'name': 'receiver',
-				'type': 'address'
+				indexed: true,
+				name: 'receiver',
+				type: 'address'
 			},
 			{
-				'indexed': false,
-				'name': 'amount',
-				'type': 'uint256'
+				indexed: false,
+				name: 'amount',
+				type: 'uint256'
 			}
 		],
-		'name': 'Deposit',
-		'type': 'event'
+		name: 'Deposit',
+		type: 'event'
 	},
 	{
-		'anonymous': false,
-		'inputs': [
+		anonymous: false,
+		inputs: [
 			{
-				'indexed': true,
-				'name': 'claimer',
-				'type': 'address'
+				indexed: true,
+				name: 'claimer',
+				type: 'address'
 			},
 			{
-				'indexed': true,
-				'name': 'receiver',
-				'type': 'address'
+				indexed: true,
+				name: 'receiver',
+				type: 'address'
 			},
 			{
-				'indexed': false,
-				'name': 'amount',
-				'type': 'uint256'
+				indexed: false,
+				name: 'amount',
+				type: 'uint256'
 			}
 		],
-		'name': 'Claim',
-		'type': 'event'
+		name: 'Claim',
+		type: 'event'
 	},
 	{
-		'anonymous': false,
-		'inputs': [
+		anonymous: false,
+		inputs: [
 			{
-				'indexed': true,
-				'name': 'voter',
-				'type': 'address'
+				indexed: true,
+				name: 'voter',
+				type: 'address'
 			},
 			{
-				'indexed': true,
-				'name': 'protocol',
-				'type': 'address'
+				indexed: true,
+				name: 'protocol',
+				type: 'address'
 			},
 			{
-				'indexed': false,
-				'name': 'amount',
-				'type': 'uint256'
+				indexed: false,
+				name: 'amount',
+				type: 'uint256'
 			}
 		],
-		'name': 'Vote',
-		'type': 'event'
+		name: 'Vote',
+		type: 'event'
 	},
 	{
-		'anonymous': false,
-		'inputs': [
+		anonymous: false,
+		inputs: [
 			{
-				'indexed': true,
-				'name': 'payer',
-				'type': 'address'
+				indexed: true,
+				name: 'payer',
+				type: 'address'
 			},
 			{
-				'indexed': false,
-				'name': 'amount',
-				'type': 'uint256'
+				indexed: false,
+				name: 'amount',
+				type: 'uint256'
 			}
 		],
-		'name': 'Repay',
-		'type': 'event'
+		name: 'Repay',
+		type: 'event'
 	},
 	{
-		'anonymous': false,
-		'inputs': [
+		anonymous: false,
+		inputs: [
 			{
-				'indexed': false,
-				'name': 'amount',
-				'type': 'uint256'
+				indexed: false,
+				name: 'amount',
+				type: 'uint256'
 			}
 		],
-		'name': 'Split',
-		'type': 'event'
+		name: 'Split',
+		type: 'event'
 	},
 	{
-		'anonymous': false,
-		'inputs': [
+		anonymous: false,
+		inputs: [
 			{
-				'indexed': true,
-				'name': 'protocol',
-				'type': 'address'
+				indexed: true,
+				name: 'protocol',
+				type: 'address'
 			},
 			{
-				'indexed': true,
-				'name': 'incentive',
-				'type': 'address'
+				indexed: true,
+				name: 'incentive',
+				type: 'address'
 			},
 			{
-				'indexed': true,
-				'name': 'claimer',
-				'type': 'address'
+				indexed: true,
+				name: 'claimer',
+				type: 'address'
 			},
 			{
-				'indexed': false,
-				'name': 'amount',
-				'type': 'uint256'
+				indexed: false,
+				name: 'amount',
+				type: 'uint256'
 			}
 		],
-		'name': 'ClaimIncentive',
-		'type': 'event'
+		name: 'ClaimIncentive',
+		type: 'event'
 	},
 	{
-		'anonymous': false,
-		'inputs': [
+		anonymous: false,
+		inputs: [
 			{
-				'indexed': true,
-				'name': 'protocol',
-				'type': 'address'
+				indexed: true,
+				name: 'protocol',
+				type: 'address'
 			},
 			{
-				'indexed': true,
-				'name': 'incentive',
-				'type': 'address'
+				indexed: true,
+				name: 'incentive',
+				type: 'address'
 			},
 			{
-				'indexed': true,
-				'name': 'depositor',
-				'type': 'address'
+				indexed: true,
+				name: 'depositor',
+				type: 'address'
 			},
 			{
-				'indexed': false,
-				'name': 'amount',
-				'type': 'uint256'
+				indexed: false,
+				name: 'amount',
+				type: 'uint256'
 			}
 		],
-		'name': 'RefundIncentive',
-		'type': 'event'
+		name: 'RefundIncentive',
+		type: 'event'
 	},
 	{
-		'anonymous': false,
-		'inputs': [
+		anonymous: false,
+		inputs: [
 			{
-				'indexed': true,
-				'name': 'period',
-				'type': 'uint256'
+				indexed: true,
+				name: 'period',
+				type: 'uint256'
 			},
 			{
-				'indexed': false,
-				'name': 'begin',
-				'type': 'uint256'
+				indexed: false,
+				name: 'begin',
+				type: 'uint256'
 			},
 			{
-				'indexed': false,
-				'name': 'end',
-				'type': 'uint256'
+				indexed: false,
+				name: 'end',
+				type: 'uint256'
 			}
 		],
-		'name': 'SetPeriod',
-		'type': 'event'
+		name: 'SetPeriod',
+		type: 'event'
 	},
 	{
-		'anonymous': false,
-		'inputs': [
+		anonymous: false,
+		inputs: [
 			{
-				'indexed': false,
-				'name': 'winners',
-				'type': 'address[]'
+				indexed: false,
+				name: 'winners',
+				type: 'address[]'
 			}
 		],
-		'name': 'Winners',
-		'type': 'event'
+		name: 'Winners',
+		type: 'event'
 	},
 	{
-		'anonymous': false,
-		'inputs': [
+		anonymous: false,
+		inputs: [
 			{
-				'indexed': true,
-				'name': 'management',
-				'type': 'address'
+				indexed: true,
+				name: 'management',
+				type: 'address'
 			}
 		],
-		'name': 'PendingManagement',
-		'type': 'event'
+		name: 'PendingManagement',
+		type: 'event'
 	},
 	{
-		'anonymous': false,
-		'inputs': [
+		anonymous: false,
+		inputs: [
 			{
-				'indexed': true,
-				'name': 'management',
-				'type': 'address'
+				indexed: true,
+				name: 'management',
+				type: 'address'
 			}
 		],
-		'name': 'SetManagement',
-		'type': 'event'
+		name: 'SetManagement',
+		type: 'event'
 	},
 	{
-		'inputs': [
+		inputs: [
 			{
-				'name': '_token',
-				'type': 'address'
+				name: '_token',
+				type: 'address'
 			},
 			{
-				'name': '_staking',
-				'type': 'address'
+				name: '_staking',
+				type: 'address'
 			},
 			{
-				'name': '_treasury',
-				'type': 'address'
+				name: '_treasury',
+				type: 'address'
 			},
 			{
-				'name': '_pol',
-				'type': 'address'
+				name: '_pol',
+				type: 'address'
 			}
 		],
-		'stateMutability': 'nonpayable',
-		'type': 'constructor'
+		stateMutability: 'nonpayable',
+		type: 'constructor'
 	},
 	{
-		'stateMutability': 'payable',
-		'type': 'fallback'
+		stateMutability: 'payable',
+		type: 'fallback'
 	},
 	{
-		'inputs': [
+		inputs: [
 			{
-				'name': '_protocol',
-				'type': 'address'
+				name: '_protocol',
+				type: 'address'
 			}
 		],
-		'name': 'apply',
-		'outputs': [],
-		'stateMutability': 'payable',
-		'type': 'function'
+		name: 'apply',
+		outputs: [],
+		stateMutability: 'payable',
+		type: 'function'
 	},
 	{
-		'inputs': [
+		inputs: [
 			{
-				'name': '_protocol',
-				'type': 'address'
+				name: '_protocol',
+				type: 'address'
 			},
 			{
-				'name': '_incentive',
-				'type': 'address'
+				name: '_incentive',
+				type: 'address'
 			},
 			{
-				'name': '_amount',
-				'type': 'uint256'
+				name: '_amount',
+				type: 'uint256'
 			}
 		],
-		'name': 'incentivize',
-		'outputs': [],
-		'stateMutability': 'nonpayable',
-		'type': 'function'
+		name: 'incentivize',
+		outputs: [],
+		stateMutability: 'nonpayable',
+		type: 'function'
 	},
 	{
-		'inputs': [],
-		'name': 'deposit',
-		'outputs': [],
-		'stateMutability': 'payable',
-		'type': 'function'
+		inputs: [],
+		name: 'deposit',
+		outputs: [],
+		stateMutability: 'payable',
+		type: 'function'
 	},
 	{
-		'inputs': [
+		inputs: [
 			{
-				'name': '_amount',
-				'type': 'uint256'
+				name: '_amount',
+				type: 'uint256'
 			}
 		],
-		'name': 'claim',
-		'outputs': [],
-		'stateMutability': 'nonpayable',
-		'type': 'function'
+		name: 'claim',
+		outputs: [],
+		stateMutability: 'nonpayable',
+		type: 'function'
 	},
 	{
-		'inputs': [
+		inputs: [
 			{
-				'name': '_amount',
-				'type': 'uint256'
+				name: '_amount',
+				type: 'uint256'
 			},
 			{
-				'name': '_receiver',
-				'type': 'address'
+				name: '_receiver',
+				type: 'address'
 			}
 		],
-		'name': 'claim',
-		'outputs': [],
-		'stateMutability': 'nonpayable',
-		'type': 'function'
+		name: 'claim',
+		outputs: [],
+		stateMutability: 'nonpayable',
+		type: 'function'
 	},
 	{
-		'inputs': [
+		inputs: [
 			{
-				'name': '_account',
-				'type': 'address'
+				name: '_account',
+				type: 'address'
 			}
 		],
-		'name': 'votes_available',
-		'outputs': [
+		name: 'votes_available',
+		outputs: [
 			{
-				'name': '',
-				'type': 'uint256'
+				name: '',
+				type: 'uint256'
 			}
 		],
-		'stateMutability': 'view',
-		'type': 'function'
+		stateMutability: 'view',
+		type: 'function'
 	},
 	{
-		'inputs': [
+		inputs: [
 			{
-				'name': '_protocols',
-				'type': 'address[]'
+				name: '_protocols',
+				type: 'address[]'
 			},
 			{
-				'name': '_votes',
-				'type': 'uint256[]'
+				name: '_votes',
+				type: 'uint256[]'
 			}
 		],
-		'name': 'vote',
-		'outputs': [],
-		'stateMutability': 'nonpayable',
-		'type': 'function'
+		name: 'vote',
+		outputs: [],
+		stateMutability: 'nonpayable',
+		type: 'function'
 	},
 	{
-		'inputs': [
+		inputs: [
 			{
-				'name': '_amount',
-				'type': 'uint256'
+				name: '_amount',
+				type: 'uint256'
 			}
 		],
-		'name': 'repay',
-		'outputs': [],
-		'stateMutability': 'nonpayable',
-		'type': 'function'
+		name: 'repay',
+		outputs: [],
+		stateMutability: 'nonpayable',
+		type: 'function'
 	},
 	{
-		'inputs': [],
-		'name': 'split',
-		'outputs': [],
-		'stateMutability': 'nonpayable',
-		'type': 'function'
+		inputs: [],
+		name: 'split',
+		outputs: [],
+		stateMutability: 'nonpayable',
+		type: 'function'
 	},
 	{
-		'inputs': [
+		inputs: [
 			{
-				'name': '_protocol',
-				'type': 'address'
+				name: '_protocol',
+				type: 'address'
 			},
 			{
-				'name': '_incentive',
-				'type': 'address'
+				name: '_incentive',
+				type: 'address'
 			},
 			{
-				'name': '_claimer',
-				'type': 'address'
+				name: '_claimer',
+				type: 'address'
 			}
 		],
-		'name': 'claimable_incentive',
-		'outputs': [
+		name: 'claimable_incentive',
+		outputs: [
 			{
-				'name': '',
-				'type': 'uint256'
+				name: '',
+				type: 'uint256'
 			}
 		],
-		'stateMutability': 'view',
-		'type': 'function'
+		stateMutability: 'view',
+		type: 'function'
 	},
 	{
-		'inputs': [
+		inputs: [
 			{
-				'name': '_protocol',
-				'type': 'address'
+				name: '_protocol',
+				type: 'address'
 			},
 			{
-				'name': '_incentive',
-				'type': 'address'
+				name: '_incentive',
+				type: 'address'
 			}
 		],
-		'name': 'claim_incentive',
-		'outputs': [
+		name: 'claim_incentive',
+		outputs: [
 			{
-				'name': '',
-				'type': 'uint256'
+				name: '',
+				type: 'uint256'
 			}
 		],
-		'stateMutability': 'nonpayable',
-		'type': 'function'
+		stateMutability: 'nonpayable',
+		type: 'function'
 	},
 	{
-		'inputs': [
+		inputs: [
 			{
-				'name': '_protocol',
-				'type': 'address'
+				name: '_protocol',
+				type: 'address'
 			},
 			{
-				'name': '_incentive',
-				'type': 'address'
+				name: '_incentive',
+				type: 'address'
 			},
 			{
-				'name': '_claimer',
-				'type': 'address'
+				name: '_claimer',
+				type: 'address'
 			}
 		],
-		'name': 'claim_incentive',
-		'outputs': [
+		name: 'claim_incentive',
+		outputs: [
 			{
-				'name': '',
-				'type': 'uint256'
+				name: '',
+				type: 'uint256'
 			}
 		],
-		'stateMutability': 'nonpayable',
-		'type': 'function'
+		stateMutability: 'nonpayable',
+		type: 'function'
 	},
 	{
-		'inputs': [
+		inputs: [
 			{
-				'name': '_protocol',
-				'type': 'address'
+				name: '_protocol',
+				type: 'address'
 			},
 			{
-				'name': '_incentive',
-				'type': 'address'
+				name: '_incentive',
+				type: 'address'
 			}
 		],
-		'name': 'refund_incentive',
-		'outputs': [
+		name: 'refund_incentive',
+		outputs: [
 			{
-				'name': '',
-				'type': 'uint256'
+				name: '',
+				type: 'uint256'
 			}
 		],
-		'stateMutability': 'nonpayable',
-		'type': 'function'
+		stateMutability: 'nonpayable',
+		type: 'function'
 	},
 	{
-		'inputs': [
+		inputs: [
 			{
-				'name': '_protocol',
-				'type': 'address'
+				name: '_protocol',
+				type: 'address'
 			},
 			{
-				'name': '_incentive',
-				'type': 'address'
+				name: '_incentive',
+				type: 'address'
 			},
 			{
-				'name': '_depositor',
-				'type': 'address'
+				name: '_depositor',
+				type: 'address'
 			}
 		],
-		'name': 'refund_incentive',
-		'outputs': [
+		name: 'refund_incentive',
+		outputs: [
 			{
-				'name': '',
-				'type': 'uint256'
+				name: '',
+				type: 'uint256'
 			}
 		],
-		'stateMutability': 'nonpayable',
-		'type': 'function'
+		stateMutability: 'nonpayable',
+		type: 'function'
 	},
 	{
-		'inputs': [
+		inputs: [
 			{
-				'name': '_protocol',
-				'type': 'address'
+				name: '_protocol',
+				type: 'address'
 			}
 		],
-		'name': 'has_applied',
-		'outputs': [
+		name: 'has_applied',
+		outputs: [
 			{
-				'name': '',
-				'type': 'bool'
+				name: '',
+				type: 'bool'
 			}
 		],
-		'stateMutability': 'view',
-		'type': 'function'
+		stateMutability: 'view',
+		type: 'function'
 	},
 	{
-		'inputs': [
+		inputs: [
 			{
-				'name': '_protocol',
-				'type': 'address'
+				name: '_protocol',
+				type: 'address'
 			}
 		],
-		'name': 'is_whitelisted',
-		'outputs': [
+		name: 'is_whitelisted',
+		outputs: [
 			{
-				'name': '',
-				'type': 'bool'
+				name: '',
+				type: 'bool'
 			}
 		],
-		'stateMutability': 'view',
-		'type': 'function'
+		stateMutability: 'view',
+		type: 'function'
 	},
 	{
-		'inputs': [],
-		'name': 'num_winners',
-		'outputs': [
+		inputs: [],
+		name: 'num_winners',
+		outputs: [
 			{
-				'name': '',
-				'type': 'uint256'
+				name: '',
+				type: 'uint256'
 			}
 		],
-		'stateMutability': 'view',
-		'type': 'function'
+		stateMutability: 'view',
+		type: 'function'
 	},
 	{
-		'inputs': [
+		inputs: [
 			{
-				'name': '_begin',
-				'type': 'uint256'
+				name: '_begin',
+				type: 'uint256'
 			},
 			{
-				'name': '_end',
-				'type': 'uint256'
+				name: '_end',
+				type: 'uint256'
 			}
 		],
-		'name': 'set_whitelist_period',
-		'outputs': [],
-		'stateMutability': 'nonpayable',
-		'type': 'function'
+		name: 'set_whitelist_period',
+		outputs: [],
+		stateMutability: 'nonpayable',
+		type: 'function'
 	},
 	{
-		'inputs': [
+		inputs: [
 			{
-				'name': '_begin',
-				'type': 'uint256'
+				name: '_begin',
+				type: 'uint256'
 			},
 			{
-				'name': '_end',
-				'type': 'uint256'
+				name: '_end',
+				type: 'uint256'
 			}
 		],
-		'name': 'set_incentive_period',
-		'outputs': [],
-		'stateMutability': 'nonpayable',
-		'type': 'function'
+		name: 'set_incentive_period',
+		outputs: [],
+		stateMutability: 'nonpayable',
+		type: 'function'
 	},
 	{
-		'inputs': [
+		inputs: [
 			{
-				'name': '_begin',
-				'type': 'uint256'
+				name: '_begin',
+				type: 'uint256'
 			},
 			{
-				'name': '_end',
-				'type': 'uint256'
+				name: '_end',
+				type: 'uint256'
 			}
 		],
-		'name': 'set_deposit_period',
-		'outputs': [],
-		'stateMutability': 'nonpayable',
-		'type': 'function'
+		name: 'set_deposit_period',
+		outputs: [],
+		stateMutability: 'nonpayable',
+		type: 'function'
 	},
 	{
-		'inputs': [
+		inputs: [
 			{
-				'name': '_begin',
-				'type': 'uint256'
+				name: '_begin',
+				type: 'uint256'
 			},
 			{
-				'name': '_end',
-				'type': 'uint256'
+				name: '_end',
+				type: 'uint256'
 			}
 		],
-		'name': 'set_vote_period',
-		'outputs': [],
-		'stateMutability': 'nonpayable',
-		'type': 'function'
+		name: 'set_vote_period',
+		outputs: [],
+		stateMutability: 'nonpayable',
+		type: 'function'
 	},
 	{
-		'inputs': [
+		inputs: [
 			{
-				'name': '_end',
-				'type': 'uint256'
+				name: '_end',
+				type: 'uint256'
 			}
 		],
-		'name': 'set_lock_end',
-		'outputs': [],
-		'stateMutability': 'nonpayable',
-		'type': 'function'
+		name: 'set_lock_end',
+		outputs: [],
+		stateMutability: 'nonpayable',
+		type: 'function'
 	},
 	{
-		'inputs': [
+		inputs: [
 			{
-				'name': '_protocol',
-				'type': 'address'
+				name: '_protocol',
+				type: 'address'
 			}
 		],
-		'name': 'whitelist',
-		'outputs': [],
-		'stateMutability': 'nonpayable',
-		'type': 'function'
+		name: 'whitelist',
+		outputs: [],
+		stateMutability: 'nonpayable',
+		type: 'function'
 	},
 	{
-		'inputs': [
+		inputs: [
 			{
-				'name': '_protocol',
-				'type': 'address'
+				name: '_protocol',
+				type: 'address'
 			}
 		],
-		'name': 'undo_whitelist',
-		'outputs': [],
-		'stateMutability': 'nonpayable',
-		'type': 'function'
+		name: 'undo_whitelist',
+		outputs: [],
+		stateMutability: 'nonpayable',
+		type: 'function'
 	},
 	{
-		'inputs': [
+		inputs: [
 			{
-				'name': '_winners',
-				'type': 'address[]'
+				name: '_winners',
+				type: 'address[]'
 			}
 		],
-		'name': 'declare_winners',
-		'outputs': [],
-		'stateMutability': 'nonpayable',
-		'type': 'function'
+		name: 'declare_winners',
+		outputs: [],
+		stateMutability: 'nonpayable',
+		type: 'function'
 	},
 	{
-		'inputs': [
+		inputs: [
 			{
-				'name': '_management',
-				'type': 'address'
+				name: '_management',
+				type: 'address'
 			}
 		],
-		'name': 'set_management',
-		'outputs': [],
-		'stateMutability': 'nonpayable',
-		'type': 'function'
+		name: 'set_management',
+		outputs: [],
+		stateMutability: 'nonpayable',
+		type: 'function'
 	},
 	{
-		'inputs': [],
-		'name': 'accept_management',
-		'outputs': [],
-		'stateMutability': 'nonpayable',
-		'type': 'function'
+		inputs: [],
+		name: 'accept_management',
+		outputs: [],
+		stateMutability: 'nonpayable',
+		type: 'function'
 	},
 	{
-		'inputs': [],
-		'name': 'token',
-		'outputs': [
+		inputs: [],
+		name: 'token',
+		outputs: [
 			{
-				'name': '',
-				'type': 'address'
+				name: '',
+				type: 'address'
 			}
 		],
-		'stateMutability': 'view',
-		'type': 'function'
+		stateMutability: 'view',
+		type: 'function'
 	},
 	{
-		'inputs': [],
-		'name': 'staking',
-		'outputs': [
+		inputs: [],
+		name: 'staking',
+		outputs: [
 			{
-				'name': '',
-				'type': 'address'
+				name: '',
+				type: 'address'
 			}
 		],
-		'stateMutability': 'view',
-		'type': 'function'
+		stateMutability: 'view',
+		type: 'function'
 	},
 	{
-		'inputs': [],
-		'name': 'treasury',
-		'outputs': [
+		inputs: [],
+		name: 'treasury',
+		outputs: [
 			{
-				'name': '',
-				'type': 'address'
+				name: '',
+				type: 'address'
 			}
 		],
-		'stateMutability': 'view',
-		'type': 'function'
+		stateMutability: 'view',
+		type: 'function'
 	},
 	{
-		'inputs': [],
-		'name': 'pol',
-		'outputs': [
+		inputs: [],
+		name: 'pol',
+		outputs: [
 			{
-				'name': '',
-				'type': 'address'
+				name: '',
+				type: 'address'
 			}
 		],
-		'stateMutability': 'view',
-		'type': 'function'
+		stateMutability: 'view',
+		type: 'function'
 	},
 	{
-		'inputs': [],
-		'name': 'management',
-		'outputs': [
+		inputs: [],
+		name: 'management',
+		outputs: [
 			{
-				'name': '',
-				'type': 'address'
+				name: '',
+				type: 'address'
 			}
 		],
-		'stateMutability': 'view',
-		'type': 'function'
+		stateMutability: 'view',
+		type: 'function'
 	},
 	{
-		'inputs': [],
-		'name': 'pending_management',
-		'outputs': [
+		inputs: [],
+		name: 'pending_management',
+		outputs: [
 			{
-				'name': '',
-				'type': 'address'
+				name: '',
+				type: 'address'
 			}
 		],
-		'stateMutability': 'view',
-		'type': 'function'
+		stateMutability: 'view',
+		type: 'function'
 	},
 	{
-		'inputs': [],
-		'name': 'debt',
-		'outputs': [
+		inputs: [],
+		name: 'debt',
+		outputs: [
 			{
-				'name': '',
-				'type': 'uint256'
+				name: '',
+				type: 'uint256'
 			}
 		],
-		'stateMutability': 'view',
-		'type': 'function'
+		stateMutability: 'view',
+		type: 'function'
 	},
 	{
-		'inputs': [],
-		'name': 'deposited',
-		'outputs': [
+		inputs: [],
+		name: 'deposited',
+		outputs: [
 			{
-				'name': '',
-				'type': 'uint256'
+				name: '',
+				type: 'uint256'
 			}
 		],
-		'stateMutability': 'view',
-		'type': 'function'
+		stateMutability: 'view',
+		type: 'function'
 	},
 	{
-		'inputs': [
+		inputs: [
 			{
-				'name': 'arg0',
-				'type': 'address'
+				name: 'arg0',
+				type: 'address'
 			}
 		],
-		'name': 'deposits',
-		'outputs': [
+		name: 'deposits',
+		outputs: [
 			{
-				'name': '',
-				'type': 'uint256'
+				name: '',
+				type: 'uint256'
 			}
 		],
-		'stateMutability': 'view',
-		'type': 'function'
+		stateMutability: 'view',
+		type: 'function'
 	},
 	{
-		'inputs': [
+		inputs: [
 			{
-				'name': 'arg0',
-				'type': 'address'
+				name: 'arg0',
+				type: 'address'
 			},
 			{
-				'name': 'arg1',
-				'type': 'address'
+				name: 'arg1',
+				type: 'address'
 			}
 		],
-		'name': 'incentives',
-		'outputs': [
+		name: 'incentives',
+		outputs: [
 			{
-				'name': '',
-				'type': 'uint256'
+				name: '',
+				type: 'uint256'
 			}
 		],
-		'stateMutability': 'view',
-		'type': 'function'
+		stateMutability: 'view',
+		type: 'function'
 	},
 	{
-		'inputs': [
+		inputs: [
 			{
-				'name': 'arg0',
-				'type': 'address'
+				name: 'arg0',
+				type: 'address'
 			},
 			{
-				'name': 'arg1',
-				'type': 'address'
+				name: 'arg1',
+				type: 'address'
 			},
 			{
-				'name': 'arg2',
-				'type': 'address'
+				name: 'arg2',
+				type: 'address'
 			}
 		],
-		'name': 'incentive_depositors',
-		'outputs': [
+		name: 'incentive_depositors',
+		outputs: [
 			{
-				'name': '',
-				'type': 'uint256'
+				name: '',
+				type: 'uint256'
 			}
 		],
-		'stateMutability': 'view',
-		'type': 'function'
+		stateMutability: 'view',
+		type: 'function'
 	},
 	{
-		'inputs': [],
-		'name': 'voted',
-		'outputs': [
+		inputs: [],
+		name: 'voted',
+		outputs: [
 			{
-				'name': '',
-				'type': 'uint256'
+				name: '',
+				type: 'uint256'
 			}
 		],
-		'stateMutability': 'view',
-		'type': 'function'
+		stateMutability: 'view',
+		type: 'function'
 	},
 	{
-		'inputs': [
+		inputs: [
 			{
-				'name': 'arg0',
-				'type': 'address'
+				name: 'arg0',
+				type: 'address'
 			}
 		],
-		'name': 'votes_used',
-		'outputs': [
+		name: 'votes_used',
+		outputs: [
 			{
-				'name': '',
-				'type': 'uint256'
+				name: '',
+				type: 'uint256'
 			}
 		],
-		'stateMutability': 'view',
-		'type': 'function'
+		stateMutability: 'view',
+		type: 'function'
 	},
 	{
-		'inputs': [
+		inputs: [
 			{
-				'name': 'arg0',
-				'type': 'address'
+				name: 'arg0',
+				type: 'address'
 			}
 		],
-		'name': 'votes',
-		'outputs': [
+		name: 'votes',
+		outputs: [
 			{
-				'name': '',
-				'type': 'uint256'
+				name: '',
+				type: 'uint256'
 			}
 		],
-		'stateMutability': 'view',
-		'type': 'function'
+		stateMutability: 'view',
+		type: 'function'
 	},
 	{
-		'inputs': [
+		inputs: [
 			{
-				'name': 'arg0',
-				'type': 'uint256'
+				name: 'arg0',
+				type: 'uint256'
 			}
 		],
-		'name': 'winners_list',
-		'outputs': [
+		name: 'winners_list',
+		outputs: [
 			{
-				'name': '',
-				'type': 'address'
+				name: '',
+				type: 'address'
 			}
 		],
-		'stateMutability': 'view',
-		'type': 'function'
+		stateMutability: 'view',
+		type: 'function'
 	},
 	{
-		'inputs': [
+		inputs: [
 			{
-				'name': 'arg0',
-				'type': 'address'
+				name: 'arg0',
+				type: 'address'
 			}
 		],
-		'name': 'winners',
-		'outputs': [
+		name: 'winners',
+		outputs: [
 			{
-				'name': '',
-				'type': 'bool'
+				name: '',
+				type: 'bool'
 			}
 		],
-		'stateMutability': 'view',
-		'type': 'function'
+		stateMutability: 'view',
+		type: 'function'
 	},
 	{
-		'inputs': [
+		inputs: [
 			{
-				'name': 'arg0',
-				'type': 'address'
+				name: 'arg0',
+				type: 'address'
 			},
 			{
-				'name': 'arg1',
-				'type': 'address'
+				name: 'arg1',
+				type: 'address'
 			},
 			{
-				'name': 'arg2',
-				'type': 'address'
+				name: 'arg2',
+				type: 'address'
 			}
 		],
-		'name': 'incentive_claimed',
-		'outputs': [
+		name: 'incentive_claimed',
+		outputs: [
 			{
-				'name': '',
-				'type': 'bool'
+				name: '',
+				type: 'bool'
 			}
 		],
-		'stateMutability': 'view',
-		'type': 'function'
+		stateMutability: 'view',
+		type: 'function'
 	},
 	{
-		'inputs': [],
-		'name': 'whitelist_begin',
-		'outputs': [
+		inputs: [],
+		name: 'whitelist_begin',
+		outputs: [
 			{
-				'name': '',
-				'type': 'uint256'
+				name: '',
+				type: 'uint256'
 			}
 		],
-		'stateMutability': 'view',
-		'type': 'function'
+		stateMutability: 'view',
+		type: 'function'
 	},
 	{
-		'inputs': [],
-		'name': 'whitelist_end',
-		'outputs': [
+		inputs: [],
+		name: 'whitelist_end',
+		outputs: [
 			{
-				'name': '',
-				'type': 'uint256'
+				name: '',
+				type: 'uint256'
 			}
 		],
-		'stateMutability': 'view',
-		'type': 'function'
+		stateMutability: 'view',
+		type: 'function'
 	},
 	{
-		'inputs': [],
-		'name': 'incentive_begin',
-		'outputs': [
+		inputs: [],
+		name: 'incentive_begin',
+		outputs: [
 			{
-				'name': '',
-				'type': 'uint256'
+				name: '',
+				type: 'uint256'
 			}
 		],
-		'stateMutability': 'view',
-		'type': 'function'
+		stateMutability: 'view',
+		type: 'function'
 	},
 	{
-		'inputs': [],
-		'name': 'incentive_end',
-		'outputs': [
+		inputs: [],
+		name: 'incentive_end',
+		outputs: [
 			{
-				'name': '',
-				'type': 'uint256'
+				name: '',
+				type: 'uint256'
 			}
 		],
-		'stateMutability': 'view',
-		'type': 'function'
+		stateMutability: 'view',
+		type: 'function'
 	},
 	{
-		'inputs': [],
-		'name': 'deposit_begin',
-		'outputs': [
+		inputs: [],
+		name: 'deposit_begin',
+		outputs: [
 			{
-				'name': '',
-				'type': 'uint256'
+				name: '',
+				type: 'uint256'
 			}
 		],
-		'stateMutability': 'view',
-		'type': 'function'
+		stateMutability: 'view',
+		type: 'function'
 	},
 	{
-		'inputs': [],
-		'name': 'deposit_end',
-		'outputs': [
+		inputs: [],
+		name: 'deposit_end',
+		outputs: [
 			{
-				'name': '',
-				'type': 'uint256'
+				name: '',
+				type: 'uint256'
 			}
 		],
-		'stateMutability': 'view',
-		'type': 'function'
+		stateMutability: 'view',
+		type: 'function'
 	},
 	{
-		'inputs': [],
-		'name': 'vote_begin',
-		'outputs': [
+		inputs: [],
+		name: 'vote_begin',
+		outputs: [
 			{
-				'name': '',
-				'type': 'uint256'
+				name: '',
+				type: 'uint256'
 			}
 		],
-		'stateMutability': 'view',
-		'type': 'function'
+		stateMutability: 'view',
+		type: 'function'
 	},
 	{
-		'inputs': [],
-		'name': 'vote_end',
-		'outputs': [
+		inputs: [],
+		name: 'vote_end',
+		outputs: [
 			{
-				'name': '',
-				'type': 'uint256'
+				name: '',
+				type: 'uint256'
 			}
 		],
-		'stateMutability': 'view',
-		'type': 'function'
+		stateMutability: 'view',
+		type: 'function'
 	},
 	{
-		'inputs': [],
-		'name': 'lock_end',
-		'outputs': [
+		inputs: [],
+		name: 'lock_end',
+		outputs: [
 			{
-				'name': '',
-				'type': 'uint256'
+				name: '',
+				type: 'uint256'
 			}
 		],
-		'stateMutability': 'view',
-		'type': 'function'
+		stateMutability: 'view',
+		type: 'function'
 	}
 ] as const;
 

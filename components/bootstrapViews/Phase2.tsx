@@ -63,7 +63,12 @@ function Phase2Started({variant}: {variant: string[]}): ReactElement {
 						<div className={'flex flex-row pb-6'}>
 							<button
 								onClick={(): void => set_currentTab(0)}
-								className={cl('text-lg border-b-2 pb-2 transition-colors px-4', currentTab === 0 ? 'border-neutral-900 text-neutral-900 font-bold' : 'border-neutral-500 text-neutral-500')}>
+								className={cl(
+									'text-lg border-b-2 pb-2 transition-colors px-4',
+									currentTab === 0
+										? 'border-neutral-900 text-neutral-900 font-bold'
+										: 'border-neutral-500 text-neutral-500'
+								)}>
 								<p
 									title={'Deposit'}
 									className={'hover-fix'}>
@@ -72,7 +77,12 @@ function Phase2Started({variant}: {variant: string[]}): ReactElement {
 							</button>
 							<button
 								onClick={(): void => set_currentTab(1)}
-								className={cl('text-lg border-b-2 pb-2 transition-colors px-4', currentTab === 1 ? 'border-neutral-900 text-neutral-900 font-bold' : 'border-neutral-500 text-neutral-500')}>
+								className={cl(
+									'text-lg border-b-2 pb-2 transition-colors px-4',
+									currentTab === 1
+										? 'border-neutral-900 text-neutral-900 font-bold'
+										: 'border-neutral-500 text-neutral-500'
+								)}>
 								<p
 									title={'Incentivize'}
 									className={'hover-fix'}>
@@ -83,19 +93,43 @@ function Phase2Started({variant}: {variant: string[]}): ReactElement {
 						<div className={'mb-6'}>
 							{currentTab === 0 ? (
 								<div className={'text-neutral-700'}>
-									<p>{'Depositooooors! Lock ETH in the Bootstrapper contract and recieve st-yETH at a 1:1 rate (nice when the maths is simple eh?)'}</p>
+									<p>
+										{
+											'Depositooooors! Lock ETH in the Bootstrapper contract and recieve st-yETH at a 1:1 rate (nice when the maths is simple eh?)'
+										}
+									</p>
 									&nbsp;
-									<p>{'This ETH is locked for the 16 week duration of the Bootstrapping period in which time you can vote on LSTs to include in yETH in exchange for bri...incentives.'}</p>
+									<p>
+										{
+											'This ETH is locked for the 16 week duration of the Bootstrapping period in which time you can vote on LSTs to include in yETH in exchange for bri...incentives.'
+										}
+									</p>
 									&nbsp;
-									<p>{'You’ll get incentives from the LSTs that end up in the yETH basket, whether or not you voted from them. So no need for clever games, vote however you want. Plus you’ll be receiving the yield from the LSTs during the lock up period. Win win. '}</p>
+									<p>
+										{
+											'You’ll get incentives from the LSTs that end up in the yETH basket, whether or not you voted from them. So no need for clever games, vote however you want. Plus you’ll be receiving the yield from the LSTs during the lock up period. Win win. '
+										}
+									</p>
 								</div>
 							) : (
 								<div className={'text-neutral-700'}>
-									<p>{'Whitelisted protocols, time to get those incentives ready. Incentives can be posted in any token and in any amount.'}</p>
+									<p>
+										{
+											'Whitelisted protocols, time to get those incentives ready. Incentives can be posted in any token and in any amount.'
+										}
+									</p>
 									&nbsp;
-									<p>{'If your LST does not get included in yETH (sad), you’ll be able to claim back the full incentive amount (happy).'}</p>
+									<p>
+										{
+											'If your LST does not get included in yETH (sad), you’ll be able to claim back the full incentive amount (happy).'
+										}
+									</p>
 									&nbsp;
-									<p>{'If your LST is included in yETH, your incentive will be distributed to all st-yETH holders that participated in the voting process, whether they voted for you or not.'}</p>
+									<p>
+										{
+											'If your LST is included in yETH, your incentive will be distributed to all st-yETH holders that participated in the voting process, whether they voted for you or not.'
+										}
+									</p>
 								</div>
 							)}
 						</div>
@@ -106,8 +140,7 @@ function Phase2Started({variant}: {variant: string[]}): ReactElement {
 							animate={'move'}
 							exit={'exit'}>
 							<Link href={currentTab === 0 ? '/deposit' : '/incentivize'}>
-								<Button
-									className={'yearn--button w-full rounded-md !text-sm md:w-1/2'}>
+								<Button className={'yearn--button w-full rounded-md !text-sm md:w-1/2'}>
 									{currentTab === 0 ? 'Deposit' : 'Incentivize'}
 								</Button>
 							</Link>
@@ -124,7 +157,7 @@ function Phase2Started({variant}: {variant: string[]}): ReactElement {
 				animate={'move'}
 				exit={'exit'}>
 				<div className={'absolute inset-0 top-20 flex h-full w-full justify-center'}>
-					<HeroAsLottie id={'bribe'}/>
+					<HeroAsLottie id={'bribe'} />
 				</div>
 			</motion.div>
 		</section>
@@ -175,22 +208,46 @@ function Phase2NotStarted({variant}: {variant: string[]}): ReactElement {
 					<div>
 						<b>{'Deposit'}</b>
 						<div className={'mt-2 text-neutral-700'}>
-							<p>{'Depositooooors! Lock ETH in the Bootstrapper contract and recieve st-yETH at a 1:1 rate (nice when the maths is simple eh?)'}</p>
+							<p>
+								{
+									'Depositooooors! Lock ETH in the Bootstrapper contract and recieve st-yETH at a 1:1 rate (nice when the maths is simple eh?)'
+								}
+							</p>
 							&nbsp;
-							<p>{'This ETH is locked for the 16 week duration of the Bootstrapping period in which time you can vote on LSTs to include in yETH in exchange for bri…incentives.'}</p>
+							<p>
+								{
+									'This ETH is locked for the 16 week duration of the Bootstrapping period in which time you can vote on LSTs to include in yETH in exchange for bri…incentives.'
+								}
+							</p>
 							&nbsp;
-							<p>{'You’ll get incentives from the LSTs that end up in the yETH basket, whether or not you voted from them. So no need for clever games, vote however you want.'}</p>
+							<p>
+								{
+									'You’ll get incentives from the LSTs that end up in the yETH basket, whether or not you voted from them. So no need for clever games, vote however you want.'
+								}
+							</p>
 						</div>
 					</div>
 
 					<div>
 						<b>{'Bribe'}</b>
 						<div className={'mt-2 text-neutral-700'}>
-							<p>{'Whitelisted protocols, time to get those incentives ready. Incentives can be posted in any token and in any amount.'}</p>
+							<p>
+								{
+									'Whitelisted protocols, time to get those incentives ready. Incentives can be posted in any token and in any amount.'
+								}
+							</p>
 							&nbsp;
-							<p>{'If your LST does not get included in yETH (sad), you’ll be able to claim back the full incentive amount (happy).'}</p>
+							<p>
+								{
+									'If your LST does not get included in yETH (sad), you’ll be able to claim back the full incentive amount (happy).'
+								}
+							</p>
 							&nbsp;
-							<p>{'If your LST is included in yETH, your incentive will be distributed to all st-yETH holders that participated in the voting process, whether they voted for you or not.'}</p>
+							<p>
+								{
+									'If your LST is included in yETH, your incentive will be distributed to all st-yETH holders that participated in the voting process, whether they voted for you or not.'
+								}
+							</p>
 						</div>
 					</div>
 				</motion.div>
@@ -240,9 +297,17 @@ function Phase2Ended({variant}: {variant: string[]}): ReactElement {
 					initial={'initial'}
 					animate={'move'}
 					exit={'exit'}>
-					<p>{'Good times were shared, laughs were had, financial incentives were posted... but now the bootstrapping phases has ended.'}</p>
+					<p>
+						{
+							'Good times were shared, laughs were had, financial incentives were posted... but now the bootstrapping phases has ended.'
+						}
+					</p>
 					&nbsp;
-					<p>{'But worry not, that means it’s time to vote on which LSTs you want to see included in yETH. yETH holders - head over to Vote in order to vote and receive incentives for doing so (whether the LST you voted for ends up in yETH or not).'}</p>
+					<p>
+						{
+							'But worry not, that means it’s time to vote on which LSTs you want to see included in yETH. yETH holders - head over to Vote in order to vote and receive incentives for doing so (whether the LST you voted for ends up in yETH or not).'
+						}
+					</p>
 				</motion.div>
 				<motion.div
 					variants={customVariants(0.06)}
@@ -251,8 +316,7 @@ function Phase2Ended({variant}: {variant: string[]}): ReactElement {
 					animate={'move'}
 					exit={'exit'}>
 					<Link href={'/incentivize'}>
-						<Button
-							className={'yearn--button w-full rounded-md !text-sm md:w-1/2'}>
+						<Button className={'yearn--button w-full rounded-md !text-sm md:w-1/2'}>
 							{'Check Incentives'}
 						</Button>
 					</Link>
@@ -266,7 +330,7 @@ function Phase2Ended({variant}: {variant: string[]}): ReactElement {
 				animate={'move'}
 				exit={'exit'}>
 				<div className={'absolute inset-0 top-20 flex h-full w-full justify-center'}>
-					<HeroAsLottie id={'bribe'}/>
+					<HeroAsLottie id={'bribe'} />
 				</div>
 			</motion.div>
 		</section>

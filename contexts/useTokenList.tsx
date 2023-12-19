@@ -9,12 +9,12 @@ import type {Dispatch, SetStateAction} from 'react';
 import type {TAddress, TDict} from '@yearn-finance/web-lib/types';
 
 export type TTokenInfo = {
-	chainId: number,
-	address: TAddress,
-	name: string,
-	symbol: string,
-	decimals: number,
-	logoURI: string,
+	chainId: number;
+	address: TAddress;
+	name: string;
+	symbol: string;
+	decimals: number;
+	logoURI: string;
 	extra?: {
 		totalVotes?: bigint;
 		votes?: bigint;
@@ -23,23 +23,23 @@ export type TTokenInfo = {
 };
 export type TTokenList = {
 	name: string;
-	description: string,
-	timestamp: string,
-	logoURI: string,
-	uri: string,
-	keywords: string[],
+	description: string;
+	timestamp: string;
+	logoURI: string;
+	uri: string;
+	keywords: string[];
 	version: {
-		major: number,
-		minor: number,
-		patch: number,
-	},
+		major: number;
+		minor: number;
+		patch: number;
+	};
 	tokens: TTokenInfo[];
-}
+};
 
 export type TTokenListProps = {
-	tokenList: TDict<TTokenInfo>,
-	set_tokenList: Dispatch<SetStateAction<TDict<TTokenInfo>>>,
-}
+	tokenList: TDict<TTokenInfo>;
+	set_tokenList: Dispatch<SetStateAction<TDict<TTokenInfo>>>;
+};
 const defaultProps: TTokenListProps = {
 	tokenList: {},
 	set_tokenList: (): void => undefined
@@ -56,7 +56,9 @@ export const TokenListContextApp = ({children}: {children: React.ReactElement}):
 			`https://raw.githubusercontent.com/SmolDapp/tokenLists/main/lists/${safeChainID}/yearn.json`,
 			`https://raw.githubusercontent.com/SmolDapp/tokenLists/main/lists/${safeChainID}/tokenlistooor.json`
 		];
-		const [fromEtherscan, fromYearn, fromSmol] = await Promise.allSettled(tokenListURIs.map(async (eachURI: string): Promise<AxiosResponse> => axios.get(eachURI)));
+		const [fromEtherscan, fromYearn, fromSmol] = await Promise.allSettled(
+			tokenListURIs.map(async (eachURI: string): Promise<AxiosResponse> => axios.get(eachURI))
+		);
 		const tokens: TTokenInfo[] = [];
 		if (fromEtherscan.status === 'fulfilled' && fromEtherscan.value.data?.tokens) {
 			tokens.push(...(fromEtherscan.value.data as TTokenList).tokens);
@@ -87,17 +89,15 @@ export const TokenListContextApp = ({children}: {children: React.ReactElement}):
 		fetchTokensFromLists();
 	}, [fetchTokensFromLists]);
 
-	const contextValue = useMemo((): TTokenListProps => ({
-		tokenList: tokenList,
-		set_tokenList
-	}), [tokenList]);
-
-	return (
-		<TokenList.Provider value={contextValue}>
-			{children}
-		</TokenList.Provider>
+	const contextValue = useMemo(
+		(): TTokenListProps => ({
+			tokenList: tokenList,
+			set_tokenList
+		}),
+		[tokenList]
 	);
-};
 
+	return <TokenList.Provider value={contextValue}>{children}</TokenList.Provider>;
+};
 
 export const useTokenList = (): TTokenListProps => useContext(TokenList);

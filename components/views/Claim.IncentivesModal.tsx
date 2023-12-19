@@ -14,50 +14,57 @@ import type {TAddress} from '@yearn-finance/web-lib/types';
 import type {TTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 
 type TClaimDetails = {
-	id: string,
-	value: number,
-	amount: TNormalizedBN,
-	token: TTokenInfo,
-	isSelected: boolean,
-	multicall: {target: TAddress, callData: Hex}
-}
-function ClaimIncentiveModal({claimableIncentive, onUpdateIncentive, onSuccess, onCancel}: {
-	claimableIncentive: TClaimDetails[],
-	onUpdateIncentive: (id: string, isSelected: boolean) => void,
-	onSuccess: VoidFunction,
-	onCancel: VoidFunction
+	id: string;
+	value: number;
+	amount: TNormalizedBN;
+	token: TTokenInfo;
+	isSelected: boolean;
+	multicall: {target: TAddress; callData: Hex};
+};
+function ClaimIncentiveModal({
+	claimableIncentive,
+	onUpdateIncentive,
+	onSuccess,
+	onCancel
+}: {
+	claimableIncentive: TClaimDetails[];
+	onUpdateIncentive: (id: string, isSelected: boolean) => void;
+	onSuccess: VoidFunction;
+	onCancel: VoidFunction;
 }): ReactElement {
 	const {provider} = useWeb3();
 	const [claimStatus, set_claimStatus] = useState<TTxStatus>(defaultTxStatus);
-	const hasSelected = useMemo((): boolean => claimableIncentive.some((incentive): boolean => incentive.isSelected), [claimableIncentive]);
-
-
-	/* 🔵 - Yearn Finance **************************************************************************
-	** Calculate the total amount of incentives you asked to claim, excluding the one you didn't
-	** select.
-	**
-	** @deps: claimableIncentive - the list of all claimable incentives.
-	** @returns: number - the total amount of incentives you asked to claim.
-	**********************************************************************************************/
-	const totalToClaim = useMemo((): number => (
-		claimableIncentive
-			.filter((incentive): boolean => incentive.isSelected)
-			.reduce((total, incentive): number => total + incentive.value, 0)
-	), [claimableIncentive]);
+	const hasSelected = useMemo(
+		(): boolean => claimableIncentive.some((incentive): boolean => incentive.isSelected),
+		[claimableIncentive]
+	);
 
 	/* 🔵 - Yearn Finance **************************************************************************
-	** Web3 actions to claim the incentives you selected. This is triggered via a multicall3.
-	**********************************************************************************************/
+	 ** Calculate the total amount of incentives you asked to claim, excluding the one you didn't
+	 ** select.
+	 **
+	 ** @deps: claimableIncentive - the list of all claimable incentives.
+	 ** @returns: number - the total amount of incentives you asked to claim.
+	 **********************************************************************************************/
+	const totalToClaim = useMemo(
+		(): number =>
+			claimableIncentive
+				.filter((incentive): boolean => incentive.isSelected)
+				.reduce((total, incentive): number => total + incentive.value, 0),
+		[claimableIncentive]
+	);
+
+	/* 🔵 - Yearn Finance **************************************************************************
+	 ** Web3 actions to claim the incentives you selected. This is triggered via a multicall3.
+	 **********************************************************************************************/
 	async function onClaim(): Promise<void> {
 		const result = await multicall({
 			connector: provider,
 			contractAddress: toAddress(process.env.BOOTSTRAP_ADDRESS),
 			chainID: Number(process.env.DEFAULT_CHAIN_ID),
-			multicallData: (
-				claimableIncentive
-					.filter((incentive): boolean => incentive.isSelected)
-					.map((incentive): {target: TAddress, callData: Hex} => incentive.multicall)
-			),
+			multicallData: claimableIncentive
+				.filter((incentive): boolean => incentive.isSelected)
+				.map((incentive): {target: TAddress; callData: Hex} => incentive.multicall),
 			statusHandler: set_claimStatus
 		});
 		if (result.isSuccessful) {
@@ -74,10 +81,13 @@ function ClaimIncentiveModal({claimableIncentive, onUpdateIncentive, onSuccess, 
 					<small className={'text-right text-xs text-neutral-500'}>{'Amount'}</small>
 					<small className={'text-right text-xs text-neutral-500'}>{'Value, USD'}</small>
 				</div>
-				<div className={'scrollbar-show max-h-[400px] overflow-y-scroll border-y border-neutral-200 bg-neutral-100/60'}>
+				<div
+					className={
+						'scrollbar-show max-h-[400px] overflow-y-scroll border-y border-neutral-200 bg-neutral-100/60'
+					}>
 					<div className={'grid grid-cols-1 gap-4 px-6 py-4'}>
-						{
-							claimableIncentive.map((incentive): ReactElement => (
+						{claimableIncentive.map(
+							(incentive): ReactElement => (
 								<div
 									key={incentive.id}
 									className={'grid grid-cols-3 gap-4'}>
@@ -86,18 +96,17 @@ function ClaimIncentiveModal({claimableIncentive, onUpdateIncentive, onSuccess, 
 											onChange={(e): void => onUpdateIncentive(incentive.id, e.target.checked)}
 											checked={incentive.isSelected}
 											type={'checkbox'}
-											className={'focus:ring-purple-300 mr-2 h-3 w-3 rounded-sm border-0 border-neutral-400 bg-neutral-200 text-purple-300 indeterminate:ring-2 focus:bg-neutral-200 focus:ring-2 focus:ring-offset-neutral-100'} />
+											className={
+												'focus:ring-purple-300 mr-2 h-3 w-3 rounded-sm border-0 border-neutral-400 bg-neutral-200 text-purple-300 indeterminate:ring-2 focus:bg-neutral-200 focus:ring-2 focus:ring-offset-neutral-100'
+											}
+										/>
 										<p>{incentive.token.symbol || truncateHex(incentive.token.address, 6)}</p>
 									</label>
-									<b className={'text-right'}>
-										{formatAmount(incentive.amount.normalized, 6, 6)}
-									</b>
-									<b className={'text-right'}>
-										{`$${formatAmount(incentive.value, 2, 2)}`}
-									</b>
+									<b className={'text-right'}>{formatAmount(incentive.amount.normalized, 6, 6)}</b>
+									<b className={'text-right'}>{`$${formatAmount(incentive.value, 2, 2)}`}</b>
 								</div>
-							))
-						}
+							)
+						)}
 					</div>
 				</div>
 			</div>
@@ -112,7 +121,9 @@ function ClaimIncentiveModal({claimableIncentive, onUpdateIncentive, onSuccess, 
 				</Button>
 				<button
 					onClick={onCancel}
-					className={'mt-2 h-10 w-full text-center text-neutral-500 transition-colors hover:text-neutral-900'}>
+					className={
+						'mt-2 h-10 w-full text-center text-neutral-500 transition-colors hover:text-neutral-900'
+					}>
 					{'Cancel'}
 				</button>
 			</div>

@@ -1,7 +1,14 @@
-
 import {zeroAddress} from 'viem';
 
-import {CBETH_TOKEN, MEVETH_TOKEN, RETH_TOKEN, SFRXETH_TOKEN, STADERETH_TOKEN, SWETH_TOKEN, WSTETH_TOKEN} from './tokens';
+import {
+	CBETH_TOKEN,
+	MEVETH_TOKEN,
+	RETH_TOKEN,
+	SFRXETH_TOKEN,
+	STADERETH_TOKEN,
+	SWETH_TOKEN,
+	WSTETH_TOKEN
+} from './tokens';
 
 import type {TIndexedTokenInfo} from './types';
 
@@ -13,7 +20,7 @@ export const INITIAL_PERIOD_TIMESTAMP = 1_694_044_800;
 export const EPOCH_DURATION = 2_419_200; // 4 weeks
 export const VOTE_START_DELAY = 1_814_400; // 3 weeks
 
-export const NO_CHANGE_LST_LIKE: TIndexedTokenInfo = ({
+export const NO_CHANGE_LST_LIKE: TIndexedTokenInfo = {
 	address: zeroAddress,
 	chainId: 1,
 	decimals: 18,
@@ -21,7 +28,7 @@ export const NO_CHANGE_LST_LIKE: TIndexedTokenInfo = ({
 	name: 'Do Nothing / No Change',
 	symbol: 'Do Nothing / No Change',
 	index: -1
-});
+};
 
 export const LST: TIndexedTokenInfo[] = [
 	{...SFRXETH_TOKEN, index: 0},
@@ -33,4 +40,3 @@ export const LST: TIndexedTokenInfo[] = [
 	{...RETH_TOKEN, index: 6}
 ];
 export const LST_COUNT = LST.length;
-

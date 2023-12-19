@@ -9,13 +9,16 @@ import votingAnimationData from '../../public/voting_animation.json';
 import type {ReactElement} from 'react';
 
 function HeroAsLottie({id}: {id: string}): ReactElement {
-	const animation = (
-		id === 'tokens' ? tokenAnimationData :
-			id === 'bribe' ? bribeAnimationData :
-				id === 'voting' ? votingAnimationData :
-					id === 'launch' ? launchAnimationData :
-						tokenAnimationData
-	);
+	const animation =
+		id === 'tokens'
+			? tokenAnimationData
+			: id === 'bribe'
+				? bribeAnimationData
+				: id === 'voting'
+					? votingAnimationData
+					: id === 'launch'
+						? launchAnimationData
+						: tokenAnimationData;
 	const defaultOptions = {
 		loop: true,
 		autoplay: true,

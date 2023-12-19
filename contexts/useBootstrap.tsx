@@ -10,11 +10,11 @@ import type {TUseBootstrapVotingResp} from 'hooks/useBootstrapVoting';
 import type {TUseBootstrapWhitelistedLSTResp} from 'hooks/useBootstrapWhitelistedLST';
 
 export type TUseBootstrapProps = {
-	periods: TUseBootstrapPeriodsResp,
-	whitelistedLST: TUseBootstrapWhitelistedLSTResp,
-	voting: TUseBootstrapVotingResp,
-	incentives: TUseBootstrapIncentivesResp
-}
+	periods: TUseBootstrapPeriodsResp;
+	whitelistedLST: TUseBootstrapWhitelistedLSTResp;
+	voting: TUseBootstrapVotingResp;
+	incentives: TUseBootstrapIncentivesResp;
+};
 const defaultProps: TUseBootstrapProps = {
 	periods: {} as unknown as TUseBootstrapPeriodsResp,
 	whitelistedLST: {} as unknown as TUseBootstrapWhitelistedLSTResp,
@@ -29,20 +29,18 @@ export const BootstrapContextApp = ({children}: {children: React.ReactElement}):
 	const voting = useBootstrapVoting();
 	const incentives = useBootstrapIncentives();
 
-	const contextValue = useMemo((): TUseBootstrapProps => ({
-		periods,
-		whitelistedLST,
-		voting,
-		incentives
-	}), [periods, whitelistedLST, voting, incentives]);
-
-	return (
-		<Bootstrap.Provider value={contextValue}>
-			{children}
-		</Bootstrap.Provider>
+	const contextValue = useMemo(
+		(): TUseBootstrapProps => ({
+			periods,
+			whitelistedLST,
+			voting,
+			incentives
+		}),
+		[periods, whitelistedLST, voting, incentives]
 	);
-};
 
+	return <Bootstrap.Provider value={contextValue}>{children}</Bootstrap.Provider>;
+};
 
 const useBootstrap = (): TUseBootstrapProps => useContext(Bootstrap);
 export default useBootstrap;
