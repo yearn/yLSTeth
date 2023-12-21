@@ -4374,7 +4374,8 @@ allEpochs.push({
 	inclusion: {
 		id: '0x0401000000000000000000000000000000000000000000000000000000000000',
 		candidates: [
-			{...WEETH_TOKEN, index: 0}
+			{...WEETH_TOKEN, index: 0},
+			{...MPETH_TOKEN, index: 1}
 		]
 	},
 	weight: {
