@@ -42,6 +42,10 @@ function ClaimIncentives(): ReactElement {
 		endpoint: `${yDaemonBaseUri}/prices/all`,
 		schema: yDaemonPricesSchema
 	});
+
+	/* 🔵 - Yearn Finance **************************************************************************
+	 ** Create the array matching all the epochs.
+	 **********************************************************************************************/
 	const epochs = useMemo((): number[] => {
 		const epochArray = [];
 		for (let i = 0; i <= getCurrentEpochNumber(); i++) {
@@ -51,7 +55,7 @@ function ClaimIncentives(): ReactElement {
 	}, []);
 	const previousEpochData = useMemo((): TEpoch => getEpoch(epochToDisplay), [epochToDisplay]);
 
-	const onRefreshClaimableData = useAsyncTrigger(async (): Promise<void> => {
+	const getClaimableDataForOneEpoch = useCallback(async () => {
 		if (!address || !previousEpochData) {
 			set_claimableIncentiveRaw([]);
 			return;
@@ -136,6 +140,106 @@ function ClaimIncentives(): ReactElement {
 		}
 		set_claimableIncentiveRaw(claimData);
 	}, [address, previousEpochData]);
+
+	const getClaimableDataForAllEpochs = useCallback(async () => {
+		const claimData: TClaimDetails[] = [];
+
+		for (let i = 0; i <= getCurrentEpochNumber(); i++) {
+			const currentEpoch = getEpoch(i);
+			if (!address || !currentEpoch) {
+				continue;
+			}
+			const {merkle} = currentEpoch;
+			if (!merkle) {
+				continue;
+			}
+			const claimableIncentives = merkle[address];
+			if (!claimableIncentives) {
+				continue;
+			}
+
+			const calls = claimableIncentives
+				.map((item): ReadContractParameters[] => {
+					return [
+						{
+							abi: erc20ABI,
+							address: item.incentive,
+							functionName: 'decimals',
+							args: []
+						},
+						{
+							abi: erc20ABI,
+							address: item.incentive,
+							functionName: 'name',
+							args: []
+						},
+						{
+							abi: erc20ABI,
+							address: item.incentive,
+							functionName: 'symbol',
+							args: []
+						},
+						{
+							abi: VOTE_ABI,
+							address: toAddress(process.env.VOTE_ADDRESS),
+							functionName: 'claimed',
+							args: [item.vote, item.incentive, address]
+						}
+					];
+				})
+				.flat() as any[];
+			const data = await readContracts({contracts: calls});
+
+			let callIndex = 0;
+			for (const item of claimableIncentives) {
+				const tokenDecimals = decodeAsNumber(data[callIndex++]) || 18;
+				const tokenName = decodeAsString(data[callIndex++]) || '';
+				const tokenSymbol = decodeAsString(data[callIndex++]) || '';
+				const tokenAmount = toNormalizedBN(item.amount, tokenDecimals);
+				const isClaimed = decodeAsBoolean(data[callIndex++]);
+				if (isClaimed) {
+					continue;
+				}
+				console.log(`Inventive for period ${i}, ${tokenName}: ${tokenAmount.normalized}`);
+
+				claimData.push({
+					id: String(item.proof),
+					value: 0,
+					amount: tokenAmount,
+					token: {
+						address: toAddress(item.incentive),
+						name: tokenName,
+						symbol: tokenSymbol,
+						decimals: tokenDecimals,
+						chainId: 1,
+						logoURI: ''
+					},
+					isSelected: true,
+					multicall: {
+						target: toAddress(process.env.VOTE_ADDRESS),
+						callData: encodeFunctionData({
+							abi: VOTE_ABI,
+							functionName: 'claim',
+							args: [item.vote, item.incentive, item.amount, item.proof, address]
+						})
+					}
+				});
+			}
+		}
+		set_claimableIncentiveRaw(claimData);
+	}, [address]);
+
+	/* 🔵 - Yearn Finance **************************************************************************
+	 ** Callback function used to refresh the claimable data, aka to find, for a given epoch, all
+	 ** the incentives you can claim.
+	 **********************************************************************************************/
+	const onRefreshClaimableData = useAsyncTrigger(async (): Promise<void> => {
+		if (epochToDisplay > -1) {
+			getClaimableDataForOneEpoch();
+		} else {
+			getClaimableDataForAllEpochs();
+		}
+	}, [epochToDisplay, getClaimableDataForOneEpoch, getClaimableDataForAllEpochs]);
 
 	const assignValue = useCallback(
 		(_claimableIncentiveRaw: TClaimDetails[]): TClaimDetails[] => {
@@ -226,6 +330,7 @@ function ClaimIncentives(): ReactElement {
 										</option>
 									)
 								)}
+								<option value={-1}>{'All'}</option>
 							</select>
 						</div>
 					</div>
