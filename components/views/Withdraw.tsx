@@ -112,16 +112,10 @@ function ViewSelectedTokens({
 	set_bonusOrPenalty: (bonusOrPenalty: number) => void;
 }): ReactElement {
 	const {isActive, provider} = useWeb3();
-	const {balances, refresh} = useWallet();
+	const {refresh} = useWallet();
 	const {lst, slippage} = useLST();
 	const [txStatus, set_txStatus] = useState<TTxStatus>(defaultTxStatus);
 	const [fromAmount, set_fromAmount] = useState<TNormalizedBN>(toNormalizedBN(0));
-
-	const balancesOf = useMemo((): TNormalizedBN[] => {
-		return lst.map((token): TNormalizedBN => {
-			return toNormalizedBN(balances?.[token.address]?.raw || 0 || 0);
-		});
-	}, [balances, lst]);
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	 ** If the user is updating the fromAmount and the fromToken is yETH, then update the toAmount
@@ -367,8 +361,7 @@ function ViewSelectedTokens({
 						!isActive ||
 						!provider ||
 						fromAmount.raw === 0n ||
-						amounts.every((amount): boolean => amount.raw <= 0n) ||
-						lst.some((token): boolean => balancesOf[token.index].raw < amounts[token.index].raw)
+						amounts.every((amount): boolean => amount.raw <= 0n)
 					}
 					className={'w-full md:w-[184px]'}>
 					{'Withdraw'}
