@@ -108,6 +108,15 @@ export const WEETH_TOKEN: TTokenInfo = {
 	logoURI: `${process.env.SMOL_ASSETS_URL}/token/1/0xCd5fE23C85820F7B72D0926FC9b05b43E359b7ee/logo-128.png`
 };
 
+export const APXETH_TOKEN: TTokenInfo = {
+	chainId: 1,
+	address: toAddress('0x9Ba021B0a9b958B5E75cE9f6dff97C7eE52cb3E6'),
+	name: 'Autocompounding Pirex ETH',
+	symbol: 'apxETH',
+	decimals: 18,
+	logoURI: `${process.env.SMOL_ASSETS_URL}/token/1/0x9Ba021B0a9b958B5E75cE9f6dff97C7eE52cb3E6/logo-128.png`
+};
+
 /**********************************************************************************************
  ** Other tokens related to yETH ecosystem
  **********************************************************************************************/
