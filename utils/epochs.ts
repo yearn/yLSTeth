@@ -1,5 +1,6 @@
 import {EPOCH_AVG_BLOCKS, EPOCH_DURATION, INITIAL_PERIOD_BLOCK, INITIAL_PERIOD_TIMESTAMP} from 'utils/constants';
 import {
+	APXETH_TOKEN,
 	CBETH_TOKEN,
 	MEVETH_TOKEN,
 	MPETH_TOKEN,
@@ -2591,6 +2592,31 @@ allEpochs.push({
 	},
 	weight: {
 		id: '0x0402000000000000000000000000000000000000000000000000000000000000',
+		participants: [
+			{...SFRXETH_TOKEN, index: 0},
+			{...SWETH_TOKEN, index: 1},
+			{...WSTETH_TOKEN, index: 2},
+			{...STADERETH_TOKEN, index: 3},
+			{...CBETH_TOKEN, index: 4},
+			{...MEVETH_TOKEN, index: 5},
+			{...RETH_TOKEN, index: 6}
+		]
+	},
+	merkle: {}
+});
+
+// Epoch 4
+allEpochs.push({
+	index: 4,
+	inclusion: {
+		id: '0x0501000000000000000000000000000000000000000000000000000000000000',
+		candidates: [
+			{...MPETH_TOKEN, index: 0},
+			{...APXETH_TOKEN, index: 1}
+		]
+	},
+	weight: {
+		id: '0x0502000000000000000000000000000000000000000000000000000000000000',
 		participants: [
 			{...SFRXETH_TOKEN, index: 0},
 			{...SWETH_TOKEN, index: 1},
