@@ -1,6 +1,7 @@
 import {zeroAddress} from 'viem';
 
 import {
+	APXETH_TOKEN,
 	CBETH_TOKEN,
 	MEVETH_TOKEN,
 	RETH_TOKEN,
@@ -37,6 +38,7 @@ export const LST: TIndexedTokenInfo[] = [
 	{...STADERETH_TOKEN, index: 3},
 	{...CBETH_TOKEN, index: 4},
 	{...MEVETH_TOKEN, index: 5},
-	{...RETH_TOKEN, index: 6}
+	{...RETH_TOKEN, index: 6},
+	{...APXETH_TOKEN, index: 7}
 ];
 export const LST_COUNT = LST.length;
