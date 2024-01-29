@@ -114,7 +114,7 @@ export const APXETH_TOKEN: TTokenInfo = {
 	name: 'Autocompounding Pirex ETH',
 	symbol: 'apxETH',
 	decimals: 18,
-	logoURI: 'https://assets.coingecko.com/coins/images/33609/large/apxETH-icon-transbg_72dpi.png?1702512027'
+	logoURI: `${process.env.SMOL_ASSETS_URL}/token/1/0x9Ba021B0a9b958B5E75cE9f6dff97C7eE52cb3E6/logo-128.png`
 };
 
 /**********************************************************************************************
