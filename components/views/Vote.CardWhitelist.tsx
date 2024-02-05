@@ -4,9 +4,7 @@ import IconChevronPlain from 'components/icons/IconChevronPlain';
 import IconSpinner from 'components/icons/IconSpinner';
 import useLST from 'contexts/useLST';
 import {getCurrentEpoch} from 'utils/epochs';
-import {truncateHex} from '@yearn-finance/web-lib/utils/address';
-import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
-import {performBatchedUpdates} from '@yearn-finance/web-lib/utils/performBatchedUpdates';
+import {formatAmount, truncateHex} from '@builtbymom/web3/utils';
 
 import type {ReactElement} from 'react';
 import type {TSortDirection} from 'utils/types';
@@ -62,10 +60,8 @@ function VoteCardWhitelist(): ReactElement {
 	 **	The use of useCallback() is to prevent the method from being re-created on every render.
 	 **********************************************************************************************/
 	const onSort = useCallback((newSortBy: 'totalIncentive', newSortDirection: string): void => {
-		performBatchedUpdates((): void => {
-			set_sortBy(newSortBy);
-			set_sortDirection(newSortDirection as TSortDirection);
-		});
+		set_sortBy(newSortBy);
+		set_sortDirection(newSortDirection as TSortDirection);
 	}, []);
 
 	/** 🔵 - Yearn Finance **************************************************************************

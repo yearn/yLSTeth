@@ -2,16 +2,28 @@ import {useCallback, useState} from 'react';
 import BOOTSTRAP_ABI from 'utils/abi/bootstrap.abi';
 import {parseAbiItem} from 'viem';
 import {erc20ABI} from 'wagmi';
+import {
+	decodeAsBigInt,
+	decodeAsNumber,
+	decodeAsString,
+	toAddress,
+	toBigInt,
+	toNormalizedBN,
+	zeroNormalizedBN
+} from '@builtbymom/web3/utils';
+import {getClient} from '@builtbymom/web3/utils/wagmi';
 import {useAsync, useMountEffect, useUpdateEffect} from '@react-hookz/web';
 import {multicall} from '@wagmi/core';
-import {toAddress} from '@yearn-finance/web-lib/utils/address';
-import {decodeAsBigInt, decodeAsNumber, decodeAsString} from '@yearn-finance/web-lib/utils/decoder';
-import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
-import {performBatchedUpdates} from '@yearn-finance/web-lib/utils/performBatchedUpdates';
-import {getClient} from '@yearn-finance/web-lib/utils/wagmi/utils';
 
-import type {TTokenInfo} from 'contexts/useTokenList';
-import type {TAddress, TDict} from '@yearn-finance/web-lib/types';
+import type {TAddress, TDict, TToken} from '@builtbymom/web3/types';
+
+export type TTokenExtra = TToken & {
+	extra: {
+		votes: bigint;
+		totalVotes: bigint;
+		weight: number;
+	};
+};
 
 export type TUseFilterWhitelistedLSTResp = {
 	whitelistedLSTAddr: TAddress[];
@@ -49,17 +61,15 @@ function useFilterWhitelistedLST(): TUseFilterWhitelistedLSTResp {
 				whitelisted.push(address);
 			}
 		}
-		performBatchedUpdates((): void => {
-			set_whitelistedLSTAddr(whitelisted);
-			set_isLoading(false);
-		});
+		set_whitelistedLSTAddr(whitelisted);
+		set_isLoading(false);
 	}, []);
 
 	return {whitelistedLSTAddr, isLoading, onUpdate: filterWhitelistEvents};
 }
 
 export type TUseBootstrapWhitelistedLSTResp = {
-	whitelistedLST: TDict<TTokenInfo>;
+	whitelistedLST: TDict<TTokenExtra>;
 	isLoading: boolean;
 	onUpdate: VoidFunction;
 };
@@ -70,9 +80,9 @@ function useBootstrapWhitelistedLST(): TUseBootstrapWhitelistedLSTResp {
 	 ** Once we got the whitelistedLSTAddr, we need to fetch the token data for each of them, aka
 	 ** all the stuff like name, symbol, but also the votes and the weight of each.
 	 **
-	 ** @returns: TDict<TTokenInfo> - The object of whitelisted tokens with all the data.
+	 ** @returns: TDict<TToken> - The object of whitelisted tokens with all the data.
 	 **********************************************************************************************/
-	const fetchTokens = useCallback(async (addresses: TAddress[]): Promise<TDict<TTokenInfo>> => {
+	const fetchTokens = useCallback(async (addresses: TAddress[]): Promise<TDict<TTokenExtra>> => {
 		const calls = [];
 
 		/* 🔵 - Yearn Finance **********************************************************************
@@ -96,11 +106,11 @@ function useBootstrapWhitelistedLST(): TUseBootstrapWhitelistedLSTResp {
 		const results = await multicall({contracts: calls, chainId: Number(process.env.DEFAULT_CHAIN_ID)});
 
 		/* 🔵 - Yearn Finance **********************************************************************
-		 ** We got the data, we can decode them and create our object of {address: TTokenInfo}
+		 ** We got the data, we can decode them and create our object of {address: TToken}
 		 ** so we can do some more calculations to get the weight of each token.
 		 ******************************************************************************************/
 		let i = 0;
-		const tokens: TDict<TTokenInfo> = {};
+		const tokens: TDict<TTokenExtra> = {};
 		const totalVotes = decodeAsBigInt(results[i++]);
 		for (const address of addresses) {
 			const name = decodeAsString(results[i++]);
@@ -112,10 +122,13 @@ function useBootstrapWhitelistedLST(): TUseBootstrapWhitelistedLSTResp {
 				name: name,
 				symbol: symbol,
 				decimals: decimals,
-				chainId: Number(process.env.DEFAULT_CHAIN_ID),
+				chainID: Number(process.env.DEFAULT_CHAIN_ID),
 				logoURI: `https://assets.smold.app/api/token/${Number(
 					process.env.BASE_CHAIN_ID
 				)}/${address}/logo-128.png`,
+				balance: zeroNormalizedBN,
+				price: zeroNormalizedBN,
+				value: 0,
 				extra: {
 					votes: allVotesForThis,
 					totalVotes: totalVotes,
@@ -132,8 +145,8 @@ function useBootstrapWhitelistedLST(): TUseBootstrapWhitelistedLSTResp {
 		const maxWeight = 40;
 		let totalWeightAfterScaling = 0;
 		for (const token of Object.values(tokens)) {
-			const votes = Number(toNormalizedBN(token?.extra?.votes || 0).normalized);
-			const total = Number(toNormalizedBN(totalVotes).normalized);
+			const votes = Number(toNormalizedBN(token?.extra?.votes || 0, 18).normalized);
+			const total = Number(toNormalizedBN(totalVotes, 18).normalized);
 			const weight = (votes / total) * 100;
 			if (token.extra) {
 				if (weight > maxWeight) {

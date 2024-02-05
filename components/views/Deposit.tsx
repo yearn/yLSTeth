@@ -1,8 +1,8 @@
 import React, {useState} from 'react';
 import SettingsPopover from 'components/common/SettingsPopover';
 import Toggle from 'components/common/toggle';
+import {toBigInt} from '@builtbymom/web3/utils';
 import {useUpdateEffect} from '@react-hookz/web';
-import {toBigInt} from '@yearn-finance/web-lib/utils/format.bigNumber';
 
 import {DepositDetails} from './Deposit.Details';
 import {ViewDepositETH} from './Deposit.Eth';

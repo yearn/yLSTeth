@@ -4,29 +4,23 @@ import {useTimer} from 'hooks/useTimer';
 import BOOTSTRAP_ABI from 'utils/abi/bootstrap.abi';
 import {multicall} from 'utils/actions';
 import {encodeFunctionData} from 'viem';
+import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
+import {cl, formatAmount, toAddress, toNormalizedBN, truncateHex} from '@builtbymom/web3/utils';
+import {defaultTxStatus} from '@builtbymom/web3/utils/wagmi';
 import {Button} from '@yearn-finance/web-lib/components/Button';
 import {Modal} from '@yearn-finance/web-lib/components/Modal';
-import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
-import {toAddress, truncateHex} from '@yearn-finance/web-lib/utils/address';
-import {cl} from '@yearn-finance/web-lib/utils/cl';
-import {toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
-import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
-import {performBatchedUpdates} from '@yearn-finance/web-lib/utils/performBatchedUpdates';
-import {defaultTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 
-import type {TTokenInfo} from 'contexts/useTokenList';
 import type {ReactElement} from 'react';
 import type {Hex} from 'viem';
-import type {TAddress, TDict} from '@yearn-finance/web-lib/types';
-import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
-import type {TTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
+import type {TAddress, TDict, TNormalizedBN, TToken} from '@builtbymom/web3/types';
+import type {TTxStatus} from '@builtbymom/web3/utils/wagmi';
 
 type TClaimDetails = {
 	id: string;
 	protocolName: string;
 	value: number;
 	amount: TNormalizedBN;
-	token: TTokenInfo;
+	token: TToken;
 	isSelected: boolean;
 	multicall: {target: TAddress; callData: Hex};
 };
@@ -259,7 +253,7 @@ function Claim(): ReactElement {
 		for (const item of Object.values(whitelistedLST)) {
 			sum += item?.extra?.votes || 0n;
 		}
-		return toNormalizedBN(sum);
+		return toNormalizedBN(sum, 18);
 	}, [whitelistedLST]);
 
 	/* 🔵 - Yearn Finance **************************************************************************
@@ -330,7 +324,7 @@ function Claim(): ReactElement {
 					protocolName: incentive.protocolName,
 					value: valueOfThis,
 					amount: amountOfThis,
-					token: incentive.incentiveToken as TTokenInfo,
+					token: incentive.incentiveToken as TToken,
 					isSelected: true,
 					multicall: {
 						target: toAddress(process.env.BOOTSTRAP_ADDRESS),
@@ -384,7 +378,7 @@ function Claim(): ReactElement {
 					protocolName: incentive.protocolName,
 					value: valueOfThis,
 					amount: toNormalizedBN(incentive.amount, incentive.incentiveToken?.decimals || 18),
-					token: incentive.incentiveToken as TTokenInfo,
+					token: incentive.incentiveToken as TToken,
 					isSelected: true,
 					multicall: {
 						target: toAddress(process.env.BOOTSTRAP_ADDRESS),
@@ -399,15 +393,9 @@ function Claim(): ReactElement {
 			}
 		}
 
-		/* 🔵 - Yearn Finance **********************************************************************
-		 ** Perform a batched update to avoid multiple re-renders, updating both the list of
-		 ** claimable incentives and the total value of the incentives you can claim.
-		 ******************************************************************************************/
-		performBatchedUpdates((): void => {
-			set_claimableIncentive(claimData);
-			set_claimableRefund(refundData);
-			set_totalRefundValue(_totalRefundValue);
-		});
+		set_claimableIncentive(claimData);
+		set_claimableRefund(refundData);
+		set_totalRefundValue(_totalRefundValue);
 	}, [
 		voteData.winners,
 		groupIncentiveHistory.protocols,

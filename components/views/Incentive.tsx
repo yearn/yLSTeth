@@ -1,7 +1,7 @@
 import React, {useMemo, useState} from 'react';
 import {useEpoch} from 'hooks/useEpoch';
 import {getCurrentEpochNumber, getEpoch} from 'utils/epochs';
-import {toAddress} from '@yearn-finance/web-lib/utils/address';
+import {toAddress} from '@builtbymom/web3/utils';
 
 import {IncentiveHeader} from './Incentive.Header';
 import {IncentiveHistory} from './Incentive.History';
@@ -9,7 +9,7 @@ import {IncentiveSelector} from './Incentive.Selector';
 
 import type {ReactElement} from 'react';
 import type {TEpoch, TIndexedTokenInfo} from 'utils/types';
-import type {TDict} from '@yearn-finance/web-lib/types';
+import type {TDict} from '@builtbymom/web3/types';
 
 function ViewIncentive(): ReactElement {
 	const [currentTab, set_currentTab] = useState<'current' | 'potential'>('current');

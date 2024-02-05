@@ -1,18 +1,16 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 import {useMemo, useState} from 'react';
-import {useYDaemonBaseURI} from 'hooks/useYDaemonBaseURI';
 import {YETH_POOL_ABI} from 'utils/abi/yETHPool.abi';
 import {LST} from 'utils/constants';
 import {yDaemonPricesSchema} from 'utils/schemas/yDaemonPricesSchema';
-import {toAddress} from '@yearn-finance/web-lib/utils/address';
-import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
-import {getClient} from '@yearn-finance/web-lib/utils/wagmi/utils';
-
-import {useAsyncTrigger} from './useAsyncEffect';
-import {useFetch} from './useFetch';
+import {useAsyncTrigger} from '@builtbymom/web3/hooks/useAsyncTrigger';
+import {useFetch} from '@builtbymom/web3/hooks/useFetch';
+import {toAddress, toBigInt, toNormalizedBN} from '@builtbymom/web3/utils';
+import {getClient} from '@builtbymom/web3/utils/wagmi';
+import {useYDaemonBaseURI} from '@yearn-finance/web-lib/hooks/useYDaemonBaseURI';
 
 import type {TYDaemonPrices} from 'utils/schemas/yDaemonPricesSchema';
-import type {TAddress} from '@yearn-finance/web-lib/types';
+import type {TAddress} from '@builtbymom/web3/types';
 
 type TSwapEvent = {
 	amountIn: bigint;
@@ -88,7 +86,7 @@ function useDailyVolume(): number {
 		}
 		let _volumeUSD = 0;
 		for (const swap of swapEvents) {
-			_volumeUSD += Number(prices[swap.tokenIn]) * Number(toNormalizedBN(swap.amountIn).normalized);
+			_volumeUSD += Number(prices[swap.tokenIn]) * Number(toNormalizedBN(swap.amountIn, 18).normalized);
 		}
 		return _volumeUSD;
 	}, [isFetchingDailyVolume, prices, swapEvents]);

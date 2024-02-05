@@ -9,25 +9,29 @@ import {curveExchangeMultiple} from 'utils/actions';
 import {LST} from 'utils/constants';
 import {ETH_TOKEN, YETH_TOKEN} from 'utils/tokens';
 import {zeroAddress} from 'viem';
+import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
+import {
+	cl,
+	defaultTxStatus,
+	ETH_TOKEN_ADDRESS,
+	formatAmount,
+	MAX_UINT_256,
+	toAddress,
+	toBigInt,
+	toNormalizedBN,
+	WETH_TOKEN_ADDRESS
+} from '@builtbymom/web3/utils';
 import curve from '@curvefi/api';
 import {useMountEffect, useUpdateEffect} from '@react-hookz/web';
 import {readContract} from '@wagmi/core';
 import {Button} from '@yearn-finance/web-lib/components/Button';
-import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
 import {type TUseBalancesTokens} from '@yearn-finance/web-lib/hooks/useBalances';
 import {IconChevronBottom} from '@yearn-finance/web-lib/icons/IconChevronBottom';
-import {toAddress} from '@yearn-finance/web-lib/utils/address';
-import {cl} from '@yearn-finance/web-lib/utils/cl';
-import {ETH_TOKEN_ADDRESS, MAX_UINT_256, WETH_TOKEN_ADDRESS} from '@yearn-finance/web-lib/utils/constants';
-import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
-import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
-import {defaultTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 
 import type {TLST} from 'hooks/useLSTData';
 import type {ReactElement} from 'react';
 import type {TEstOutWithBonusPenalty} from 'utils/types';
-import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
-import type {TTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
+import type {TNormalizedBN, TTxStatus} from '@builtbymom/web3/types';
 import type {PoolTemplate} from '@curvefi/api/lib/pools';
 
 function ViewDepositETH({
@@ -45,7 +49,7 @@ function ViewDepositETH({
 	const {refresh} = useWallet();
 	const [txStatus, set_txStatus] = useState<TTxStatus>(defaultTxStatus);
 	const [tokenToReceiveVsEth] = useState<TLST>(YETH_TOKEN as TLST);
-	const [fromEthAmount, set_fromEthAmount] = useState<TNormalizedBN>(toNormalizedBN(0));
+	const [fromEthAmount, set_fromEthAmount] = useState<TNormalizedBN>(zeroNormalizedBN);
 	const [curvePoolFromAPI, set_curvePoolFromAPI] = useState<PoolTemplate | undefined>(undefined);
 	const [hasDeposited, set_hasDeposited] = useState<boolean>(false);
 
@@ -157,7 +161,7 @@ function ViewDepositETH({
 				...LST.map((item): TUseBalancesTokens => ({...item, token: item.address}))
 			]);
 			onEstimateOut({value: toBigInt(0), vb: 0n, bonusOrPenalty: 0});
-			set_fromEthAmount(toNormalizedBN(0));
+			set_fromEthAmount(zeroNormalizedBN);
 			set_hasDeposited(true);
 		}
 	}, [estimateOut.value, fromEthAmount.raw, isActive, onEstimateOut, onUpdateLST, provider, refresh]);

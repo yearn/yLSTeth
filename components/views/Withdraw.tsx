@@ -9,22 +9,24 @@ import {ESTIMATOR_ABI} from 'utils/abi/estimator.abi';
 import {removeLiquidityFromPool, removeLiquiditySingleFromPool} from 'utils/actions';
 import {LST} from 'utils/constants';
 import {ETH_TOKEN, STYETH_TOKEN, YETH_TOKEN} from 'utils/tokens';
+import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
+import {
+	cl,
+	defaultTxStatus,
+	formatAmount,
+	MAX_UINT_256,
+	toAddress,
+	toBigInt,
+	toNormalizedBN
+} from '@builtbymom/web3/utils';
 import {readContract} from '@wagmi/core';
 import {Button} from '@yearn-finance/web-lib/components/Button';
-import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
 import {IconChevronBottom} from '@yearn-finance/web-lib/icons/IconChevronBottom';
-import {toAddress} from '@yearn-finance/web-lib/utils/address';
-import {cl} from '@yearn-finance/web-lib/utils/cl';
-import {MAX_UINT_256} from '@yearn-finance/web-lib/utils/constants';
-import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
-import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
-import {defaultTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 
 import type {TLST} from 'hooks/useLSTData';
 import type {ReactElement} from 'react';
 import type {TUseBalancesTokens} from '@yearn-finance/web-lib/hooks/useBalances';
-import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
-import type {TTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
+import type {TNormalizedBN, TTxStatus} from '@builtbymom/web3/types';
 
 function ViewLSTWithdrawForm({
 	token,
@@ -115,7 +117,7 @@ function ViewSelectedTokens({
 	const {refresh} = useWallet();
 	const {lst, slippage} = useLST();
 	const [txStatus, set_txStatus] = useState<TTxStatus>(defaultTxStatus);
-	const [fromAmount, set_fromAmount] = useState<TNormalizedBN>(toNormalizedBN(0));
+	const [fromAmount, set_fromAmount] = useState<TNormalizedBN>(zeroNormalizedBN);
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	 ** If the user is updating the fromAmount and the fromToken is yETH, then update the toAmount
@@ -145,7 +147,7 @@ function ViewSelectedTokens({
 					}
 				} else {
 					set_bonusOrPenalty(0);
-					set_amounts(amounts.map((): TNormalizedBN => toNormalizedBN(0)));
+					set_amounts(amounts.map((): TNormalizedBN => zeroNormalizedBN));
 				}
 			} else {
 				if (newAmount.raw > 0n) {
@@ -160,7 +162,7 @@ function ViewSelectedTokens({
 							if (index === selectedLSTIndex) {
 								return toNormalizedBN(estimatedAmount);
 							}
-							return toNormalizedBN(0);
+							return zeroNormalizedBN;
 						});
 						const vb = await readContract({
 							abi: ESTIMATOR_ABI,
@@ -182,7 +184,7 @@ function ViewSelectedTokens({
 								if (index === selectedLSTIndex) {
 									return toNormalizedBN(-1n);
 								}
-								return toNormalizedBN(0);
+								return zeroNormalizedBN;
 							})
 						);
 					}
@@ -191,7 +193,7 @@ function ViewSelectedTokens({
 					set_amounts(
 						amounts.map((item, index): TNormalizedBN => {
 							if (index === selectedLSTIndex) {
-								return toNormalizedBN(0);
+								return zeroNormalizedBN;
 							}
 							return item;
 						})
@@ -246,8 +248,8 @@ function ViewSelectedTokens({
 				]);
 			}
 		}
-		set_fromAmount(toNormalizedBN(0));
-		set_amounts(amounts.map((): TNormalizedBN => toNormalizedBN(0)));
+		set_fromAmount(zeroNormalizedBN);
+		set_amounts(amounts.map((): TNormalizedBN => zeroNormalizedBN));
 	}, [
 		amounts,
 		fromAmount.raw,
@@ -344,7 +346,7 @@ function ViewSelectedTokens({
 										shouldHideRadio={shouldBalanceTokens}
 										token={token}
 										amount={
-											toBigInt(amounts[index]?.raw) === -1n ? toNormalizedBN(0) : amounts[index]
+											toBigInt(amounts[index]?.raw) === -1n ? zeroNormalizedBN : amounts[index]
 										}
 									/>
 								)
@@ -457,7 +459,7 @@ function ViewWithdraw(): ReactElement {
 	const {lst, slippage} = useLST();
 	const [shouldBalanceTokens, set_shouldBalanceTokens] = useState(true);
 	const [selectedLST, set_selectedLST] = useState<TLST>(lst[0]);
-	const [amounts, set_amounts] = useState<TNormalizedBN[]>(LST.map((): TNormalizedBN => toNormalizedBN(0)));
+	const [amounts, set_amounts] = useState<TNormalizedBN[]>(LST.map((): TNormalizedBN => zeroNormalizedBN));
 	const [bonusOrPenalty, set_bonusOrPenalty] = useState<number>(0);
 
 	return (

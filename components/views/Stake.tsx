@@ -10,26 +10,21 @@ import {ST_YETH_ABI} from 'utils/abi/styETH.abi';
 import {approveERC20, stakeYETH, unstakeYETH} from 'utils/actions';
 import {ETH_TOKEN, STYETH_TOKEN, YETH_TOKEN} from 'utils/tokens';
 import {erc20ABI, useContractRead} from 'wagmi';
+import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
+import {defaultTxStatus, formatAmount, MAX_UINT_256, toAddress, toBigInt, toNormalizedBN} from '@builtbymom/web3/utils';
 import {Button} from '@yearn-finance/web-lib/components/Button';
-import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
-import {toAddress} from '@yearn-finance/web-lib/utils/address';
-import {MAX_UINT_256} from '@yearn-finance/web-lib/utils/constants';
-import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
-import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
-import {defaultTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 
 import type {TLST} from 'hooks/useLSTData';
 import type {ReactElement} from 'react';
-import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
-import type {TTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
+import type {TNormalizedBN, TTxStatus} from '@builtbymom/web3/types';
 
 function ViewStakeUnstake(): ReactElement {
 	const {isActive, provider, address} = useWeb3();
 	const {balances, refresh} = useWallet();
 	const APR = useAPR();
 	const [currentView, set_currentView] = useState<'stake' | 'unstake'>('stake');
-	const [fromAmount, set_fromAmount] = useState<TNormalizedBN>(toNormalizedBN(0));
-	const [toAmount, set_toAmount] = useState<TNormalizedBN>(toNormalizedBN(0));
+	const [fromAmount, set_fromAmount] = useState<TNormalizedBN>(zeroNormalizedBN);
+	const [toAmount, set_toAmount] = useState<TNormalizedBN>(zeroNormalizedBN);
 	const [txStatus, set_txStatus] = useState<TTxStatus>(defaultTxStatus);
 
 	/* 🔵 - Yearn Finance **************************************************************************
@@ -142,8 +137,8 @@ function ViewStakeUnstake(): ReactElement {
 				{...STYETH_TOKEN, token: STYETH_TOKEN.address},
 				{...YETH_TOKEN, token: YETH_TOKEN.address}
 			]);
-			set_fromAmount(toNormalizedBN(0));
-			set_toAmount(toNormalizedBN(0));
+			set_fromAmount(zeroNormalizedBN);
+			set_toAmount(zeroNormalizedBN);
 		}
 	}, [fromAmount.raw, isActive, provider, refresh]);
 
@@ -168,8 +163,8 @@ function ViewStakeUnstake(): ReactElement {
 				{...STYETH_TOKEN, token: STYETH_TOKEN.address},
 				{...YETH_TOKEN, token: YETH_TOKEN.address}
 			]);
-			set_fromAmount(toNormalizedBN(0));
-			set_toAmount(toNormalizedBN(0));
+			set_fromAmount(zeroNormalizedBN);
+			set_toAmount(zeroNormalizedBN);
 		}
 	}, [fromAmount.raw, isActive, provider, refresh]);
 

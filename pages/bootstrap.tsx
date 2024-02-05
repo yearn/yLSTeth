@@ -7,8 +7,7 @@ import IconArrow from 'components/icons/IconArrow';
 import {UIStepContextApp} from 'contexts/useUI';
 import {transition} from 'utils';
 import {AnimatePresence, motion} from 'framer-motion';
-import {toBigInt} from '@yearn-finance/web-lib/utils/format.bigNumber';
-import {performBatchedUpdates} from '@yearn-finance/web-lib/utils/performBatchedUpdates';
+import {toBigInt} from '@builtbymom/web3/utils';
 
 import type {TPeriods} from 'hooks/useBootstrapPeriods';
 import type {ReactElement} from 'react';
@@ -50,21 +49,17 @@ function YETH(): ReactElement {
 				return;
 			}
 			if (prevPage !== undefined) {
-				return performBatchedUpdates((): void => {
-					set_page(prevPage);
-					set_direction(1);
-				});
+				set_page(prevPage);
+				set_direction(1);
+				return;
 			}
 			if (page === 1.1 || page === 1.2) {
-				return performBatchedUpdates((): void => {
-					set_page(1);
-					set_direction(1);
-				});
-			}
-			performBatchedUpdates((): void => {
-				set_page((s): number => s - 1);
+				set_page(1);
 				set_direction(1);
-			});
+				return;
+			}
+			set_page((s): number => s - 1);
+			set_direction(1);
 		},
 		[page]
 	);
@@ -75,15 +70,12 @@ function YETH(): ReactElement {
 				return;
 			}
 			if (nextPage !== undefined) {
-				return performBatchedUpdates((): void => {
-					set_page(nextPage);
-					set_direction(-1);
-				});
-			}
-			performBatchedUpdates((): void => {
-				set_page((s): number => s + 1);
+				set_page(nextPage);
 				set_direction(-1);
-			});
+				return;
+			}
+			set_page((s): number => s + 1);
+			set_direction(-1);
 		},
 		[page]
 	);

@@ -1,9 +1,7 @@
 import {type ReactElement, useMemo} from 'react';
-import {cl} from '@yearn-finance/web-lib/utils/cl';
-import {amountV2} from '@yearn-finance/web-lib/utils/format.number';
-import {isZero} from '@yearn-finance/web-lib/utils/isZero';
+import {amountV2, cl, isZero} from '@builtbymom/web3/utils';
 
-import type {TAmount} from '@yearn-finance/web-lib/utils/format.number';
+import type {TAmount} from '@builtbymom/web3/utils';
 
 export function RenderAmount(props: TAmount): ReactElement {
 	const normalizedRawValue = useMemo((): string => {

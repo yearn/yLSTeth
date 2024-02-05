@@ -1,8 +1,7 @@
 import {useMemo} from 'react';
 import {ST_YETH_ABI} from 'utils/abi/styETH.abi';
 import {useContractRead} from 'wagmi';
-import {toAddress} from '@yearn-finance/web-lib/utils/address';
-import {toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
+import {toAddress, toNormalizedBN} from '@builtbymom/web3/utils';
 
 function useAPR(): number {
 	const {data} = useContractRead({
@@ -22,8 +21,8 @@ function useAPR(): number {
 			return 0;
 		}
 		const [, streamingAmount, unlockedAmount] = data;
-		const _streamingAmount = toNormalizedBN(streamingAmount);
-		const _unlockedAmount = toNormalizedBN(unlockedAmount);
+		const _streamingAmount = toNormalizedBN(streamingAmount, 18);
+		const _unlockedAmount = toNormalizedBN(unlockedAmount, 18);
 		const secondInYear = 31_536_000;
 		const secondLeftInWeek = calculateSecondLeftInWeek();
 		const _estimatedAPR =

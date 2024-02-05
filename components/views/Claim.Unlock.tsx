@@ -3,16 +3,14 @@ import BOOTSTRAP_ABI from 'utils/abi/bootstrap.abi';
 import {ST_YETH_ABI} from 'utils/abi/styETH.abi';
 import {unlockFromBootstrap} from 'utils/actions';
 import {useContractRead} from 'wagmi';
+import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
+import {cl, formatAmount, toAddress, toBigInt, toNormalizedBN} from '@builtbymom/web3/utils';
+import {defaultTxStatus} from '@builtbymom/web3/utils/wagmi';
 import {Button} from '@yearn-finance/web-lib/components/Button';
-import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
-import {toAddress} from '@yearn-finance/web-lib/utils/address';
-import {cl} from '@yearn-finance/web-lib/utils/cl';
-import {type TNormalizedBN, toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
-import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
-import {defaultTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 
 import type {ReactElement} from 'react';
-import type {TTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
+import type {TNormalizedBN} from '@builtbymom/web3/types';
+import type {TTxStatus} from '@builtbymom/web3/utils/wagmi';
 
 function RenderYETHValue({amount}: {amount: bigint}): ReactElement {
 	/* 🔵 - Yearn Finance **************************************************************************
@@ -33,7 +31,7 @@ function RenderYETHValue({amount}: {amount: bigint}): ReactElement {
 			className={cl(
 				'text-sm block md:text-base text-neutral-500 transition-colors group-hover:text-neutral-0 font-number'
 			)}>
-			{`~ ${formatAmount(Number(toNormalizedBN(toBigInt(yETHValue)).normalized), 6, 6)} yETH`}
+			{`~ ${formatAmount(Number(toNormalizedBN(toBigInt(yETHValue), 18).normalized), 6, 6)} yETH`}
 		</p>
 	);
 }
@@ -52,7 +50,7 @@ function UnlockTokens(): ReactElement {
 		functionName: 'deposits',
 		args: [toAddress(address)],
 		chainId: Number(process.env.DEFAULT_CHAIN_ID),
-		select: (data): TNormalizedBN => toNormalizedBN(data)
+		select: (data): TNormalizedBN => toNormalizedBN(data, 18)
 	});
 
 	/* 🔵 - Yearn Finance **************************************************************************

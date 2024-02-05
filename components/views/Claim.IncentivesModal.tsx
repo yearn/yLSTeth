@@ -1,23 +1,20 @@
 import React, {useMemo, useState} from 'react';
 import {multicall} from 'utils/actions';
 import {type Hex} from 'viem';
+import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
+import {formatAmount, toAddress, truncateHex} from '@builtbymom/web3/utils';
+import {defaultTxStatus} from '@builtbymom/web3/utils/wagmi';
 import {Button} from '@yearn-finance/web-lib/components/Button';
-import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
-import {toAddress, truncateHex} from '@yearn-finance/web-lib/utils/address';
-import {type TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
-import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
-import {defaultTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 
-import type {TTokenInfo} from 'contexts/useTokenList';
 import type {ReactElement} from 'react';
-import type {TAddress} from '@yearn-finance/web-lib/types';
-import type {TTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
+import type {TAddress, TNormalizedBN, TToken} from '@builtbymom/web3/types';
+import type {TTxStatus} from '@builtbymom/web3/utils/wagmi';
 
 type TClaimDetails = {
 	id: string;
 	value: number;
 	amount: TNormalizedBN;
-	token: TTokenInfo;
+	token: TToken;
 	isSelected: boolean;
 	multicall: {target: TAddress; callData: Hex};
 };

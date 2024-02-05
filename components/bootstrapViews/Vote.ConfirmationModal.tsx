@@ -1,17 +1,14 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import assert from 'assert';
 import {vote} from 'utils/actions';
+import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
+import {formatAmount, toAddress, truncateHex} from '@builtbymom/web3/utils';
+import {defaultTxStatus} from '@builtbymom/web3/utils/wagmi';
 import {Button} from '@yearn-finance/web-lib/components/Button';
-import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
-import {toAddress, truncateHex} from '@yearn-finance/web-lib/utils/address';
-import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
-import {defaultTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 
-import type {TTokenInfo} from 'contexts/useTokenList';
 import type {ReactElement} from 'react';
-import type {TAddress, TDict} from '@yearn-finance/web-lib/types';
-import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
-import type {TTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
+import type {TAddress, TDict, TNormalizedBN, TToken} from '@builtbymom/web3/types';
+import type {TTxStatus} from '@builtbymom/web3/utils/wagmi';
 
 function VoteConfirmationModal({
 	whitelistedLST,
@@ -19,7 +16,7 @@ function VoteConfirmationModal({
 	onSuccess,
 	onCancel
 }: {
-	whitelistedLST: TDict<TTokenInfo>;
+	whitelistedLST: TDict<TToken>;
 	voteToSend: TDict<TNormalizedBN>;
 	onSuccess: VoidFunction;
 	onCancel: VoidFunction;

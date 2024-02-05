@@ -1,9 +1,9 @@
 import {Fragment} from 'react';
 import useLST from 'contexts/useLST';
+import {toBigInt} from '@builtbymom/web3/utils';
 import {Popover, Transition} from '@headlessui/react';
 import {Button} from '@yearn-finance/web-lib/components/Button';
 import {IconSettings} from '@yearn-finance/web-lib/icons/IconSettings';
-import {toBigInt} from '@yearn-finance/web-lib/utils/format.bigNumber';
 
 import type {ReactElement} from 'react';
 

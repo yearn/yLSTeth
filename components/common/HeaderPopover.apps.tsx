@@ -1,6 +1,6 @@
 import {LogoYearn} from 'components/icons/LogoYearn';
 import {YETH_TOKEN} from 'utils/tokens';
-import {YCRV_TOKEN_ADDRESS} from '@yearn-finance/web-lib/utils/constants';
+import {YCRV_TOKEN_ADDRESS} from '@builtbymom/web3/utils';
 
 import {ImageWithFallback} from './ImageWithFallback';
 

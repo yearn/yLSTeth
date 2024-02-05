@@ -3,30 +3,34 @@ import {ImageWithFallback} from 'components/common/ImageWithFallback';
 import IconCheck from 'components/icons/IconCheck';
 import IconChevronBoth from 'components/icons/IconChevronBoth';
 import IconSpinner from 'components/icons/IconSpinner';
-import {type TTokenInfo, useTokenList} from 'contexts/useTokenList';
-import {useWallet} from 'contexts/useWallet';
 import {isValidAddress} from 'utils';
 import {isAddress} from 'viem';
 import {erc20ABI} from 'wagmi';
+import useWallet from '@builtbymom/web3/contexts/useWallet';
+import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
+import {useTokenList} from '@builtbymom/web3/contexts/WithTokenList';
+import {useChainID} from '@builtbymom/web3/hooks/useChainID';
+import {
+	decodeAsNumber,
+	decodeAsString,
+	formatAmount,
+	toAddress,
+	toBigInt,
+	truncateHex,
+	zeroNormalizedBN
+} from '@builtbymom/web3/utils';
 import {Combobox, Transition} from '@headlessui/react';
 import {useAsync, useThrottledState} from '@react-hookz/web';
 import {multicall} from '@wagmi/core';
-import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
-import {useChainID} from '@yearn-finance/web-lib/hooks/useChainID';
-import {toAddress, truncateHex} from '@yearn-finance/web-lib/utils/address';
-import {decodeAsNumber, decodeAsString} from '@yearn-finance/web-lib/utils/decoder';
-import {toBigInt} from '@yearn-finance/web-lib/utils/format.bigNumber';
-import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
-import {performBatchedUpdates} from '@yearn-finance/web-lib/utils/performBatchedUpdates';
 
 import type {Dispatch, ReactElement, SetStateAction} from 'react';
-import type {TAddress, TDict} from '@yearn-finance/web-lib/types';
+import type {TAddress, TDict, TToken} from '@builtbymom/web3/types';
 
 type TComboboxAddressInput = {
-	possibleValues: TDict<TTokenInfo | undefined>;
+	possibleValues: TDict<TToken | undefined>;
 	value: string | undefined;
-	onChangeValue: Dispatch<SetStateAction<TTokenInfo | undefined>>;
-	onAddValue?: Dispatch<SetStateAction<TDict<TTokenInfo | undefined>>>;
+	onChangeValue: Dispatch<SetStateAction<TToken | undefined>>;
+	onAddValue?: Dispatch<SetStateAction<TDict<TToken | undefined>>>;
 	shouldDisplayBalance?: boolean;
 };
 
@@ -34,7 +38,7 @@ function ComboboxOption({
 	option,
 	shouldDisplayBalance = true
 }: {
-	option: TTokenInfo | undefined;
+	option: TToken | undefined;
 	shouldDisplayBalance?: boolean;
 }): ReactElement {
 	const {balances} = useWallet();
@@ -103,7 +107,7 @@ function ComboboxAddressInput({
 	const [query, set_query] = useState('');
 	const [isOpen, set_isOpen] = useThrottledState(false, 400);
 	const [isLoadingTokenData, set_isLoadingTokenData] = useState(false);
-	const {tokenList} = useTokenList();
+	const {currentNetworkTokenList} = useTokenList();
 
 	const fetchToken = useCallback(
 		async (
@@ -114,11 +118,11 @@ function ComboboxAddressInput({
 				return undefined;
 			}
 
-			if (tokenList[_query]) {
+			if (currentNetworkTokenList[_query]) {
 				return {
-					name: tokenList[_query].name,
-					symbol: tokenList[_query].symbol,
-					decimals: tokenList[_query].decimals
+					name: currentNetworkTokenList[_query].name,
+					symbol: currentNetworkTokenList[_query].symbol,
+					decimals: currentNetworkTokenList[_query].decimals
 				};
 			}
 
@@ -136,7 +140,7 @@ function ComboboxAddressInput({
 			await refresh([{decimals, name, symbol, token: _query}]);
 			return {name, symbol, decimals};
 		},
-		[refresh, tokenList]
+		[refresh, currentNetworkTokenList]
 	);
 
 	const [{result: tokenData}, fetchTokenData] = useAsync(fetchToken);
@@ -149,37 +153,41 @@ function ComboboxAddressInput({
 				_tokenData = await fetchToken(safeChainID, _selected);
 				set_isLoadingTokenData(false);
 			}
-			performBatchedUpdates((): void => {
-				onAddValue?.((prev: TDict<TTokenInfo | undefined>): TDict<TTokenInfo | undefined> => {
-					if (prev[_selected]) {
-						return prev;
+			onAddValue?.((prev: TDict<TToken | undefined>): TDict<TToken | undefined> => {
+				if (prev[_selected]) {
+					return prev;
+				}
+				return {
+					...prev,
+					[toAddress(_selected)]: {
+						address: toAddress(_selected),
+						name: _tokenData?.name || '',
+						symbol: _tokenData?.symbol || '',
+						decimals: _tokenData?.decimals || 18,
+						chainID: safeChainID,
+						logoURI: `https://assets.smold.app/api/token/${safeChainID}/${toAddress(
+							_selected
+						)}/logo-128.png`,
+						balance: zeroNormalizedBN,
+						price: zeroNormalizedBN,
+						value: 0
 					}
-					return {
-						...prev,
-						[toAddress(_selected)]: {
-							address: toAddress(_selected),
-							name: _tokenData?.name || '',
-							symbol: _tokenData?.symbol || '',
-							decimals: _tokenData?.decimals || 18,
-							chainId: safeChainID,
-							logoURI: `https://assets.smold.app/api/token/${safeChainID}/${toAddress(
-								_selected
-							)}/logo-128.png`
-						}
-					};
-				});
-				onChangeValue({
-					address: toAddress(_selected),
-					name: _tokenData?.name || '',
-					symbol: _tokenData?.symbol || '',
-					decimals: _tokenData?.decimals || 18,
-					chainId: safeChainID,
-					logoURI:
-						possibleValues[toAddress(_selected)]?.logoURI ||
-						`https://assets.smold.app/api/token/${safeChainID}/${toAddress(_selected)}/logo-128.png`
-				});
-				set_isOpen(false);
+				};
 			});
+			onChangeValue({
+				address: toAddress(_selected),
+				name: _tokenData?.name || '',
+				symbol: _tokenData?.symbol || '',
+				decimals: _tokenData?.decimals || 18,
+				chainID: safeChainID,
+				logoURI:
+					possibleValues[toAddress(_selected)]?.logoURI ||
+					`https://assets.smold.app/api/token/${safeChainID}/${toAddress(_selected)}/logo-128.png`,
+				balance: zeroNormalizedBN,
+				price: zeroNormalizedBN,
+				value: 0
+			});
+			set_isOpen(false);
 		},
 		[fetchToken, onAddValue, onChangeValue, possibleValues, safeChainID, set_isOpen, tokenData]
 	);
@@ -201,7 +209,7 @@ function ComboboxAddressInput({
 						.includes(query.toLowerCase().replace(/\s+/g, ''))
 				);
 
-	const filteredBalances = useMemo((): [TTokenInfo[], TTokenInfo[]] => {
+	const filteredBalances = useMemo((): [TToken[], TToken[]] => {
 		const withBalance = [];
 		const withoutBalance = [];
 		for (const dest of filteredValues) {
@@ -275,10 +283,8 @@ function ComboboxAddressInput({
 									autoCorrect={'off'}
 									spellCheck={false}
 									onChange={(event): void => {
-										performBatchedUpdates((): void => {
-											set_isOpen(true);
-											set_query(event.target.value);
-										});
+										set_isOpen(true);
+										set_query(event.target.value);
 									}}
 								/>
 							</p>
@@ -328,18 +334,21 @@ function ComboboxAddressInput({
 									shouldDisplayBalance={shouldDisplayBalance}
 									option={{
 										address: toAddress(query),
-										chainId: safeChainID,
+										chainID: safeChainID,
 										name: tokenData.name,
 										symbol: tokenData.symbol,
 										decimals: tokenData.decimals,
-										logoURI: ''
+										logoURI: '',
+										balance: zeroNormalizedBN,
+										price: zeroNormalizedBN,
+										value: 0
 									}}
 								/>
 							) : (
 								[...filteredBalances[0], ...filteredBalances[1]].slice(0, 100).map(
 									(dest): ReactElement => (
 										<ComboboxOption
-											key={`${dest.address}_${dest.chainId}`}
+											key={`${dest.address}_${dest.chainID}`}
 											shouldDisplayBalance={shouldDisplayBalance}
 											option={dest}
 										/>

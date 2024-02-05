@@ -6,12 +6,11 @@ import useLSTData from 'hooks/useLSTData';
 import useTVL from 'hooks/useTVL';
 import {YETH_POOL_ABI} from 'utils/abi/yETHPool.abi';
 import {useContractReads} from 'wagmi';
-import {toAddress} from '@yearn-finance/web-lib/utils/address';
-import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
+import {toAddress, toBigInt, zeroNormalizedBN} from '@builtbymom/web3/utils';
 
 import type {TIncentivesFor, TUseIncentivesResp} from 'hooks/useIncentives';
 import type {TLST} from 'hooks/useLSTData';
-import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
+import type {TNormalizedBN} from '@builtbymom/web3/types';
 
 type TUseLSTProps = {
 	slippage: bigint;
@@ -34,7 +33,7 @@ const defaultProps: TUseLSTProps = {
 	set_slippage: (): void => {},
 	dailyVolume: 0,
 	TVL: 0,
-	TAL: toNormalizedBN(0),
+	TAL: zeroNormalizedBN,
 	lst: [] as unknown as TLST[],
 	onUpdateLST: (): void => {},
 	stats: {
@@ -47,7 +46,7 @@ const defaultProps: TUseLSTProps = {
 		groupIncentiveHistory: {} as TIncentivesFor,
 		isFetchingHistory: false,
 		refreshIncentives: (): void => undefined,
-		totalDepositedETH: toNormalizedBN(0),
+		totalDepositedETH: zeroNormalizedBN,
 		totalDepositedUSD: 0
 	}
 };

@@ -1,4 +1,5 @@
 import {zeroAddress} from 'viem';
+import {zeroNormalizedBN} from '@builtbymom/web3/utils';
 
 import {
 	APXETH_TOKEN,
@@ -23,12 +24,15 @@ export const VOTE_START_DELAY = 1_814_400; // 3 weeks
 
 export const NO_CHANGE_LST_LIKE: TIndexedTokenInfo = {
 	address: zeroAddress,
-	chainId: 1,
+	chainID: 1,
 	decimals: 18,
 	logoURI: '/iconNoChange.svg',
 	name: 'Do Nothing / No Change',
 	symbol: 'Do Nothing / No Change',
-	index: -1
+	index: -1,
+	balance: zeroNormalizedBN,
+	price: zeroNormalizedBN,
+	value: 0
 };
 
 export const LST: TIndexedTokenInfo[] = [

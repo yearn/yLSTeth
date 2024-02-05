@@ -1,27 +1,31 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 import {useMemo, useState} from 'react';
-import {useYDaemonBaseURI} from 'hooks/useYDaemonBaseURI';
 import {getCurrentEpoch} from 'utils/epochs';
 import {yDaemonPricesSchema} from 'utils/schemas/yDaemonPricesSchema';
 import {parseAbiItem, toHex} from 'viem';
 import {erc20ABI, useContractRead} from 'wagmi';
+import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
+import {useAsyncTrigger} from '@builtbymom/web3/hooks/useAsyncTrigger';
+import {useFetch} from '@builtbymom/web3/hooks/useFetch';
+import {
+	decodeAsNumber,
+	decodeAsString,
+	ETH_TOKEN_ADDRESS,
+	toAddress,
+	toBigInt,
+	toNormalizedBN,
+	truncateHex,
+	zeroNormalizedBN
+} from '@builtbymom/web3/utils';
+import {getClient} from '@builtbymom/web3/utils/wagmi';
 import {multicall} from '@wagmi/core';
-import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
-import {toAddress, truncateHex} from '@yearn-finance/web-lib/utils/address';
-import {ETH_TOKEN_ADDRESS} from '@yearn-finance/web-lib/utils/constants';
-import {decodeAsNumber, decodeAsString} from '@yearn-finance/web-lib/utils/decoder';
-import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
-import {getClient} from '@yearn-finance/web-lib/utils/wagmi/utils';
+import {useYDaemonBaseURI} from '@yearn-finance/web-lib/hooks/useYDaemonBaseURI';
 
-import {useAsyncTrigger} from './useAsyncEffect';
 import {useEpoch} from './useEpoch';
-import {useFetch} from './useFetch';
 
-import type {TTokenInfo} from 'contexts/useTokenList';
 import type {TYDaemonPrices} from 'utils/schemas/yDaemonPricesSchema';
 import type {Hex} from 'viem';
-import type {TAddress, TDict} from '@yearn-finance/web-lib/types';
-import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
+import type {TAddress, TDict, TNormalizedBN, TToken} from '@builtbymom/web3/types';
 
 export type TIncentivesClaimed = {
 	id: string;
@@ -41,7 +45,7 @@ export type TIncentives = {
 	estimatedAPR: number;
 	blockNumber: bigint;
 	txHash: Hex;
-	incentiveToken?: TTokenInfo;
+	incentiveToken?: TToken;
 };
 
 export type TGroupedIncentives = {
@@ -103,7 +107,7 @@ function useIncentives(): TUseIncentivesResp {
 			return 0;
 		}
 		return (
-			Number(toNormalizedBN(totalDepositedETH).normalized) *
+			Number(toNormalizedBN(totalDepositedETH, 18).normalized) *
 			Number(toNormalizedBN(prices[ETH_TOKEN_ADDRESS] || 0, 6).normalized)
 		);
 	}, [prices, totalDepositedETH]);
@@ -252,8 +256,11 @@ function useIncentives(): TUseIncentivesResp {
 					name: name,
 					symbol: symbol,
 					decimals: decimals,
-					chainId: Number(process.env.BASE_CHAIN_ID),
-					logoURI: `${process.env.SMOL_ASSETS_URL}/token/1/${toAddress(args.incentive)}/logo-128.png`
+					chainID: Number(process.env.BASE_CHAIN_ID),
+					logoURI: `${process.env.SMOL_ASSETS_URL}/token/1/${toAddress(args.incentive)}/logo-128.png`,
+					value: 0,
+					balance: zeroNormalizedBN,
+					price: zeroNormalizedBN
 				}
 			});
 		}
@@ -280,7 +287,7 @@ function useIncentives(): TUseIncentivesResp {
 		}
 		const getAPR = (USDValue: number): number =>
 			((USDValue * 12) /
-				(Number(toNormalizedBN(toBigInt(totalDepositedETH)).normalized) *
+				(Number(toNormalizedBN(toBigInt(totalDepositedETH), 18).normalized) *
 					Number(toNormalizedBN(prices?.[ETH_TOKEN_ADDRESS] || 0, 6).normalized))) *
 			100;
 
@@ -301,7 +308,7 @@ function useIncentives(): TUseIncentivesResp {
 					protocolName: cur.protocolName || truncateHex(cur.protocol, 6),
 					protocolSymbol: cur.protocolSymbol || truncateHex(cur.protocol, 6),
 					normalizedSum: value,
-					usdPerStETH: value / Number(toNormalizedBN(toBigInt(totalDepositedETH)).normalized),
+					usdPerStETH: value / Number(toNormalizedBN(toBigInt(totalDepositedETH), 18).normalized),
 					incentives: [{...cur, value, estimatedAPR}]
 				};
 				return acc;
@@ -321,7 +328,7 @@ function useIncentives(): TUseIncentivesResp {
 				acc[key].incentives[incentiveIndex].estimatedAPR = getAPR(acc[key].incentives[incentiveIndex].value);
 			}
 			acc[key].usdPerStETH =
-				acc[key].normalizedSum / Number(toNormalizedBN(toBigInt(totalDepositedETH)).normalized);
+				acc[key].normalizedSum / Number(toNormalizedBN(toBigInt(totalDepositedETH), 18).normalized);
 			return acc;
 		}, {} as TDict<TGroupedIncentives>);
 
@@ -342,7 +349,7 @@ function useIncentives(): TUseIncentivesResp {
 					protocolSymbol: cur.protocolSymbol || truncateHex(cur.protocol, 6),
 					normalizedSum: value,
 					estimatedAPR: estimatedAPR,
-					usdPerStETH: value / Number(toNormalizedBN(toBigInt(totalDepositedETH)).normalized),
+					usdPerStETH: value / Number(toNormalizedBN(toBigInt(totalDepositedETH), 18).normalized),
 					incentives: [{...cur, value, estimatedAPR}]
 				};
 				return acc;
@@ -362,7 +369,7 @@ function useIncentives(): TUseIncentivesResp {
 				acc[key].incentives[incentiveIndex].estimatedAPR = getAPR(acc[key].incentives[incentiveIndex].value);
 			}
 			acc[key].usdPerStETH =
-				acc[key].normalizedSum / Number(toNormalizedBN(toBigInt(totalDepositedETH)).normalized);
+				acc[key].normalizedSum / Number(toNormalizedBN(toBigInt(totalDepositedETH), 18).normalized);
 			return acc;
 		}, {} as TDict<TGroupedIncentives>);
 
@@ -373,7 +380,7 @@ function useIncentives(): TUseIncentivesResp {
 		groupIncentiveHistory,
 		isFetchingHistory,
 		refreshIncentives: filterIncentivizeEvents,
-		totalDepositedETH: toNormalizedBN(totalDepositedETH || 0n),
+		totalDepositedETH: toNormalizedBN(totalDepositedETH || 0n, 18),
 		totalDepositedUSD: totalDepositedValue
 	};
 }

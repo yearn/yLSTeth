@@ -4,16 +4,12 @@ import {ImageWithFallback} from 'components/common/ImageWithFallback';
 import IconWarning from 'components/icons/IconWarning';
 import useWallet from 'contexts/useWallet';
 import {handleInputChangeEventValue} from 'utils';
+import {cl, ETH_TOKEN_ADDRESS, formatAmount, toAddress, toNormalizedBN} from '@builtbymom/web3/utils';
 import {IconLinkOut} from '@yearn-finance/web-lib/icons/IconLinkOut';
-import {toAddress} from '@yearn-finance/web-lib/utils/address';
-import {cl} from '@yearn-finance/web-lib/utils/cl';
-import {ETH_TOKEN_ADDRESS} from '@yearn-finance/web-lib/utils/constants';
-import {toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
-import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
 
 import type {TLST} from 'hooks/useLSTData';
 import type {ChangeEvent, ReactElement} from 'react';
-import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
+import type {TNormalizedBN} from '@builtbymom/web3/utils';
 
 type TViewFromToken = {
 	token: TLST;

@@ -1,9 +1,7 @@
 import React, {useMemo} from 'react';
 import {RenderAmount} from 'components/common/RenderAmount';
 import useLST from 'contexts/useLST';
-import {cl} from '@yearn-finance/web-lib/utils/cl';
-import {toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
-import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
+import {cl, formatAmount, toNormalizedBN} from '@builtbymom/web3/utils';
 
 import type {ReactElement} from 'react';
 

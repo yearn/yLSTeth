@@ -1,9 +1,8 @@
-import {parseUnits} from '@yearn-finance/web-lib/utils/format.bigNumber';
-import {assertAddress} from '@yearn-finance/web-lib/utils/wagmi/utils';
+import {assertAddress, parseUnits} from '@builtbymom/web3/utils';
 
 import type {Transition} from 'framer-motion';
-import type {TAddress} from '@yearn-finance/web-lib/types';
-import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
+import type {TAddress} from '@builtbymom/web3/types';
+import type {TNormalizedBN} from '@builtbymom/web3/utils';
 
 export const transition = {duration: 0.8, ease: 'easeInOut'};
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -3,10 +3,8 @@ import {ImageWithFallback} from 'components/common/ImageWithFallback';
 import IconChevronPlain from 'components/icons/IconChevronPlain';
 import IconSpinner from 'components/icons/IconSpinner';
 import useLST from 'contexts/useLST';
+import {formatAmount, formatPercent, toAddress, truncateHex} from '@builtbymom/web3/utils';
 import {useChainID} from '@yearn-finance/web-lib/hooks/useChainID';
-import {toAddress, truncateHex} from '@yearn-finance/web-lib/utils/address';
-import {formatAmount, formatPercent} from '@yearn-finance/web-lib/utils/format.number';
-import {performBatchedUpdates} from '@yearn-finance/web-lib/utils/performBatchedUpdates';
 
 import type {ReactElement} from 'react';
 import type {TSortDirection} from 'utils/types';
@@ -25,10 +23,8 @@ function VoteCardWeights(): ReactElement {
 	 **	The use of useCallback() is to prevent the method from being re-created on every render.
 	 **********************************************************************************************/
 	const onSort = useCallback((newSortBy: 'totalIncentive' | 'weight', newSortDirection: string): void => {
-		performBatchedUpdates((): void => {
-			set_sortBy(newSortBy);
-			set_sortDirection(newSortDirection as TSortDirection);
-		});
+		set_sortBy(newSortBy);
+		set_sortDirection(newSortDirection as TSortDirection);
 	}, []);
 
 	const toggleSortDirection = (newSortBy: string): TSortDirection => {

@@ -1,8 +1,7 @@
 import React from 'react';
 
-import type {TTokenInfo} from 'contexts/useTokenList';
 import type {ChangeEventHandler, ReactElement} from 'react';
-import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
+import type {TNormalizedBN, TToken} from '@builtbymom/web3/types';
 
 function InputBox({
 	token,
@@ -10,7 +9,7 @@ function InputBox({
 	onChange,
 	max
 }: {
-	token: TTokenInfo;
+	token: TToken;
 	amountToSend: TNormalizedBN;
 	onChange: ChangeEventHandler<HTMLInputElement>;
 	max: number;

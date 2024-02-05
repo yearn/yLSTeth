@@ -2,14 +2,11 @@ import {useState} from 'react';
 import {YETH_POOL_ABI} from 'utils/abi/yETHPool.abi';
 import {LST} from 'utils/constants';
 import {erc20ABI, useContractReads} from 'wagmi';
+import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
+import {decodeAsBigInt, toAddress, toBigInt, toNormalizedBN, zeroNormalizedBN} from '@builtbymom/web3/utils';
 import {useUpdateEffect} from '@react-hookz/web';
-import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
-import {toAddress} from '@yearn-finance/web-lib/utils/address';
-import {decodeAsBigInt} from '@yearn-finance/web-lib/utils/decoder';
-import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
 
-import type {TTokenInfo} from 'contexts/useTokenList';
-import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
+import type {TNormalizedBN, TToken} from '@builtbymom/web3/types';
 
 export type TLST = {
 	rate: TNormalizedBN;
@@ -32,7 +29,7 @@ export type TLST = {
 		distanceFromTarget: number;
 		weightRamps: TNormalizedBN;
 	};
-} & TTokenInfo;
+} & TToken;
 
 function useLSTData(): {lst: TLST[]; updateLST: () => void} {
 	const {address} = useWeb3();
@@ -40,13 +37,13 @@ function useLSTData(): {lst: TLST[]; updateLST: () => void} {
 		LST.map(
 			(token, index): TLST => ({
 				...token,
-				rate: toNormalizedBN(0),
-				weight: toNormalizedBN(0),
-				targetWeight: toNormalizedBN(0),
-				poolAllowance: toNormalizedBN(0),
-				zapAllowance: toNormalizedBN(0),
-				poolSupply: toNormalizedBN(0),
-				virtualPoolSupply: toNormalizedBN(0),
+				rate: zeroNormalizedBN,
+				weight: zeroNormalizedBN,
+				targetWeight: zeroNormalizedBN,
+				poolAllowance: zeroNormalizedBN,
+				zapAllowance: zeroNormalizedBN,
+				poolSupply: zeroNormalizedBN,
+				virtualPoolSupply: zeroNormalizedBN,
 				weightRatio: 0,
 				index
 			})
@@ -121,22 +118,28 @@ function useLSTData(): {lst: TLST[]; updateLST: () => void} {
 			return;
 		}
 		let idx = 0;
-		const supply = toNormalizedBN(decodeAsBigInt(data[idx++]));
-		const vbSum = toNormalizedBN(toBigInt((data[idx++]?.result as [bigint, bigint])?.[1] as bigint) || 0n);
+		const supply = toNormalizedBN(decodeAsBigInt(data[idx++]), 18);
+		const vbSum = toNormalizedBN(toBigInt((data[idx++]?.result as [bigint, bigint])?.[1] as bigint) || 0n, 18);
 
 		const _lst = LST.map((token, index): TLST => {
-			const rate = toNormalizedBN(toBigInt(data?.[idx++]?.result as bigint) || 0n);
+			const rate = toNormalizedBN(toBigInt(data?.[idx++]?.result as bigint) || 0n, 18);
 
-			const weight = toNormalizedBN(toBigInt((data?.[idx]?.result as bigint[])?.[0] as bigint) || 0n);
-			const targetWeight = toNormalizedBN(toBigInt((data?.[idx]?.result as bigint[])?.[1] as bigint) || 0n);
-			const currentBandPlus = toNormalizedBN(toBigInt((data?.[idx]?.result as bigint[])?.[2] as bigint) || 0n);
-			const currentBandMin = toNormalizedBN(toBigInt((data?.[idx++]?.result as bigint[])?.[3] as bigint) || 0n);
+			const weight = toNormalizedBN(toBigInt((data?.[idx]?.result as bigint[])?.[0] as bigint) || 0n, 18);
+			const targetWeight = toNormalizedBN(toBigInt((data?.[idx]?.result as bigint[])?.[1] as bigint) || 0n, 18);
+			const currentBandPlus = toNormalizedBN(
+				toBigInt((data?.[idx]?.result as bigint[])?.[2] as bigint) || 0n,
+				18
+			);
+			const currentBandMin = toNormalizedBN(
+				toBigInt((data?.[idx++]?.result as bigint[])?.[3] as bigint) || 0n,
+				18
+			);
 
-			const poolAllowance = toNormalizedBN(toBigInt(data?.[idx++]?.result as bigint) || 0n);
-			const lstSupply = toNormalizedBN(toBigInt(data?.[idx++]?.result as bigint) || 0n);
+			const poolAllowance = toNormalizedBN(toBigInt(data?.[idx++]?.result as bigint) || 0n, 18);
+			const lstSupply = toNormalizedBN(toBigInt(data?.[idx++]?.result as bigint) || 0n, 18);
 
-			const virtualBalance = toNormalizedBN(toBigInt(data?.[idx++]?.result as bigint) || 0n);
-			const zapAllowance = toNormalizedBN(toBigInt(data?.[idx++]?.result as bigint) || 0n);
+			const virtualBalance = toNormalizedBN(toBigInt(data?.[idx++]?.result as bigint) || 0n, 18);
+			const zapAllowance = toNormalizedBN(toBigInt(data?.[idx++]?.result as bigint) || 0n, 18);
 
 			const amountInPool = lstSupply;
 			const amountInPoolPercent = (Number(virtualBalance.normalized) / Number(vbSum.normalized)) * 100;
@@ -154,7 +157,10 @@ function useLSTData(): {lst: TLST[]; updateLST: () => void} {
 				poolAllowance: poolAllowance,
 				zapAllowance: zapAllowance,
 				poolSupply: lstSupply,
-				virtualPoolSupply: toNormalizedBN(((virtualBalance.raw * toBigInt(1e18)) / (supply.raw || 1n)) * 100n),
+				virtualPoolSupply: toNormalizedBN(
+					((virtualBalance.raw * toBigInt(1e18)) / (supply.raw || 1n)) * 100n,
+					18
+				),
 				poolStats: {
 					amountInPool,
 					amountInPoolPercent,

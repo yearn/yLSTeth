@@ -2,11 +2,16 @@ import assert from 'assert';
 import BOOTSTRAP_ABI from 'utils/abi/bootstrap.abi';
 import {MULTICALL_ABI} from 'utils/abi/multicall3.abi';
 import {type Hex, zeroAddress} from 'viem';
+import {
+	assertAddress,
+	ETH_TOKEN_ADDRESS,
+	handleTx,
+	MAX_UINT_256,
+	toAddress,
+	toWagmiProvider,
+	WETH_TOKEN_ADDRESS
+} from '@builtbymom/web3/utils';
 import {erc20ABI, readContract} from '@wagmi/core';
-import {toAddress} from '@yearn-finance/web-lib/utils/address';
-import {ETH_TOKEN_ADDRESS, MAX_UINT_256, WETH_TOKEN_ADDRESS} from '@yearn-finance/web-lib/utils/constants';
-import {handleTx, toWagmiProvider} from '@yearn-finance/web-lib/utils/wagmi/provider';
-import {assertAddress} from '@yearn-finance/web-lib/utils/wagmi/utils';
 
 import {STYETH_TOKEN, YETH_TOKEN} from './tokens';
 import {CURVE_SWAP_ABI} from './abi/curveswap.abi';
@@ -16,9 +21,8 @@ import {YETH_POOL_ABI} from './abi/yETHPool.abi';
 import {ZAP_ABI} from './abi/zap.abi';
 
 import type {Connector} from 'wagmi';
-import type {TAddress} from '@yearn-finance/web-lib/types';
-import type {TWriteTransaction} from '@yearn-finance/web-lib/utils/wagmi/provider';
-import type {TTxResponse} from '@yearn-finance/web-lib/utils/web3/transaction';
+import type {TAddress} from '@builtbymom/web3/types';
+import type {TTxResponse, TWriteTransaction} from '@builtbymom/web3/utils';
 
 //Because USDT do not return a boolean on approve, we need to use this ABI
 const ALTERNATE_ERC20_APPROVE_ABI = [

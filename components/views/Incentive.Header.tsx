@@ -2,8 +2,8 @@ import React, {useMemo} from 'react';
 import useLST from 'contexts/useLST';
 import {useEpoch} from 'hooks/useEpoch';
 import {useTimer} from 'hooks/useTimer';
+import {amountV2} from '@builtbymom/web3/utils';
 import {Renderable} from '@yearn-finance/web-lib/components/Renderable';
-import {amountV2} from '@yearn-finance/web-lib/utils/format.number';
 
 import type {ReactElement} from 'react';
 

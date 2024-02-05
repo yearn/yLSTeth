@@ -1,33 +1,35 @@
 import React, {Fragment, useCallback, useMemo, useState} from 'react';
-import {useAsyncTrigger} from 'hooks/useAsyncEffect';
-import {useFetch} from 'hooks/useFetch';
-import {useYDaemonBaseURI} from 'hooks/useYDaemonBaseURI';
 import {VOTE_ABI} from 'utils/abi/vote.abi';
 import {getCurrentEpochNumber, getEpoch} from 'utils/epochs';
 import {encodeFunctionData, type Hex, type ReadContractParameters} from 'viem';
 import {erc20ABI, readContracts} from 'wagmi';
+import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
+import {useAsyncTrigger} from '@builtbymom/web3/hooks/useAsyncTrigger';
+import {
+	cl,
+	decodeAsBoolean,
+	decodeAsNumber,
+	decodeAsString,
+	formatAmount,
+	toAddress,
+	toNormalizedBN,
+	zeroNormalizedBN
+} from '@builtbymom/web3/utils';
 import {Button} from '@yearn-finance/web-lib/components/Button';
 import {Modal} from '@yearn-finance/web-lib/components/Modal';
-import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
-import {toAddress} from '@yearn-finance/web-lib/utils/address';
-import {cl} from '@yearn-finance/web-lib/utils/cl';
-import {decodeAsBoolean, decodeAsNumber, decodeAsString} from '@yearn-finance/web-lib/utils/decoder';
-import {type TNormalizedBN, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
-import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
-import {type TYDaemonPrices, yDaemonPricesSchema} from '@yearn-finance/web-lib/utils/schemas/yDaemonPricesSchema';
+import {useFetchYearnPrices} from '@yearn-finance/web-lib/hooks/useFetchYearnPrices';
 
 import {ClaimIncentiveModal} from './Claim.IncentivesModal';
 
-import type {TTokenInfo} from 'contexts/useTokenList';
 import type {ReactElement} from 'react';
 import type {TEpoch} from 'utils/types';
-import type {TAddress} from '@yearn-finance/web-lib/types';
+import type {TAddress, TNormalizedBN, TToken} from '@builtbymom/web3/types';
 
 type TClaimDetails = {
 	id: string;
 	value: number;
 	amount: TNormalizedBN;
-	token: TTokenInfo;
+	token: TToken;
 	isSelected: boolean;
 	multicall: {target: TAddress; callData: Hex};
 };
@@ -37,11 +39,7 @@ function ClaimIncentives(): ReactElement {
 	const [claimableIncentiveRaw, set_claimableIncentiveRaw] = useState<TClaimDetails[]>([]);
 	const [isModalOpen, set_isModalOpen] = useState<boolean>(false);
 	const [epochToDisplay, set_epochToDisplay] = useState<number>(getCurrentEpochNumber() - 1);
-	const {yDaemonBaseUri} = useYDaemonBaseURI({chainID: Number(process.env.BASE_CHAIN_ID)});
-	const {data: prices} = useFetch<TYDaemonPrices>({
-		endpoint: `${yDaemonBaseUri}/prices/all`,
-		schema: yDaemonPricesSchema
-	});
+	const prices = useFetchYearnPrices();
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	 ** Create the array matching all the epochs.
@@ -124,8 +122,11 @@ function ClaimIncentives(): ReactElement {
 					name: tokenName,
 					symbol: tokenSymbol,
 					decimals: tokenDecimals,
-					chainId: 1,
-					logoURI: ''
+					chainID: 1,
+					logoURI: '',
+					balance: zeroNormalizedBN,
+					price: zeroNormalizedBN,
+					value: 0
 				},
 				isSelected: true,
 				multicall: {
@@ -211,8 +212,11 @@ function ClaimIncentives(): ReactElement {
 						name: tokenName,
 						symbol: tokenSymbol,
 						decimals: tokenDecimals,
-						chainId: 1,
-						logoURI: ''
+						chainID: 1,
+						logoURI: '',
+						balance: zeroNormalizedBN,
+						price: zeroNormalizedBN,
+						value: 0
 					},
 					isSelected: true,
 					multicall: {
@@ -247,7 +251,7 @@ function ClaimIncentives(): ReactElement {
 				return _claimableIncentiveRaw;
 			}
 			for (const incentive of _claimableIncentiveRaw) {
-				const tokenPrice = Number(toNormalizedBN(prices[incentive.token.address] || 0, 6).normalized);
+				const tokenPrice = Number(toNormalizedBN(prices?.[1]?.[incentive.token.address] || 0, 6).normalized);
 				incentive.value = tokenPrice * Number(incentive.amount.normalized);
 			}
 			return _claimableIncentiveRaw;

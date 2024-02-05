@@ -5,35 +5,39 @@ import {ImageWithFallback} from 'components/common/ImageWithFallback';
 import IconChevronPlain from 'components/icons/IconChevronPlain';
 import IconSpinner from 'components/icons/IconSpinner';
 import useBootstrap from 'contexts/useBootstrap';
-import {useTokenList} from 'contexts/useTokenList';
-import {useWallet} from 'contexts/useWallet';
 import {useTimer} from 'hooks/useTimer';
 import {handleInputChangeEventValue, isValidAddress} from 'utils';
 import {approveERC20, incentivize} from 'utils/actions';
 import {ETH_TOKEN} from 'utils/tokens';
 import {erc20ABI, useContractRead} from 'wagmi';
+import useWallet from '@builtbymom/web3/contexts/useWallet';
+import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
+import {useTokenList} from '@builtbymom/web3/contexts/WithTokenList';
+import {useChainID} from '@builtbymom/web3/hooks/useChainID';
+import {
+	assertAddress,
+	cl,
+	formatAmount,
+	formatNumberOver10K,
+	formatPercent,
+	toAddress,
+	toBigInt,
+	toNormalizedBN,
+	truncateHex,
+	zeroNormalizedBN
+} from '@builtbymom/web3/utils';
+import {defaultTxStatus} from '@builtbymom/web3/utils/wagmi';
 import {useDeepCompareEffect} from '@react-hookz/web';
 import {Button} from '@yearn-finance/web-lib/components/Button';
 import {Modal} from '@yearn-finance/web-lib/components/Modal';
 import {Renderable} from '@yearn-finance/web-lib/components/Renderable';
-import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
-import {useChainID} from '@yearn-finance/web-lib/hooks/useChainID';
 import {IconChevronBottom} from '@yearn-finance/web-lib/icons/IconChevronBottom';
-import {toAddress, truncateHex} from '@yearn-finance/web-lib/utils/address';
-import {cl} from '@yearn-finance/web-lib/utils/cl';
-import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
-import {formatAmount, formatNumberOver10K, formatPercent} from '@yearn-finance/web-lib/utils/format.number';
-import {performBatchedUpdates} from '@yearn-finance/web-lib/utils/performBatchedUpdates';
-import {assertAddress} from '@yearn-finance/web-lib/utils/wagmi/utils';
-import {defaultTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 
-import type {TTokenInfo} from 'contexts/useTokenList';
 import type {TGroupedIncentives, TIncentives, TIncentivesFor} from 'hooks/useBootstrapIncentives';
 import type {ChangeEvent, ReactElement} from 'react';
 import type {TSortDirection} from 'utils/types';
-import type {TDict} from '@yearn-finance/web-lib/types';
-import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
-import type {TTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
+import type {TDict, TNormalizedBN, TToken} from '@builtbymom/web3/types';
+import type {TTxStatus} from '@builtbymom/web3/utils/wagmi';
 
 function Timer(): ReactElement {
 	const {periods} = useBootstrap();
@@ -113,7 +117,7 @@ function IncentiveGroupBreakdownItem({item}: {item: TIncentives}): ReactElement 
 			<div className={'col-span-2 flex items-center justify-end'}>
 				<p className={'font-number pr-1 text-xxs md:text-xs'}>
 					{`${formatAmount(
-						toNormalizedBN(item.amount, item.incentiveToken?.decimals)?.normalized || 0,
+						toNormalizedBN(item.amount, item.incentiveToken?.decimals || 18)?.normalized || 0,
 						6,
 						6
 					)}`}
@@ -138,10 +142,8 @@ function IncentiveGroupBreakdown({incentives}: {incentives: TIncentives[]}): Rea
 	 **	The use of useCallback() is to prevent the method from being re-created on every render.
 	 **********************************************************************************************/
 	const onSort = useCallback((newSortBy: string, newSortDirection: string): void => {
-		performBatchedUpdates((): void => {
-			set_sortBy(newSortBy);
-			set_sortDirection(newSortDirection as TSortDirection);
-		});
+		set_sortBy(newSortBy);
+		set_sortDirection(newSortDirection as TSortDirection);
 	}, []);
 
 	/* 🔵 - Yearn Finance **************************************************************************
@@ -223,8 +225,8 @@ function IncentiveGroupBreakdown({incentives}: {incentives: TIncentives[]}): Rea
 					let aValue = 0;
 					let bValue = 0;
 					if (sortBy === 'amount') {
-						aValue = Number(toNormalizedBN(a.amount, a.incentiveToken?.decimals)?.normalized);
-						bValue = Number(toNormalizedBN(b.amount, b.incentiveToken?.decimals)?.normalized);
+						aValue = Number(toNormalizedBN(a.amount, a.incentiveToken?.decimals || 18)?.normalized);
+						bValue = Number(toNormalizedBN(b.amount, b.incentiveToken?.decimals || 18)?.normalized);
 					} else if (sortBy === 'usdValue') {
 						aValue = a.value;
 						bValue = b.value;
@@ -319,10 +321,8 @@ function IncentiveHistory({isPending, incentives}: {isPending: boolean; incentiv
 	 **	The use of useCallback() is to prevent the method from being re-created on every render.
 	 **********************************************************************************************/
 	const onSort = useCallback((newSortBy: string, newSortDirection: string): void => {
-		performBatchedUpdates((): void => {
-			set_sortBy(newSortBy);
-			set_sortDirection(newSortDirection as TSortDirection);
-		});
+		set_sortBy(newSortBy);
+		set_sortDirection(newSortDirection as TSortDirection);
 	}, []);
 
 	const toggleSortDirection = (newSortBy: string): TSortDirection => {
@@ -428,8 +428,8 @@ function IncentiveHistory({isPending, incentives}: {isPending: boolean; incentiv
 }
 
 type TIncentiveConfirmationModalProps = {
-	lstToIncentive: TTokenInfo | undefined;
-	tokenToUse: TTokenInfo | undefined;
+	lstToIncentive: TToken | undefined;
+	tokenToUse: TToken | undefined;
 	amountToSend: TNormalizedBN;
 	balanceOf: TNormalizedBN;
 	onSuccess: VoidFunction;
@@ -546,18 +546,18 @@ function IncentiveConfirmationModal({
 function ViewIncentive(): ReactElement {
 	const {address, isActive, provider} = useWeb3();
 	const {safeChainID} = useChainID(Number(process.env.BASE_CHAIN_ID));
-	const {balances, refresh} = useWallet();
-	const {tokenList} = useTokenList();
+	const {balances, onRefresh} = useWallet();
+	const {currentNetworkTokenList} = useTokenList();
 	const {
 		whitelistedLST,
 		periods: {incentiveStatus},
 		incentives: {groupIncentiveHistory, isFetchingHistory, refreshIncentives, totalDepositedUSD}
 	} = useBootstrap();
 	const [isModalOpen, set_isModalOpen] = useState<boolean>(false);
-	const [amountToSend, set_amountToSend] = useState<TNormalizedBN>(toNormalizedBN(0));
-	const [possibleTokensToUse, set_possibleTokensToUse] = useState<TDict<TTokenInfo | undefined>>({});
-	const [lstToIncentive, set_lstToIncentive] = useState<TTokenInfo | undefined>();
-	const [tokenToUse, set_tokenToUse] = useState<TTokenInfo | undefined>();
+	const [amountToSend, set_amountToSend] = useState<TNormalizedBN>(zeroNormalizedBN);
+	const [possibleTokensToUse, set_possibleTokensToUse] = useState<TDict<TToken | undefined>>({});
+	const [lstToIncentive, set_lstToIncentive] = useState<TToken | undefined>();
+	const [tokenToUse, set_tokenToUse] = useState<TToken | undefined>();
 	const [approvalStatus, set_approvalStatus] = useState<TTxStatus>(defaultTxStatus);
 	const [className, set_className] = useState<string>('pointer-events-none opacity-40');
 	const {data: allowanceOf, refetch: refetchAllowance} = useContractRead({
@@ -591,23 +591,26 @@ function ViewIncentive(): ReactElement {
 	 ** Only the tokens in that list will be displayed.
 	 **********************************************************************************************/
 	useDeepCompareEffect((): void => {
-		const possibleDestinationsTokens: TDict<TTokenInfo> = {};
-		for (const eachToken of Object.values(tokenList)) {
-			if (eachToken.chainId === safeChainID) {
+		const possibleDestinationsTokens: TDict<TToken> = {};
+		for (const eachToken of Object.values(currentNetworkTokenList)) {
+			if (eachToken.chainID === safeChainID) {
 				possibleDestinationsTokens[toAddress(eachToken.address)] = eachToken;
 			}
 		}
 		set_possibleTokensToUse(possibleDestinationsTokens);
-	}, [tokenList, safeChainID]);
+	}, [currentNetworkTokenList, safeChainID]);
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	 ** On balance or token change, update the balance of the token to use.
 	 **********************************************************************************************/
 	const balanceOf = useMemo((): TNormalizedBN => {
 		if (!tokenToUse) {
-			return toNormalizedBN(0);
+			return zeroNormalizedBN;
 		}
-		return toNormalizedBN(balances?.[tokenToUse.address]?.raw || 0 || 0, tokenToUse.decimals || 18);
+		return toNormalizedBN(
+			balances?.[Number(process.env.BASE_CHAIN_ID)]?.[tokenToUse.address]?.balance?.raw || 0 || 0,
+			tokenToUse.decimals || 18
+		);
 	}, [balances, tokenToUse]);
 
 	/* 🔵 - Yearn Finance **************************************************************************
@@ -620,12 +623,19 @@ function ViewIncentive(): ReactElement {
 			}
 			const element = document.getElementById('amountToSend') as HTMLInputElement;
 			const newAmount = handleInputChangeEventValue(e, tokenToUse?.decimals || 18);
-			if (newAmount.raw > balances?.[tokenToUse.address]?.raw) {
+			if (newAmount.raw > balances?.[Number(process.env.BASE_CHAIN_ID)]?.[tokenToUse.address]?.balance?.raw) {
 				if (element?.value) {
-					element.value = formatAmount(balances?.[tokenToUse.address]?.normalized, 0, 18);
+					element.value = formatAmount(
+						balances?.[Number(process.env.BASE_CHAIN_ID)]?.[tokenToUse.address]?.balance?.normalized,
+						0,
+						18
+					);
 				}
 				return set_amountToSend(
-					toNormalizedBN(balances?.[tokenToUse.address]?.raw || 0, tokenToUse.decimals || 18)
+					toNormalizedBN(
+						balances?.[Number(process.env.BASE_CHAIN_ID)]?.[tokenToUse.address]?.balance?.raw || 0,
+						tokenToUse.decimals || 18
+					)
 				);
 			}
 			set_amountToSend(newAmount);
@@ -643,12 +653,19 @@ function ViewIncentive(): ReactElement {
 			}
 			const element = document.getElementById('amountToSend') as HTMLInputElement;
 			const newAmount = toNormalizedBN((balanceOf.raw * BigInt(percent)) / 100n, tokenToUse.decimals || 18);
-			if (newAmount.raw > balances?.[tokenToUse.address]?.raw) {
+			if (newAmount.raw > balances?.[Number(process.env.BASE_CHAIN_ID)]?.[tokenToUse.address]?.balance?.raw) {
 				if (element?.value) {
-					element.value = formatAmount(balances?.[tokenToUse.address]?.normalized, 0, 18);
+					element.value = formatAmount(
+						balances?.[Number(process.env.BASE_CHAIN_ID)]?.[tokenToUse.address]?.balance?.normalized,
+						0,
+						18
+					);
 				}
 				return set_amountToSend(
-					toNormalizedBN(balances?.[tokenToUse.address]?.raw || 0, tokenToUse.decimals || 18)
+					toNormalizedBN(
+						balances?.[Number(process.env.BASE_CHAIN_ID)]?.[tokenToUse.address]?.balance?.raw || 0,
+						tokenToUse.decimals || 18
+					)
 				);
 			}
 			set_amountToSend(newAmount);
@@ -667,31 +684,28 @@ function ViewIncentive(): ReactElement {
 	 ** Web3 action to incentivize a given protocol with a given token and amount.
 	 **********************************************************************************************/
 	const onIncentiveSuccess = useCallback(async (): Promise<void> => {
-		set_amountToSend(toNormalizedBN(0));
+		set_amountToSend(zeroNormalizedBN);
 		if (!tokenToUse) {
-			await Promise.all([
-				refreshIncentives(),
-				refetchAllowance(),
-				refresh([{...ETH_TOKEN, token: ETH_TOKEN.address}])
-			]);
+			await Promise.all([refreshIncentives(), refetchAllowance(), onRefresh([{...ETH_TOKEN}])]);
 			set_isModalOpen(false);
 			return;
 		}
 		await Promise.all([
 			refreshIncentives(),
 			refetchAllowance(),
-			refresh([
-				{...ETH_TOKEN, token: ETH_TOKEN.address},
+			onRefresh([
+				{...ETH_TOKEN},
 				{
 					decimals: tokenToUse.decimals,
 					name: tokenToUse.name,
 					symbol: tokenToUse.symbol,
-					token: tokenToUse.address
+					address: tokenToUse.address,
+					chainID: Number(process.env.BASE_CHAIN_ID)
 				}
 			])
 		]);
 		set_isModalOpen(false);
-	}, [refresh, refreshIncentives, refetchAllowance, tokenToUse]);
+	}, [onRefresh, refreshIncentives, refetchAllowance, tokenToUse]);
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	 ** Web3 action to incentivize a given protocol with a given token and amount.
@@ -712,17 +726,18 @@ function ViewIncentive(): ReactElement {
 		});
 		if (result.isSuccessful) {
 			refetchAllowance();
-			await refresh([
-				{...ETH_TOKEN, token: ETH_TOKEN.address},
+			await onRefresh([
+				{...ETH_TOKEN},
 				{
 					decimals: tokenToUse.decimals,
 					name: tokenToUse.name,
 					symbol: tokenToUse.symbol,
-					token: tokenToUse.address
+					address: tokenToUse.address,
+					chainID: Number(process.env.BASE_CHAIN_ID)
 				}
 			]);
 		}
-	}, [amountToSend.raw, isActive, provider, refresh, tokenToUse, refetchAllowance]);
+	}, [amountToSend.raw, isActive, provider, onRefresh, tokenToUse, refetchAllowance]);
 
 	return (
 		<section className={'grid grid-cols-1 pt-10 md:mb-20 md:pt-12'}>

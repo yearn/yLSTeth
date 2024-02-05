@@ -2,12 +2,12 @@ import React, {useCallback, useState} from 'react';
 import IconCheck from 'components/icons/IconCheck';
 import IconCircleCross from 'components/icons/IconCircleCross';
 import {isAddress} from 'viem';
+import {isZeroAddress, toAddress} from '@builtbymom/web3/utils';
 import {useUpdateEffect} from '@react-hookz/web';
 import {Button} from '@yearn-finance/web-lib/components/Button';
-import {isZeroAddress, toAddress} from '@yearn-finance/web-lib/utils/address';
 
 import type {ReactElement} from 'react';
-import type {TAddress} from '@yearn-finance/web-lib/types';
+import type {TAddress} from '@builtbymom/web3/types';
 
 function AddressInput({
 	value,

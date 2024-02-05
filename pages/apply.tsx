@@ -4,9 +4,8 @@ import HeroAsLottie from 'components/common/HeroAsLottie';
 import useWallet from 'contexts/useWallet';
 import {useEpoch} from 'hooks/useEpoch';
 import {useTimer} from 'hooks/useTimer';
+import {formatAmount, toAddress} from '@builtbymom/web3/utils';
 import {Button} from '@yearn-finance/web-lib/components/Button';
-import {toAddress} from '@yearn-finance/web-lib/utils/address';
-import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
 
 import type {ReactElement} from 'react';
 

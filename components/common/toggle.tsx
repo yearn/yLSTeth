@@ -1,5 +1,5 @@
+import {cl} from '@builtbymom/web3/utils';
 import {Switch} from '@headlessui/react';
-import {cl} from '@yearn-finance/web-lib/utils/cl';
 
 import type {ReactElement} from 'react';
 

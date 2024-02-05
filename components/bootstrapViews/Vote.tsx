@@ -6,20 +6,14 @@ import IconSpinner from 'components/icons/IconSpinner';
 import useBootstrap from 'contexts/useBootstrap';
 import {useTimer} from 'hooks/useTimer';
 import {handleInputChangeEventValue} from 'utils';
+import {cl, formatAmount, formatPercent, toBigInt, toNormalizedBN, truncateHex} from '@builtbymom/web3/utils';
 import {Button} from '@yearn-finance/web-lib/components/Button';
 import {Modal} from '@yearn-finance/web-lib/components/Modal';
 import {Renderable} from '@yearn-finance/web-lib/components/Renderable';
-import {truncateHex} from '@yearn-finance/web-lib/utils/address';
-import {cl} from '@yearn-finance/web-lib/utils/cl';
-import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
-import {formatAmount, formatPercent} from '@yearn-finance/web-lib/utils/format.number';
-import {performBatchedUpdates} from '@yearn-finance/web-lib/utils/performBatchedUpdates';
 
-import type {TTokenInfo} from 'contexts/useTokenList';
 import type {ChangeEvent, ReactElement} from 'react';
 import type {TSortDirection} from 'utils/types';
-import type {TDict} from '@yearn-finance/web-lib/types';
-import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
+import type {TDict, TNormalizedBN, TToken} from '@builtbymom/web3/types';
 
 function Timer(): ReactElement {
 	const {periods} = useBootstrap();
@@ -29,11 +23,11 @@ function Timer(): ReactElement {
 }
 
 type TVoteListItem = {
-	item: TTokenInfo;
+	item: TToken & {extra: unknown};
 	totalVotesRemaining: TNormalizedBN;
 	voteToSend: TNormalizedBN;
-	onChangeAmount: (e: ChangeEvent<HTMLInputElement>, item: TTokenInfo) => void;
-	updateToMax: (item: TTokenInfo) => void;
+	onChangeAmount: (e: ChangeEvent<HTMLInputElement>, item: TToken) => void;
+	updateToMax: (item: TToken) => void;
 };
 function VoteListItem({
 	item,
@@ -130,7 +124,7 @@ function VoteListItem({
 					<p
 						suppressHydrationWarning
 						className={'font-number'}>
-						{`${formatAmount(toNormalizedBN(item?.extra?.votes || 0).normalized, 6, 6)}`}
+						{`${formatAmount(toNormalizedBN(item?.extra?.votes || 0, 18).normalized, 6, 6)}`}
 					</p>
 				</div>
 
@@ -202,12 +196,12 @@ function VoteList(): ReactElement {
 	const totalVotesRemaining = useMemo((): TNormalizedBN => {
 		const totalVotePower = voteData.votesAvailable.raw;
 		const remaining = Object.values(voteToSend).reduce((acc, curr): bigint => acc + curr.raw, 0n);
-		return toNormalizedBN(totalVotePower - remaining);
+		return toNormalizedBN(totalVotePower - remaining, 18);
 	}, [voteData, voteToSend]);
 
 	const totalVotesUsed = useMemo((): TNormalizedBN => {
 		const used = Object.values(voteToSend).reduce((acc, curr): bigint => acc + curr.raw, 0n);
-		return toNormalizedBN(used);
+		return toNormalizedBN(used, 18);
 	}, [voteToSend]);
 
 	/* 🔵 - Yearn Finance **************************************************************************
@@ -215,10 +209,8 @@ function VoteList(): ReactElement {
 	 **	The use of useCallback() is to prevent the method from being re-created on every render.
 	 **********************************************************************************************/
 	const onSort = useCallback((newSortBy: string, newSortDirection: string): void => {
-		performBatchedUpdates((): void => {
-			set_sortBy(newSortBy);
-			set_sortDirection(newSortDirection as TSortDirection);
-		});
+		set_sortBy(newSortBy);
+		set_sortDirection(newSortDirection as TSortDirection);
 	}, []);
 
 	const toggleSortDirection = (newSortBy: string): TSortDirection => {
@@ -252,7 +244,7 @@ function VoteList(): ReactElement {
 	 ** Change the inputed amount when the user types something in the input field.
 	 **********************************************************************************************/
 	const onChangeAmount = useCallback(
-		(e: ChangeEvent<HTMLInputElement>, currentLST: TTokenInfo): void => {
+		(e: ChangeEvent<HTMLInputElement>, currentLST: TToken): void => {
 			const element = document.getElementById(`vote-for-${currentLST.address}`) as HTMLInputElement;
 			const currentAmount = handleInputChangeEventValue(e, 18);
 			const totalVotePower = voteData.votesAvailable.raw;
@@ -261,7 +253,7 @@ function VoteList(): ReactElement {
 				.reduce((acc, [, curr]): bigint => acc + curr.raw, 0n);
 
 			if (remaining + currentAmount.raw > totalVotePower) {
-				const newAmount = toNormalizedBN(totalVotePower - remaining);
+				const newAmount = toNormalizedBN(totalVotePower - remaining, 18);
 				if (element?.value) {
 					element.value = formatAmount(newAmount.normalized, 0, 18);
 				}
@@ -278,14 +270,14 @@ function VoteList(): ReactElement {
 	 ** remaining voting power.
 	 **********************************************************************************************/
 	const updateToMax = useCallback(
-		(currentLST: TTokenInfo): void => {
+		(currentLST: TToken): void => {
 			const element = document.getElementById(`vote-for-${currentLST.address}`) as HTMLInputElement;
 			const totalVotePower = voteData.votesAvailable.raw;
 			const remaining = Object.entries(voteToSend)
 				.filter(([key]): boolean => key !== currentLST.address)
 				.reduce((acc, [, curr]): bigint => acc + curr.raw, 0n);
 
-			const newAmount = toNormalizedBN(totalVotePower - remaining);
+			const newAmount = toNormalizedBN(totalVotePower - remaining, 18);
 			if (element?.value) {
 				element.value = formatAmount(newAmount.normalized, 0, 18);
 			}
@@ -296,11 +288,9 @@ function VoteList(): ReactElement {
 
 	const onVoteSuccess = useCallback(async (): Promise<void> => {
 		await Promise.all([onUpdate(), onUpdateLST()]);
-		performBatchedUpdates((): void => {
-			set_isModalOpen(false);
-			set_voteToSend({});
-			set_nonce((n): number => n + 1);
-		});
+		set_isModalOpen(false);
+		set_voteToSend({});
+		set_nonce((n): number => n + 1);
 	}, [onUpdate, onUpdateLST]);
 
 	return (
@@ -358,17 +348,17 @@ function VoteList(): ReactElement {
 						aValue = groupIncentiveHistory.protocols[a.address]?.normalizedSum || 0;
 						bValue = groupIncentiveHistory.protocols[b.address]?.normalizedSum || 0;
 					} else if (sortBy === 'weight') {
-						const totalVotes = Number(toNormalizedBN(toBigInt(a.extra?.totalVotes)).normalized);
-						const aVotes = Number(toNormalizedBN(toBigInt(a.extra?.votes)).normalized);
-						const bVotes = Number(toNormalizedBN(toBigInt(b.extra?.votes)).normalized);
+						const totalVotes = Number(toNormalizedBN(toBigInt(a.extra?.totalVotes), 18).normalized);
+						const aVotes = Number(toNormalizedBN(toBigInt(a.extra?.votes), 18).normalized);
+						const bVotes = Number(toNormalizedBN(toBigInt(b.extra?.votes), 18).normalized);
 						if (totalVotes === 0) {
 							return 0;
 						}
 						aValue = (aVotes / totalVotes) * 100;
 						bValue = (bVotes / totalVotes) * 100;
 					} else if (sortBy === 'totalVotes') {
-						aValue = Number(toNormalizedBN(toBigInt(a.extra?.votes)).normalized);
-						bValue = Number(toNormalizedBN(toBigInt(b.extra?.votes)).normalized);
+						aValue = Number(toNormalizedBN(toBigInt(a.extra?.votes), 18).normalized);
+						bValue = Number(toNormalizedBN(toBigInt(b.extra?.votes), 18).normalized);
 					} else if (sortBy === 'yourVotes') {
 						aValue = Number(voteData.votesUsedPerProtocol[a.address]?.normalized || 0);
 						bValue = Number(voteData.votesUsedPerProtocol[b.address]?.normalized || 0);
@@ -446,7 +436,7 @@ function Vote(): ReactElement {
 		for (const item of Object.values(whitelistedLST)) {
 			sum += item?.extra?.votes || 0n;
 		}
-		return Number(toNormalizedBN(sum).normalized);
+		return Number(toNormalizedBN(sum, 18).normalized);
 	}, [whitelistedLST]);
 
 	useEffect((): void => {

@@ -2,15 +2,12 @@ import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import BOOTSTRAP_ABI from 'utils/abi/bootstrap.abi';
 import {parseAbiItem} from 'viem';
 import {useContractReads} from 'wagmi';
+import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
+import {toAddress, toBigInt, toNormalizedBN, zeroNormalizedBN} from '@builtbymom/web3/utils';
+import {getClient} from '@builtbymom/web3/utils/wagmi';
 import {useDeepCompareMemo} from '@react-hookz/web';
-import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
-import {toAddress} from '@yearn-finance/web-lib/utils/address';
-import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
-import {performBatchedUpdates} from '@yearn-finance/web-lib/utils/performBatchedUpdates';
-import {getClient} from '@yearn-finance/web-lib/utils/wagmi/utils';
 
-import type {TAddress, TAddressWagmi, TDict} from '@yearn-finance/web-lib/types';
-import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
+import type {TAddress, TAddressWagmi, TDict, TNormalizedBN} from '@builtbymom/web3/types';
 
 type TBaseReadContractData = {
 	address: TAddressWagmi;
@@ -78,15 +75,16 @@ function useVoteEvents(): TUseVoteEventsResp {
 			for (const log of logs) {
 				const {protocol, amount} = log.args;
 				if (!userVotes[toAddress(protocol)]) {
-					userVotes[toAddress(protocol)] = toNormalizedBN(0n);
+					userVotes[toAddress(protocol)] = zeroNormalizedBN;
 				}
-				userVotes[toAddress(protocol)] = toNormalizedBN(userVotes[toAddress(protocol)].raw + toBigInt(amount));
+				userVotes[toAddress(protocol)] = toNormalizedBN(
+					userVotes[toAddress(protocol)].raw + toBigInt(amount),
+					18
+				);
 			}
 		}
-		performBatchedUpdates((): void => {
-			set_votesUsedPerProtocol(userVotes);
-			set_isLoadingEvents(false);
-		});
+		set_votesUsedPerProtocol(userVotes);
+		set_isLoadingEvents(false);
 		hasAlreadyBeLoaded.current = true;
 	}, [address]);
 
@@ -157,12 +155,12 @@ function useBootstrapVoting(): TUseBootstrapVotingResp {
 
 	const voteData = useDeepCompareMemo(
 		(): TUseBootstrapVotingResp['voteData'] => ({
-			votesAvailable: toNormalizedBN((data?.[0]?.result as bigint) || 0n),
-			votesUsed: toNormalizedBN((data?.[1]?.result as bigint) || 0n),
+			votesAvailable: toNormalizedBN((data?.[0]?.result as bigint) || 0n, 18),
+			votesUsed: toNormalizedBN((data?.[1]?.result as bigint) || 0n, 18),
 			votesUsedPerProtocol: votesUsedPerProtocol,
 			winners: winners
 		}),
-		[data, votesUsedPerProtocol]
+		[data, votesUsedPerProtocol, winners]
 	);
 
 	return {

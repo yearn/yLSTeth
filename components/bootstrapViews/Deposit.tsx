@@ -3,7 +3,6 @@ import assert from 'assert';
 import {ImageWithFallback} from 'components/common/ImageWithFallback';
 import IconSpinner from 'components/icons/IconSpinner';
 import useBootstrap from 'contexts/useBootstrap';
-import {useWallet} from 'contexts/useWallet';
 import {useTimer} from 'hooks/useTimer';
 import {formatDate, handleInputChangeEventValue} from 'utils';
 import BOOTSTRAP_ABI from 'utils/abi/bootstrap.abi';
@@ -11,22 +10,17 @@ import {depositETH} from 'utils/actions';
 import {ETH_TOKEN, STYETH_TOKEN, YETH_TOKEN} from 'utils/tokens';
 import {parseAbiItem} from 'viem';
 import {useContractRead} from 'wagmi';
+import useWallet from '@builtbymom/web3/contexts/useWallet';
+import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
+import {cl, formatAmount, toAddress, toBigInt, toNormalizedBN, zeroNormalizedBN} from '@builtbymom/web3/utils';
+import {defaultTxStatus, getClient} from '@builtbymom/web3/utils/wagmi';
 import {Button} from '@yearn-finance/web-lib/components/Button';
 import {Renderable} from '@yearn-finance/web-lib/components/Renderable';
-import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
-import {toAddress} from '@yearn-finance/web-lib/utils/address';
-import {cl} from '@yearn-finance/web-lib/utils/cl';
-import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
-import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
-import {performBatchedUpdates} from '@yearn-finance/web-lib/utils/performBatchedUpdates';
-import {getClient} from '@yearn-finance/web-lib/utils/wagmi/utils';
-import {defaultTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 
 import type {ChangeEvent, ReactElement} from 'react';
 import type {Connector} from 'wagmi';
-import type {TAddress} from '@yearn-finance/web-lib/types';
-import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
-import type {TTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
+import type {TAddress, TNormalizedBN} from '@builtbymom/web3/types';
+import type {TTxStatus} from '@builtbymom/web3/utils/wagmi';
 
 function Timer(): ReactElement {
 	const {periods} = useBootstrap();
@@ -53,7 +47,7 @@ function DepositItem({item}: {item: TDepositHistory}): ReactElement {
 			</div>
 			<div className={'col-span-12 flex justify-between pr-0 md:col-span-2 md:justify-end md:pr-1'}>
 				<small className={'block text-neutral-500 md:hidden'}>{'Locked, st-yETH'}</small>
-				<p className={'font-number'}>{`${formatAmount(toNormalizedBN(item.amount).normalized, 0, 6)}`}</p>
+				<p className={'font-number'}>{`${formatAmount(toNormalizedBN(item.amount, 18).normalized, 0, 6)}`}</p>
 			</div>
 		</div>
 	);
@@ -102,8 +96,8 @@ function ViewDeposit(): ReactElement {
 		incentives: {totalDepositedETH}
 	} = useBootstrap();
 	const {address, isActive, provider, chainID} = useWeb3();
-	const {balances, refresh} = useWallet();
-	const [amountToSend, set_amountToSend] = useState<TNormalizedBN>(toNormalizedBN(0));
+	const {balances, onRefresh} = useWallet();
+	const [amountToSend, set_amountToSend] = useState<TNormalizedBN>(zeroNormalizedBN);
 	const [depositTxStatus, set_depositTxStatus] = useState<TTxStatus>(defaultTxStatus);
 	const [depositHistory, set_depositHistory] = useState<TDepositHistory[]>([]);
 	const [isFetchingHistory, set_isFetchingHistory] = useState<boolean>(false);
@@ -152,10 +146,8 @@ function ViewDeposit(): ReactElement {
 				});
 			}
 		}
-		performBatchedUpdates((): void => {
-			set_depositHistory(history);
-			set_isFetchingHistory(false);
-		});
+		set_depositHistory(history);
+		set_isFetchingHistory(false);
 	}, [address]);
 	useEffect((): void => {
 		filterEvents();
@@ -170,26 +162,42 @@ function ViewDeposit(): ReactElement {
 	}, [depositStatus, className]);
 
 	const balanceOf = useMemo((): TNormalizedBN => {
-		return toNormalizedBN(balances?.[tokenToSend.address]?.raw || 0 || 0);
+		return toNormalizedBN(
+			balances?.[Number(process.env.DEFAULT_CHAIN_ID)]?.[tokenToSend.address]?.balance?.raw || 0 || 0,
+			18
+		);
 	}, [balances, tokenToSend.address]);
 
 	const balanceDeposited = useMemo((): TNormalizedBN => {
-		return toNormalizedBN(tokensDeposited || 0 || 0);
+		return toNormalizedBN(tokensDeposited || 0 || 0, 18);
 	}, [tokensDeposited]);
 
 	const safeMaxValue = useMemo((): TNormalizedBN => {
-		return toNormalizedBN(((balances?.[tokenToSend.address]?.raw || 0n) * 9n) / 10n || 0);
+		return toNormalizedBN(
+			((balances?.[Number(process.env.DEFAULT_CHAIN_ID)]?.[tokenToSend.address]?.balance?.raw || 0n) * 9n) /
+				10n || 0,
+			18
+		);
 	}, [balances, tokenToSend.address]);
 
 	const onChangeAmount = useCallback(
 		(e: ChangeEvent<HTMLInputElement>): void => {
 			const element = document.getElementById('amountToSend') as HTMLInputElement;
 			const newAmount = handleInputChangeEventValue(e, tokenToSend?.decimals || 18);
-			if (newAmount.raw > balances?.[tokenToSend.address]?.raw) {
+			if (newAmount.raw > balances?.[Number(process.env.DEFAULT_CHAIN_ID)]?.[tokenToSend.address]?.balance?.raw) {
 				if (element?.value) {
-					element.value = formatAmount(balances?.[tokenToSend.address]?.normalized, 0, 18);
+					element.value = formatAmount(
+						balances?.[Number(process.env.DEFAULT_CHAIN_ID)]?.[tokenToSend.address]?.balance?.normalized,
+						0,
+						18
+					);
 				}
-				return set_amountToSend(toNormalizedBN(balances?.[tokenToSend.address]?.raw || 0));
+				return set_amountToSend(
+					toNormalizedBN(
+						balances?.[Number(process.env.DEFAULT_CHAIN_ID)]?.[tokenToSend.address]?.balance?.raw || 0,
+						18
+					)
+				);
 			}
 			set_amountToSend(newAmount);
 		},
@@ -199,12 +207,21 @@ function ViewDeposit(): ReactElement {
 	const updateToPercent = useCallback(
 		(percent: number): void => {
 			const element = document.getElementById('amountToSend') as HTMLInputElement;
-			const newAmount = toNormalizedBN((balanceOf.raw * BigInt(percent)) / 100n);
-			if (newAmount.raw > balances?.[tokenToSend.address]?.raw) {
+			const newAmount = toNormalizedBN((balanceOf.raw * BigInt(percent)) / 100n, 18);
+			if (newAmount.raw > balances?.[Number(process.env.DEFAULT_CHAIN_ID)]?.[tokenToSend.address]?.balance?.raw) {
 				if (element?.value) {
-					element.value = formatAmount(balances?.[tokenToSend.address]?.normalized, 0, 18);
+					element.value = formatAmount(
+						balances?.[Number(process.env.DEFAULT_CHAIN_ID)]?.[tokenToSend.address]?.balance?.normalized,
+						0,
+						18
+					);
 				}
-				return set_amountToSend(toNormalizedBN(balances?.[tokenToSend.address]?.raw || 0));
+				return set_amountToSend(
+					toNormalizedBN(
+						balances?.[Number(process.env.DEFAULT_CHAIN_ID)]?.[tokenToSend.address]?.balance?.raw || 0,
+						18
+					)
+				);
 			}
 			set_amountToSend(newAmount);
 		},
@@ -230,19 +247,15 @@ function ViewDeposit(): ReactElement {
 				statusHandler: set_depositTxStatus
 			});
 			if (result.isSuccessful) {
-				set_amountToSend(toNormalizedBN(0));
+				set_amountToSend(zeroNormalizedBN);
 				await Promise.all([
 					filterEvents(),
 					refetch(),
-					refresh([
-						{...ETH_TOKEN, token: ETH_TOKEN.address},
-						{...STYETH_TOKEN, token: STYETH_TOKEN.address},
-						{...YETH_TOKEN, token: YETH_TOKEN.address}
-					])
+					onRefresh([{...ETH_TOKEN}, {...STYETH_TOKEN}, {...YETH_TOKEN}])
 				]);
 			}
 		},
-		[amountToSend.raw, isActive, refresh, refetch, filterEvents]
+		[amountToSend.raw, isActive, onRefresh, refetch, filterEvents]
 	);
 
 	return (
@@ -313,7 +326,7 @@ function ViewDeposit(): ReactElement {
 									<ImageWithFallback
 										alt={''}
 										unoptimized
-										src={ETH_TOKEN.logoURI}
+										src={ETH_TOKEN.logoURI || ''}
 										width={24}
 										height={24}
 									/>

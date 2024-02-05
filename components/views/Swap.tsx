@@ -4,29 +4,31 @@ import SettingsPopover from 'components/common/SettingsPopover';
 import TokenInput from 'components/common/TokenInput';
 import IconSwapSVG from 'components/icons/IconSwap';
 import useLST from 'contexts/useLST';
-import useWallet from 'contexts/useWallet';
-import {useAsyncTrigger} from 'hooks/useAsyncEffect';
 import {ESTIMATOR_ABI} from 'utils/abi/estimator.abi';
 import {approveERC20, swapLST, swapOutLST} from 'utils/actions';
 import {LST} from 'utils/constants';
 import {ETH_TOKEN, YETH_TOKEN} from 'utils/tokens';
 import {erc20ABI, useContractRead, useContractReads} from 'wagmi';
+import useWallet from '@builtbymom/web3/contexts/useWallet';
+import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
+import {useAsyncTrigger} from '@builtbymom/web3/hooks/useAsyncTrigger';
+import {
+	cl,
+	decodeAsBigInt,
+	formatAmount,
+	MAX_UINT_256,
+	toAddress,
+	toBigInt,
+	toNormalizedBN,
+	zeroNormalizedBN
+} from '@builtbymom/web3/utils';
+import {defaultTxStatus} from '@builtbymom/web3/utils/wagmi';
 import {Button} from '@yearn-finance/web-lib/components/Button';
-import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
-import {toAddress} from '@yearn-finance/web-lib/utils/address';
-import {cl} from '@yearn-finance/web-lib/utils/cl';
-import {MAX_UINT_256} from '@yearn-finance/web-lib/utils/constants';
-import {decodeAsBigInt} from '@yearn-finance/web-lib/utils/decoder';
-import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
-import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
-import {performBatchedUpdates} from '@yearn-finance/web-lib/utils/performBatchedUpdates';
-import {defaultTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 
 import type {TLST} from 'hooks/useLSTData';
 import type {Dispatch, ReactElement, SetStateAction} from 'react';
-import type {TUseBalancesTokens} from '@yearn-finance/web-lib/hooks/useBalances';
-import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
-import type {TTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
+import type {TNormalizedBN} from '@builtbymom/web3/types';
+import type {TTxStatus} from '@builtbymom/web3/utils/wagmi';
 
 type TViewSwapBox = {
 	selectedFromLST: TLST;
@@ -54,7 +56,7 @@ function ViewSwapBox({
 }: TViewSwapBox): ReactElement {
 	const {isActive, provider, address} = useWeb3();
 	const {lst, onUpdateLST, slippage} = useLST();
-	const {balances, refresh} = useWallet();
+	const {getBalance, onRefresh} = useWallet();
 	const [txStatus, set_txStatus] = useState<TTxStatus>(defaultTxStatus);
 	const [lastInput, set_lastInput] = useState<'from' | 'to'>('from');
 
@@ -141,29 +143,29 @@ function ViewSwapBox({
 	useAsyncTrigger(async (): Promise<void> => {
 		if (dyDxVbError) {
 			set_bonusOrPenalty(-100);
-			set_rate(toNormalizedBN(0n));
+			set_rate(toNormalizedBN(0n, 18));
 		} else if (dyDxVb && vbOut) {
 			const dy = decodeAsBigInt(dyDxVb?.[0]);
 			const dx = decodeAsBigInt(dyDxVb?.[1]);
-			const vbInput = toNormalizedBN(decodeAsBigInt(dyDxVb?.[2]));
-			const vbOutput = toNormalizedBN(vbOut);
+			const vbInput = toNormalizedBN(decodeAsBigInt(dyDxVb?.[2]), 18);
+			const vbOutput = toNormalizedBN(vbOut, 18);
 			const bonusOrPenalty = Number(vbOutput.normalized) / Number(vbInput.normalized);
 			set_bonusOrPenalty((bonusOrPenalty > 1 ? bonusOrPenalty - 1 : -(1 - bonusOrPenalty)) * 100);
 			if (fromAmount.raw > 0n) {
-				set_rate(toNormalizedBN((toAmount.raw * toBigInt(1e18)) / fromAmount.raw));
+				set_rate(toNormalizedBN((toAmount.raw * toBigInt(1e18)) / fromAmount.raw, 18));
 			} else {
-				set_rate(toNormalizedBN(0n));
+				set_rate(zeroNormalizedBN);
 			}
 
 			if (lastInput === 'from') {
-				set_toAmount(toNormalizedBN(dy));
+				set_toAmount(toNormalizedBN(dy, 18));
 			} else {
 				const dxWith1PercentSlippage: bigint = dx + toBigInt(dx / (slippage || 1n));
-				set_fromAmount(toNormalizedBN(dxWith1PercentSlippage));
+				set_fromAmount(toNormalizedBN(dxWith1PercentSlippage, 18));
 			}
 		} else {
 			set_bonusOrPenalty(0);
-			set_rate(toNormalizedBN(0n));
+			set_rate(zeroNormalizedBN);
 		}
 	}, [
 		dyDxVb,
@@ -270,12 +272,9 @@ function ViewSwapBox({
 		});
 		if (result.isSuccessful) {
 			refreshAllowance();
-			await refresh([
-				{...ETH_TOKEN, token: ETH_TOKEN.address},
-				...lst.map((item): TUseBalancesTokens => ({...item, token: item.address}))
-			]);
+			await onRefresh([ETH_TOKEN, ...lst.map(item => item)]);
 		}
-	}, [fromAmount.raw, isActive, provider, refresh, refreshAllowance, selectedFromLST.address, lst]);
+	}, [fromAmount.raw, isActive, provider, onRefresh, refreshAllowance, selectedFromLST.address, lst]);
 
 	const onSwap = useCallback(async (): Promise<void> => {
 		assert(isActive, 'Wallet not connected');
@@ -295,15 +294,9 @@ function ViewSwapBox({
 			});
 			if (result.isSuccessful) {
 				onUpdateLST();
-				await refresh([
-					{...ETH_TOKEN, token: ETH_TOKEN.address},
-					{...YETH_TOKEN, token: YETH_TOKEN.address},
-					...LST.map((item): TUseBalancesTokens => ({...item, token: item.address}))
-				]);
-				performBatchedUpdates((): void => {
-					set_fromAmount(toNormalizedBN(0n));
-					set_toAmount(toNormalizedBN(0n));
-				});
+				await onRefresh([ETH_TOKEN, YETH_TOKEN, ...LST.map(item => item)]);
+				set_fromAmount(zeroNormalizedBN);
+				set_toAmount(zeroNormalizedBN);
 			}
 		} else if (lastInput === 'to') {
 			const maxInWith1PercentSlippage: bigint = fromAmount.raw + fromAmount.raw / (slippage || 1n);
@@ -319,15 +312,9 @@ function ViewSwapBox({
 			});
 			if (result.isSuccessful) {
 				onUpdateLST();
-				await refresh([
-					{...ETH_TOKEN, token: ETH_TOKEN.address},
-					{...YETH_TOKEN, token: YETH_TOKEN.address},
-					...LST.map((item): TUseBalancesTokens => ({...item, token: item.address}))
-				]);
-				performBatchedUpdates((): void => {
-					set_fromAmount(toNormalizedBN(0n));
-					set_toAmount(toNormalizedBN(0n));
-				});
+				await onRefresh([ETH_TOKEN, YETH_TOKEN, ...LST.map(item => item)]);
+				set_fromAmount(zeroNormalizedBN);
+				set_toAmount(zeroNormalizedBN);
 			}
 		}
 	}, [
@@ -340,7 +327,7 @@ function ViewSwapBox({
 		selectedToLST.index,
 		fromAmount.raw,
 		onUpdateLST,
-		refresh,
+		onRefresh,
 		set_fromAmount,
 		set_toAmount
 	]);
@@ -360,7 +347,7 @@ function ViewSwapBox({
 							tokens={lst}
 							onChangeToken={onUpdateFromToken}
 							value={fromAmount}
-							allowance={toNormalizedBN(allowance || 0n)}
+							allowance={toNormalizedBN(allowance || 0n, 18)}
 							onChange={onUpdateFromAmount}
 						/>
 						<div className={'mb-8 mt-6 flex w-full justify-center'}>
@@ -377,7 +364,7 @@ function ViewSwapBox({
 							tokens={lst}
 							onChangeToken={onUpdateToToken}
 							value={toAmount}
-							allowance={toNormalizedBN(MAX_UINT_256)}
+							allowance={toNormalizedBN(MAX_UINT_256, 18)}
 							shouldCheckAllowance={false}
 							shouldCheckBalance={false}
 							onChange={onUpdateToAmount}
@@ -392,7 +379,11 @@ function ViewSwapBox({
 							fromAmount.raw === 0n ||
 							toAmount.raw === 0n ||
 							!provider ||
-							fromAmount.raw > balances?.[selectedFromLST.address]?.raw
+							fromAmount.raw >
+								getBalance({
+									address: selectedFromLST.address,
+									chainID: Number(process.env.DEFAULT_CHAIN_ID)
+								})?.raw
 						}
 						onClick={(): void => {
 							if (!hasAllowance) {
@@ -489,9 +480,9 @@ function ViewSwap(): ReactElement {
 	const [selectedFromLST, set_selectedFromLST] = useState<TLST>(lst[0]);
 	const [selectedToLST, set_selectedToLST] = useState<TLST>(lst[1]);
 	const [bonusOrPenalty, set_bonusOrPenalty] = useState<number>(0);
-	const [fromAmount, set_fromAmount] = useState<TNormalizedBN>(toNormalizedBN(0));
-	const [toAmount, set_toAmount] = useState<TNormalizedBN>(toNormalizedBN(0));
-	const [rate, set_rate] = useState<TNormalizedBN>(toNormalizedBN(0n));
+	const [fromAmount, set_fromAmount] = useState<TNormalizedBN>(zeroNormalizedBN);
+	const [toAmount, set_toAmount] = useState<TNormalizedBN>(zeroNormalizedBN);
+	const [rate, set_rate] = useState<TNormalizedBN>(zeroNormalizedBN);
 
 	return (
 		<section className={'relative px-4 md:px-72'}>

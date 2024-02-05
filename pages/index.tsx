@@ -8,7 +8,6 @@ import ViewSwap from 'components/views/Swap';
 import LSTInPool from 'components/views/ViewLSTInPool';
 import ViewWithdraw from 'components/views/Withdraw';
 import useLST from 'contexts/useLST';
-import useWallet from 'contexts/useWallet';
 import useAPR from 'hooks/useAPR';
 import BOOTSTRAP_ABI from 'utils/abi/bootstrap.abi';
 import {ST_YETH_ABI} from 'utils/abi/styETH.abi';
@@ -16,13 +15,11 @@ import {getCurrentEpoch} from 'utils/epochs';
 import {STYETH_TOKEN, YETH_TOKEN} from 'utils/tokens';
 import {useContractRead} from 'wagmi';
 import {useAnimate} from 'framer-motion';
+import useWallet from '@builtbymom/web3/contexts/useWallet';
+import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
+import {cl, formatAmount, toAddress, toBigInt, toNormalizedBN} from '@builtbymom/web3/utils';
 import {Listbox, Transition} from '@headlessui/react';
 import {useMountEffect, useUnmountEffect} from '@react-hookz/web';
-import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
-import {toAddress} from '@yearn-finance/web-lib/utils/address';
-import {cl} from '@yearn-finance/web-lib/utils/cl';
-import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
-import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
 
 import type {AnimationScope} from 'framer-motion';
 import type {Router} from 'next/router';
@@ -60,7 +57,7 @@ function Composition(): ReactElement {
 									<ImageWithFallback
 										alt={token.name}
 										unoptimized
-										src={token.logoURI}
+										src={token.logoURI || ''}
 										width={24}
 										height={24}
 									/>
@@ -114,7 +111,7 @@ function RenderYETHValue({amount}: {amount: bigint}): ReactElement {
 			className={cl(
 				'text-sm block md:text-base text-neutral-500 transition-colors group-hover:text-neutral-0 font-number'
 			)}>
-			{`~ ${formatAmount(Number(toNormalizedBN(toBigInt(yETHValue)).normalized), 6, 6)} yETH`}
+			{`~ ${formatAmount(Number(toNormalizedBN(toBigInt(yETHValue), 18).normalized), 6, 6)} yETH`}
 		</p>
 	);
 }
@@ -147,7 +144,12 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 							'block text-lg md:text-lg leading-6 md:leading-8 font-number',
 							basicColorTransition
 						)}>
-						{formatAmount(balances?.[YETH_TOKEN.address]?.normalized || 0, 6, 6)}
+						{formatAmount(
+							balances?.[Number(process.env.DEFAULT_CHAIN_ID)]?.[YETH_TOKEN.address]?.balance
+								?.normalized || 0,
+							6,
+							6
+						)}
 					</b>
 				</div>
 
@@ -160,9 +162,20 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 								'text-lg md:text-lg leading-6 md:leading-8 font-number',
 								basicColorTransition
 							)}>
-							{formatAmount(Number(balances?.[STYETH_TOKEN.address]?.normalized || 0), 6, 6)}
+							{formatAmount(
+								Number(
+									balances?.[Number(process.env.DEFAULT_CHAIN_ID)]?.[STYETH_TOKEN.address]?.balance
+										?.normalized || 0
+								),
+								6,
+								6
+							)}
 						</b>
-						<RenderYETHValue amount={toBigInt(balances?.[STYETH_TOKEN.address]?.raw)} />
+						<RenderYETHValue
+							amount={toBigInt(
+								balances?.[Number(process.env.DEFAULT_CHAIN_ID)]?.[STYETH_TOKEN.address]?.balance?.raw
+							)}
+						/>
 					</span>
 				</div>
 
@@ -176,7 +189,7 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 									'text-lg md:text-lg leading-6 md:leading-8 font-number',
 									basicColorTransition
 								)}>
-								{formatAmount(toNormalizedBN(lockedTokens || 0n).normalized, 6, 6)}
+								{formatAmount(toNormalizedBN(lockedTokens || 0n, 18).normalized, 6, 6)}
 							</b>
 							<RenderYETHValue amount={toBigInt(lockedTokens)} />
 						</span>

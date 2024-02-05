@@ -1,4 +1,4 @@
-import {toBigInt} from '@yearn-finance/web-lib/utils/format.bigNumber';
+import {toBigInt} from '@builtbymom/web3/utils';
 
 export type TUseBootstrapPeriodsResp = {
 	whitelistBegin: bigint;

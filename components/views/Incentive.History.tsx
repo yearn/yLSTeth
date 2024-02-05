@@ -7,19 +7,15 @@ import useLST from 'contexts/useLST';
 import useEpochIncentives from 'hooks/useEpochIncentives';
 import {NO_CHANGE_LST_LIKE} from 'utils/constants';
 import {getCurrentEpochNumber, getEpoch} from 'utils/epochs';
-import {useChainID} from '@yearn-finance/web-lib/hooks/useChainID';
+import {useChainID} from '@builtbymom/web3/hooks/useChainID';
+import {cl, formatAmount, formatPercent, toAddress, toNormalizedBN, truncateHex} from '@builtbymom/web3/utils';
 import {IconChevronBottom} from '@yearn-finance/web-lib/icons/IconChevronBottom';
-import {toAddress, truncateHex} from '@yearn-finance/web-lib/utils/address';
-import {cl} from '@yearn-finance/web-lib/utils/cl';
-import {toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
-import {formatAmount, formatPercent} from '@yearn-finance/web-lib/utils/format.number';
-import {performBatchedUpdates} from '@yearn-finance/web-lib/utils/performBatchedUpdates';
 
 import type {TIncentives} from 'hooks/useBootstrapIncentives';
 import type {TGroupedIncentives} from 'hooks/useIncentives';
 import type {ReactElement} from 'react';
 import type {TIndexedTokenInfo, TSortDirection} from 'utils/types';
-import type {TDict} from '@yearn-finance/web-lib/types';
+import type {TDict} from '@builtbymom/web3/types';
 
 function IncentiveGroupBreakdownItem({item}: {item: TIncentives}): ReactElement {
 	return (
@@ -45,7 +41,7 @@ function IncentiveGroupBreakdownItem({item}: {item: TIncentives}): ReactElement 
 					suppressHydrationWarning
 					className={'font-number pr-1 text-xxs md:text-xs'}>
 					{`${formatAmount(
-						toNormalizedBN(item.amount, item.incentiveToken?.decimals)?.normalized || 0,
+						toNormalizedBN(item.amount, item.incentiveToken?.decimals || 18)?.normalized || 0,
 						6,
 						6
 					)}`}
@@ -78,10 +74,8 @@ function IncentiveGroupBreakdown({incentives}: {incentives: TIncentives[]}): Rea
 	 **	The use of useCallback() is to prevent the method from being re-created on every render.
 	 **********************************************************************************************/
 	const onSort = useCallback((newSortBy: string, newSortDirection: string): void => {
-		performBatchedUpdates((): void => {
-			set_sortBy(newSortBy);
-			set_sortDirection(newSortDirection as TSortDirection);
-		});
+		set_sortBy(newSortBy);
+		set_sortDirection(newSortDirection as TSortDirection);
 	}, []);
 
 	/* 🔵 - Yearn Finance **************************************************************************
@@ -163,8 +157,8 @@ function IncentiveGroupBreakdown({incentives}: {incentives: TIncentives[]}): Rea
 					let aValue = 0;
 					let bValue = 0;
 					if (sortBy === 'amount') {
-						aValue = Number(toNormalizedBN(a.amount, a.incentiveToken?.decimals)?.normalized);
-						bValue = Number(toNormalizedBN(b.amount, b.incentiveToken?.decimals)?.normalized);
+						aValue = Number(toNormalizedBN(a.amount, a.incentiveToken?.decimals || 18)?.normalized);
+						bValue = Number(toNormalizedBN(b.amount, b.incentiveToken?.decimals || 18)?.normalized);
 					} else if (sortBy === 'usdValue') {
 						aValue = a.value;
 						bValue = b.value;

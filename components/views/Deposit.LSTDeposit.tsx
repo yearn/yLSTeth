@@ -4,14 +4,12 @@ import IconCircleCross from 'components/icons/IconCircleCross';
 import IconWarning from 'components/icons/IconWarning';
 import useWallet from 'contexts/useWallet';
 import {handleInputChangeEventValue} from 'utils';
-import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
-import {cl} from '@yearn-finance/web-lib/utils/cl';
-import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
-import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
+import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
+import {cl, formatAmount, toBigInt, toNormalizedBN} from '@builtbymom/web3/utils';
 
 import type {TLST} from 'hooks/useLSTData';
 import type {ChangeEvent, ReactElement} from 'react';
-import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
+import type {TNormalizedBN} from '@builtbymom/web3/utils';
 
 function LSTDepositForm({
 	token,

@@ -4,8 +4,6 @@ import assert from 'assert';
 import ComboboxAddressInput from 'components/common/ComboboxAddressInput';
 import {ImageWithFallback} from 'components/common/ImageWithFallback';
 import useLST from 'contexts/useLST';
-import {useTokenList} from 'contexts/useTokenList';
-import {useWallet} from 'contexts/useWallet';
 import {handleInputChangeEventValue, isValidAddress} from 'utils';
 import {approveERC20, depositIncentive} from 'utils/actions';
 import {NO_CHANGE_LST_LIKE} from 'utils/constants';
@@ -13,24 +11,29 @@ import {getCurrentEpoch} from 'utils/epochs';
 import {ETH_TOKEN} from 'utils/tokens';
 import {zeroAddress} from 'viem';
 import {erc20ABI, useContractRead} from 'wagmi';
+import useWallet from '@builtbymom/web3/contexts/useWallet';
+import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
+import {useTokenList} from '@builtbymom/web3/contexts/WithTokenList';
+import {useChainID} from '@builtbymom/web3/hooks/useChainID';
+import {
+	assertAddress,
+	cl,
+	ETH_TOKEN_ADDRESS,
+	formatAmount,
+	isZeroAddress,
+	toAddress,
+	toBigInt,
+	toNormalizedBN,
+	zeroNormalizedBN
+} from '@builtbymom/web3/utils';
+import {defaultTxStatus} from '@builtbymom/web3/utils/wagmi';
 import {useDeepCompareEffect} from '@react-hookz/web';
 import {Button} from '@yearn-finance/web-lib/components/Button';
-import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
-import {useChainID} from '@yearn-finance/web-lib/hooks/useChainID';
-import {isZeroAddress, toAddress} from '@yearn-finance/web-lib/utils/address';
-import {cl} from '@yearn-finance/web-lib/utils/cl';
-import {ETH_TOKEN_ADDRESS} from '@yearn-finance/web-lib/utils/constants';
-import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
-import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
-import {assertAddress} from '@yearn-finance/web-lib/utils/wagmi/utils';
-import {defaultTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 
-import type {TTokenInfo} from 'contexts/useTokenList';
 import type {ChangeEvent, ReactElement} from 'react';
 import type {TIndexedTokenInfo} from 'utils/types';
-import type {TDict} from '@yearn-finance/web-lib/types';
-import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
-import type {TTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
+import type {TDict, TNormalizedBN, TToken} from '@builtbymom/web3/types';
+import type {TTxStatus} from '@builtbymom/web3/utils/wagmi';
 
 function IncentiveMenuTabs({
 	set_currentTab,
@@ -113,15 +116,15 @@ function IncentiveSelector({
 }): ReactElement {
 	const {address, isActive, provider} = useWeb3();
 	const {safeChainID} = useChainID(Number(process.env.BASE_CHAIN_ID));
-	const {balances, refresh} = useWallet();
-	const {tokenList} = useTokenList();
+	const {getBalance, onRefresh} = useWallet();
+	const {currentNetworkTokenList} = useTokenList();
 	const {
 		incentives: {refreshIncentives}
 	} = useLST();
-	const [amountToSend, set_amountToSend] = useState<TNormalizedBN>(toNormalizedBN(0));
-	const [possibleTokensToUse, set_possibleTokensToUse] = useState<TDict<TTokenInfo | undefined>>({});
-	const [lstToIncentive, set_lstToIncentive] = useState<TTokenInfo | undefined>();
-	const [tokenToUse, set_tokenToUse] = useState<TTokenInfo | undefined>();
+	const [amountToSend, set_amountToSend] = useState<TNormalizedBN>(zeroNormalizedBN);
+	const [possibleTokensToUse, set_possibleTokensToUse] = useState<TDict<TToken | undefined>>({});
+	const [lstToIncentive, set_lstToIncentive] = useState<TToken | undefined>();
+	const [tokenToUse, set_tokenToUse] = useState<TToken | undefined>();
 	const [approvalStatus, set_approvalStatus] = useState<TTxStatus>(defaultTxStatus);
 	const [depositStatus, set_depositStatus] = useState<TTxStatus>(defaultTxStatus);
 
@@ -137,27 +140,30 @@ function IncentiveSelector({
 	 ** Only the tokens in that list will be displayed.
 	 **********************************************************************************************/
 	useDeepCompareEffect((): void => {
-		const possibleDestinationsTokens: TDict<TTokenInfo> = {};
-		for (const eachToken of Object.values(tokenList)) {
+		const possibleDestinationsTokens: TDict<TToken> = {};
+		for (const eachToken of Object.values(currentNetworkTokenList)) {
 			if (eachToken.address === ETH_TOKEN_ADDRESS) {
 				continue;
 			}
-			if (eachToken.chainId === safeChainID) {
+			if (eachToken.chainID === safeChainID) {
 				possibleDestinationsTokens[toAddress(eachToken.address)] = eachToken;
 			}
 		}
 		set_possibleTokensToUse(possibleDestinationsTokens);
-	}, [tokenList, safeChainID]);
+	}, [currentNetworkTokenList, safeChainID]);
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	 ** On balance or token change, update the balance of the token to use.
 	 **********************************************************************************************/
 	const balanceOf = useMemo((): TNormalizedBN => {
 		if (!tokenToUse) {
-			return toNormalizedBN(0);
+			return zeroNormalizedBN;
 		}
-		return toNormalizedBN(balances?.[tokenToUse.address]?.raw || 0 || 0, tokenToUse.decimals || 18);
-	}, [balances, tokenToUse]);
+		return toNormalizedBN(
+			getBalance({address: tokenToUse.address, chainID: Number(process.env.DEFAULT_CHAIN_ID)}).raw || 0 || 0,
+			tokenToUse.decimals || 18
+		);
+	}, [tokenToUse, getBalance]);
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	 ** Change the inputed amount when the user types something in the input field.
@@ -169,17 +175,29 @@ function IncentiveSelector({
 			}
 			const element = document.getElementById('amountToSend') as HTMLInputElement;
 			const newAmount = handleInputChangeEventValue(e, tokenToUse?.decimals || 18);
-			if (newAmount.raw > balances?.[tokenToUse.address]?.raw) {
+			if (
+				newAmount.raw >
+				getBalance({address: tokenToUse.address, chainID: Number(process.env.DEFAULT_CHAIN_ID)}).raw
+			) {
 				if (element?.value) {
-					element.value = formatAmount(balances?.[tokenToUse.address]?.normalized, 0, 18);
+					element.value = formatAmount(
+						getBalance({address: tokenToUse.address, chainID: Number(process.env.DEFAULT_CHAIN_ID)})
+							?.normalized,
+						0,
+						18
+					);
 				}
 				return set_amountToSend(
-					toNormalizedBN(balances?.[tokenToUse.address]?.raw || 0, tokenToUse.decimals || 18)
+					toNormalizedBN(
+						getBalance({address: tokenToUse.address, chainID: Number(process.env.DEFAULT_CHAIN_ID)}).raw ||
+							0,
+						tokenToUse.decimals || 18
+					)
 				);
 			}
 			set_amountToSend(newAmount);
 		},
-		[balances, tokenToUse]
+		[tokenToUse, getBalance]
 	);
 
 	/* 🔵 - Yearn Finance **************************************************************************
@@ -192,17 +210,29 @@ function IncentiveSelector({
 			}
 			const element = document.getElementById('amountToSend') as HTMLInputElement;
 			const newAmount = toNormalizedBN((balanceOf.raw * BigInt(percent)) / 100n, tokenToUse.decimals || 18);
-			if (newAmount.raw > balances?.[tokenToUse.address]?.raw) {
+			if (
+				newAmount.raw >
+				getBalance({address: tokenToUse.address, chainID: Number(process.env.DEFAULT_CHAIN_ID)}).raw
+			) {
 				if (element?.value) {
-					element.value = formatAmount(balances?.[tokenToUse.address]?.normalized, 0, 18);
+					element.value = formatAmount(
+						getBalance({address: tokenToUse.address, chainID: Number(process.env.DEFAULT_CHAIN_ID)})
+							?.normalized,
+						0,
+						18
+					);
 				}
 				return set_amountToSend(
-					toNormalizedBN(balances?.[tokenToUse.address]?.raw || 0, tokenToUse.decimals || 18)
+					toNormalizedBN(
+						getBalance({address: tokenToUse.address, chainID: Number(process.env.DEFAULT_CHAIN_ID)}).raw ||
+							0,
+						tokenToUse.decimals || 18
+					)
 				);
 			}
 			set_amountToSend(newAmount);
 		},
-		[balanceOf, balances, tokenToUse]
+		[balanceOf, getBalance, tokenToUse]
 	);
 
 	/* 🔵 - Yearn Finance **************************************************************************
@@ -231,17 +261,18 @@ function IncentiveSelector({
 		});
 		if (result.isSuccessful) {
 			refetchAllowance();
-			await refresh([
-				{...ETH_TOKEN, token: ETH_TOKEN.address},
+			await onRefresh([
+				ETH_TOKEN,
 				{
 					decimals: tokenToUse.decimals,
 					name: tokenToUse.name,
 					symbol: tokenToUse.symbol,
-					token: tokenToUse.address
+					address: tokenToUse.address,
+					chainID: Number(process.env.BASE_CHAIN_ID)
 				}
 			]);
 		}
-	}, [amountToSend.raw, isActive, provider, refresh, tokenToUse, refetchAllowance]);
+	}, [amountToSend.raw, isActive, provider, onRefresh, tokenToUse, refetchAllowance]);
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	 ** Web3 action to incentivize a given protocol with a given token and amount.
@@ -281,17 +312,18 @@ function IncentiveSelector({
 			refetchAllowance();
 			await Promise.all([
 				refreshIncentives(),
-				refresh([
-					{...ETH_TOKEN, token: ETH_TOKEN.address},
+				onRefresh([
+					ETH_TOKEN,
 					{
 						decimals: tokenToUse.decimals,
 						name: tokenToUse.name,
 						symbol: tokenToUse.symbol,
-						token: tokenToUse.address
+						address: tokenToUse.address,
+						chainID: Number(process.env.BASE_CHAIN_ID)
 					}
 				])
 			]);
-			set_amountToSend(toNormalizedBN(0));
+			set_amountToSend(zeroNormalizedBN);
 		}
 	}, [
 		isActive,
@@ -305,7 +337,7 @@ function IncentiveSelector({
 		lstToIncentive?.address,
 		refetchAllowance,
 		refreshIncentives,
-		refresh
+		onRefresh
 	]);
 
 	return (

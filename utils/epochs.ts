@@ -11,7 +11,7 @@ import {
 	WEETH_TOKEN,
 	WSTETH_TOKEN
 } from 'utils/tokens';
-import {toBigInt} from '@yearn-finance/web-lib/utils/format.bigNumber';
+import {toBigInt} from '@builtbymom/web3/utils';
 
 import type {TEpoch} from './types';
 

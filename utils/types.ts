@@ -1,12 +1,11 @@
-import type {TTokenInfo} from 'contexts/useTokenList';
 import type {Hex} from 'viem';
-import type {TAddress} from '@yearn-finance/web-lib/types';
+import type {TAddress, TToken} from '@builtbymom/web3/types';
 
 /** 🔵 - Yearn *************************************************************************************
  ** The TIndexedTokenInfo type extends the TTokenInfo type by adding an index property. This index
  ** is used to uniquely identify tokens in certain contexts.
  **************************************************************************************************/
-export type TIndexedTokenInfo = TTokenInfo & {index: number};
+export type TIndexedTokenInfo = TToken & {index: number};
 
 /**************************************************************************************************
  ** TEpoch is a type that represents an epoch in the system. An epoch is a period of time in the

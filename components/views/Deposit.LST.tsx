@@ -1,29 +1,25 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import assert from 'assert';
 import useLST from 'contexts/useLST';
-import useWallet from 'contexts/useWallet';
-import {useAsyncTrigger} from 'hooks/useAsyncEffect';
 import {ESTIMATOR_ABI} from 'utils/abi/estimator.abi';
 import {addLiquidityToPool, approveERC20, depositAndStake} from 'utils/actions';
 import {LST} from 'utils/constants';
 import {ETH_TOKEN, STYETH_TOKEN, YETH_TOKEN} from 'utils/tokens';
+import useWallet from '@builtbymom/web3/contexts/useWallet';
+import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
+import {useAsyncTrigger} from '@builtbymom/web3/hooks/useAsyncTrigger';
+import {decodeAsBigInt, toAddress, toBigInt, toNormalizedBN, zeroNormalizedBN} from '@builtbymom/web3/utils';
+import {defaultTxStatus} from '@builtbymom/web3/utils/wagmi';
 import {useUpdateEffect} from '@react-hookz/web';
 import {readContracts} from '@wagmi/core';
 import {Button} from '@yearn-finance/web-lib/components/Button';
-import {useWeb3} from '@yearn-finance/web-lib/contexts/useWeb3';
-import {type TUseBalancesTokens} from '@yearn-finance/web-lib/hooks/useBalances';
-import {toAddress} from '@yearn-finance/web-lib/utils/address';
-import {decodeAsBigInt} from '@yearn-finance/web-lib/utils/decoder';
-import {toBigInt, toNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
-import {defaultTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
 
 import {LSTDepositForm} from './Deposit.LSTDeposit';
 
 import type {Dispatch, ReactElement} from 'react';
 import type {TEstOutWithBonusPenalty} from 'utils/types';
-import type {TAddress} from '@yearn-finance/web-lib/types';
-import type {TNormalizedBN} from '@yearn-finance/web-lib/utils/format.bigNumber';
-import type {TTxStatus} from '@yearn-finance/web-lib/utils/web3/transaction';
+import type {TAddress, TNormalizedBN} from '@builtbymom/web3/types';
+import type {TTxStatus} from '@builtbymom/web3/utils/wagmi';
 
 function ViewDepositLST({
 	shouldBalanceTokens,
@@ -36,8 +32,8 @@ function ViewDepositLST({
 }): ReactElement {
 	const {isActive, provider} = useWeb3();
 	const {lst, slippage, onUpdateLST} = useLST();
-	const {balances, refresh} = useWallet();
-	const [amounts, set_amounts] = useState<TNormalizedBN[]>(LST.map((): TNormalizedBN => toNormalizedBN(0)));
+	const {getBalance, onRefresh} = useWallet();
+	const [amounts, set_amounts] = useState<TNormalizedBN[]>(LST.map((): TNormalizedBN => zeroNormalizedBN));
 	const [lastAmountUpdated, set_lastAmountUpdated] = useState(-1);
 	const [txStatus, set_txStatus] = useState<TTxStatus>(defaultTxStatus);
 	const [txStatusApproveDS, set_txStatusApproveDS] = useState<TTxStatus>(defaultTxStatus);
@@ -68,7 +64,7 @@ function ViewDepositLST({
 							initialTokenWeight /
 							balancedTokenRate
 					);
-					return toNormalizedBN(balancedTokenAmount);
+					return toNormalizedBN(balancedTokenAmount, 18);
 				});
 				set_amounts(newAmounts);
 				set_lastAmountUpdated(lstIndex);
@@ -116,8 +112,9 @@ function ViewDepositLST({
 					value: toBigInt(estimateOut),
 					vb: toBigInt(vb),
 					bonusOrPenalty:
-						((Number(toNormalizedBN(estimateOut).normalized) - Number(toNormalizedBN(vb).normalized)) /
-							Number(toNormalizedBN(vb).normalized)) *
+						((Number(toNormalizedBN(estimateOut, 18).normalized) -
+							Number(toNormalizedBN(vb, 18).normalized)) /
+							Number(toNormalizedBN(vb, 18).normalized)) *
 						100
 				});
 			} catch (error) {
@@ -149,9 +146,13 @@ function ViewDepositLST({
 	const canDeposit = useMemo((): boolean => {
 		return (
 			amounts.some((item): boolean => item.raw > 0n) &&
-			amounts.every((item, index): boolean => item.raw <= (balances?.[lst?.[index]?.address]?.raw || 0n))
+			amounts.every(
+				(item, index): boolean =>
+					item.raw <=
+					getBalance({address: lst?.[index]?.address, chainID: Number(process.env.DEFAULT_CHAIN_ID)}).raw
+			)
 		);
-	}, [amounts, balances, lst]);
+	}, [amounts, getBalance, lst]);
 
 	const shouldApproveDeposit = useMemo((): boolean => {
 		return amounts.some((item, index): boolean => item.raw > lst[index].poolAllowance.raw);
@@ -193,7 +194,7 @@ function ViewDepositLST({
 				});
 				if (result.isSuccessful) {
 					onUpdateLST();
-					await refresh([{...ETH_TOKEN, token: ETH_TOKEN.address}]);
+					await onRefresh([ETH_TOKEN]);
 				} else {
 					txStatusSetter({...defaultTxStatus, error: true});
 					setTimeout((): void => {
@@ -207,7 +208,7 @@ function ViewDepositLST({
 				txStatusSetter({...defaultTxStatus});
 			}, 3000);
 		},
-		[amounts, isActive, lst, onUpdateLST, provider, refresh]
+		[amounts, isActive, lst, onUpdateLST, provider, onRefresh]
 	);
 
 	const onDeposit = useCallback(async (): Promise<void> => {
@@ -224,14 +225,10 @@ function ViewDepositLST({
 		});
 		if (result.isSuccessful) {
 			onUpdateLST();
-			await refresh([
-				{...ETH_TOKEN, token: ETH_TOKEN.address},
-				{...YETH_TOKEN, token: YETH_TOKEN.address},
-				...LST.map((item): TUseBalancesTokens => ({...item, token: item.address}))
-			]);
+			await onRefresh([ETH_TOKEN, YETH_TOKEN, ...LST.map(item => item)]);
 			set_amounts(amounts.map((item): TNormalizedBN => ({...item, raw: 0n})));
 		}
-	}, [amounts, estimateOut.value, isActive, onUpdateLST, provider, refresh, slippage]);
+	}, [amounts, estimateOut.value, isActive, onUpdateLST, provider, onRefresh, slippage]);
 
 	const onDepositAndStake = useCallback(async (): Promise<void> => {
 		assert(isActive, 'Wallet not connected');
@@ -247,15 +244,10 @@ function ViewDepositLST({
 		});
 		if (result.isSuccessful) {
 			onUpdateLST();
-			await refresh([
-				{...ETH_TOKEN, token: ETH_TOKEN.address},
-				{...YETH_TOKEN, token: YETH_TOKEN.address},
-				{...STYETH_TOKEN, token: STYETH_TOKEN.address},
-				...LST.map((item): TUseBalancesTokens => ({...item, token: item.address}))
-			]);
+			await onRefresh([ETH_TOKEN, YETH_TOKEN, STYETH_TOKEN, ...LST.map(item => item)]);
 			set_amounts(amounts.map((item): TNormalizedBN => ({...item, raw: 0n})));
 		}
-	}, [amounts, estimateOut, isActive, onUpdateLST, provider, refresh, slippage]);
+	}, [amounts, estimateOut, isActive, onUpdateLST, provider, onRefresh, slippage]);
 
 	return (
 		<>
@@ -266,7 +258,7 @@ function ViewDepositLST({
 							<LSTDepositForm
 								key={token.address}
 								token={token}
-								amount={toBigInt(amounts[index]?.raw) === -1n ? toNormalizedBN(0) : amounts[index]}
+								amount={toBigInt(amounts[index]?.raw) === -1n ? zeroNormalizedBN : amounts[index]}
 								onUpdateAmount={(amount): void => onChangeAmount(index, amount)}
 								isDisabled={false}
 							/>
