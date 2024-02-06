@@ -1,18 +1,17 @@
 import React, {Fragment, useCallback, useState} from 'react';
 import Link from 'next/link';
-import {ImageWithFallback} from 'components/common/ImageWithFallback';
-import IconChevronBoth from 'components/icons/IconChevronBoth';
-import ViewDeposit from 'components/views/Deposit';
-import ViewStake from 'components/views/Stake';
-import ViewSwap from 'components/views/Swap';
-import LSTInPool from 'components/views/ViewLSTInPool';
-import ViewWithdraw from 'components/views/Withdraw';
-import useLST from 'contexts/useLST';
-import useAPR from 'hooks/useAPR';
-import BOOTSTRAP_ABI from 'utils/abi/bootstrap.abi';
-import {ST_YETH_ABI} from 'utils/abi/styETH.abi';
-import {getCurrentEpoch} from 'utils/epochs';
-import {STYETH_TOKEN, YETH_TOKEN} from 'utils/tokens';
+import IconChevronBoth from 'app/components/icons/IconChevronBoth';
+import ViewDeposit from 'app/components/views/Deposit';
+import ViewStake from 'app/components/views/Stake';
+import ViewSwap from 'app/components/views/Swap';
+import LSTInPool from 'app/components/views/ViewLSTInPool';
+import ViewWithdraw from 'app/components/views/Withdraw';
+import useLST from 'app/contexts/useLST';
+import useAPR from 'app/hooks/useAPR';
+import {STYETH_TOKEN, YETH_TOKEN} from 'app/tokens';
+import BOOTSTRAP_ABI from 'app/utils/abi/bootstrap.abi';
+import {ST_YETH_ABI} from 'app/utils/abi/styETH.abi';
+import {getCurrentEpoch} from 'app/utils/epochs';
 import {useContractRead} from 'wagmi';
 import {useAnimate} from 'framer-motion';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
@@ -20,6 +19,7 @@ import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {cl, formatAmount, toAddress, toBigInt, toNormalizedBN} from '@builtbymom/web3/utils';
 import {Listbox, Transition} from '@headlessui/react';
 import {useMountEffect, useUnmountEffect} from '@react-hookz/web';
+import {ImageWithFallback} from '@yearn-finance/web-lib/components/ImageWithFallback';
 
 import type {AnimationScope} from 'framer-motion';
 import type {Router} from 'next/router';
@@ -53,7 +53,7 @@ function Composition(): ReactElement {
 							key={index}
 							className={'flex flex-row justify-between space-x-4'}>
 							<div className={'flex flex-row'}>
-								<div className={'h-6 w-6 min-w-[24px]'}>
+								<div className={'size-6 min-w-[24px]'}>
 									<ImageWithFallback
 										alt={token.name}
 										unoptimized
@@ -495,7 +495,7 @@ function YETH({router}: {router: Router}): ReactElement {
 											</div>
 											<div className={'absolute right-0'}>
 												<IconChevronBoth
-													className={`h-6 w-6 transition-transform ${
+													className={`size-6 transition-transform ${
 														open ? '-rotate-180' : 'rotate-0'
 													}`}
 												/>

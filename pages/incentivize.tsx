@@ -1,5 +1,5 @@
 import React from 'react';
-import Incentive from 'components/views/Incentive';
+import Incentive from 'app/components/views/Incentive';
 
 import type {ReactElement} from 'react';
 

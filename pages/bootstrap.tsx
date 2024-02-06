@@ -1,15 +1,15 @@
 import React, {useCallback, useMemo, useState} from 'react';
-import Phase1 from 'components/bootstrapViews/Phase1';
-import Phase2 from 'components/bootstrapViews/Phase2';
-import Phase3 from 'components/bootstrapViews/Phase3';
-import Phase4 from 'components/bootstrapViews/Phase4';
-import IconArrow from 'components/icons/IconArrow';
-import {UIStepContextApp} from 'contexts/useUI';
-import {transition} from 'utils';
+import Phase1 from 'app/components/bootstrapViews/Phase1';
+import Phase2 from 'app/components/bootstrapViews/Phase2';
+import Phase3 from 'app/components/bootstrapViews/Phase3';
+import Phase4 from 'app/components/bootstrapViews/Phase4';
+import IconArrow from 'app/components/icons/IconArrow';
+import {UIStepContextApp} from 'app/contexts/useUI';
+import {transition} from 'app/utils';
 import {AnimatePresence, motion} from 'framer-motion';
 import {toBigInt} from '@builtbymom/web3/utils';
 
-import type {TPeriods} from 'hooks/useBootstrapPeriods';
+import type {TPeriods} from 'app/hooks/useBootstrapPeriods';
 import type {ReactElement} from 'react';
 
 const TO_RIGHT = 1;
@@ -141,7 +141,7 @@ function YETH(): ReactElement {
 				animate={{x: page > 0 ? '0vw' : '-100vw'}}
 				className={'absolute left-0 top-0 z-10 px-4'}>
 				<button onClick={(): void => onPrevious()}>
-					<IconArrow className={'h-6 w-6 rotate-180 cursor-pointer text-purple-300'} />
+					<IconArrow className={'size-6 rotate-180 cursor-pointer text-purple-300'} />
 				</button>
 			</motion.div>
 			<motion.div
@@ -149,7 +149,7 @@ function YETH(): ReactElement {
 				animate={{x: shouldDisplayNextArrow ? '0vw' : '100vw'}}
 				className={'absolute right-0 top-0 z-10 block px-4 md:hidden'}>
 				<button onClick={(): void => onNext()}>
-					<IconArrow className={'h-6 w-6 cursor-pointer text-purple-300'} />
+					<IconArrow className={'size-6 cursor-pointer text-purple-300'} />
 				</button>
 			</motion.div>
 			<div
@@ -171,7 +171,7 @@ function YETH(): ReactElement {
 				<button
 					onClick={(): void => onNext()}
 					className={
-						'flex h-16 w-16 items-center justify-center rounded-full bg-[#DED0FE]/50 backdrop-blur-sm transition-colors hover:bg-[#DED0FE]'
+						'flex size-16 items-center justify-center rounded-full bg-[#DED0FE]/50 backdrop-blur-sm transition-colors hover:bg-[#DED0FE]'
 					}>
 					<IconArrow className={'w-6 text-purple-300'} />
 				</button>

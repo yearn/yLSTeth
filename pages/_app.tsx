@@ -1,9 +1,9 @@
 import React from 'react';
 import localFont from 'next/font/local';
 import {useRouter} from 'next/router';
-import AppHeader from 'components/common/Header';
-import {BootstrapContextApp} from 'contexts/useBootstrap';
-import {LSTContextApp} from 'contexts/useLST';
+import AppHeader from 'app/components/common/Header';
+import {BootstrapContextApp} from 'app/contexts/useBootstrap';
+import {LSTContextApp} from 'app/contexts/useLST';
 import {arbitrum, base, fantom, optimism, polygon} from 'viem/chains';
 import {AnimatePresence, motion} from 'framer-motion';
 import {WalletContextApp} from '@builtbymom/web3/contexts/useWallet';
@@ -48,7 +48,7 @@ function AppWrapper(props: AppProps): ReactElement {
 		<div
 			id={'app'}
 			className={cl('mx-auto mb-0 flex font-aeonik')}>
-			<div className={'size-full block min-h-max'}>
+			<div className={'block size-full min-h-max'}>
 				<AppHeader />
 				<div className={'mx-auto my-0 max-w-6xl pt-4 md:mb-0 md:mt-16 md:!px-0'}>
 					<AnimatePresence mode={'wait'}>
