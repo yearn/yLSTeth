@@ -1,5 +1,5 @@
 import React from 'react';
-import Vote from 'components/views/Vote';
+import Vote from 'app/components/views/Vote';
 
 import type {ReactElement} from 'react';
 

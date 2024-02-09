@@ -1,12 +1,11 @@
 import React from 'react';
 import Link from 'next/link';
-import HeroAsLottie from 'components/common/HeroAsLottie';
-import useWallet from 'contexts/useWallet';
-import {useEpoch} from 'hooks/useEpoch';
-import {useTimer} from 'hooks/useTimer';
+import HeroAsLottie from 'app/components/common/HeroAsLottie';
+import {useEpoch} from 'app/hooks/useEpoch';
+import {useTimer} from 'app/hooks/useTimer';
+import useWallet from '@builtbymom/web3/contexts/useWallet';
+import {formatAmount, toAddress} from '@builtbymom/web3/utils';
 import {Button} from '@yearn-finance/web-lib/components/Button';
-import {toAddress} from '@yearn-finance/web-lib/utils/address';
-import {formatAmount} from '@yearn-finance/web-lib/utils/format.number';
 
 import type {ReactElement} from 'react';
 
@@ -24,7 +23,7 @@ function Timer(): ReactElement {
 }
 
 function Apply(): ReactElement {
-	const {balances} = useWallet();
+	const {getBalance} = useWallet();
 	return (
 		<div className={'relative mx-auto mb-0 flex min-h-screen w-full flex-col bg-neutral-0 pt-20'}>
 			<div className={'relative mx-auto mt-6 w-screen max-w-5xl'}>
@@ -71,7 +70,8 @@ function Apply(): ReactElement {
 								</div>
 								<p className={'mt-1 text-xs text-neutral-600'}>
 									{`You have: ${formatAmount(
-										balances?.[toAddress(process.env.YETH_ADDRESS)]?.normalized || 0,
+										getBalance({address: toAddress(process.env.YETH_ADDRESS), chainID: 1})
+											?.normalized || 0,
 										2,
 										6
 									)} ETH`}
@@ -95,7 +95,7 @@ function Apply(): ReactElement {
 					</div>
 
 					<div className={'relative col-span-12 hidden h-[100%] md:col-span-6 md:flex'}>
-						<div className={'absolute inset-0 top-20 flex h-full w-full justify-center'}>
+						<div className={'size-full absolute inset-0 top-20 flex justify-center'}>
 							<HeroAsLottie id={'tokens'} />
 						</div>
 					</div>
