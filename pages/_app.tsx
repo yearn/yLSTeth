@@ -48,16 +48,16 @@ function AppWrapper(props: AppProps): ReactElement {
 		<div
 			id={'app'}
 			className={cl('mx-auto mb-0 flex font-aeonik')}>
-			<div className={'block size-full min-h-max'}>
+			<div className={'block size-full min-h-max w-screen'}>
 				<AppHeader />
-				<div className={'mx-auto my-0 max-w-6xl pt-4 md:mb-0 md:mt-16 md:!px-0'}>
+				<div className={'mx-auto my-0 pt-4 md:mb-0 md:!px-0'}>
 					<AnimatePresence mode={'wait'}>
 						<motion.div
 							key={router.asPath}
 							initial={'initial'}
 							animate={'enter'}
 							exit={'exit'}
-							className={'my-0 h-full md:mb-0 md:mt-16'}
+							className={'my-0 size-full md:mb-0'}
 							variants={motionVariants}>
 							<Component
 								router={props.router}
