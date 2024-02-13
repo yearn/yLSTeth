@@ -1,9 +1,10 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import Markdown from 'react-markdown';
 import Link from 'next/link';
 import {useFetch} from 'app/hooks/useFetch';
 import {proposalSchema} from 'app/utils/types';
-import {cl} from '@builtbymom/web3/utils';
+import {useAccount} from 'wagmi';
+import {cl, toAddress} from '@builtbymom/web3/utils';
 import {Button} from '@yearn-finance/web-lib/components/Button';
 import {IconLinkOut} from '@yearn-finance/web-lib/icons/IconLinkOut';
 
@@ -76,12 +77,17 @@ function Form(): ReactElement {
 	);
 }
 
-function Proposal({uri}: {uri: string}): ReactElement {
-	const sanitizedURI = uri.replace('ipfs://', 'https://snapshot.4everland.link/ipfs/');
+function Proposal(props: {uri: string; triggerLoaded: () => void}): ReactElement | null {
+	const {address} = useAccount();
+	const sanitizedURI = props?.uri.replace('ipfs://', 'https://snapshot.4everland.link/ipfs/');
 	const {data, isLoading} = useFetch<TProposalRoot>({
 		endpoint: sanitizedURI,
 		schema: proposalSchema
 	});
+
+	useEffect(() => {
+		props.triggerLoaded();
+	}, [isLoading, props]);
 
 	if (isLoading || !data) {
 		return (
@@ -92,6 +98,10 @@ function Proposal({uri}: {uri: string}): ReactElement {
 				<div className={'h-4 w-3/4 animate-pulse rounded-lg bg-neutral-400/80'} />
 			</div>
 		);
+	}
+
+	if (toAddress(data.address) !== toAddress(address)) {
+		return null;
 	}
 
 	const isClosed = data?.data.message.end < Date.now() / 1000;
@@ -118,35 +128,47 @@ function Proposal({uri}: {uri: string}): ReactElement {
 }
 
 function Proposals(): ReactElement {
+	const [hasProposals, set_hasProposals] = useState<boolean>(false);
 	const IPSFProposals = [
-		// 'ipfs://bafkreihwnusnlukonwseke5hpoaiwfyhix22rghrfp5a2qxdpmtoyaqgmi', //Weight
-		// 'ipfs://bafkreib4arhzdjrnouqxxgze3bqpni7s4ahs6povbqrzh3katwrgvg7mr4', //Inclusion
 		'ipfs://bafkreie4c5gfprk77mm5lsimyidtyv4e22h6u4j2xhiarv4l5supwxscnm',
 		'ipfs://bafkreih4otvqjsoixloh5abewegc4jf4tamfdql2ft2wjwl6a2uhn3gpkm',
-		// 'ipfs://bafkreifco4wiefieafmepoufuuiwkfl7psejtivyc3xlu45mgm6da44cyy', //Inclusion
-		// 'ipfs://bafkreihtd6g4bhxn44edxsjvktdzbe354gpi5xyruwr6weablmaadwl7li', //Weight
 		'ipfs://bafkreidvowbvbboijf4vdv6e4z3gt5ngd3ismbvvbpdh73fesy5y6uh334',
-		// 'ipfs://bafkreidh2s4tambi55mxsk53fvmk5dbky7bawayzuccvz24x4rctp2kfl4', //Inclusion
-		// 'ipfs://bafkreielj5syodje7n2pwjgbjjmiip77rf3iyvtk64gpywng2peaqd7w7m', //Weight
-		// 'ipfs://bafkreiap4guwwmguxzhje75gva455two4csapw7ovqz2xbp343nnuxjepe', //Inclusion
-		// 'ipfs://bafkreie5a7352uqnkejuleah2htixjquouq2twcf5feuvd4yadbu3hdtgu', //Weight
-		// 'ipfs://bafkreidn655abcvjavp3p76wzsu7ecywg2letez5quz3gh5txzrjkrc6hu', //Inclusion
-		// 'ipfs://bafkreifgmdcwvh5jjmkbuh4dsil5ossw5gzrg2ihbqcrxemh3ksu5by3g4', //Weight
 		'ipfs://bafkreifza5rl2ynyznzvool3yjzhriabx4cmzpwvfltraxnre54imvdvhe',
 		'ipfs://bafkreih27yyt4wollwz7fcmzxr3uzjx3d3pi375743d2w35edltgsop7su'
 	];
+
+	const checkHasProposals = useCallback(() => {
+		const proposalElement = document.getElementById('your proposals');
+		if (!proposalElement) {
+			return;
+		}
+		set_hasProposals(Number(proposalElement.childElementCount) > 0);
+	}, []);
+
 	return (
 		<div>
 			<div className={'mb-8 mt-40 flex flex-col justify-center'}>
 				<h2 className={'text-2xl font-black md:text-4xl'}>{'Your proposals'}</h2>
 			</div>
-			<div className={'grid gap-6'}>
+			<div
+				id={'your proposals'}
+				className={'grid gap-6'}>
 				{IPSFProposals.map((ipfs, index) => (
 					<Proposal
 						key={index}
+						triggerLoaded={checkHasProposals}
 						uri={ipfs}
 					/>
 				))}
+			</div>
+			<div id={String(hasProposals)}>
+				<p
+					style={{
+						visibility: hasProposals ? 'hidden' : 'visible'
+					}}
+					className={'mt-0 text-neutral-500'}>
+					{'You have no proposals'}
+				</p>
 			</div>
 		</div>
 	);
