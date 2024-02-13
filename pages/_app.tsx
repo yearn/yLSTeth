@@ -83,15 +83,16 @@ function MyApp(props: AppProps): ReactElement {
 			`}</style>
 			<WithMom
 				supportedChains={[mainnet, optimism, polygon, fantom, base, arbitrum, localhost]}
-				tokenLists={['https://raw.githubusercontent.com/SmolDapp/tokenLists/main/lists/yearn.json']}>
+				tokenLists={[
+					'https://raw.githubusercontent.com/SmolDapp/tokenLists/main/lists/yearn.json',
+					'https://raw.githubusercontent.com/SmolDapp/tokenLists/main/lists/smolAssets.json'
+				]}>
 				<WalletContextApp>
 					<BootstrapContextApp>
 						<LSTContextApp>
-							<WalletContextApp>
-								<main className={cl('flex flex-col mb-32', aeonik.className)}>
-									<AppWrapper {...props} />
-								</main>
-							</WalletContextApp>
+							<main className={cl('flex flex-col mb-32', aeonik.className)}>
+								<AppWrapper {...props} />
+							</main>
 						</LSTContextApp>
 					</BootstrapContextApp>
 				</WalletContextApp>
