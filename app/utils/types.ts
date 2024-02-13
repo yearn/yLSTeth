@@ -67,3 +67,84 @@ export type TEstOutWithBonusPenalty = {value: bigint; bonusOrPenalty: number; vb
 export const yDaemonPriceSchema = z.number();
 export const yDaemonPricesSchema = z.record(addressSchema, yDaemonPriceSchema);
 export type TYDaemonPrices = z.infer<typeof yDaemonPricesSchema>;
+
+/** 🔵 - Yearn *************************************************************************************
+ ** Proposal structure stored on snapshot
+ **************************************************************************************************/
+export type TProposalRoot = {
+	address: string;
+	sig: string;
+	hash: string;
+	data: TProposalData;
+};
+
+export type TProposalData = {
+	domain: TProposalDomain;
+	types: TProposalTypes;
+	message: TProposalMessage;
+};
+
+export type TProposalDomain = {
+	name: string;
+	version: string;
+};
+
+export type TProposalTypes = {
+	Proposal: TProposalProposal[];
+};
+
+export type TProposalProposal = {
+	name: string;
+	type: string;
+};
+
+export type TProposalMessage = {
+	space: string;
+	type: string;
+	title: string;
+	body: string;
+	discussion: string;
+	choices: string[];
+	start: number;
+	end: number;
+	snapshot: number;
+	plugins: string;
+	app: string;
+	from: string;
+	timestamp: number;
+};
+
+export const proposalSchema = z.object({
+	address: z.string(),
+	sig: z.string(),
+	hash: z.string(),
+	data: z.object({
+		domain: z.object({
+			name: z.string(),
+			version: z.string()
+		}),
+		types: z.object({
+			Proposal: z.array(
+				z.object({
+					name: z.string(),
+					type: z.string()
+				})
+			)
+		}),
+		message: z.object({
+			space: z.string(),
+			type: z.string(),
+			title: z.string(),
+			body: z.string(),
+			discussion: z.string(),
+			choices: z.array(z.string()),
+			start: z.number(),
+			end: z.number(),
+			snapshot: z.number(),
+			plugins: z.string(),
+			app: z.string(),
+			from: z.string(),
+			timestamp: z.number()
+		})
+	})
+});

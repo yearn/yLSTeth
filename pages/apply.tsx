@@ -96,7 +96,9 @@ function Form(): ReactElement {
 						)}>
 						{getFeeAmount ? formatAmount(getFeeAmount.normalized, 2, 6) : 'Put LST address first'}
 					</div>
-					<p className={'mt-1 text-xs text-neutral-400'}>
+					<p
+						suppressHydrationWarning
+						className={'mt-1 text-xs text-neutral-400'}>
 						{`You have: ${formatAmount(
 							getBalance({address: toAddress(process.env.YETH_ADDRESS), chainID: 1})?.normalized || 0,
 							2,

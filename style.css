@@ -630,3 +630,27 @@ dialog::backdrop {
 	background-color: rgba(0, 0, 0, 0.3);
 	-webkit-box-shadow: 0 0 1px rgba(255, 255, 255, 0.3);
 }
+
+.markdown {
+	@apply text-neutral-700;
+	& > h1,
+	& > h2,
+	& > h3,
+	& > h4,
+	& > h5,
+	& > h6 {
+		@apply font-bold mb-1;
+	}
+
+	& > h2 {
+		@apply text-lg;
+	}
+
+	& > p {
+		@apply mb-4 text-neutral-700;
+	}
+
+	& > ul {
+		@apply list-disc pl-4 mb-4 list-inside;
+	}
+}
