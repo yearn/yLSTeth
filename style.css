@@ -305,12 +305,6 @@
 	@apply outline-none focus:outline-none focus:ring-0 active:ring-0;
 	box-shadow: none !important;
 }
-:root.dark {
-	& [type='checkbox'],
-	& [type='checkbox']:focus {
-		@apply text-neutral-0 border-neutral-300 focus:border-neutral-300;
-	}
-}
 .checkbox {
 	@apply text-neutral-900 accent-neutral-900 rounded-sm;
 }

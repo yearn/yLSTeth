@@ -1,13 +1,12 @@
-import React from 'react';
-import Link from 'next/link';
-import HeroAsLottie from 'app/components/common/HeroAsLottie';
+import React, {useCallback, useMemo, useState} from 'react';
 import {useEpoch} from 'app/hooks/useEpoch';
 import {useTimer} from 'app/hooks/useTimer';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
-import {formatAmount, toAddress} from '@builtbymom/web3/utils';
+import {cl, formatAmount, isAddress, toAddress, toNormalizedBN} from '@builtbymom/web3/utils';
 import {Button} from '@yearn-finance/web-lib/components/Button';
 
 import type {ReactElement} from 'react';
+import type {TAddress, TNormalizedBN} from '@builtbymom/web3/types';
 
 function Timer(): ReactElement {
 	const {voteStart, endPeriod, hasVotingStarted} = useEpoch();
@@ -22,13 +21,150 @@ function Timer(): ReactElement {
 	);
 }
 
-function Apply(): ReactElement {
+function CheckboxElement({onChange, content}: {onChange: () => void; content: string}): ReactElement {
+	return (
+		<label className={'flex cursor-pointer items-start'}>
+			<input
+				required
+				onChange={onChange}
+				type={'checkbox'}
+				className={
+					'focus:ring-purple-300 mr-4 mt-2 size-6 cursor-pointer rounded-sm border-2 border-purple-300 bg-neutral-0 text-purple-300 indeterminate:ring-2 focus:bg-neutral-200 focus:ring-2 focus:ring-offset-neutral-100'
+				}
+			/>
+			<p className={'text-base text-neutral-700'}>{content}</p>
+		</label>
+	);
+}
+
+function Form(): ReactElement {
 	const {getBalance} = useWallet();
+	const [lstAddress, set_lstAddress] = useState<TAddress | undefined>(undefined);
+	const [isValid, set_isValid] = useState(false);
+
+	function onCheckValidity(): void {
+		const form = document.getElementById('apply-form') as HTMLFormElement;
+		if (form) {
+			set_isValid(form.checkValidity());
+		}
+	}
+
+	const getFeeAmount = useMemo((): TNormalizedBN | undefined => {
+		if (isAddress(lstAddress)) {
+			return toNormalizedBN(1e18, 18);
+		}
+		return undefined;
+	}, [lstAddress]);
+
+	const onSubmit = useCallback(() => {
+		if (getFeeAmount && lstAddress) {
+			console.log('submit', lstAddress);
+		}
+	}, [getFeeAmount, lstAddress]);
+
+	return (
+		<form
+			id={'apply-form'}
+			onSubmit={onSubmit}
+			className={'relative col-span-12 flex-col bg-neutral-100 p-10 md:col-span-6 md:flex'}>
+			<div className={'flex w-full flex-row space-x-4'}>
+				<div className={'flex w-[200px] flex-col'}>
+					<p className={'mb-1 text-sm text-neutral-600'}>{'Your LST address'}</p>
+					<div
+						className={cl(
+							'grow-1 col-span-7 flex h-10 w-full items-center justify-center rounded-md p-2',
+							'bg-neutral-0'
+						)}>
+						<input
+							className={
+								'w-full overflow-x-scroll border-none bg-transparent px-0 py-4 font-mono text-sm outline-none scrollbar-none'
+							}
+							type={'text'}
+							maxLength={42}
+							placeholder={'0x...'}
+							value={lstAddress}
+							onChange={e => set_lstAddress(e.target.value as TAddress)}
+						/>
+					</div>
+				</div>
+				<div className={'flex w-[200px] flex-col'}>
+					<p className={'mb-1 text-sm text-neutral-600'}>{'Your fee'}</p>
+					<div
+						className={cl(
+							'grow-1 col-span-7 flex h-10 w-full rounded-md p-2 bg-neutral-0',
+							getFeeAmount ? 'text-neutral-900' : 'text-neutral-400'
+						)}>
+						{getFeeAmount ? formatAmount(getFeeAmount.normalized, 2, 6) : 'Put LST address first'}
+					</div>
+					<p className={'mt-1 text-xs text-neutral-400'}>
+						{`You have: ${formatAmount(
+							getBalance({address: toAddress(process.env.YETH_ADDRESS), chainID: 1})?.normalized || 0,
+							2,
+							6
+						)} yETH`}
+					</p>
+				</div>
+			</div>
+			<div className={'pt-8'}>
+				<b className={'text-neutral-700'}>{'I confirm'}</b>
+				<div className={'pt-4'}>
+					<CheckboxElement
+						onChange={onCheckValidity}
+						content={
+							'The address provided is for an LST token contract, and is a representation of beacon chain staked ETH.'
+						}
+					/>
+				</div>
+
+				<div className={'pt-6'}>
+					<CheckboxElement
+						onChange={onCheckValidity}
+						content={'The LST token is non-rebasing. (If it is, submit the wrapped non-rebasing version!)'}
+					/>
+				</div>
+
+				<div className={'pt-6'}>
+					<CheckboxElement
+						onChange={onCheckValidity}
+						content={
+							'The LST protocol has withdrawals enabled, making it redeemable for the underlying ETH.'
+						}
+					/>
+				</div>
+
+				<div className={'pt-6'}>
+					<CheckboxElement
+						onChange={onCheckValidity}
+						content={
+							'The LST protocol distributes earned staked ETH rewards to this token, on a weekly or more frequent basis. (I.e. if a staked version is earning the rewards, you must submit the staked token here!)'
+						}
+					/>
+				</div>
+
+				<div className={'mt-24 pt-2'}>
+					<Button
+						className={'w-48'}
+						isDisabled={
+							!isValid ||
+							!getFeeAmount ||
+							(getFeeAmount &&
+								getBalance({address: toAddress(process.env.YETH_ADDRESS), chainID: 1}).raw <
+									getFeeAmount?.raw)
+						}>
+						{'Apply'}
+					</Button>
+				</div>
+			</div>
+		</form>
+	);
+}
+
+function Apply(): ReactElement {
 	return (
 		<div className={'relative mx-auto mb-0 flex min-h-screen w-full flex-col bg-neutral-0 pt-20'}>
 			<div className={'relative mx-auto mt-6 w-screen max-w-5xl'}>
 				<section className={'grid grid-cols-12 gap-0 px-4 pt-10 md:gap-20 md:pt-12'}>
-					<div className={'col-span-12 md:col-span-6 md:mb-0'}>
+					<div className={'col-span-12 md:col-span-6 md:mb-0 md:pt-12'}>
 						<div className={'mb-10 flex flex-col justify-center'}>
 							<h1 className={'text-3xl font-black md:text-8xl'}>{'Apply'}</h1>
 							<b
@@ -61,44 +197,9 @@ function Apply(): ReactElement {
 								}
 							</p>
 						</div>
-
-						<div className={'flex w-full flex-row space-x-4'}>
-							<div className={'flex w-[200px] flex-col'}>
-								<p className={'mb-1 text-sm text-neutral-600'}>{'Application Fee'}</p>
-								<div className={'flex h-10 items-center justify-start border border-neutral-400 px-2'}>
-									{'0.1-1 yETH'}
-								</div>
-								<p className={'mt-1 text-xs text-neutral-600'}>
-									{`You have: ${formatAmount(
-										getBalance({address: toAddress(process.env.YETH_ADDRESS), chainID: 1})
-											?.normalized || 0,
-										2,
-										6
-									)} ETH`}
-								</p>
-							</div>
-							<div className={'flex w-[200px] flex-col'}>
-								<p className={'mb-1 text-sm text-neutral-600'}>&nbsp;</p>
-								<Link
-									href={'/form'}
-									target={'_blank'}
-									rel={'noopener noreferrer'}>
-									<Button
-										suppressHydrationWarning
-										className={'yearn--button w-full rounded-md !text-sm md:w-[200px]'}>
-										{'Take me to the form'}
-									</Button>
-								</Link>
-								<p className={'mt-1 text-xs text-neutral-600'}>&nbsp;</p>
-							</div>
-						</div>
 					</div>
 
-					<div className={'relative col-span-12 hidden h-[100%] md:col-span-6 md:flex'}>
-						<div className={'size-full absolute inset-0 top-20 flex justify-center'}>
-							<HeroAsLottie id={'tokens'} />
-						</div>
-					</div>
+					<Form />
 				</section>
 			</div>
 		</div>
