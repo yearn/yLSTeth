@@ -1,13 +1,16 @@
 import BOOTSTRAP_ABI from 'app/utils/abi/bootstrap.abi';
 import {MULTICALL_ABI} from 'app/utils/abi/multicall3.abi';
 import assert from 'assert';
-import {type Hex, zeroAddress} from 'viem';
+import {CID} from 'multiformats';
+import {toString as uint8ArrayToString} from 'uint8arrays/to-string';
+import {type Hex, keccak256, toHex, zeroAddress} from 'viem';
 import {assertAddress, ETH_TOKEN_ADDRESS, MAX_UINT_256, toAddress, WETH_TOKEN_ADDRESS} from '@builtbymom/web3/utils';
 import {handleTx, toWagmiProvider} from '@builtbymom/web3/utils/wagmi';
 import {erc20ABI, readContract} from '@wagmi/core';
 
 import {STYETH_TOKEN, YETH_TOKEN} from './tokens';
 import {CURVE_SWAP_ABI} from './utils/abi/curveswap.abi';
+import {GOVERNOR_ABI} from './utils/abi/governor.abi';
 import {ST_YETH_ABI} from './utils/abi/styETH.abi';
 import {VOTE_ABI} from './utils/abi/vote.abi';
 import {YETH_POOL_ABI} from './utils/abi/yETHPool.abi';
@@ -568,5 +571,98 @@ export async function unlockFromBootstrap(props: TUnlockFromBootstrap): Promise<
 		abi: BOOTSTRAP_ABI,
 		functionName: 'claim',
 		args: [props.amount]
+	});
+}
+
+/* 🔵 - Yearn Finance **********************************************************
+ ** propose is a _WRITE_ function that creates a proposal on the onchain gov
+ ** contract.
+ **
+ ** @app - yETH
+ ******************************************************************************/
+type TPropose = TWriteTransaction & {
+	ipfs: string;
+	script: string;
+};
+export async function propose(props: TPropose): Promise<TTxResponse> {
+	assert(props.connector, 'No connector');
+	assert(props.script !== '');
+
+	console.warn(keccak256(toHex(props.ipfs)));
+	console.warn(toHex(props.ipfs));
+	console.warn(props.ipfs);
+
+	const cidv0 = CID.parse(props.ipfs);
+	const cidV1 = cidv0.toV1();
+	const multihashDigestInHex = uint8ArrayToString(cidV1.multihash.digest, 'base16').toUpperCase();
+	console.warn([`0x${multihashDigestInHex}`, toHex(props.script)]);
+
+	return await handleTx(props, {
+		address: toAddress(process.env.ONCHAIN_GOV_ADDRESS),
+		abi: GOVERNOR_ABI,
+		functionName: 'propose',
+		args: [`0x${multihashDigestInHex}`, toHex(props.script)]
+	});
+}
+
+/* 🔵 - Yearn Finance **********************************************************
+ ** retract is a _WRITE_ function that retract a proposal on the onchain gov
+ ** contract.
+ **
+ ** @app - yETH
+ ******************************************************************************/
+type TRetract = TWriteTransaction & {
+	index: bigint;
+};
+export async function retract(props: TRetract): Promise<TTxResponse> {
+	assert(props.connector, 'No connector');
+
+	return await handleTx(props, {
+		address: toAddress(process.env.ONCHAIN_GOV_ADDRESS),
+		abi: GOVERNOR_ABI,
+		functionName: 'retract',
+		args: [props.index]
+	});
+}
+
+/* 🔵 - Yearn Finance **********************************************************
+ ** voteYea, voteNay and voteAbstain are _WRITE_ functions that cast a vote on
+ ** a proposal.
+ **
+ ** @app - yETH
+ ******************************************************************************/
+type TVoteForProposal = TWriteTransaction & {
+	index: bigint;
+};
+export async function voteYea(props: TVoteForProposal): Promise<TTxResponse> {
+	assert(props.connector, 'No connector');
+
+	return await handleTx(props, {
+		address: toAddress(process.env.ONCHAIN_GOV_ADDRESS),
+		abi: GOVERNOR_ABI,
+		functionName: 'vote_yea',
+		args: [props.index]
+	});
+}
+
+export async function voteNay(props: TVoteForProposal): Promise<TTxResponse> {
+	assert(props.connector, 'No connector');
+
+	return await handleTx(props, {
+		address: toAddress(process.env.ONCHAIN_GOV_ADDRESS),
+		abi: GOVERNOR_ABI,
+		functionName: 'vote_nay',
+		args: [props.index]
+	});
+}
+
+export async function voteAbstain(props: TVoteForProposal): Promise<TTxResponse> {
+	assert(props.connector, 'No connector');
+
+	return await handleTx(props, {
+		address: toAddress(process.env.ONCHAIN_GOV_ADDRESS),
+		abi: GOVERNOR_ABI,
+		functionName: 'vote_abstain',
+		args: [props.index]
 	});
 }

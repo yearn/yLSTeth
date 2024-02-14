@@ -1,24 +1,87 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import Markdown from 'react-markdown';
 import Link from 'next/link';
+import {propose} from 'app/actions';
 import {useFetch} from 'app/hooks/useFetch';
+import {GOVERNOR_ABI} from 'app/utils/abi/governor.abi';
+import {VOTE_WEIGHT_ABI} from 'app/utils/abi/voteWeight.abi';
 import {proposalSchema} from 'app/utils/types';
-import {useAccount} from 'wagmi';
-import {cl, toAddress} from '@builtbymom/web3/utils';
+import assert from 'assert';
+import {useAccount, useContractRead} from 'wagmi';
+import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
+import {cl, toAddress, toBigInt, toNormalizedBN} from '@builtbymom/web3/utils';
+import {defaultTxStatus} from '@builtbymom/web3/utils/wagmi';
 import {Button} from '@yearn-finance/web-lib/components/Button';
 import {IconLinkOut} from '@yearn-finance/web-lib/icons/IconLinkOut';
 
 import type {TProposalRoot} from 'app/utils/types';
-import type {ReactElement} from 'react';
+import type {FormEvent, ReactElement} from 'react';
+import type {TTxStatus} from '@builtbymom/web3/utils/wagmi';
 
 function Form(): ReactElement {
-	const [ipfsPinURI, set_ipfsPinURI] = useState<string | undefined>(undefined);
-	const [scriptURI, set_scriptURI] = useState<string | undefined>(undefined);
-	const [isValid] = useState(false);
+	const {isActive, provider, address} = useWeb3();
+	const [submitStatus, set_submitStatus] = useState<TTxStatus>(defaultTxStatus);
+	const [isValid, set_isValid] = useState(false);
 
-	const onSubmit = useCallback(() => {
-		console.log(`submit`);
-	}, []);
+	const {data: minWeight} = useContractRead({
+		address: toAddress(process.env.ONCHAIN_GOV_ADDRESS),
+		abi: GOVERNOR_ABI,
+		functionName: 'propose_min_weight',
+		select(data) {
+			return toNormalizedBN(toBigInt(data), 18);
+		}
+	});
+	const {data: votePower} = useContractRead({
+		abi: VOTE_WEIGHT_ABI,
+		address: toAddress(process.env.VOTE_POWER_ADDRESS),
+		functionName: 'vote_weight',
+		args: [toAddress(address)],
+		select(data) {
+			return toNormalizedBN(toBigInt(data), 18);
+		}
+	});
+
+	function onCheckValidity(): void {
+		const form = document.getElementById('apply-form') as HTMLFormElement;
+		if (form) {
+			const input = document.getElementById('scriptHex') as HTMLFormElement;
+			if (input) {
+				if (!input.value.startsWith('0x') && input.value.length > 0) {
+					input.setCustomValidity('Please enter a valid hex script');
+				} else {
+					input.setCustomValidity('');
+				}
+			}
+			set_isValid(form.checkValidity());
+		}
+	}
+
+	const onSubmit = useCallback(
+		async (e: FormEvent) => {
+			e.preventDefault();
+			assert(isActive, 'Wallet not connected');
+			assert(provider, 'Provider not connected');
+
+			// get input values
+			const input = document.getElementById('apply-form') as HTMLFormElement;
+			const formData = new FormData(input);
+			const ipfsPinURI = formData.get('ipfsPinURI') as string;
+			const scriptHex = formData.get('scriptHex') as string;
+
+			const result = await propose({
+				connector: provider,
+				chainID: Number(process.env.BASE_CHAIN_ID),
+				contractAddress: toAddress(process.env.ONCHAIN_GOV_ADDRESS),
+				ipfs: ipfsPinURI,
+				script: scriptHex || '',
+				statusHandler: set_submitStatus
+			});
+			if (result.isSuccessful) {
+				//
+			}
+		},
+		[isActive, provider]
+	);
 
 	return (
 		<form
@@ -34,14 +97,15 @@ function Form(): ReactElement {
 							'bg-neutral-0'
 						)}>
 						<input
+							id={'ipfsPinURI'}
+							name={'ipfsPinURI'}
 							required
 							className={
 								'w-full overflow-x-scroll border-none bg-transparent px-0 py-4 font-mono text-sm outline-none scrollbar-none'
 							}
 							type={'text'}
 							placeholder={'ipfs://'}
-							value={ipfsPinURI}
-							onChange={e => set_ipfsPinURI(e.target.value)}
+							onChange={onCheckValidity}
 						/>
 					</div>
 				</div>
@@ -49,17 +113,19 @@ function Form(): ReactElement {
 					<p className={'mb-1 text-sm text-neutral-600'}>{'Script (optional)'}</p>
 					<div
 						className={cl(
-							'grow-1 col-span-7 flex h-10 w-full items-center justify-center rounded-md p-2',
+							'grow-1 col-span-7 flex w-full items-center justify-center rounded-md p-2 py-0',
 							'bg-neutral-0'
 						)}>
-						<input
+						<textarea
+							id={'scriptHex'}
+							name={'scriptHex'}
 							className={
-								'w-full overflow-x-scroll border-none bg-transparent px-0 py-4 font-mono text-sm outline-none scrollbar-none'
+								'w-full overflow-x-scroll border-none bg-transparent px-0 font-mono text-sm outline-none scrollbar-none'
 							}
-							type={'text'}
+							rows={10}
+							style={{resize: 'none'}}
 							placeholder={'A script that executes on-chain if the proposal passes'}
-							value={scriptURI}
-							onChange={e => set_scriptURI(e.target.value)}
+							onChange={onCheckValidity}
 						/>
 					</div>
 				</div>
@@ -68,7 +134,8 @@ function Form(): ReactElement {
 				<div className={'mt-24 pt-2'}>
 					<Button
 						className={'w-48'}
-						isDisabled={!isValid}>
+						isBusy={submitStatus.pending}
+						isDisabled={!isValid || toBigInt(votePower?.raw) < toBigInt(minWeight?.raw)}>
 						{'Apply'}
 					</Button>
 				</div>

@@ -1,12 +1,17 @@
 import React, {useCallback, useMemo, useState} from 'react';
+import {propose} from 'app/actions';
 import {useEpoch} from 'app/hooks/useEpoch';
 import {useTimer} from 'app/hooks/useTimer';
+import assert from 'assert';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
+import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {cl, formatAmount, isAddress, toAddress, toNormalizedBN} from '@builtbymom/web3/utils';
+import {defaultTxStatus} from '@builtbymom/web3/utils/wagmi';
 import {Button} from '@yearn-finance/web-lib/components/Button';
 
 import type {ReactElement} from 'react';
 import type {TAddress, TNormalizedBN} from '@builtbymom/web3/types';
+import type {TTxStatus} from '@builtbymom/web3/utils/wagmi';
 
 function Timer(): ReactElement {
 	const {voteStart, endPeriod, hasVotingStarted} = useEpoch();
@@ -38,9 +43,11 @@ function CheckboxElement({onChange, content}: {onChange: () => void; content: st
 }
 
 function Form(): ReactElement {
+	const {isActive, provider} = useWeb3();
 	const {getBalance} = useWallet();
 	const [lstAddress, set_lstAddress] = useState<TAddress | undefined>(undefined);
 	const [isValid, set_isValid] = useState(false);
+	const [submitStatus, set_submitStatus] = useState<TTxStatus>(defaultTxStatus);
 
 	function onCheckValidity(): void {
 		const form = document.getElementById('apply-form') as HTMLFormElement;
@@ -56,9 +63,20 @@ function Form(): ReactElement {
 		return undefined;
 	}, [lstAddress]);
 
-	const onSubmit = useCallback(() => {
-		if (getFeeAmount && lstAddress) {
-			console.log('submit', lstAddress);
+	const onSubmit = useCallback(async () => {
+		assert(isActive, 'Wallet not connected');
+		assert(provider, 'Provider not connected');
+
+		const result = await propose({
+			connector: provider,
+			chainID: Number(process.env.BASE_CHAIN_ID),
+			contractAddress: toAddress(process.env.ONCHAIN_GOV_ADDRESS),
+			ipfs: '',
+			script: '',
+			statusHandler: set_submitStatus
+		});
+		if (result.isSuccessful) {
+			//
 		}
 	}, [getFeeAmount, lstAddress]);
 
@@ -146,6 +164,7 @@ function Form(): ReactElement {
 				<div className={'mt-24 pt-2'}>
 					<Button
 						className={'w-48'}
+						isBusy={submitStatus.pending}
 						isDisabled={
 							!isValid ||
 							!getFeeAmount ||

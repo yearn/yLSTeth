@@ -882,7 +882,7 @@ function ViewIncentive(): ReactElement {
 									incentiveStatus !== 'started' ||
 									amountToSend.raw === 0n ||
 									amountToSend.raw > balanceOf.raw ||
-									isZeroAddress(lstToIncentive?.address) ||
+									lstToIncentive === undefined ||
 									isZeroAddress(tokenToUse?.address)
 								}
 								className={'yearn--button w-full rounded-md !text-sm'}>

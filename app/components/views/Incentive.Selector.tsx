@@ -380,7 +380,7 @@ function IncentiveSelector({
 							className={
 								'grow-1 flex h-10 w-full items-center justify-center rounded-md bg-neutral-0 p-2'
 							}>
-							<div className={'size-6 mr-2 min-w-[24px]'}>
+							<div className={'mr-2 size-6 min-w-[24px]'}>
 								<ImageWithFallback
 									alt={''}
 									unoptimized
@@ -435,7 +435,7 @@ function IncentiveSelector({
 								isIncentivePeriodClosed ||
 								amountToSend.raw === 0n ||
 								amountToSend.raw > balanceOf.raw ||
-								isZeroAddress(lstToIncentive?.address) ||
+								lstToIncentive === undefined ||
 								isZeroAddress(tokenToUse?.address)
 							}
 							className={'yearn--button w-full rounded-md !text-sm'}>
