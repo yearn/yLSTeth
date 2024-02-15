@@ -16,6 +16,7 @@ import {IconLinkOut} from '@yearn-finance/web-lib/icons/IconLinkOut';
 
 import type {TProposalRoot} from 'app/utils/types';
 import type {FormEvent, ReactElement} from 'react';
+import type {Hex} from 'viem';
 import type {TTxStatus} from '@builtbymom/web3/utils/wagmi';
 
 function Form(): ReactElement {
@@ -66,7 +67,7 @@ function Form(): ReactElement {
 			const input = document.getElementById('apply-form') as HTMLFormElement;
 			const formData = new FormData(input);
 			const ipfsPinURI = formData.get('ipfsPinURI') as string;
-			const scriptHex = formData.get('scriptHex') as string;
+			const scriptHex = formData.get('scriptHex') as Hex;
 
 			const result = await propose({
 				connector: provider,

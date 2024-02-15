@@ -3,7 +3,7 @@ import {MULTICALL_ABI} from 'app/utils/abi/multicall3.abi';
 import assert from 'assert';
 import {CID} from 'multiformats';
 import {toString as uint8ArrayToString} from 'uint8arrays/to-string';
-import {type Hex, keccak256, toHex, zeroAddress} from 'viem';
+import {type Hex, zeroAddress} from 'viem';
 import {assertAddress, ETH_TOKEN_ADDRESS, MAX_UINT_256, toAddress, WETH_TOKEN_ADDRESS} from '@builtbymom/web3/utils';
 import {handleTx, toWagmiProvider} from '@builtbymom/web3/utils/wagmi';
 import {erc20ABI, readContract} from '@wagmi/core';
@@ -582,26 +582,21 @@ export async function unlockFromBootstrap(props: TUnlockFromBootstrap): Promise<
  ******************************************************************************/
 type TPropose = TWriteTransaction & {
 	ipfs: string;
-	script: string;
+	script: Hex;
 };
 export async function propose(props: TPropose): Promise<TTxResponse> {
 	assert(props.connector, 'No connector');
-	assert(props.script !== '');
-
-	console.warn(keccak256(toHex(props.ipfs)));
-	console.warn(toHex(props.ipfs));
-	console.warn(props.ipfs);
 
 	const cidv0 = CID.parse(props.ipfs);
 	const cidV1 = cidv0.toV1();
 	const multihashDigestInHex = uint8ArrayToString(cidV1.multihash.digest, 'base16').toUpperCase();
-	console.warn([`0x${multihashDigestInHex}`, toHex(props.script)]);
+	console.warn([`0x${multihashDigestInHex}`, props.script]);
 
 	return await handleTx(props, {
 		address: toAddress(process.env.ONCHAIN_GOV_ADDRESS),
 		abi: GOVERNOR_ABI,
 		functionName: 'propose',
-		args: [`0x${multihashDigestInHex}`, toHex(props.script)]
+		args: [`0x${multihashDigestInHex}`, props.script]
 	});
 }
 

@@ -72,7 +72,7 @@ function Form(): ReactElement {
 			chainID: Number(process.env.BASE_CHAIN_ID),
 			contractAddress: toAddress(process.env.ONCHAIN_GOV_ADDRESS),
 			ipfs: '',
-			script: '',
+			script: '0x',
 			statusHandler: set_submitStatus
 		});
 		if (result.isSuccessful) {
