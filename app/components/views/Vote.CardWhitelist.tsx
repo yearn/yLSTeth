@@ -1,59 +1,27 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import IconChevronPlain from 'app/components/icons/IconChevronPlain';
 import IconSpinner from 'app/components/icons/IconSpinner';
 import useLST from 'app/contexts/useLST';
-import {getCurrentEpoch} from 'app/utils/epochs';
-import {formatAmount, truncateHex} from '@builtbymom/web3/utils';
+import {NO_CHANGE_LST_LIKE} from 'app/utils/constants';
+import {getPreviousEpoch} from 'app/utils/epochs';
+import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
+import {cl, formatAmount, isZeroAddress, truncateHex} from '@builtbymom/web3/utils';
+import {Button} from '@yearn-finance/web-lib/components/Button';
 import {ImageWithFallback} from '@yearn-finance/web-lib/components/ImageWithFallback';
 
 import type {TSortDirection} from 'app/utils/types';
 import type {ReactElement} from 'react';
-
-function VoteElement({currentLST}: {currentLST: any}): ReactElement {
-	const {
-		incentives: {groupIncentiveHistory}
-	} = useLST();
-	const item = groupIncentiveHistory?.protocols?.[currentLST.address] || undefined;
-
-	return (
-		<div
-			aria-label={'content'}
-			className={
-				'my-0.5 grid grid-cols-12 rounded-sm bg-neutral-100/50 p-4 transition-colors open:bg-neutral-100 hover:bg-neutral-100'
-			}>
-			<div className={'col-span-12 flex w-full flex-row items-center space-x-6 md:col-span-6'}>
-				<div className={'size-10 min-w-[40px]'}>
-					<ImageWithFallback
-						src={currentLST.logoURI || ''}
-						alt={''}
-						unoptimized
-						width={40}
-						height={40}
-					/>
-				</div>
-				<div className={'flex flex-col'}>
-					<p className={'whitespace-nowrap'}>{currentLST.symbol || truncateHex(currentLST.address, 6)}</p>
-					<small className={'whitespace-nowrap text-xs'}>{currentLST.name}</small>
-				</div>
-			</div>
-			<div className={'col-span-12 mt-4 flex items-center justify-between md:col-span-6 md:mt-0 md:justify-end'}>
-				<small className={'block text-neutral-500 md:hidden'}>{'Total incentive (USD)'}</small>
-				<p
-					suppressHydrationWarning
-					className={'font-number'}>
-					{`$${formatAmount(item?.normalizedSum || 0, 2, 2)}`}
-				</p>
-			</div>
-		</div>
-	);
-}
+import type {TDict} from '@builtbymom/web3/types';
 
 function VoteCardWhitelist(): ReactElement {
-	const [sortBy, set_sortBy] = useState<'totalIncentive'>('totalIncentive');
-	const [sortDirection, set_sortDirection] = useState<TSortDirection>('desc');
+	const {address} = useWeb3();
 	const {
 		incentives: {groupIncentiveHistory, isFetchingHistory}
 	} = useLST();
+	const [sortBy, set_sortBy] = useState<'totalIncentive'>('totalIncentive');
+	const [sortDirection, set_sortDirection] = useState<TSortDirection>('desc');
+	const [votePowerPerLST, set_votePowerPerLST] = useState<TDict<number>>({});
+	const lst = useMemo(() => getPreviousEpoch().inclusion.candidates, []);
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	 **	Callback method used to sort the vaults list.
@@ -96,7 +64,25 @@ function VoteCardWhitelist(): ReactElement {
 		[sortDirection]
 	);
 
-	if (getCurrentEpoch().inclusion.candidates.length === 0) {
+	const onVote = useCallback((): void => {
+		const sumOfVotes = Object.values(votePowerPerLST).reduce((a, b) => a + b, 0);
+		const votes = [];
+		for (const item of lst) {
+			const numberOfVoteForThisLST = votePowerPerLST[item.address] || 0;
+			votes[item.index] = Math.floor((numberOfVoteForThisLST / sumOfVotes) * 10_000);
+		}
+		const numberOfVoteForNoChange = votePowerPerLST[NO_CHANGE_LST_LIKE.address] || 0;
+		votes.unshift(Math.floor((numberOfVoteForNoChange / sumOfVotes) * 10_000));
+
+		const totalVotePower = votes.reduce((a, b) => a + b, 0);
+		if (totalVotePower > 10_000) {
+			votes[0] += 10_000 - totalVotePower;
+		}
+
+		console.log(votes);
+	}, [lst, votePowerPerLST]);
+
+	if (lst.length === 0) {
 		return (
 			<div className={'mt-10'}>
 				<p className={'whitespace-pre text-neutral-700'}>
@@ -110,7 +96,7 @@ function VoteCardWhitelist(): ReactElement {
 			<div
 				aria-label={'header'}
 				className={'mb-4 hidden grid-cols-12 px-4 md:grid'}>
-				<div className={'col-span-6'}>
+				<div className={'col-span-3'}>
 					<p className={'text-xs text-neutral-500'}>{'LST'}</p>
 				</div>
 				<div className={'col-span-6 -mr-2 flex justify-end text-right'}>
@@ -123,7 +109,7 @@ function VoteCardWhitelist(): ReactElement {
 				</div>
 			</div>
 
-			{[...getCurrentEpoch().inclusion.candidates]
+			{[NO_CHANGE_LST_LIKE, ...lst]
 				.filter((e): boolean => Boolean(e))
 				.sort((a, b): number => {
 					const aProtocol = groupIncentiveHistory?.protocols?.[a.address];
@@ -136,20 +122,116 @@ function VoteCardWhitelist(): ReactElement {
 					}
 					return sortDirection === 'desc' ? Number(bValue) - Number(aValue) : Number(aValue) - Number(bValue);
 				})
-				.map(
-					(currentLST): ReactElement => (
-						<VoteElement
-							key={currentLST.address}
-							currentLST={currentLST}
-						/>
-					)
-				)}
+				.map((currentLST): ReactElement => {
+					const item = groupIncentiveHistory?.protocols?.[currentLST.address] || undefined;
+					return (
+						<div
+							aria-label={'content'}
+							className={
+								'my-0.5 grid grid-cols-12 rounded-sm bg-neutral-100/50 p-4 transition-colors open:bg-neutral-100 hover:bg-neutral-100'
+							}>
+							<div className={'col-span-12 flex w-full flex-row items-center space-x-6 md:col-span-3'}>
+								<div className={'size-10 min-w-[40px]'}>
+									<ImageWithFallback
+										src={currentLST.logoURI || ''}
+										alt={''}
+										unoptimized
+										width={40}
+										height={40}
+									/>
+								</div>
+								<div className={'flex flex-col'}>
+									<p className={'whitespace-nowrap'}>
+										{currentLST.symbol || truncateHex(currentLST.address, 6)}
+									</p>
+									<small className={'whitespace-nowrap text-xs'}>{currentLST.name}</small>
+								</div>
+							</div>
+							<div
+								className={
+									'col-span-12 mt-4 flex items-center justify-between md:col-span-6 md:mt-0 md:justify-end'
+								}>
+								<small className={'block text-neutral-500 md:hidden'}>{'Total incentive (USD)'}</small>
+								<p
+									suppressHydrationWarning
+									className={'font-number'}>
+									{`$${formatAmount(item?.normalizedSum || 0, 2, 2)}`}
+								</p>
+							</div>
+							<div className={'col-span-12 mt-2 flex w-full items-center pl-[40%] md:col-span-3 md:mt-0'}>
+								<div className={'grid h-10 w-full grid-cols-4 items-center rounded-lg bg-neutral-0'}>
+									<div className={'flex items-center justify-start pl-1'}>
+										<button
+											disabled={!votePowerPerLST[currentLST.address]}
+											onClick={() =>
+												set_votePowerPerLST(p => ({
+													...p,
+													[currentLST.address]:
+														p[currentLST.address] === 0 ? 0 : p[currentLST.address] - 1
+												}))
+											}
+											className={cl(
+												'flex size-8 items-center justify-center rounded-lg bg-neutral-100',
+												'text-xl transition-colors hover:bg-neutral-200 disabled:cursor-not-allowed',
+												'disabled:opacity-60 disabled:text-neutral-400'
+											)}>
+											{'-'}
+										</button>
+									</div>
+									<div className={'col-span-2 text-center'}>
+										<p
+											suppressHydrationWarning
+											className={cl(
+												'font-number',
+												!votePowerPerLST[currentLST.address] ? 'text-neutral-900/30' : ''
+											)}>
+											{`${formatAmount(
+												((votePowerPerLST[currentLST.address] || 0) /
+													Object.values(votePowerPerLST).reduce((a, b) => a + b, 0)) *
+													100,
+												0,
+												2
+											)}%`}
+										</p>
+									</div>
+									<div className={'flex items-center justify-end pr-1'}>
+										<button
+											onClick={() =>
+												set_votePowerPerLST(p => ({
+													...p,
+													[currentLST.address]: p[currentLST.address] + 1 || 1
+												}))
+											}
+											className={
+												'flex size-8 items-center justify-center rounded-lg bg-neutral-100 transition-colors hover:bg-neutral-200'
+											}>
+											<p className={'text-xl'}>{'+'}</p>
+										</button>
+									</div>
+								</div>
+							</div>
+						</div>
+					);
+				})}
 
 			{isFetchingHistory && (
 				<div className={'mt-6 flex flex-row items-center justify-center'}>
 					<IconSpinner className={'!h-6 !w-6 !text-neutral-400'} />
 				</div>
 			)}
+			<div className={'mt-auto pt-10'}>
+				<Button
+					onClick={onVote}
+					isDisabled={
+						isFetchingHistory ||
+						Object.values(votePowerPerLST).reduce((a, b) => a + b, 0) === 0 ||
+						Object.values(votePowerPerLST).reduce((a, b) => a + b, 0) > 100 ||
+						isZeroAddress(address)
+					}
+					className={'w-full md:w-[264px]'}>
+					{'Vote'}
+				</Button>
+			</div>
 		</div>
 	);
 }

@@ -2,14 +2,20 @@ import React, {useCallback, useState} from 'react';
 import IconChevronPlain from 'app/components/icons/IconChevronPlain';
 import IconSpinner from 'app/components/icons/IconSpinner';
 import useLST from 'app/contexts/useLST';
+import {NO_CHANGE_LST_LIKE} from 'app/utils/constants';
+import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {useChainID} from '@builtbymom/web3/hooks/useChainID';
-import {formatAmount, formatPercent, toAddress, truncateHex} from '@builtbymom/web3/utils';
+import {cl, formatAmount, formatPercent, isZeroAddress, toAddress, truncateHex} from '@builtbymom/web3/utils';
+import {Button} from '@yearn-finance/web-lib/components/Button';
 import {ImageWithFallback} from '@yearn-finance/web-lib/components/ImageWithFallback';
 
+import type {TLST} from 'app/hooks/useLSTData';
 import type {TSortDirection} from 'app/utils/types';
 import type {ReactElement} from 'react';
+import type {TDict} from '@builtbymom/web3/types';
 
 function VoteCardWeights(): ReactElement {
+	const {address} = useWeb3();
 	const {lst} = useLST();
 	const {
 		incentives: {groupIncentiveHistory, isFetchingHistory}
@@ -17,6 +23,7 @@ function VoteCardWeights(): ReactElement {
 	const {safeChainID} = useChainID();
 	const [sortBy, set_sortBy] = useState<'totalIncentive' | 'weight'>('totalIncentive');
 	const [sortDirection, set_sortDirection] = useState<TSortDirection>('desc');
+	const [votePowerPerLST, set_votePowerPerLST] = useState<TDict<number>>({});
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	 **	Callback method used to sort the vaults list.
@@ -54,12 +61,30 @@ function VoteCardWeights(): ReactElement {
 		[sortDirection]
 	);
 
+	const onVote = useCallback((): void => {
+		const sumOfVotes = Object.values(votePowerPerLST).reduce((a, b) => a + b, 0);
+		const votes = [];
+		for (const item of lst) {
+			const numberOfVoteForThisLST = votePowerPerLST[item.address] || 0;
+			votes[item.index] = Math.floor((numberOfVoteForThisLST / sumOfVotes) * 1e18);
+		}
+		const numberOfVoteForNoChange = votePowerPerLST[NO_CHANGE_LST_LIKE.address] || 0;
+		votes.unshift(Math.floor((numberOfVoteForNoChange / sumOfVotes) * 1e18));
+
+		const totalVotePower = votes.reduce((a, b) => a + b, 0);
+		if (totalVotePower > 10_000) {
+			votes[0] += 10_000 - totalVotePower;
+		}
+
+		console.log(votes);
+	}, [lst, votePowerPerLST]);
+
 	return (
 		<div className={'mt-8'}>
 			<div
 				aria-label={'header'}
 				className={'mb-4 hidden grid-cols-12 px-4 md:grid'}>
-				<div className={'col-span-6'}>
+				<div className={'col-span-3'}>
 					<p className={'text-xs text-neutral-500'}>{'LST'}</p>
 				</div>
 				<div className={'col-span-3 -mr-2 flex justify-end text-right'}>
@@ -80,7 +105,7 @@ function VoteCardWeights(): ReactElement {
 				</div>
 			</div>
 
-			{[...lst]
+			{[NO_CHANGE_LST_LIKE, ...lst]
 				.filter((e): boolean => Boolean(e))
 				.sort((a, b): number => {
 					const aProtocol = groupIncentiveHistory?.protocols?.[a.address];
@@ -91,26 +116,29 @@ function VoteCardWeights(): ReactElement {
 						aValue = aProtocol?.normalizedSum || 0;
 						bValue = bProtocol?.normalizedSum || 0;
 					} else if (sortBy === 'weight') {
-						aValue = Number(a.weight.normalized);
-						bValue = Number(b.weight.normalized);
+						aValue = Number((a as TLST)?.weight?.normalized || 0);
+						bValue = Number((b as TLST)?.weight?.normalized || 0);
 					}
 					return sortDirection === 'desc' ? Number(bValue) - Number(aValue) : Number(aValue) - Number(bValue);
 				})
-				.map((lst): ReactElement => {
-					const item = groupIncentiveHistory?.protocols?.[lst.address] || undefined;
+				.map((currentLST): ReactElement => {
+					const item = groupIncentiveHistory?.protocols?.[currentLST.address] || undefined;
 					return (
 						<div
-							key={lst.address}
+							key={currentLST.address}
 							aria-label={'content'}
 							className={
 								'my-0.5 grid grid-cols-12 rounded-sm bg-neutral-100/50 p-4 transition-colors open:bg-neutral-100 hover:bg-neutral-100'
 							}>
-							<div className={'col-span-12 flex w-full flex-row items-center space-x-6 md:col-span-6'}>
+							<div className={'col-span-12 flex w-full flex-row items-center space-x-6 md:col-span-3'}>
 								<div className={'size-10 min-w-[40px]'}>
 									<ImageWithFallback
-										src={`https://assets.smold.app/api/token/${safeChainID}/${toAddress(
-											lst?.address
-										)}/logo-128.png`}
+										src={
+											currentLST.logoURI ||
+											`https://assets.smold.app/api/token/${safeChainID}/${toAddress(
+												currentLST?.address
+											)}/logo-128.png`
+										}
 										alt={''}
 										unoptimized
 										width={40}
@@ -118,8 +146,10 @@ function VoteCardWeights(): ReactElement {
 									/>
 								</div>
 								<div className={'flex flex-col'}>
-									<p className={'whitespace-nowrap'}>{lst?.symbol || truncateHex(lst.address, 6)}</p>
-									<small className={'whitespace-nowrap text-xs'}>{lst.name}</small>
+									<p className={'whitespace-nowrap'}>
+										{currentLST?.symbol || truncateHex(currentLST.address, 6)}
+									</p>
+									<small className={'whitespace-nowrap text-xs'}>{currentLST.name}</small>
 								</div>
 							</div>
 							<div
@@ -141,8 +171,61 @@ function VoteCardWeights(): ReactElement {
 								<p
 									suppressHydrationWarning
 									className={'font-number'}>
-									{formatPercent(Number(lst?.weight.normalized || 0) * 100)}
+									{formatPercent(Number((currentLST as TLST)?.weight?.normalized || 0) * 100)}
 								</p>
+							</div>
+
+							<div className={'col-span-12 mt-2 flex w-full items-center pl-[40%] md:col-span-3 md:mt-0'}>
+								<div className={'grid h-10 w-full grid-cols-4 items-center rounded-lg bg-neutral-0'}>
+									<div className={'flex items-center justify-start pl-1'}>
+										<button
+											disabled={!votePowerPerLST[currentLST.address]}
+											onClick={() =>
+												set_votePowerPerLST(p => ({
+													...p,
+													[currentLST.address]:
+														p[currentLST.address] === 0 ? 0 : p[currentLST.address] - 1
+												}))
+											}
+											className={cl(
+												'flex size-8 items-center justify-center rounded-lg bg-neutral-100',
+												'text-xl transition-colors hover:bg-neutral-200 disabled:cursor-not-allowed',
+												'disabled:opacity-60 disabled:text-neutral-400'
+											)}>
+											{'-'}
+										</button>
+									</div>
+									<div className={'col-span-2 text-center'}>
+										<p
+											suppressHydrationWarning
+											className={cl(
+												'font-number',
+												!votePowerPerLST[currentLST.address] ? 'text-neutral-900/30' : ''
+											)}>
+											{`${formatAmount(
+												((votePowerPerLST[currentLST.address] || 0) /
+													Object.values(votePowerPerLST).reduce((a, b) => a + b, 0)) *
+													100,
+												0,
+												2
+											)}%`}
+										</p>
+									</div>
+									<div className={'flex items-center justify-end pr-1'}>
+										<button
+											onClick={() =>
+												set_votePowerPerLST(p => ({
+													...p,
+													[currentLST.address]: p[currentLST.address] + 1 || 1
+												}))
+											}
+											className={
+												'flex size-8 items-center justify-center rounded-lg bg-neutral-100 transition-colors hover:bg-neutral-200'
+											}>
+											<p className={'text-xl'}>{'+'}</p>
+										</button>
+									</div>
+								</div>
 							</div>
 						</div>
 					);
@@ -153,6 +236,19 @@ function VoteCardWeights(): ReactElement {
 					<IconSpinner className={'!h-6 !w-6 !text-neutral-400'} />
 				</div>
 			)}
+			<div className={'mt-auto pt-10'}>
+				<Button
+					onClick={onVote}
+					isDisabled={
+						isFetchingHistory ||
+						Object.values(votePowerPerLST).reduce((a, b) => a + b, 0) === 0 ||
+						Object.values(votePowerPerLST).reduce((a, b) => a + b, 0) > 100 ||
+						isZeroAddress(address)
+					}
+					className={'w-full md:w-[264px]'}>
+					{'Vote'}
+				</Button>
+			</div>
 		</div>
 	);
 }

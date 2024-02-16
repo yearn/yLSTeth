@@ -148,3 +148,16 @@ export const proposalSchema = z.object({
 		})
 	})
 });
+
+/** 🔵 - Yearn *************************************************************************************
+ ** Proposal structure stored onchain
+ **************************************************************************************************/
+export type TOnChainProposal = {
+	title: string;
+	description: string;
+};
+
+export const onChainProposalSchema = z.object({
+	title: z.string(),
+	description: z.string()
+});

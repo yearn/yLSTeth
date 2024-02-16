@@ -1,25 +1,59 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import Markdown from 'react-markdown';
 import Link from 'next/link';
-import {propose} from 'app/actions';
+import {propose, retract} from 'app/actions';
+import {useEpoch} from 'app/hooks/useEpoch';
 import {useFetch} from 'app/hooks/useFetch';
+import {useTimer} from 'app/hooks/useTimer';
 import {GOVERNOR_ABI} from 'app/utils/abi/governor.abi';
 import {VOTE_WEIGHT_ABI} from 'app/utils/abi/voteWeight.abi';
-import {proposalSchema} from 'app/utils/types';
+import {onChainProposalSchema, proposalSchema} from 'app/utils/types';
 import assert from 'assert';
+import {CID} from 'multiformats';
+import {base16} from 'multiformats/bases/base16';
+import {create} from 'multiformats/hashes/digest';
 import {useAccount, useContractRead} from 'wagmi';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
+import {useAsyncTrigger} from '@builtbymom/web3/hooks/useAsyncTrigger';
 import {cl, toAddress, toBigInt, toNormalizedBN} from '@builtbymom/web3/utils';
 import {defaultTxStatus} from '@builtbymom/web3/utils/wagmi';
+import {multicall, readContract} from '@wagmi/core';
 import {Button} from '@yearn-finance/web-lib/components/Button';
 import {IconLinkOut} from '@yearn-finance/web-lib/icons/IconLinkOut';
 
-import type {TProposalRoot} from 'app/utils/types';
+import type {TOnChainProposal, TProposalRoot} from 'app/utils/types';
 import type {FormEvent, ReactElement} from 'react';
 import type {Hex} from 'viem';
+import type {TAddress} from '@builtbymom/web3/types';
 import type {TTxStatus} from '@builtbymom/web3/utils/wagmi';
 
-function Form(): ReactElement {
+type TOnchainProposal = {
+	cid: string;
+	abstain: bigint;
+	author: TAddress;
+	epoch: bigint;
+	hash: Hex;
+	ipfs: Hex;
+	nay: bigint;
+	state: bigint;
+	yea: bigint;
+	index: bigint;
+};
+
+function Timer(): ReactElement {
+	const {voteStart, endPeriod, hasVotingStarted} = useEpoch();
+	const time = useTimer({endTime: hasVotingStarted ? Number(endPeriod) : Number(voteStart)});
+
+	return (
+		<b
+			suppressHydrationWarning
+			className={'font-number mt-2 text-3xl leading-10 text-purple-300'}>
+			{hasVotingStarted ? `Open in ${time}` : `${time}`}
+		</b>
+	);
+}
+
+function Form(props: {canPropose: boolean}): ReactElement {
 	const {isActive, provider, address} = useWeb3();
 	const [submitStatus, set_submitStatus] = useState<TTxStatus>(defaultTxStatus);
 	const [isValid, set_isValid] = useState(false);
@@ -136,7 +170,9 @@ function Form(): ReactElement {
 					<Button
 						className={'w-48'}
 						isBusy={submitStatus.pending}
-						isDisabled={!isValid || toBigInt(votePower?.raw) < toBigInt(minWeight?.raw)}>
+						isDisabled={
+							!isValid || toBigInt(votePower?.raw) < toBigInt(minWeight?.raw) || !props.canPropose
+						}>
 						{'Apply'}
 					</Button>
 				</div>
@@ -145,7 +181,7 @@ function Form(): ReactElement {
 	);
 }
 
-function Proposal(props: {uri: string; triggerLoaded: () => void}): ReactElement | null {
+function SnapshotProposal(props: {uri: string; triggerLoaded: () => void}): ReactElement | null {
 	const {address} = useAccount();
 	const sanitizedURI = props?.uri.replace('ipfs://', 'https://snapshot.4everland.link/ipfs/');
 	const {data, isLoading} = useFetch<TProposalRoot>({
@@ -195,7 +231,120 @@ function Proposal(props: {uri: string; triggerLoaded: () => void}): ReactElement
 	);
 }
 
-function Proposals(): ReactElement {
+function OnChainProposal(props: {
+	proposal: TOnchainProposal;
+	canRetract: boolean;
+	onRefreshProposals: VoidFunction;
+}): ReactElement {
+	const {provider} = useWeb3();
+	const [retractStatus, set_retractStatus] = useState<TTxStatus>(defaultTxStatus);
+	const sanitizedURI = props.proposal.cid.replace('ipfs://', 'https://snapshot.4everland.link/ipfs/');
+	const {data, isLoading} = useFetch<TOnChainProposal>({
+		endpoint: sanitizedURI,
+		schema: onChainProposalSchema
+	});
+
+	const onRetract = useCallback(
+		async (index: bigint) => {
+			const result = await retract({
+				connector: provider,
+				chainID: Number(process.env.BASE_CHAIN_ID),
+				contractAddress: toAddress(process.env.ONCHAIN_GOV_ADDRESS),
+				index: index,
+				statusHandler: set_retractStatus
+			});
+			if (result.isSuccessful) {
+				props.onRefreshProposals();
+			}
+		},
+		[provider, props]
+	);
+
+	if (isLoading || !data) {
+		return (
+			<div className={'flex w-full flex-col gap-2 bg-neutral-200 px-8 py-6'}>
+				<div className={'mb-2 h-8 w-1/2 animate-pulse rounded-lg bg-neutral-400/80'} />
+				<div className={'h-4 w-full animate-pulse rounded-lg bg-neutral-400/80'} />
+				<div className={'h-4 w-full animate-pulse rounded-lg bg-neutral-400/80'} />
+				<div className={'h-4 w-3/4 animate-pulse rounded-lg bg-neutral-400/80'} />
+			</div>
+		);
+	}
+
+	return (
+		<div className={'relative flex w-full flex-col gap-4 bg-neutral-200 px-8 py-6'}>
+			<b className={'text-2xl'}>{data.title}</b>
+			<div className={'markdown scrollbar-show max-h-60 overflow-y-scroll'}>
+				<Markdown>{data.description}</Markdown>
+			</div>
+			<div>
+				<Button
+					onClick={async () => onRetract(props.proposal.index)}
+					isBusy={retractStatus.pending}
+					isDisabled={props.proposal.state >= 2n || !props.canRetract}
+					className={'w-48'}>
+					{'Retract'}
+				</Button>
+			</div>
+		</div>
+	);
+}
+
+function OnChainProposals(props: {canRetract: boolean}): ReactElement {
+	const {address} = useWeb3();
+	const [proposals, set_proposals] = useState<TOnchainProposal[]>([]);
+
+	const refreshProposals = useAsyncTrigger(async () => {
+		const proposalsCount = await readContract({
+			abi: GOVERNOR_ABI,
+			address: toAddress(process.env.ONCHAIN_GOV_ADDRESS),
+			functionName: 'num_proposals'
+		});
+
+		const data = await multicall({
+			contracts: Array.from({length: Number(proposalsCount)}, (_, i) => ({
+				abi: GOVERNOR_ABI,
+				address: toAddress(process.env.ONCHAIN_GOV_ADDRESS),
+				functionName: 'proposal',
+				args: [i]
+			}))
+		});
+
+		const allProposals = [];
+		let index = 0n;
+		for (const proposal of data) {
+			if (proposal.status === 'success') {
+				const typedProposals = proposal.result as TOnchainProposal;
+				const ipfsWithout0x = typedProposals.ipfs.replace('0x', '');
+				const multihashDigest = base16.decode('f' + ipfsWithout0x);
+				const multihash = create(18, multihashDigest);
+				const v1 = CID.createV1(0x70, multihash);
+				const v0 = v1.toV0();
+				if (toAddress(typedProposals.author) === toAddress(address)) {
+					allProposals.push({...typedProposals, cid: `ipfs://${v0.toString()}`, index});
+				}
+			}
+			index++;
+		}
+
+		set_proposals(allProposals);
+	}, [address]);
+
+	return (
+		<div>
+			{proposals.map(data => (
+				<OnChainProposal
+					key={data.cid}
+					proposal={data}
+					canRetract={props.canRetract}
+					onRefreshProposals={refreshProposals}
+				/>
+			))}
+		</div>
+	);
+}
+
+function Proposals(props: {canRetract: boolean}): ReactElement {
 	const [hasProposals, set_hasProposals] = useState<boolean>(false);
 	const IPSFProposals = [
 		'ipfs://bafkreie4c5gfprk77mm5lsimyidtyv4e22h6u4j2xhiarv4l5supwxscnm',
@@ -221,8 +370,9 @@ function Proposals(): ReactElement {
 			<div
 				id={'your proposals'}
 				className={'grid gap-6'}>
+				<OnChainProposals {...props} />
 				{IPSFProposals.map((ipfs, index) => (
-					<Proposal
+					<SnapshotProposal
 						key={index}
 						triggerLoaded={checkHasProposals}
 						uri={ipfs}
@@ -243,15 +393,24 @@ function Proposals(): ReactElement {
 }
 
 function ProposalWrapper(): ReactElement {
+	const {data: isProposeOpen} = useContractRead({
+		address: toAddress(process.env.ONCHAIN_GOV_ADDRESS),
+		abi: GOVERNOR_ABI,
+		functionName: 'propose_open'
+	});
+
 	return (
 		<div className={'relative mx-auto mb-0 flex min-h-screen w-full flex-col bg-neutral-0 pt-20'}>
 			<div className={'relative mx-auto mt-6 w-screen max-w-5xl'}>
 				<section className={'grid grid-cols-12 gap-0 px-4 pt-10 md:gap-20 md:pt-12'}>
 					<div className={'col-span-12 md:col-span-6 md:mb-0'}>
-						<div className={'mb-10 flex flex-col justify-center'}>
+						<div className={'mb-6 flex flex-col justify-center'}>
 							<h1 className={'text-3xl font-black md:text-8xl md:leading-[88px]'}>
 								{'Submit  proposal'}
 							</h1>
+						</div>
+						<div className={'mb-10'}>
+							<Timer />
 						</div>
 
 						<div className={'mt-2 text-neutral-700'}>
@@ -270,11 +429,11 @@ function ProposalWrapper(): ReactElement {
 					</div>
 
 					<div className={'col-span-12 md:col-span-6'}>
-						<Form />
+						<Form canPropose={isProposeOpen || false} />
 					</div>
 				</section>
-				<section className={'px-4 pt-10 md:pt-12'}>
-					<Proposals />
+				<section className={'px-4 pt-10'}>
+					<Proposals canRetract={isProposeOpen || false} />
 				</section>
 			</div>
 		</div>

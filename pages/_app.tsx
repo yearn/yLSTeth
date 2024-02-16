@@ -53,7 +53,7 @@ function AppWrapper(props: AppProps): ReactElement {
 				<div className={'mx-auto my-0 pt-4 md:mb-0 md:!px-0'}>
 					<AnimatePresence mode={'wait'}>
 						<motion.div
-							key={router.asPath}
+							key={router.pathname}
 							initial={'initial'}
 							animate={'enter'}
 							exit={'exit'}
