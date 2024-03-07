@@ -15,7 +15,7 @@ import {create} from 'multiformats/hashes/digest';
 import {useContractRead} from 'wagmi';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {useAsyncTrigger} from '@builtbymom/web3/hooks/useAsyncTrigger';
-import {cl, toAddress, toNormalizedBN, zeroNormalizedBN} from '@builtbymom/web3/utils';
+import {cl, formatAmount, toAddress, toNormalizedBN, zeroNormalizedBN} from '@builtbymom/web3/utils';
 import {defaultTxStatus} from '@builtbymom/web3/utils/wagmi';
 import {multicall, readContract} from '@wagmi/core';
 import {Button} from '@yearn-finance/web-lib/components/Button';
@@ -304,13 +304,19 @@ function OnChainProposal(props: {
 			<div>
 				<dl className={'-mt-4 grid grid-cols-2 gap-0 rounded bg-neutral-200 p-4'}>
 					<dt>{'Yea'}</dt>
-					<dd className={'text-right'}>{`${props.proposal.yea} / ${totalVotes}`}</dd>
+					<dd className={'text-right'}>
+						{`${formatAmount(toNormalizedBN(props.proposal.yea, 18).normalized, 6, 6)} / ${formatAmount(toNormalizedBN(totalVotes, 18).normalized, 6, 6)}`}
+					</dd>
 					<dt>{'Nay'}</dt>
-					<dd className={'text-right'}>{`${props.proposal.nay} / ${totalVotes}`}</dd>
+					<dd className={'text-right'}>
+						{`${formatAmount(toNormalizedBN(props.proposal.nay, 18).normalized, 6, 6)} / ${formatAmount(toNormalizedBN(totalVotes, 18).normalized, 6, 6)}`}
+					</dd>
 					<dt>{'Abstain'}</dt>
-					<dd className={'text-right'}>{`${props.proposal.abstain} / ${totalVotes}`}</dd>
+					<dd className={'text-right'}>
+						{`${formatAmount(toNormalizedBN(props.proposal.abstain, 18).normalized, 6, 6)} / ${formatAmount(toNormalizedBN(totalVotes, 18).normalized, 6, 6)}`}
+					</dd>
 					<dt>{'Quorum'}</dt>
-					<dd className={'text-right'}>{props.quorum.normalized}</dd>
+					<dd className={'text-right'}>{formatAmount(props.quorum.normalized, 6, 6)}</dd>
 				</dl>
 				<div className={'relative mt-4 h-3 w-full overflow-hidden rounded bg-neutral-200'}>
 					<div

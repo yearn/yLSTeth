@@ -11,6 +11,7 @@ import {erc20ABI, readContract} from '@wagmi/core';
 import {STYETH_TOKEN, YETH_TOKEN} from './tokens';
 import {CURVE_SWAP_ABI} from './utils/abi/curveswap.abi';
 import {GOVERNOR_ABI} from './utils/abi/governor.abi';
+import {ONCHAIN_VOTE_WEIGHT_ABI} from './utils/abi/onchainVoteWeight.abi';
 import {ST_YETH_ABI} from './utils/abi/styETH.abi';
 import {VOTE_ABI} from './utils/abi/vote.abi';
 import {YETH_POOL_ABI} from './utils/abi/yETHPool.abi';
@@ -659,5 +660,19 @@ export async function voteAbstain(props: TVoteForProposal): Promise<TTxResponse>
 		abi: GOVERNOR_ABI,
 		functionName: 'vote_abstain',
 		args: [props.index]
+	});
+}
+
+type TVoteForWeight = TWriteTransaction & {
+	weight: bigint[];
+};
+export async function voteWeights(props: TVoteForWeight): Promise<TTxResponse> {
+	assert(props.connector, 'No connector');
+
+	return await handleTx(props, {
+		address: toAddress(process.env.WEIGHT_VOTE_ADDRESS),
+		abi: ONCHAIN_VOTE_WEIGHT_ABI,
+		functionName: 'vote',
+		args: [props.weight]
 	});
 }

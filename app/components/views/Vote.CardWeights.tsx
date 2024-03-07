@@ -1,11 +1,16 @@
 import React, {useCallback, useState} from 'react';
+import {voteWeights} from 'app/actions';
 import IconChevronPlain from 'app/components/icons/IconChevronPlain';
 import IconSpinner from 'app/components/icons/IconSpinner';
 import useLST from 'app/contexts/useLST';
+import {ONCHAIN_VOTE_WEIGHT_ABI} from 'app/utils/abi/onchainVoteWeight.abi';
 import {NO_CHANGE_LST_LIKE} from 'app/utils/constants';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
+import {useAsyncTrigger} from '@builtbymom/web3/hooks/useAsyncTrigger';
 import {useChainID} from '@builtbymom/web3/hooks/useChainID';
-import {cl, formatAmount, formatPercent, isZeroAddress, toAddress, truncateHex} from '@builtbymom/web3/utils';
+import {cl, formatAmount, formatPercent, isZeroAddress, toAddress, toBigInt, truncateHex} from '@builtbymom/web3/utils';
+import {defaultTxStatus} from '@builtbymom/web3/utils/wagmi';
+import {readContract, readContracts} from '@wagmi/core';
 import {Button} from '@yearn-finance/web-lib/components/Button';
 import {ImageWithFallback} from '@yearn-finance/web-lib/components/ImageWithFallback';
 
@@ -13,9 +18,10 @@ import type {TLST} from 'app/hooks/useLSTData';
 import type {TSortDirection} from 'app/utils/types';
 import type {ReactElement} from 'react';
 import type {TDict} from '@builtbymom/web3/types';
+import type {TTxStatus} from '@builtbymom/web3/utils/wagmi';
 
 function VoteCardWeights(): ReactElement {
-	const {address} = useWeb3();
+	const {provider, address} = useWeb3();
 	const {lst} = useLST();
 	const {
 		incentives: {groupIncentiveHistory, isFetchingHistory}
@@ -24,6 +30,67 @@ function VoteCardWeights(): ReactElement {
 	const [sortBy, set_sortBy] = useState<'totalIncentive' | 'weight'>('totalIncentive');
 	const [sortDirection, set_sortDirection] = useState<TSortDirection>('desc');
 	const [votePowerPerLST, set_votePowerPerLST] = useState<TDict<number>>({});
+	const [voteWeightStatus, set_voteWeightStatus] = useState<TTxStatus>(defaultTxStatus);
+	const [hasAlreadyVoted, set_hasAlreadyVoted] = useState(true);
+
+	/* 🔵 - Yearn Finance **************************************************************************
+	 **	Retrieve the current vote info for the user.
+	 **********************************************************************************************/
+	const onRefreshVotes = useAsyncTrigger(async () => {
+		if (isZeroAddress(address)) {
+			// return;
+		}
+
+		/* 🔵 - Yearn Finance **********************************************************************
+		 **	First we need to retrive the current epoch
+		 ******************************************************************************************/
+		const epoch = await readContract({
+			abi: ONCHAIN_VOTE_WEIGHT_ABI,
+			address: toAddress(process.env.WEIGHT_VOTE_ADDRESS),
+			functionName: 'epoch'
+		});
+
+		/* 🔵 - Yearn Finance **********************************************************************
+		 **	Then we need to check if the user already voted for this epoch
+		 ******************************************************************************************/
+		const hasAlreadyVoted = await readContract({
+			abi: ONCHAIN_VOTE_WEIGHT_ABI,
+			address: toAddress(process.env.WEIGHT_VOTE_ADDRESS),
+			functionName: 'voted',
+			args: [toAddress(address), epoch]
+		});
+		// set_hasAlreadyVoted(hasAlreadyVoted);
+
+		/* 🔵 - Yearn Finance **********************************************************************
+		 **	If so, we can try to retrieve the vote weight for each LST and display them.
+		 ******************************************************************************************/
+		if (hasAlreadyVoted || true) {
+			const votesUser = await readContracts({
+				contracts: [
+					{
+						abi: ONCHAIN_VOTE_WEIGHT_ABI,
+						address: toAddress(process.env.WEIGHT_VOTE_ADDRESS),
+						functionName: 'votes',
+						args: [toAddress(address), 0]
+					},
+					...lst.map(e => ({
+						abi: ONCHAIN_VOTE_WEIGHT_ABI,
+						address: toAddress(process.env.WEIGHT_VOTE_ADDRESS),
+						functionName: 'votes',
+						args: [toAddress(address), e.index]
+					}))
+				]
+			});
+			const votes: TDict<number> = {};
+			for (const item of lst) {
+				const randomWeight = Math.floor(Math.random() * 100);
+				votes[item.address] = Number(votesUser[item.index]?.result || 0) + Number(randomWeight);
+			}
+			const randomWeight = Math.floor(Math.random() * 100);
+			votes[NO_CHANGE_LST_LIKE.address] = Number(votesUser[0]?.result || 0) + Number(randomWeight);
+			set_votePowerPerLST(votes);
+		}
+	}, [address, lst]);
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	 **	Callback method used to sort the vaults list.
@@ -61,7 +128,7 @@ function VoteCardWeights(): ReactElement {
 		[sortDirection]
 	);
 
-	const onVote = useCallback((): void => {
+	const onVote = useCallback(async (): Promise<void> => {
 		const sumOfVotes = Object.values(votePowerPerLST).reduce((a, b) => a + b, 0);
 		const votes = [];
 		for (const item of lst) {
@@ -76,8 +143,19 @@ function VoteCardWeights(): ReactElement {
 			votes[0] += 10_000 - totalVotePower;
 		}
 
-		console.log(votes);
-	}, [lst, votePowerPerLST]);
+		const result = await voteWeights({
+			connector: provider,
+			chainID: Number(process.env.BASE_CHAIN_ID),
+			contractAddress: toAddress(process.env.ONCHAIN_GOV_ADDRESS),
+			weight: votes.map(v => toBigInt(v)),
+			statusHandler: set_voteWeightStatus
+		});
+		if (result.isSuccessful) {
+			onRefreshVotes();
+		}
+	}, [lst, provider, votePowerPerLST, onRefreshVotes]);
+
+	console.warn(hasAlreadyVoted);
 
 	return (
 		<div className={'mt-8'}>
@@ -179,7 +257,7 @@ function VoteCardWeights(): ReactElement {
 								<div className={'grid h-10 w-full grid-cols-4 items-center rounded-lg bg-neutral-0'}>
 									<div className={'flex items-center justify-start pl-1'}>
 										<button
-											disabled={!votePowerPerLST[currentLST.address]}
+											disabled={!votePowerPerLST[currentLST.address] || hasAlreadyVoted}
 											onClick={() =>
 												set_votePowerPerLST(p => ({
 													...p,
@@ -190,7 +268,7 @@ function VoteCardWeights(): ReactElement {
 											className={cl(
 												'flex size-8 items-center justify-center rounded-lg bg-neutral-100',
 												'text-xl transition-colors hover:bg-neutral-200 disabled:cursor-not-allowed',
-												'disabled:opacity-60 disabled:text-neutral-400'
+												'disabled:opacity-60 disabled:text-neutral-400 disabled:hover:bg-neutral-100'
 											)}>
 											{'-'}
 										</button>
@@ -213,15 +291,17 @@ function VoteCardWeights(): ReactElement {
 									</div>
 									<div className={'flex items-center justify-end pr-1'}>
 										<button
+											disabled={hasAlreadyVoted}
 											onClick={() =>
 												set_votePowerPerLST(p => ({
 													...p,
 													[currentLST.address]: p[currentLST.address] + 1 || 1
 												}))
 											}
-											className={
-												'flex size-8 items-center justify-center rounded-lg bg-neutral-100 transition-colors hover:bg-neutral-200'
-											}>
+											className={cl(
+												'flex size-8 items-center justify-center rounded-lg bg-neutral-100 transition-colors hover:bg-neutral-200',
+												'disabled:opacity-60 disabled:text-neutral-400 disabled:cursor-not-allowed disabled:hover:bg-neutral-100'
+											)}>
 											<p className={'text-xl'}>{'+'}</p>
 										</button>
 									</div>
