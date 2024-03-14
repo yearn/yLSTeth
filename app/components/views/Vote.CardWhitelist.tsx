@@ -82,15 +82,6 @@ function VoteCardWhitelist(): ReactElement {
 		console.log(votes);
 	}, [lst, votePowerPerLST]);
 
-	if (lst.length === 0) {
-		return (
-			<div className={'mt-10'}>
-				<p className={'whitespace-pre text-neutral-700'}>
-					{'There is nobody to be whitelisted yet\nnothing to worry about anon'}
-				</p>
-			</div>
-		);
-	}
 	return (
 		<div className={'mt-8'}>
 			<div
@@ -109,117 +100,136 @@ function VoteCardWhitelist(): ReactElement {
 				</div>
 			</div>
 
-			{[NO_CHANGE_LST_LIKE, ...lst]
-				.filter((e): boolean => Boolean(e))
-				.sort((a, b): number => {
-					const aProtocol = groupIncentiveHistory?.protocols?.[a.address];
-					const bProtocol = groupIncentiveHistory?.protocols?.[b.address];
-					let aValue = 0;
-					let bValue = 0;
-					if (sortBy === 'totalIncentive') {
-						aValue = aProtocol?.normalizedSum || 0;
-						bValue = bProtocol?.normalizedSum || 0;
-					}
-					return sortDirection === 'desc' ? Number(bValue) - Number(aValue) : Number(aValue) - Number(bValue);
-				})
-				.map((currentLST): ReactElement => {
-					const item = groupIncentiveHistory?.protocols?.[currentLST.address] || undefined;
-					return (
-						<div
-							aria-label={'content'}
-							className={
-								'my-0.5 grid grid-cols-12 rounded-sm bg-neutral-100/50 p-4 transition-colors open:bg-neutral-100 hover:bg-neutral-100'
-							}>
-							<div className={'col-span-12 flex w-full flex-row items-center space-x-6 md:col-span-3'}>
-								<div className={'size-10 min-w-[40px]'}>
-									<ImageWithFallback
-										src={currentLST.logoURI || ''}
-										alt={''}
-										unoptimized
-										width={40}
-										height={40}
-									/>
-								</div>
-								<div className={'flex flex-col'}>
-									<p className={'whitespace-nowrap'}>
-										{currentLST.symbol || truncateHex(currentLST.address, 6)}
-									</p>
-									<small className={'whitespace-nowrap text-xs'}>{currentLST.name}</small>
-								</div>
-							</div>
-							<div
-								className={
-									'col-span-12 mt-4 flex items-center justify-between md:col-span-6 md:mt-0 md:justify-end'
-								}>
-								<small className={'block text-neutral-500 md:hidden'}>{'Total incentive (USD)'}</small>
-								<p
-									suppressHydrationWarning
-									className={'font-number'}>
-									{`$${formatAmount(item?.normalizedSum || 0, 2, 2)}`}
-								</p>
-							</div>
-							<div className={'col-span-12 mt-2 flex w-full items-center pl-[40%] md:col-span-3 md:mt-0'}>
-								<div className={'grid h-10 w-full grid-cols-4 items-center rounded-lg bg-neutral-0'}>
-									<div className={'flex items-center justify-start pl-1'}>
-										<button
-											disabled={!votePowerPerLST[currentLST.address]}
-											onClick={() =>
-												set_votePowerPerLST(p => ({
-													...p,
-													[currentLST.address]:
-														p[currentLST.address] === 0 ? 0 : p[currentLST.address] - 1
-												}))
-											}
-											className={cl(
-												'flex size-8 items-center justify-center rounded-lg bg-neutral-100',
-												'text-xl transition-colors hover:bg-neutral-200 disabled:cursor-not-allowed',
-												'disabled:opacity-60 disabled:text-neutral-400'
-											)}>
-											{'-'}
-										</button>
+			{lst.length === 0
+				? []
+				: [NO_CHANGE_LST_LIKE, ...lst]
+						.filter((e): boolean => Boolean(e))
+						.sort((a, b): number => {
+							const aProtocol = groupIncentiveHistory?.protocols?.[a.address];
+							const bProtocol = groupIncentiveHistory?.protocols?.[b.address];
+							let aValue = 0;
+							let bValue = 0;
+							if (sortBy === 'totalIncentive') {
+								aValue = aProtocol?.normalizedSum || 0;
+								bValue = bProtocol?.normalizedSum || 0;
+							}
+							return sortDirection === 'desc'
+								? Number(bValue) - Number(aValue)
+								: Number(aValue) - Number(bValue);
+						})
+						.map((currentLST): ReactElement => {
+							const item = groupIncentiveHistory?.protocols?.[currentLST.address] || undefined;
+							return (
+								<div
+									aria-label={'content'}
+									className={
+										'my-0.5 grid grid-cols-12 rounded-sm bg-neutral-100/50 p-4 transition-colors open:bg-neutral-100 hover:bg-neutral-100'
+									}>
+									<div
+										className={
+											'col-span-12 flex w-full flex-row items-center space-x-6 md:col-span-3'
+										}>
+										<div className={'size-10 min-w-[40px]'}>
+											<ImageWithFallback
+												src={currentLST.logoURI || ''}
+												alt={''}
+												unoptimized
+												width={40}
+												height={40}
+											/>
+										</div>
+										<div className={'flex flex-col'}>
+											<p className={'whitespace-nowrap'}>
+												{currentLST.symbol || truncateHex(currentLST.address, 6)}
+											</p>
+											<small className={'whitespace-nowrap text-xs'}>{currentLST.name}</small>
+										</div>
 									</div>
-									<div className={'col-span-2 text-center'}>
+									<div
+										className={
+											'col-span-12 mt-4 flex items-center justify-between md:col-span-6 md:mt-0 md:justify-end'
+										}>
+										<small className={'block text-neutral-500 md:hidden'}>
+											{'Total incentive (USD)'}
+										</small>
 										<p
 											suppressHydrationWarning
-											className={cl(
-												'font-number',
-												!votePowerPerLST[currentLST.address] ? 'text-neutral-900/30' : ''
-											)}>
-											{`${formatAmount(
-												((votePowerPerLST[currentLST.address] || 0) /
-													Object.values(votePowerPerLST).reduce((a, b) => a + b, 0)) *
-													100,
-												0,
-												2
-											)}%`}
+											className={'font-number'}>
+											{`$${formatAmount(item?.normalizedSum || 0, 2, 2)}`}
 										</p>
 									</div>
-									<div className={'flex items-center justify-end pr-1'}>
-										<button
-											onClick={() =>
-												set_votePowerPerLST(p => ({
-													...p,
-													[currentLST.address]: p[currentLST.address] + 1 || 1
-												}))
-											}
+									<div
+										className={
+											'col-span-12 mt-2 flex w-full items-center pl-[40%] md:col-span-3 md:mt-0'
+										}>
+										<div
 											className={
-												'flex size-8 items-center justify-center rounded-lg bg-neutral-100 transition-colors hover:bg-neutral-200'
+												'grid h-10 w-full grid-cols-4 items-center rounded-lg bg-neutral-0'
 											}>
-											<p className={'text-xl'}>{'+'}</p>
-										</button>
+											<div className={'flex items-center justify-start pl-1'}>
+												<button
+													disabled={!votePowerPerLST[currentLST.address]}
+													onClick={() =>
+														set_votePowerPerLST(p => ({
+															...p,
+															[currentLST.address]:
+																p[currentLST.address] === 0
+																	? 0
+																	: p[currentLST.address] - 1
+														}))
+													}
+													className={cl(
+														'flex size-8 items-center justify-center rounded-lg bg-neutral-100',
+														'text-xl transition-colors hover:bg-neutral-200 disabled:cursor-not-allowed',
+														'disabled:opacity-60 disabled:text-neutral-400'
+													)}>
+													{'-'}
+												</button>
+											</div>
+											<div className={'col-span-2 text-center'}>
+												<p
+													suppressHydrationWarning
+													className={cl(
+														'font-number',
+														!votePowerPerLST[currentLST.address]
+															? 'text-neutral-900/30'
+															: ''
+													)}>
+													{`${formatAmount(
+														((votePowerPerLST[currentLST.address] || 0) /
+															Object.values(votePowerPerLST).reduce((a, b) => a + b, 0)) *
+															100,
+														0,
+														2
+													)}%`}
+												</p>
+											</div>
+											<div className={'flex items-center justify-end pr-1'}>
+												<button
+													onClick={() =>
+														set_votePowerPerLST(p => ({
+															...p,
+															[currentLST.address]: p[currentLST.address] + 1 || 1
+														}))
+													}
+													className={
+														'flex size-8 items-center justify-center rounded-lg bg-neutral-100 transition-colors hover:bg-neutral-200'
+													}>
+													<p className={'text-xl'}>{'+'}</p>
+												</button>
+											</div>
+										</div>
 									</div>
 								</div>
-							</div>
-						</div>
-					);
-				})}
+							);
+						})}
 
 			{isFetchingHistory && (
 				<div className={'mt-6 flex flex-row items-center justify-center'}>
 					<IconSpinner className={'!h-6 !w-6 !text-neutral-400'} />
 				</div>
 			)}
-			<div className={'mt-auto pt-10'}>
+			<div className={cl('mt-auto pt-10', lst.length === 0 ? 'hidden' : '')}>
 				<Button
 					onClick={onVote}
 					isDisabled={

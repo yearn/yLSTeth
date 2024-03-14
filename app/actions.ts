@@ -11,6 +11,7 @@ import {erc20ABI, readContract} from '@wagmi/core';
 import {STYETH_TOKEN, YETH_TOKEN} from './tokens';
 import {CURVE_SWAP_ABI} from './utils/abi/curveswap.abi';
 import {GOVERNOR_ABI} from './utils/abi/governor.abi';
+import {INCLUSION_ABI} from './utils/abi/inclusion.abi';
 import {ONCHAIN_VOTE_WEIGHT_ABI} from './utils/abi/onchainVoteWeight.abi';
 import {ST_YETH_ABI} from './utils/abi/styETH.abi';
 import {VOTE_ABI} from './utils/abi/vote.abi';
@@ -674,5 +675,26 @@ export async function voteWeights(props: TVoteForWeight): Promise<TTxResponse> {
 		abi: ONCHAIN_VOTE_WEIGHT_ABI,
 		functionName: 'vote',
 		args: [props.weight]
+	});
+}
+
+/* 🔵 - Yearn Finance **********************************************************
+ ** apply is a _WRITE_ function that apply for a new LST address to be included
+ ** in the yETH basket.
+ **
+ ** @app - yETH
+ ******************************************************************************/
+type TApply = TWriteTransaction & {
+	lstAddress: TAddress;
+};
+export async function apply(props: TApply): Promise<TTxResponse> {
+	assert(props.connector, 'No connector');
+	assertAddress(props.lstAddress, 'lstAddress');
+
+	return await handleTx(props, {
+		address: toAddress(process.env.INCLUSION_VOTE_ADDRESS),
+		abi: INCLUSION_ABI,
+		functionName: 'apply',
+		args: [toAddress(props.lstAddress)]
 	});
 }

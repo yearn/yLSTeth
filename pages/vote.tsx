@@ -15,7 +15,7 @@ import {create} from 'multiformats/hashes/digest';
 import {useContractRead} from 'wagmi';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {useAsyncTrigger} from '@builtbymom/web3/hooks/useAsyncTrigger';
-import {cl, formatAmount, toAddress, toNormalizedBN, zeroNormalizedBN} from '@builtbymom/web3/utils';
+import {cl, formatAmount, isZeroAddress, toAddress, toNormalizedBN, zeroNormalizedBN} from '@builtbymom/web3/utils';
 import {defaultTxStatus} from '@builtbymom/web3/utils/wagmi';
 import {multicall, readContract} from '@wagmi/core';
 import {Button} from '@yearn-finance/web-lib/components/Button';
@@ -198,7 +198,7 @@ function OnChainProposal(props: {
 	quorum: TNormalizedBN;
 	onRefreshProposals: VoidFunction;
 }): ReactElement {
-	const {provider} = useWeb3();
+	const {address, provider} = useWeb3();
 	const [voteYeaStatus, set_voteYeaStatus] = useState<TTxStatus>(defaultTxStatus);
 	const [voteNayStatus, set_voteNayStatus] = useState<TTxStatus>(defaultTxStatus);
 	const [voteAbstainStatus, set_voteAbstainStatus] = useState<TTxStatus>(defaultTxStatus);
@@ -206,6 +206,14 @@ function OnChainProposal(props: {
 	const {data, isLoading} = useFetch<TOnChainProposal>({
 		endpoint: sanitizedURI,
 		schema: onChainProposalSchema
+	});
+
+	const {data: hasVoted} = useContractRead({
+		abi: GOVERNOR_ABI,
+		address: toAddress(process.env.ONCHAIN_GOV_ADDRESS),
+		functionName: 'voted',
+		args: [toAddress(address), props.proposal.index],
+		enabled: !isZeroAddress(address)
 	});
 
 	const onVote = useCallback(
@@ -359,21 +367,21 @@ function OnChainProposal(props: {
 						<Button
 							onClick={async () => onVote(props.proposal.index, 1n)}
 							isBusy={voteYeaStatus.pending}
-							isDisabled={props.proposal.state >= 2n}
+							isDisabled={hasVoted || props.proposal.state >= 2n}
 							className={'w-48'}>
 							{'Yea'}
 						</Button>
 						<Button
 							onClick={async () => onVote(props.proposal.index, -1n)}
 							isBusy={voteNayStatus.pending}
-							isDisabled={props.proposal.state >= 2n}
+							isDisabled={hasVoted || props.proposal.state >= 2n}
 							className={'w-48'}>
 							{'Nay'}
 						</Button>
 						<Button
 							onClick={async () => onVote(props.proposal.index, 0n)}
 							isBusy={voteAbstainStatus.pending}
-							isDisabled={props.proposal.state >= 2n}
+							isDisabled={hasVoted || props.proposal.state >= 2n}
 							className={'w-48'}>
 							{'Abstain'}
 						</Button>

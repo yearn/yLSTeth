@@ -331,7 +331,7 @@ function OnChainProposals(props: {canRetract: boolean}): ReactElement {
 	}, [address]);
 
 	return (
-		<div>
+		<>
 			{proposals.map(data => (
 				<OnChainProposal
 					key={data.cid}
@@ -340,7 +340,7 @@ function OnChainProposals(props: {canRetract: boolean}): ReactElement {
 					onRefreshProposals={refreshProposals}
 				/>
 			))}
-		</div>
+		</>
 	);
 }
 

@@ -8,7 +8,17 @@ import {NO_CHANGE_LST_LIKE} from 'app/utils/constants';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {useAsyncTrigger} from '@builtbymom/web3/hooks/useAsyncTrigger';
 import {useChainID} from '@builtbymom/web3/hooks/useChainID';
-import {cl, formatAmount, formatPercent, isZeroAddress, toAddress, toBigInt, truncateHex} from '@builtbymom/web3/utils';
+import {
+	cl,
+	decodeAsBigInt,
+	decodeAsBoolean,
+	formatAmount,
+	formatPercent,
+	isZeroAddress,
+	toAddress,
+	toBigInt,
+	truncateHex
+} from '@builtbymom/web3/utils';
 import {defaultTxStatus} from '@builtbymom/web3/utils/wagmi';
 import {readContract, readContracts} from '@wagmi/core';
 import {Button} from '@yearn-finance/web-lib/components/Button';
@@ -32,23 +42,36 @@ function VoteCardWeights(): ReactElement {
 	const [votePowerPerLST, set_votePowerPerLST] = useState<TDict<number>>({});
 	const [voteWeightStatus, set_voteWeightStatus] = useState<TTxStatus>(defaultTxStatus);
 	const [hasAlreadyVoted, set_hasAlreadyVoted] = useState(true);
+	const [isVoteOpen, set_isVoteOpen] = useState(false);
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	 **	Retrieve the current vote info for the user.
 	 **********************************************************************************************/
 	const onRefreshVotes = useAsyncTrigger(async () => {
 		if (isZeroAddress(address)) {
-			// return;
+			return;
 		}
 
 		/* 🔵 - Yearn Finance **********************************************************************
 		 **	First we need to retrive the current epoch
 		 ******************************************************************************************/
-		const epoch = await readContract({
-			abi: ONCHAIN_VOTE_WEIGHT_ABI,
-			address: toAddress(process.env.WEIGHT_VOTE_ADDRESS),
-			functionName: 'epoch'
+		const [_epoch, _voteOpen] = await readContracts({
+			contracts: [
+				{
+					abi: ONCHAIN_VOTE_WEIGHT_ABI,
+					address: toAddress(process.env.WEIGHT_VOTE_ADDRESS),
+					functionName: 'epoch'
+				},
+				{
+					abi: ONCHAIN_VOTE_WEIGHT_ABI,
+					address: toAddress(process.env.WEIGHT_VOTE_ADDRESS),
+					functionName: 'vote_open'
+				}
+			]
 		});
+		const epoch = decodeAsBigInt(_epoch);
+		const isVoteOpenBool = decodeAsBoolean(_voteOpen);
+		set_isVoteOpen(isVoteOpenBool);
 
 		/* 🔵 - Yearn Finance **********************************************************************
 		 **	Then we need to check if the user already voted for this epoch
@@ -59,12 +82,12 @@ function VoteCardWeights(): ReactElement {
 			functionName: 'voted',
 			args: [toAddress(address), epoch]
 		});
-		// set_hasAlreadyVoted(hasAlreadyVoted);
+		set_hasAlreadyVoted(hasAlreadyVoted);
 
 		/* 🔵 - Yearn Finance **********************************************************************
 		 **	If so, we can try to retrieve the vote weight for each LST and display them.
 		 ******************************************************************************************/
-		if (hasAlreadyVoted || true) {
+		if (hasAlreadyVoted) {
 			const votesUser = await readContracts({
 				contracts: [
 					{
@@ -83,11 +106,9 @@ function VoteCardWeights(): ReactElement {
 			});
 			const votes: TDict<number> = {};
 			for (const item of lst) {
-				const randomWeight = Math.floor(Math.random() * 100);
-				votes[item.address] = Number(votesUser[item.index]?.result || 0) + Number(randomWeight);
+				votes[item.address] = Number(votesUser[item.index]?.result || 0);
 			}
-			const randomWeight = Math.floor(Math.random() * 100);
-			votes[NO_CHANGE_LST_LIKE.address] = Number(votesUser[0]?.result || 0) + Number(randomWeight);
+			votes[NO_CHANGE_LST_LIKE.address] = Number(votesUser[0]?.result || 0);
 			set_votePowerPerLST(votes);
 		}
 	}, [address, lst]);
@@ -129,18 +150,19 @@ function VoteCardWeights(): ReactElement {
 	);
 
 	const onVote = useCallback(async (): Promise<void> => {
+		const voteScale = 10_000;
 		const sumOfVotes = Object.values(votePowerPerLST).reduce((a, b) => a + b, 0);
 		const votes = [];
 		for (const item of lst) {
 			const numberOfVoteForThisLST = votePowerPerLST[item.address] || 0;
-			votes[item.index] = Math.floor((numberOfVoteForThisLST / sumOfVotes) * 1e18);
+			votes[item.index] = Math.floor((numberOfVoteForThisLST / sumOfVotes) * voteScale);
 		}
 		const numberOfVoteForNoChange = votePowerPerLST[NO_CHANGE_LST_LIKE.address] || 0;
-		votes.unshift(Math.floor((numberOfVoteForNoChange / sumOfVotes) * 1e18));
+		votes.unshift(Math.floor((numberOfVoteForNoChange / sumOfVotes) * voteScale));
 
 		const totalVotePower = votes.reduce((a, b) => a + b, 0);
-		if (totalVotePower > 10_000) {
-			votes[0] += 10_000 - totalVotePower;
+		if (totalVotePower < voteScale) {
+			votes[0] += voteScale - totalVotePower;
 		}
 
 		const result = await voteWeights({
@@ -154,8 +176,6 @@ function VoteCardWeights(): ReactElement {
 			onRefreshVotes();
 		}
 	}, [lst, provider, votePowerPerLST, onRefreshVotes]);
-
-	console.warn(hasAlreadyVoted);
 
 	return (
 		<div className={'mt-8'}>
@@ -319,8 +339,10 @@ function VoteCardWeights(): ReactElement {
 			<div className={'mt-auto pt-10'}>
 				<Button
 					onClick={onVote}
+					isBusy={voteWeightStatus.pending}
 					isDisabled={
 						isFetchingHistory ||
+						!isVoteOpen ||
 						Object.values(votePowerPerLST).reduce((a, b) => a + b, 0) === 0 ||
 						Object.values(votePowerPerLST).reduce((a, b) => a + b, 0) > 100 ||
 						isZeroAddress(address)
