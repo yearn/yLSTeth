@@ -343,6 +343,7 @@ function VoteCardWeights(): ReactElement {
 					isDisabled={
 						isFetchingHistory ||
 						!isVoteOpen ||
+						hasAlreadyVoted ||
 						Object.values(votePowerPerLST).reduce((a, b) => a + b, 0) === 0 ||
 						Object.values(votePowerPerLST).reduce((a, b) => a + b, 0) > 100 ||
 						isZeroAddress(address)
