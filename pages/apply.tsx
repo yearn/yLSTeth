@@ -4,15 +4,16 @@ import {useEpoch} from 'app/hooks/useEpoch';
 import {useTimer} from 'app/hooks/useTimer';
 import {INCLUSION_ABI} from 'app/utils/abi/inclusion.abi';
 import assert from 'assert';
-import {erc20ABI, useContractRead} from 'wagmi';
+import {erc20Abi} from 'viem';
+import {useReadContract} from 'wagmi';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
-import {cl, formatAmount, isAddress, isZeroAddress, toAddress, toNormalizedBN} from '@builtbymom/web3/utils';
+import {cl, formatAmount, isZeroAddress, toAddress, toNormalizedBN} from '@builtbymom/web3/utils';
 import {approveERC20, defaultTxStatus} from '@builtbymom/web3/utils/wagmi';
 import {Button} from '@yearn-finance/web-lib/components/Button';
 
 import type {ReactElement} from 'react';
-import type {TAddress, TNormalizedBN} from '@builtbymom/web3/types';
+import type {TAddress} from '@builtbymom/web3/types';
 import type {TTxStatus} from '@builtbymom/web3/utils/wagmi';
 
 function Timer(): ReactElement {
@@ -46,11 +47,17 @@ function CheckboxElement({onChange, content}: {onChange: () => void; content: st
 
 function Form(): ReactElement {
 	const {address, isActive, provider} = useWeb3();
-	const {getBalance} = useWallet();
+	const {balances, isLoading, getBalance} = useWallet();
 	const [lstAddress, set_lstAddress] = useState<TAddress | undefined>(undefined);
 	const [isValid, set_isValid] = useState(false);
 	const [approveStatus, set_approveStatus] = useState<TTxStatus>(defaultTxStatus);
 	const [submitStatus, set_submitStatus] = useState<TTxStatus>(defaultTxStatus);
+	const yETHBalance = useMemo(
+		() => getBalance({address: toAddress(process.env.YETH_ADDRESS), chainID: Number(process.env.DEFAULT_CHAIN_ID)}),
+		[getBalance, address] // eslint-disable-line react-hooks/exhaustive-deps
+	);
+
+	console.warn(yETHBalance, balances, isLoading);
 
 	/**************************************************************************
 	 * Check if the form is valid to eventually enable the submit button or
@@ -64,63 +71,54 @@ function Form(): ReactElement {
 	}
 
 	/**************************************************************************
-	 * Check onChain if the LST address has already applied for inclusion and
-	 * set the fee accordingly.
-	 *************************************************************************/
-	const {data: feeForApplication} = useContractRead({
-		address: toAddress(process.env.INCLUSION_VOTE_ADDRESS),
-		abi: INCLUSION_ABI,
-		functionName: 'applications',
-		args: [toAddress(lstAddress)],
-		enabled: !isZeroAddress(lstAddress),
-		select(lastInclusion) {
-			if (lastInclusion > 0n) {
-				return toNormalizedBN(0.1, 18);
-			}
-			return toNormalizedBN(1, 18);
-		}
-	});
-
-	/**************************************************************************
 	 * Check onChain if the LST address has already applied for inclusion
 	 *************************************************************************/
-	const {data: hasAlreadyApplied, refetch: refreshAlreadyApplied} = useContractRead({
+	const {data: hasAlreadyApplied, refetch: refreshAlreadyApplied} = useReadContract({
 		address: toAddress(process.env.INCLUSION_VOTE_ADDRESS),
 		abi: INCLUSION_ABI,
+		chainId: Number(process.env.DEFAULT_CHAIN_ID),
 		functionName: 'has_applied',
 		args: [toAddress(lstAddress)],
-		enabled: !isZeroAddress(lstAddress)
+		query: {
+			enabled: !isZeroAddress(lstAddress)
+		}
 	});
 
 	/**************************************************************************
-	 * Assign the feeAmount based on the LST address and the feeForApplication
-	 * value.
+	 * Retrieve the application fee for the LST address.
 	 *************************************************************************/
-	const getFeeAmount = useMemo((): TNormalizedBN | undefined => {
-		if (isAddress(lstAddress)) {
-			return toNormalizedBN(1e18, 18);
+	const {data: feeForApplication} = useReadContract({
+		address: toAddress(process.env.INCLUSION_VOTE_ADDRESS),
+		abi: INCLUSION_ABI,
+		chainId: Number(process.env.DEFAULT_CHAIN_ID),
+		functionName: 'application_fee',
+		args: [toAddress(lstAddress)],
+		query: {
+			enabled: !isZeroAddress(lstAddress),
+			select(value) {
+				return toNormalizedBN(value, 18);
+			}
 		}
-		if (!feeForApplication) {
-			return toNormalizedBN(1e18, 18);
-		}
-		return feeForApplication;
-	}, [feeForApplication, lstAddress]);
+	});
 
 	/**************************************************************************
 	 * Check if the user has already approved the inclusion vote contract to
 	 * spend the appropriate amount of LST.
 	 *************************************************************************/
-	const {data: hasAllowance, refetch: refetchAllowance} = useContractRead({
-		abi: erc20ABI,
+	const {data: hasAllowance, refetch: refetchAllowance} = useReadContract({
+		abi: erc20Abi,
 		address: toAddress(process.env.YETH_ADDRESS),
 		functionName: 'allowance',
+		chainId: Number(process.env.DEFAULT_CHAIN_ID),
 		args: [toAddress(address), toAddress(process.env.INCLUSION_VOTE_ADDRESS)],
-		enabled: !isZeroAddress(address),
-		select(allowance) {
-			if (!feeForApplication) {
-				return false;
+		query: {
+			enabled: !isZeroAddress(address),
+			select(allowance) {
+				if (!feeForApplication) {
+					return false;
+				}
+				return allowance >= feeForApplication?.raw;
 			}
-			return allowance > feeForApplication?.raw;
 		}
 	});
 
@@ -131,41 +129,45 @@ function Form(): ReactElement {
 	const onApprove = useCallback(async () => {
 		assert(isActive, 'Wallet not connected');
 		assert(provider, 'Provider not connected');
-		assert(getFeeAmount, 'Fee amount not available');
+		assert(feeForApplication, 'Fee amount not available');
 
 		const result = await approveERC20({
 			connector: provider,
-			chainID: Number(process.env.BASE_CHAIN_ID),
+			chainID: Number(process.env.DEFAULT_CHAIN_ID),
 			contractAddress: toAddress(process.env.YETH_ADDRESS),
-			spenderAddress: toAddress(process.env.VOTE_ADDRESS),
-			amount: getFeeAmount.raw,
+			spenderAddress: toAddress(process.env.INCLUSION_VOTE_ADDRESS),
+			amount: feeForApplication.raw,
 			statusHandler: set_approveStatus
 		});
 		if (result.isSuccessful) {
 			refetchAllowance();
 		}
-	}, [getFeeAmount, isActive, provider, refetchAllowance]);
+	}, [feeForApplication, isActive, provider, refetchAllowance]);
 
 	/**************************************************************************
 	 * On submit, propose the LST address for inclusion in the yETH basket.
 	 *************************************************************************/
-	const onSubmit = useCallback(async () => {
-		assert(isActive, 'Wallet not connected');
-		assert(provider, 'Provider not connected');
+	const onSubmit = useCallback(
+		async (e: React.FormEvent<HTMLFormElement>) => {
+			e.preventDefault();
+			assert(isActive, 'Wallet not connected');
+			assert(provider, 'Provider not connected');
 
-		const result = await apply({
-			connector: provider,
-			chainID: Number(process.env.BASE_CHAIN_ID),
-			contractAddress: toAddress(process.env.INCLUSION_VOTE_ADDRESS),
-			lstAddress: toAddress(lstAddress),
-			statusHandler: set_submitStatus
-		});
-		if (result.isSuccessful) {
-			set_lstAddress(undefined);
-			refetchAllowance();
-			refreshAlreadyApplied();
-		}
-	}, [isActive, lstAddress, provider, refreshAlreadyApplied, refetchAllowance]);
+			const result = await apply({
+				connector: provider,
+				chainID: Number(process.env.DEFAULT_CHAIN_ID),
+				contractAddress: toAddress(process.env.INCLUSION_VOTE_ADDRESS),
+				lstAddress: toAddress(lstAddress),
+				statusHandler: set_submitStatus
+			});
+			if (result.isSuccessful) {
+				set_lstAddress(undefined);
+				refetchAllowance();
+				refreshAlreadyApplied();
+			}
+		},
+		[isActive, lstAddress, provider, refreshAlreadyApplied, refetchAllowance]
+	);
 
 	/**************************************************************************
 	 * Render the button to be either an approval button or a submit button
@@ -178,17 +180,15 @@ function Form(): ReactElement {
 					isBusy={submitStatus.pending}
 					isDisabled={
 						!isValid ||
-						!hasAlreadyApplied ||
-						!getFeeAmount ||
-						(getFeeAmount &&
-							getBalance({address: toAddress(process.env.YETH_ADDRESS), chainID: 1}).raw <
-								getFeeAmount?.raw)
+						// hasAlreadyApplied ||
+						!feeForApplication ||
+						(feeForApplication && yETHBalance.raw < feeForApplication?.raw)
 					}>
 					{'Apply'}
 				</Button>
 			);
 		}
-		if (!getFeeAmount || isZeroAddress(lstAddress)) {
+		if (!feeForApplication || isZeroAddress(lstAddress)) {
 			return (
 				<Button
 					className={'w-48'}
@@ -199,10 +199,12 @@ function Form(): ReactElement {
 		}
 		return (
 			<Button
+				type={'button'}
 				className={'w-48'}
 				isBusy={approveStatus.pending}
-				isDisabled={!isValid || !hasAlreadyApplied || !getFeeAmount}
-				onClick={onApprove}>
+				isDisabled={!isValid || !feeForApplication}
+				onClick={onApprove}
+				suppressHydrationWarning>
 				{`Approve ${feeForApplication?.raw ? formatAmount(feeForApplication?.normalized, 2, 6) : '0'} yETH`}
 			</Button>
 		);
@@ -212,7 +214,7 @@ function Form(): ReactElement {
 		<form
 			id={'apply-form'}
 			onSubmit={onSubmit}
-			className={'relative col-span-12 flex-col bg-neutral-100 p-10 md:col-span-6 md:flex'}>
+			className={'relative col-span-12 flex-col bg-neutral-100 p-10 pb-8 md:col-span-6 md:flex'}>
 			<div className={'flex w-full flex-row space-x-4'}>
 				<div className={'flex w-[200px] flex-col'}>
 					<p className={'mb-1 text-sm text-neutral-600'}>{'Your LST address'}</p>
@@ -236,17 +238,21 @@ function Form(): ReactElement {
 				<div className={'flex w-[200px] flex-col'}>
 					<p className={'mb-1 text-sm text-neutral-600'}>{'Your fee'}</p>
 					<div
+						suppressHydrationWarning
 						className={cl(
 							'grow-1 col-span-7 flex h-10 w-full rounded-md p-2 bg-neutral-0',
-							getFeeAmount ? 'text-neutral-900' : 'text-neutral-400'
+							feeForApplication ? 'text-neutral-900' : 'text-neutral-400'
 						)}>
-						{getFeeAmount ? formatAmount(getFeeAmount.normalized, 2, 6) : 'Put LST address first'}
+						{feeForApplication ? formatAmount(feeForApplication.normalized, 2, 6) : 'Put LST address first'}
 					</div>
 					<p
 						suppressHydrationWarning
 						className={'mt-1 text-xs text-neutral-400'}>
 						{`You have: ${formatAmount(
-							getBalance({address: toAddress(process.env.YETH_ADDRESS), chainID: 1})?.normalized || 0,
+							getBalance({
+								address: toAddress(process.env.YETH_ADDRESS),
+								chainID: Number(process.env.DEFAULT_CHAIN_ID)
+							})?.normalized || 0,
 							2,
 							6
 						)} yETH`}
@@ -290,12 +296,16 @@ function Form(): ReactElement {
 				</div>
 
 				<div className={'mt-24 pt-2'}>{renderActionButton()}</div>
+				<small className={'text-red-900'}>
+					{hasAlreadyApplied ? 'This LST has already been proposed for inclusion in the yETH basket.' : ''}
+					&nbsp;
+				</small>
 			</div>
 		</form>
 	);
 }
 
-function Apply(): ReactElement {
+export default function Apply(): ReactElement {
 	return (
 		<div className={'relative mx-auto mb-0 flex min-h-screen w-full flex-col bg-neutral-0 pt-20'}>
 			<div className={'relative mx-auto mt-6 w-screen max-w-5xl'}>
@@ -334,12 +344,9 @@ function Apply(): ReactElement {
 							</p>
 						</div>
 					</div>
-
 					<Form />
 				</section>
 			</div>
 		</div>
 	);
 }
-
-export default Apply;

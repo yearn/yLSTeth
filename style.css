@@ -10,8 +10,7 @@
 		url('public/fonts/AeonikMono-Regular.eot?#iefix') format('embedded-opentype'),
 		url('public/fonts/AeonikMono-Regular.woff2') format('woff2'),
 		url('public/fonts/AeonikMono-Regular.woff') format('woff'),
-		url('public/fonts/AeonikMono-Regular.ttf') format('truetype'),
-		url('public/fonts/AeonikMono-Regular.svg#AeonikMono-Regular') format('svg');
+		url('public/fonts/AeonikMono-Regular.ttf') format('truetype');
 	font-weight: normal;
 	font-style: normal;
 	font-display: swap;
@@ -26,8 +25,7 @@
 		url('public/fonts/AeonikMono-Bold.eot?#iefix') format('embedded-opentype'),
 		url('public/fonts/AeonikMono-Bold.woff2') format('woff2'),
 		url('public/fonts/AeonikMono-Bold.woff') format('woff'),
-		url('public/fonts/AeonikMono-Bold.ttf') format('truetype'),
-		url('public/fonts/AeonikMono-Bold.svg#AeonikMono-Bold') format('svg');
+		url('public/fonts/AeonikMono-Bold.ttf') format('truetype');
 	font-weight: bold;
 	font-style: normal;
 	font-display: swap;
@@ -55,6 +53,9 @@
 }
 
 .lpPoolTheme {
+	& #app {
+		@apply bg-purple-300;
+	}
 	& #yeth-main-page {
 		@apply bg-purple-300;
 	}
@@ -653,4 +654,11 @@ dialog::backdrop {
 	& > ul {
 		@apply list-disc pl-4 mb-4 list-inside;
 	}
+}
+
+.skeleton-lg {
+	@apply animate-pulse rounded-md bg-neutral-300;
+}
+.skeleton-full {
+	@apply animate-pulse rounded-full bg-neutral-300;
 }

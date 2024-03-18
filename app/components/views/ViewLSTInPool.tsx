@@ -1,12 +1,14 @@
 import React, {useCallback, useState} from 'react';
 import Link from 'next/link';
 import IconChevronPlain from 'app/components/icons/IconChevronPlain';
+import useBasket from 'app/contexts/useBasket';
 import useLST from 'app/contexts/useLST';
 import useAPR from 'app/hooks/useAPR';
 import {formatDate} from 'app/utils';
 import {cl, formatAmount, toNormalizedBN} from '@builtbymom/web3/utils';
-import {ImageWithFallback} from '@yearn-finance/web-lib/components/ImageWithFallback';
 import {IconLinkOut} from '@yearn-finance/web-lib/icons/IconLinkOut';
+
+import {ImageWithFallback} from '../common/ImageWithFallback';
 
 import type {TSortDirection} from 'app/utils/types';
 import type {AnimationScope} from 'framer-motion';
@@ -14,7 +16,7 @@ import type {ReactElement} from 'react';
 
 function LSTInPoolStats(): ReactElement {
 	const {stats, TVL} = useLST();
-	const APR = useAPR();
+	const {APR} = useAPR();
 	const hasRampStopTime = Boolean(stats?.rampStopTime && stats?.rampStopTime > 0);
 
 	return (
@@ -87,7 +89,7 @@ function LSTInPoolStats(): ReactElement {
 }
 
 function LSTInPool({scope}: {scope: AnimationScope}): ReactElement {
-	const {lst} = useLST();
+	const {basket} = useBasket();
 	const [sortBy, set_sortBy] = useState<string>('ratio');
 	const [sortDirection, set_sortDirection] = useState<TSortDirection>('');
 
@@ -160,7 +162,7 @@ function LSTInPool({scope}: {scope: AnimationScope}): ReactElement {
 								'flex cursor-pointer flex-row items-center justify-center rounded border border-neutral-0 px-3 py-2 text-center text-xs text-neutral-0 transition-colors hover:bg-neutral-0 hover:text-purple-300'
 							}>
 							{'Pool'}
-							<IconLinkOut className={'size-4 ml-2'} />
+							<IconLinkOut className={'ml-2 size-4'} />
 						</div>
 					</Link>
 
@@ -172,7 +174,7 @@ function LSTInPool({scope}: {scope: AnimationScope}): ReactElement {
 								'flex cursor-pointer flex-row items-center justify-center rounded border border-neutral-0 px-3 py-2 text-center text-xs text-neutral-0 transition-colors hover:bg-neutral-0 hover:text-purple-300'
 							}>
 							{'yETH'}
-							<IconLinkOut className={'size-4 ml-2'} />
+							<IconLinkOut className={'ml-2 size-4'} />
 						</div>
 					</Link>
 
@@ -184,7 +186,7 @@ function LSTInPool({scope}: {scope: AnimationScope}): ReactElement {
 								'flex cursor-pointer flex-row items-center justify-center rounded border border-neutral-0 px-3 py-2 text-center text-xs text-neutral-0 transition-colors hover:bg-neutral-0 hover:text-purple-300'
 							}>
 							{'st-yETH'}
-							<IconLinkOut className={'size-4 ml-2'} />
+							<IconLinkOut className={'ml-2 size-4'} />
 						</div>
 					</Link>
 				</div>
@@ -226,7 +228,7 @@ function LSTInPool({scope}: {scope: AnimationScope}): ReactElement {
 					</div>
 
 					<div className={'mt-6 grid divide-y divide-neutral-0/20 md:divide-y-0'}>
-						{[...lst]
+						{[...basket]
 							.sort((a, b): number => {
 								if (sortBy === 'ratio') {
 									return sortDirection === 'desc'
@@ -263,6 +265,7 @@ function LSTInPool({scope}: {scope: AnimationScope}): ReactElement {
 														alt={token.name}
 														unoptimized
 														src={token.logoURI || ''}
+														altSrc={`${process.env.SMOL_ASSETS_URL}/token/${Number(process.env.DEFAULT_CHAIN_ID)}/${token?.address}/logo-32.png`}
 														width={40}
 														height={40}
 													/>

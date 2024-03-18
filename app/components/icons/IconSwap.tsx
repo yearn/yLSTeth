@@ -1,9 +1,14 @@
+import {cl} from '@builtbymom/web3/utils';
+
 import type {ReactElement} from 'react';
 
-export default function IconSwapSVG(): ReactElement {
+export default function IconSwapSVG({className}: {className?: string}): ReactElement {
 	return (
 		<svg
-			className={'group fill-neutral-100 text-purple-300 hover:!fill-purple-300 hover:text-purple-300'}
+			className={cl(
+				'group fill-neutral-100 text-purple-300 hover:!fill-purple-300 hover:text-purple-300',
+				className
+			)}
 			width={'48'}
 			height={'48'}
 			viewBox={'0 0 48 48'}

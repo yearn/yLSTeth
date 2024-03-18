@@ -1,6 +1,5 @@
 import React, {useMemo} from 'react';
 import {RenderAmount} from 'app/components/common/RenderAmount';
-import useLST from 'app/contexts/useLST';
 import {cl, formatAmount, toNormalizedBN} from '@builtbymom/web3/utils';
 
 import type {ReactElement} from 'react';
@@ -10,16 +9,8 @@ type TDepositDetailsProps = {
 	estimateOut: bigint;
 	vb: bigint;
 	bonusOrPenalty: number;
-	shouldDepositEth: boolean;
 };
-function DepositDetails({
-	label,
-	estimateOut,
-	vb,
-	bonusOrPenalty,
-	shouldDepositEth
-}: TDepositDetailsProps): ReactElement {
-	const {slippage} = useLST();
+function DepositDetails({label, estimateOut, vb, bonusOrPenalty}: TDepositDetailsProps): ReactElement {
 	const bonusOrPenaltyFormatted = useMemo((): string => {
 		if (Number.isNaN(bonusOrPenalty)) {
 			return formatAmount(0, 2, 2);
@@ -43,10 +34,7 @@ function DepositDetails({
 						suppressHydrationWarning
 						className={cl(
 							'text-right font-bold',
-							(shouldDepositEth && -Number(bonusOrPenaltyFormatted) > 0.03) ||
-								(!shouldDepositEth && -Number(bonusOrPenaltyFormatted) > 1)
-								? 'text-red-900'
-								: ''
+							-Number(bonusOrPenaltyFormatted) > 1 ? 'text-red-900' : ''
 						)}>
 						{Number(bonusOrPenaltyFormatted) === -100
 							? 'Out of bands'
@@ -72,52 +60,15 @@ function DepositDetails({
 							decimals={6}
 						/>
 					</dd>
-
-					{shouldDepositEth && (
-						<>
-							<dt className={'col-span-2'}>{'Slippage tolerance'}</dt>
-							<dd
-								suppressHydrationWarning
-								className={'text-right font-bold'}>
-								{`${formatAmount(Number(slippage) / 100, 2, 2)}%`}
-							</dd>
-						</>
-					)}
 				</dl>
 			</div>
-			<div className={shouldDepositEth ? 'pt-2' : ''}>
+			<div>
 				<h2 className={'text-xl font-black'}>{'Info'}</h2>
 				<p className={'whitespace-break-spaces pt-4 text-neutral-600'}>
-					{shouldDepositEth
-						? 'Deposit vanilla ETH via a Curve Swap to receive yETH'
-						: 'Deposit any of the LSTs (in any combination) to receive yETH. Or you can deposit and stake to receive st-yETH and immediately start earning that sweet, sweet liquid staking yield.'}
+					{
+						'Deposit any of the LSTs (in any combination) to receive yETH. Or you can deposit and stake to receive st-yETH and immediately start earning that sweet, sweet liquid staking yield.'
+					}
 				</p>
-				{shouldDepositEth && (
-					<p className={'whitespace-break-spaces pt-4 text-neutral-600'}>
-						{'When you deposit ETH for yETH, we use the '}
-						<a
-							href={`https://etherscan.io/adddress/${process.env.CURVE_SWAP_ADDRESS}`}
-							className={'underline'}
-							target={'_blank'}>
-							{'Curve Swap Contract'}
-						</a>
-						{' with the '}
-						<a
-							href={`https://etherscan.io/adddress/${process.env.CURVE_YETH_POOL_ADDRESS}`}
-							className={'underline'}
-							target={'_blank'}>
-							{'yETH Factory pool'}
-						</a>
-						{'. Alternatively, you can use '}
-						<a
-							href={'https://swap.cow.fi/#/1/swap/ETH/st-yETH'}
-							className={'underline'}
-							target={'_blank'}>
-							{'CoWSwap'}
-						</a>
-						{'.'}
-					</p>
-				)}
 			</div>
 		</div>
 	);

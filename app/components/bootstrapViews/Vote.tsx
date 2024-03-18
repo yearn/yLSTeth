@@ -62,8 +62,8 @@ function VoteListItem({
 			<div className={'col-span-12 flex w-full flex-row items-center space-x-4 md:col-span-3 md:space-x-6'}>
 				<div className={'size-6 min-w-[24px] md:size-10 md:min-w-[40px]'}>
 					<ImageWithFallback
-						key={`https://assets.smold.app/api/token/${process.env.BASE_CHAIN_ID}/${item?.address}/logo-128.png`}
-						src={`https://assets.smold.app/api/token/${process.env.BASE_CHAIN_ID}/${item?.address}/logo-128.png`}
+						key={`https://assets.smold.app/api/token/${process.env.DEFAULT_CHAIN_ID}/${item?.address}/logo-128.png`}
+						src={`https://assets.smold.app/api/token/${process.env.DEFAULT_CHAIN_ID}/${item?.address}/logo-128.png`}
 						alt={''}
 						unoptimized
 						width={40}

@@ -1,8 +1,8 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {useEpoch} from 'app/hooks/useEpoch';
 import {useTimer} from 'app/hooks/useTimer';
 import {VOTE_WEIGHT_ABI} from 'app/utils/abi/voteWeight.abi';
-import {useContractRead} from 'wagmi';
+import {useBlockNumber, useReadContract} from 'wagmi';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {formatAmount, toAddress, toBigInt, toNormalizedBN} from '@builtbymom/web3/utils';
 import {Renderable} from '@yearn-finance/web-lib/components/Renderable';
@@ -30,7 +30,7 @@ function VoteDecayTimer(): ReactElement {
 	return (
 		<small
 			suppressHydrationWarning
-			className={'font-number block pt-4 text-xs'}>
+			className={'font-number pt-4 text-xs'}>
 			{hasVotingStarted ? `Will decay in in ${time}` : ``}
 		</small>
 	);
@@ -38,16 +38,26 @@ function VoteDecayTimer(): ReactElement {
 
 function VoteHeader(): ReactElement {
 	const {address} = useWeb3();
-	const {data: votePower} = useContractRead({
+	const {data: blockNumber} = useBlockNumber({watch: true});
+	const {
+		data: votePower,
+		isLoading,
+		refetch
+	} = useReadContract({
 		abi: VOTE_WEIGHT_ABI,
 		address: toAddress(process.env.VOTE_POWER_ADDRESS),
 		functionName: 'vote_weight',
+		chainId: Number(process.env.DEFAULT_CHAIN_ID),
 		args: [toAddress(address)],
-		watch: true,
-		select(data) {
-			return toNormalizedBN(toBigInt(data), 18);
+		query: {
+			select(data) {
+				return toNormalizedBN(toBigInt(data), 18);
+			}
 		}
 	});
+	useEffect(() => {
+		refetch();
+	}, [blockNumber, refetch]);
 
 	return (
 		<div className={'mb-10 flex w-full flex-col justify-center'}>
@@ -68,17 +78,27 @@ function VoteHeader(): ReactElement {
 				</div>
 				<div className={'-mt-4 flex w-full justify-end space-x-4 pb-2 md:w-auto'}>
 					<div className={'w-full min-w-[300px] bg-neutral-100 p-4 md:w-fit'}>
-						<p className={'whitespace-nowrap pb-2'}>{'Current voting power this epoch'}</p>
+						<p className={'block whitespace-nowrap pb-2'}>{'Current voting power this epoch'}</p>
+
 						<b
 							suppressHydrationWarning
-							className={'font-number text-3xl'}>
+							className={'font-number block text-3xl'}>
 							<Renderable
-								shouldRender={true}
-								fallback={'-'}>
+								shouldRender={!isLoading}
+								fallback={<div className={'skeleton-lg col-span-5 h-10 w-2/3'} />}>
 								{formatAmount(votePower?.normalized || 0, 4, 4)}
 							</Renderable>
 						</b>
-						{toBigInt(votePower?.raw) > 0n ? <VoteDecayTimer /> : null}
+
+						<div suppressHydrationWarning>
+							{toBigInt(votePower?.raw) > 0n ? (
+								<VoteDecayTimer />
+							) : isLoading ? (
+								<div className={'skeleton-lg col-span-5 mt-2 h-4 w-full'} />
+							) : (
+								<div className={'invisible pt-2 text-xs'}>{'-'}</div>
+							)}
+						</div>
 					</div>
 				</div>
 			</div>

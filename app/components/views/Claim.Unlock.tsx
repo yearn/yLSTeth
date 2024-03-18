@@ -1,8 +1,8 @@
-import React, {Fragment, useState} from 'react';
+import React, {Fragment, useEffect, useState} from 'react';
 import {unlockFromBootstrap} from 'app/actions';
 import BOOTSTRAP_ABI from 'app/utils/abi/bootstrap.abi';
 import {ST_YETH_ABI} from 'app/utils/abi/styETH.abi';
-import {useContractRead} from 'wagmi';
+import {useBlockNumber, useReadContract} from 'wagmi';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {cl, formatAmount, toAddress, toBigInt, toNormalizedBN} from '@builtbymom/web3/utils';
 import {defaultTxStatus} from '@builtbymom/web3/utils/wagmi';
@@ -16,14 +16,18 @@ function RenderYETHValue({amount}: {amount: bigint}): ReactElement {
 	/* 🔵 - Yearn Finance **************************************************************************
 	 ** Retrieve the locked st-yETH in the bootstrap contract for the current user
 	 **********************************************************************************************/
-	const {data: yETHValue} = useContractRead({
+	const {data: blockNumber} = useBlockNumber({watch: true});
+	const {data: yETHValue, refetch} = useReadContract({
 		abi: ST_YETH_ABI,
 		address: toAddress(process.env.STYETH_ADDRESS),
 		functionName: 'convertToAssets',
 		args: [amount],
-		chainId: Number(process.env.DEFAULT_CHAIN_ID),
-		watch: true
+		chainId: Number(process.env.DEFAULT_CHAIN_ID)
 	});
+
+	useEffect(() => {
+		refetch();
+	}, [blockNumber, refetch]);
 
 	return (
 		<p
@@ -44,13 +48,15 @@ function UnlockTokens(): ReactElement {
 	/* 🔵 - Yearn Finance **************************************************************************
 	 ** Retrieve the locked st-yETH in the bootstrap contract for the current user
 	 **********************************************************************************************/
-	const {data: lockedTokens, refetch} = useContractRead({
+	const {data: lockedTokens, refetch} = useReadContract({
 		abi: BOOTSTRAP_ABI,
 		address: toAddress(process.env.BOOTSTRAP_ADDRESS),
 		functionName: 'deposits',
 		args: [toAddress(address)],
 		chainId: Number(process.env.DEFAULT_CHAIN_ID),
-		select: (data): TNormalizedBN => toNormalizedBN(data, 18)
+		query: {
+			select: (data): TNormalizedBN => toNormalizedBN(data, 18)
+		}
 	});
 
 	/* 🔵 - Yearn Finance **************************************************************************

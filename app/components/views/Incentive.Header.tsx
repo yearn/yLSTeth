@@ -23,21 +23,18 @@ function Timer({isIncentivePeriodClosed}: {isIncentivePeriodClosed: boolean}): R
 }
 
 function IncentiveHeader({isIncentivePeriodClosed}: {isIncentivePeriodClosed: boolean}): ReactElement {
-	const {
-		incentives: {groupIncentiveHistory},
-		TVL
-	} = useLST();
-
+	const {TVL} = useLST();
 	/* 🔵 - Yearn Finance **************************************************************************
 	 ** Calculate the sum of all the incentives for all the protocols.
 	 **********************************************************************************************/
 	const sumOfAllIncentives = useMemo((): number => {
-		let sum = 0;
-		for (const eachIncentive of Object.values(groupIncentiveHistory.protocols)) {
-			sum += eachIncentive.normalizedSum;
-		}
+		const sum = 0;
+		//TODO DO THIS
+		// for (const eachIncentive of Object.values(groupIncentiveHistory.protocols)) {
+		// 	sum += eachIncentive.normalizedSum;
+		// }
 		return sum;
-	}, [groupIncentiveHistory]);
+	}, []);
 
 	return (
 		<div className={'mb-10 flex w-full flex-col justify-center'}>

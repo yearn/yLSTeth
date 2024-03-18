@@ -4,7 +4,6 @@ import Phase2 from 'app/components/bootstrapViews/Phase2';
 import Phase3 from 'app/components/bootstrapViews/Phase3';
 import Phase4 from 'app/components/bootstrapViews/Phase4';
 import IconArrow from 'app/components/icons/IconArrow';
-import {UIStepContextApp} from 'app/contexts/useUI';
 import {transition} from 'app/utils';
 import {AnimatePresence, motion} from 'framer-motion';
 import {toBigInt} from '@builtbymom/web3/utils';
@@ -186,9 +185,7 @@ export default function Wrapper(): ReactElement {
 			className={
 				'relative mx-auto mb-0 flex min-h-screen w-full flex-col overflow-x-visible bg-neutral-0 pt-20 md:overflow-y-hidden'
 			}>
-			<UIStepContextApp>
-				<YETH />
-			</UIStepContextApp>
+			<YETH />
 		</div>
 	);
 }

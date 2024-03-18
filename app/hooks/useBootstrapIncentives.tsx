@@ -2,8 +2,8 @@
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import {useFetch} from 'app/hooks/useFetch';
 import BOOTSTRAP_ABI from 'app/utils/abi/bootstrap.abi';
-import {parseAbiItem, toHex} from 'viem';
-import {erc20ABI, useContractRead} from 'wagmi';
+import {erc20Abi, parseAbiItem, toHex} from 'viem';
+import {useReadContract} from 'wagmi';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {
 	decodeAsNumber,
@@ -15,7 +15,7 @@ import {
 	truncateHex,
 	zeroNormalizedBN
 } from '@builtbymom/web3/utils';
-import {getClient} from '@builtbymom/web3/utils/wagmi';
+import {getClient, retrieveConfig} from '@builtbymom/web3/utils/wagmi';
 import {useAsync, useMountEffect, useUpdateEffect} from '@react-hookz/web';
 import {multicall} from '@wagmi/core';
 import {useYDaemonBaseURI} from '@yearn-finance/web-lib/hooks/useYDaemonBaseURI';
@@ -78,7 +78,7 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 	const [incentives, set_incentives] = useState<TIncentives[]>([]);
 	const [claimedIncentives, set_claimedIncentives] = useState<TIncentivesClaimed[] | undefined>(undefined);
 	const [isFetchingHistory, set_isFetchingHistory] = useState(false);
-	const {yDaemonBaseUri} = useYDaemonBaseURI({chainID: Number(process.env.BASE_CHAIN_ID)});
+	const {yDaemonBaseUri} = useYDaemonBaseURI({chainID: Number(process.env.DEFAULT_CHAIN_ID)});
 	const {data: prices} = useFetch<TYDaemonPrices>({
 		endpoint: `${yDaemonBaseUri}/prices/all`,
 		schema: yDaemonPricesSchema
@@ -90,9 +90,10 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 	 **
 	 ** @returns: bigint - total deposited eth
 	 **********************************************************************************************/
-	const {data: totalDepositedETH} = useContractRead({
+	const {data: totalDepositedETH} = useReadContract({
 		address: toAddress(process.env.BOOTSTRAP_ADDRESS),
 		abi: BOOTSTRAP_ABI,
+		chainId: Number(process.env.DEFAULT_CHAIN_ID),
 		functionName: 'deposited'
 	});
 
@@ -126,6 +127,9 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 		set_isFetchingHistory(true);
 		const publicClient = getClient(Number(process.env.DEFAULT_CHAIN_ID));
 		const rangeLimit = toBigInt(Number(process.env.RANGE_LIMIT));
+		if (rangeLimit === 0n) {
+			return;
+		}
 		const deploymentBlockNumber = toBigInt(process.env.BOOTSTRAP_INIT_BLOCK_NUMBER);
 		const currentBlockNumber = await publicClient.getBlockNumber();
 		const incentives: TIncentives[] = [];
@@ -173,6 +177,9 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 		}
 		const publicClient = getClient(Number(process.env.DEFAULT_CHAIN_ID));
 		const rangeLimit = toBigInt(Number(process.env.RANGE_LIMIT));
+		if (rangeLimit === 0n) {
+			return;
+		}
 		const deploymentBlockNumber = toBigInt(process.env.BOOTSTRAP_INIT_BLOCK_NUMBER);
 		const currentBlockNumber = await publicClient.getBlockNumber();
 		const incentivesClaimed: TIncentivesClaimed[] = [];
@@ -217,15 +224,15 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 		for (const {incentive, protocol} of incentives) {
 			calls.push(
 				...[
-					{address: protocol, abi: erc20ABI, functionName: 'name'},
-					{address: protocol, abi: erc20ABI, functionName: 'symbol'},
-					{address: incentive, abi: erc20ABI, functionName: 'name'},
-					{address: incentive, abi: erc20ABI, functionName: 'symbol'},
-					{address: incentive, abi: erc20ABI, functionName: 'decimals'}
+					{address: protocol, abi: erc20Abi, functionName: 'name'},
+					{address: protocol, abi: erc20Abi, functionName: 'symbol'},
+					{address: incentive, abi: erc20Abi, functionName: 'name'},
+					{address: incentive, abi: erc20Abi, functionName: 'symbol'},
+					{address: incentive, abi: erc20Abi, functionName: 'decimals'}
 				]
 			);
 		}
-		const results = await multicall({contracts: calls, chainId: chainID});
+		const results = await multicall(retrieveConfig(), {contracts: calls, chainId: chainID});
 
 		const incentiveList: TIncentives[] = [];
 		let i = 0;

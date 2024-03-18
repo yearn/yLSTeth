@@ -2,7 +2,7 @@ import {z} from 'zod';
 import {addressSchema} from '@builtbymom/web3/types';
 
 import type {Hex} from 'viem';
-import type {TAddress, TToken} from '@builtbymom/web3/types';
+import type {TAddress, TDict, TNormalizedBN, TToken} from '@builtbymom/web3/types';
 
 /** 🔵 - Yearn *************************************************************************************
  ** The TIndexedTokenInfo type extends the TTokenInfo type by adding an index property. This index
@@ -161,3 +161,34 @@ export const onChainProposalSchema = z.object({
 	title: z.string(),
 	description: z.string()
 });
+
+/** 🔵 - Yearn *************************************************************************************
+ ** TBasket is a type that represents a basket of tokens. It contains the basic TIndexedTokenInfo
+ ** properties, but is extended with additional properties.
+ **************************************************************************************************/
+export type TBasketItem = TIndexedTokenInfo & {
+	rate: TNormalizedBN;
+	weight: TNormalizedBN;
+	targetWeight: TNormalizedBN;
+	poolAllowance: TNormalizedBN;
+	zapAllowance: TNormalizedBN;
+	poolSupply: TNormalizedBN;
+	virtualPoolSupply: TNormalizedBN;
+	weightRatio: number;
+	index: number;
+	poolStats?: {
+		amountInPool: TNormalizedBN;
+		amountInPoolPercent: number;
+		currentBeaconEquivalentValue: TNormalizedBN;
+		targetWeight: TNormalizedBN;
+		currentEquilibrumWeight: TNormalizedBN;
+		currentBandPlus: TNormalizedBN;
+		currentBandMin: TNormalizedBN;
+		distanceFromTarget: number;
+		weightRamps: TNormalizedBN;
+	};
+};
+export type TBasket = TBasketItem[];
+
+export type TTokenIncentive = TToken & {amount: TNormalizedBN; depositor: TAddress};
+export type TIncentives = TDict<TDict<TTokenIncentive[]>>;

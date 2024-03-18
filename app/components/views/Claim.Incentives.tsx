@@ -2,8 +2,7 @@ import React, {Fragment, useCallback, useMemo, useState} from 'react';
 import {useFetch} from 'app/hooks/useFetch';
 import {VOTE_ABI} from 'app/utils/abi/vote.abi';
 import {getCurrentEpochNumber, getEpoch} from 'app/utils/epochs';
-import {encodeFunctionData, type Hex, type ReadContractParameters} from 'viem';
-import {erc20ABI, readContracts} from 'wagmi';
+import {encodeFunctionData, erc20Abi, type Hex, type ReadContractParameters} from 'viem';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {useAsyncTrigger} from '@builtbymom/web3/hooks/useAsyncTrigger';
 import {
@@ -16,6 +15,8 @@ import {
 	toNormalizedBN,
 	zeroNormalizedBN
 } from '@builtbymom/web3/utils';
+import {retrieveConfig} from '@builtbymom/web3/utils/wagmi';
+import {readContracts} from '@wagmi/core';
 import {Button} from '@yearn-finance/web-lib/components/Button';
 import {Modal} from '@yearn-finance/web-lib/components/Modal';
 import {useYDaemonBaseURI} from '@yearn-finance/web-lib/hooks/useYDaemonBaseURI';
@@ -42,7 +43,7 @@ function ClaimIncentives(): ReactElement {
 	const [claimableIncentiveRaw, set_claimableIncentiveRaw] = useState<TClaimDetails[]>([]);
 	const [isModalOpen, set_isModalOpen] = useState<boolean>(false);
 	const [epochToDisplay, set_epochToDisplay] = useState<number>(getCurrentEpochNumber() - 1);
-	const {yDaemonBaseUri} = useYDaemonBaseURI({chainID: Number(process.env.BASE_CHAIN_ID)});
+	const {yDaemonBaseUri} = useYDaemonBaseURI({chainID: Number(process.env.DEFAULT_CHAIN_ID)});
 	const {data: prices} = useFetch<TYDaemonPrices>({
 		endpoint: `${yDaemonBaseUri}/prices/all`,
 		schema: yDaemonPricesSchema
@@ -81,19 +82,19 @@ function ClaimIncentives(): ReactElement {
 			.map((item): ReadContractParameters[] => {
 				return [
 					{
-						abi: erc20ABI,
+						abi: erc20Abi,
 						address: item.incentive,
 						functionName: 'decimals',
 						args: []
 					},
 					{
-						abi: erc20ABI,
+						abi: erc20Abi,
 						address: item.incentive,
 						functionName: 'name',
 						args: []
 					},
 					{
-						abi: erc20ABI,
+						abi: erc20Abi,
 						address: item.incentive,
 						functionName: 'symbol',
 						args: []
@@ -107,7 +108,7 @@ function ClaimIncentives(): ReactElement {
 				];
 			})
 			.flat() as any[];
-		const data = await readContracts({contracts: calls});
+		const data = await readContracts(retrieveConfig(), {contracts: calls});
 
 		let callIndex = 0;
 		for (const item of claimableIncentives) {
@@ -129,7 +130,7 @@ function ClaimIncentives(): ReactElement {
 					name: tokenName,
 					symbol: tokenSymbol,
 					decimals: tokenDecimals,
-					chainID: 1,
+					chainID: Number(process.env.DEFAULT_CHAIN_ID),
 					logoURI: '',
 					balance: zeroNormalizedBN,
 					price: zeroNormalizedBN,
@@ -170,19 +171,19 @@ function ClaimIncentives(): ReactElement {
 				.map((item): ReadContractParameters[] => {
 					return [
 						{
-							abi: erc20ABI,
+							abi: erc20Abi,
 							address: item.incentive,
 							functionName: 'decimals',
 							args: []
 						},
 						{
-							abi: erc20ABI,
+							abi: erc20Abi,
 							address: item.incentive,
 							functionName: 'name',
 							args: []
 						},
 						{
-							abi: erc20ABI,
+							abi: erc20Abi,
 							address: item.incentive,
 							functionName: 'symbol',
 							args: []
@@ -196,7 +197,7 @@ function ClaimIncentives(): ReactElement {
 					];
 				})
 				.flat() as any[];
-			const data = await readContracts({contracts: calls});
+			const data = await readContracts(retrieveConfig(), {contracts: calls});
 
 			let callIndex = 0;
 			for (const item of claimableIncentives) {
@@ -219,7 +220,7 @@ function ClaimIncentives(): ReactElement {
 						name: tokenName,
 						symbol: tokenSymbol,
 						decimals: tokenDecimals,
-						chainID: 1,
+						chainID: Number(process.env.DEFAULT_CHAIN_ID),
 						logoURI: '',
 						balance: zeroNormalizedBN,
 						price: zeroNormalizedBN,

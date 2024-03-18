@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {approveERC20, incentivize} from 'app/actions';
+import {incentivize} from 'app/actions';
 import ComboboxAddressInput from 'app/components/common/ComboboxAddressInput';
 import IconChevronPlain from 'app/components/icons/IconChevronPlain';
 import IconSpinner from 'app/components/icons/IconSpinner';
@@ -7,7 +7,8 @@ import useBootstrap from 'app/contexts/useBootstrap';
 import {useTimer} from 'app/hooks/useTimer';
 import {ETH_TOKEN} from 'app/tokens';
 import assert from 'assert';
-import {erc20ABI, useContractRead} from 'wagmi';
+import {erc20Abi} from 'viem';
+import {useReadContract} from 'wagmi';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {useTokenList} from '@builtbymom/web3/contexts/WithTokenList';
@@ -26,13 +27,14 @@ import {
 	truncateHex,
 	zeroNormalizedBN
 } from '@builtbymom/web3/utils';
-import {defaultTxStatus} from '@builtbymom/web3/utils/wagmi';
+import {approveERC20, defaultTxStatus} from '@builtbymom/web3/utils/wagmi';
 import {useDeepCompareEffect} from '@react-hookz/web';
 import {Button} from '@yearn-finance/web-lib/components/Button';
-import {ImageWithFallback} from '@yearn-finance/web-lib/components/ImageWithFallback';
 import {Modal} from '@yearn-finance/web-lib/components/Modal';
 import {Renderable} from '@yearn-finance/web-lib/components/Renderable';
 import {IconChevronBottom} from '@yearn-finance/web-lib/icons/IconChevronBottom';
+
+import {ImageWithFallback} from '../common/ImageWithFallback';
 
 import type {TGroupedIncentives, TIncentives, TIncentivesFor} from 'app/hooks/useBootstrapIncentives';
 import type {TSortDirection} from 'app/utils/types';
@@ -105,6 +107,7 @@ function IncentiveGroupBreakdownItem({item}: {item: TIncentives}): ReactElement 
 				<div className={'size-6 min-w-[24px]'}>
 					<ImageWithFallback
 						src={item.incentiveToken?.logoURI || ''}
+						altSrc={`${process.env.SMOL_ASSETS_URL}/token/${Number(process.env.DEFAULT_CHAIN_ID)}/${item.incentiveToken?.address}/logo-32.png`}
 						alt={''}
 						unoptimized
 						width={24}
@@ -250,7 +253,7 @@ function IncentiveGroupBreakdown({incentives}: {incentives: TIncentives[]}): Rea
 }
 
 function IncentiveGroup({item}: {item: TGroupedIncentives}): ReactElement {
-	const {safeChainID} = useChainID(Number(process.env.BASE_CHAIN_ID));
+	const {safeChainID} = useChainID(Number(process.env.DEFAULT_CHAIN_ID));
 
 	return (
 		<details
@@ -459,7 +462,7 @@ function IncentiveConfirmationModal({
 
 		const result = await incentivize({
 			connector: provider,
-			chainID: Number(process.env.BASE_CHAIN_ID),
+			chainID: Number(process.env.DEFAULT_CHAIN_ID),
 			contractAddress: toAddress(process.env.BOOTSTRAP_ADDRESS),
 			protocolAddress: lstToIncentive.address,
 			incentiveAddress: tokenToUse.address,
@@ -483,6 +486,7 @@ function IncentiveConfirmationModal({
 							unoptimized
 							key={lstToIncentive?.logoURI || ''}
 							src={lstToIncentive?.logoURI || ''}
+							altSrc={`${process.env.SMOL_ASSETS_URL}/token/${Number(process.env.DEFAULT_CHAIN_ID)}/${lstToIncentive?.address}/logo-32.png`}
 							width={24}
 							height={24}
 						/>
@@ -500,6 +504,7 @@ function IncentiveConfirmationModal({
 							unoptimized
 							key={tokenToUse?.logoURI || ''}
 							src={tokenToUse?.logoURI || ''}
+							altSrc={`${process.env.SMOL_ASSETS_URL}/token/${Number(process.env.DEFAULT_CHAIN_ID)}/${tokenToUse?.address}/logo-32.png`}
 							width={24}
 							height={24}
 						/>
@@ -546,7 +551,7 @@ function IncentiveConfirmationModal({
 
 function ViewIncentive(): ReactElement {
 	const {address, isActive, provider} = useWeb3();
-	const {safeChainID} = useChainID(Number(process.env.BASE_CHAIN_ID));
+	const {safeChainID} = useChainID(Number(process.env.DEFAULT_CHAIN_ID));
 	const {balances, onRefresh} = useWallet();
 	const {currentNetworkTokenList} = useTokenList();
 	const {
@@ -561,10 +566,11 @@ function ViewIncentive(): ReactElement {
 	const [tokenToUse, set_tokenToUse] = useState<TToken | undefined>();
 	const [approvalStatus, set_approvalStatus] = useState<TTxStatus>(defaultTxStatus);
 	const [className, set_className] = useState<string>('pointer-events-none opacity-40');
-	const {data: allowanceOf, refetch: refetchAllowance} = useContractRead({
-		abi: erc20ABI,
+	const {data: allowanceOf, refetch: refetchAllowance} = useReadContract({
+		abi: erc20Abi,
 		address: tokenToUse?.address,
 		functionName: 'allowance',
+		chainId: Number(process.env.DEFAULT_CHAIN_ID),
 		args: [toAddress(address), toAddress(process.env.BOOTSTRAP_ADDRESS)]
 	});
 
@@ -609,7 +615,7 @@ function ViewIncentive(): ReactElement {
 			return zeroNormalizedBN;
 		}
 		return toNormalizedBN(
-			balances?.[Number(process.env.BASE_CHAIN_ID)]?.[tokenToUse.address]?.balance?.raw || 0 || 0,
+			balances?.[Number(process.env.DEFAULT_CHAIN_ID)]?.[tokenToUse.address]?.balance?.raw || 0 || 0,
 			tokenToUse.decimals || 18
 		);
 	}, [balances, tokenToUse]);
@@ -624,17 +630,17 @@ function ViewIncentive(): ReactElement {
 			}
 			const element = document.getElementById('amountToSend') as HTMLInputElement;
 			const newAmount = handleInputChangeEventValue(e, tokenToUse?.decimals || 18);
-			if (newAmount.raw > balances?.[Number(process.env.BASE_CHAIN_ID)]?.[tokenToUse.address]?.balance?.raw) {
+			if (newAmount.raw > balances?.[Number(process.env.DEFAULT_CHAIN_ID)]?.[tokenToUse.address]?.balance?.raw) {
 				if (element?.value) {
 					element.value = formatAmount(
-						balances?.[Number(process.env.BASE_CHAIN_ID)]?.[tokenToUse.address]?.balance?.normalized,
+						balances?.[Number(process.env.DEFAULT_CHAIN_ID)]?.[tokenToUse.address]?.balance?.normalized,
 						0,
 						18
 					);
 				}
 				return set_amountToSend(
 					toNormalizedBN(
-						balances?.[Number(process.env.BASE_CHAIN_ID)]?.[tokenToUse.address]?.balance?.raw || 0,
+						balances?.[Number(process.env.DEFAULT_CHAIN_ID)]?.[tokenToUse.address]?.balance?.raw || 0,
 						tokenToUse.decimals || 18
 					)
 				);
@@ -654,17 +660,17 @@ function ViewIncentive(): ReactElement {
 			}
 			const element = document.getElementById('amountToSend') as HTMLInputElement;
 			const newAmount = toNormalizedBN((balanceOf.raw * BigInt(percent)) / 100n, tokenToUse.decimals || 18);
-			if (newAmount.raw > balances?.[Number(process.env.BASE_CHAIN_ID)]?.[tokenToUse.address]?.balance?.raw) {
+			if (newAmount.raw > balances?.[Number(process.env.DEFAULT_CHAIN_ID)]?.[tokenToUse.address]?.balance?.raw) {
 				if (element?.value) {
 					element.value = formatAmount(
-						balances?.[Number(process.env.BASE_CHAIN_ID)]?.[tokenToUse.address]?.balance?.normalized,
+						balances?.[Number(process.env.DEFAULT_CHAIN_ID)]?.[tokenToUse.address]?.balance?.normalized,
 						0,
 						18
 					);
 				}
 				return set_amountToSend(
 					toNormalizedBN(
-						balances?.[Number(process.env.BASE_CHAIN_ID)]?.[tokenToUse.address]?.balance?.raw || 0,
+						balances?.[Number(process.env.DEFAULT_CHAIN_ID)]?.[tokenToUse.address]?.balance?.raw || 0,
 						tokenToUse.decimals || 18
 					)
 				);
@@ -701,7 +707,7 @@ function ViewIncentive(): ReactElement {
 					name: tokenToUse.name,
 					symbol: tokenToUse.symbol,
 					address: tokenToUse.address,
-					chainID: Number(process.env.BASE_CHAIN_ID)
+					chainID: Number(process.env.DEFAULT_CHAIN_ID)
 				}
 			])
 		]);
@@ -719,7 +725,7 @@ function ViewIncentive(): ReactElement {
 
 		const result = await approveERC20({
 			connector: provider,
-			chainID: Number(process.env.BASE_CHAIN_ID),
+			chainID: Number(process.env.DEFAULT_CHAIN_ID),
 			contractAddress: tokenToUse.address,
 			spenderAddress: toAddress(process.env.BOOTSTRAP_ADDRESS),
 			amount: amountToSend.raw,
@@ -734,7 +740,7 @@ function ViewIncentive(): ReactElement {
 					name: tokenToUse.name,
 					symbol: tokenToUse.symbol,
 					address: tokenToUse.address,
-					chainID: Number(process.env.BASE_CHAIN_ID)
+					chainID: Number(process.env.DEFAULT_CHAIN_ID)
 				}
 			]);
 		}
@@ -831,6 +837,7 @@ function ViewIncentive(): ReactElement {
 										unoptimized
 										key={tokenToUse?.logoURI || ''}
 										src={tokenToUse?.logoURI || ''}
+										altSrc={`${process.env.SMOL_ASSETS_URL}/token/${Number(process.env.DEFAULT_CHAIN_ID)}/${tokenToUse?.address}/logo-32.png`}
 										width={24}
 										height={24}
 									/>

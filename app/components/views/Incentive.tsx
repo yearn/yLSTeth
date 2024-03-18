@@ -1,23 +1,22 @@
 import React, {useMemo, useState} from 'react';
+import useBasket from 'app/contexts/useBasket';
+import useInclusion from 'app/contexts/useInclusion';
 import {useEpoch} from 'app/hooks/useEpoch';
-import {getCurrentEpochNumber, getEpoch} from 'app/utils/epochs';
-import {toAddress} from '@builtbymom/web3/utils';
+import {getCurrentEpochNumber} from 'app/utils/epochs';
 
 import {IncentiveHeader} from './Incentive.Header';
 import {IncentiveHistory} from './Incentive.History';
 import {IncentiveSelector} from './Incentive.Selector';
 
-import type {TEpoch, TIndexedTokenInfo} from 'app/utils/types';
+import type {TIndexedTokenInfo} from 'app/utils/types';
 import type {ReactElement} from 'react';
-import type {TDict} from '@builtbymom/web3/types';
 
 function ViewIncentive(): ReactElement {
 	const [currentTab, set_currentTab] = useState<'current' | 'potential'>('current');
 	const [epochToDisplay, set_epochToDisplay] = useState<number>(getCurrentEpochNumber());
 	const {endPeriod} = useEpoch();
-	const currentEpoch = useMemo((): TEpoch => {
-		return getEpoch(epochToDisplay);
-	}, [epochToDisplay]);
+	const {candidates} = useInclusion();
+	const {basket, isLoaded, refreshIncentives} = useBasket();
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	 ** Incentive period is closed for the 3 last days of the epoch.
@@ -34,24 +33,12 @@ function ViewIncentive(): ReactElement {
 	 ** This memo hook selects either currentEpoch.inclusion.candidates if current tab is potential,
 	 ** or currentEpoch.weight.participants if current tab is current.
 	 **************************************************************************************************/
-	const possibleLSTs = useMemo((): TDict<TIndexedTokenInfo> => {
+	const possibleLSTs = useMemo((): TIndexedTokenInfo[] => {
 		if (currentTab === 'potential') {
-			const candidates: TDict<TIndexedTokenInfo> = {};
-			for (const eachCandidate of currentEpoch.inclusion.candidates) {
-				if (eachCandidate) {
-					candidates[toAddress(eachCandidate.address)] = eachCandidate;
-				}
-			}
 			return candidates;
 		}
-		const participants: TDict<TIndexedTokenInfo> = {};
-		for (const eachParticipant of currentEpoch.weight.participants) {
-			if (eachParticipant) {
-				participants[toAddress(eachParticipant.address)] = eachParticipant;
-			}
-		}
-		return participants;
-	}, [currentTab, currentEpoch]);
+		return basket;
+	}, [currentTab, basket, candidates]);
 
 	return (
 		<section className={'grid grid-cols-1 pt-10 md:mb-20 md:pt-12'}>
@@ -62,6 +49,8 @@ function ViewIncentive(): ReactElement {
 					possibleLSTs={possibleLSTs}
 					currentTab={currentTab}
 					set_currentTab={set_currentTab}
+					onSubmit={refreshIncentives}
+					isLoading={!isLoaded}
 				/>
 				<div className={'bg-neutral-100'}>
 					<IncentiveHistory

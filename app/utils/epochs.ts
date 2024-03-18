@@ -12,7 +12,13 @@ import {
 	WEETH_TOKEN,
 	WSTETH_TOKEN
 } from '../tokens';
-import {EPOCH_AVG_BLOCKS, EPOCH_DURATION, INITIAL_PERIOD_BLOCK, INITIAL_PERIOD_TIMESTAMP} from './constants';
+import {
+	DAILY_AVG_BLOCKS,
+	EPOCH_AVG_BLOCKS,
+	EPOCH_DURATION,
+	INITIAL_PERIOD_BLOCK,
+	INITIAL_PERIOD_TIMESTAMP
+} from './constants';
 
 import type {TEpoch} from './types';
 
@@ -97,6 +103,12 @@ export function getEpochEndTimestamp(epochNumber: number): number {
 
 export function getEpochEndBlock(epochNumber: number): bigint {
 	return INITIAL_PERIOD_BLOCK + toBigInt(epochNumber) * EPOCH_AVG_BLOCKS + EPOCH_AVG_BLOCKS;
+}
+
+export function getEpochStartBlock(epochNumber: number): bigint {
+	const fourDays = DAILY_AVG_BLOCKS * 4n;
+	const xEpochs = toBigInt(epochNumber) * EPOCH_AVG_BLOCKS;
+	return INITIAL_PERIOD_BLOCK + xEpochs - fourDays;
 }
 
 /** 🔵 - Yearn *************************************************************************************

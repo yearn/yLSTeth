@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {depositETH} from 'app/actions';
+import {ImageWithFallback} from 'app/components/common/ImageWithFallback';
 import IconSpinner from 'app/components/icons/IconSpinner';
 import useBootstrap from 'app/contexts/useBootstrap';
 import {useTimer} from 'app/hooks/useTimer';
@@ -22,7 +23,6 @@ import {
 } from '@builtbymom/web3/utils';
 import {defaultTxStatus, getClient} from '@builtbymom/web3/utils/wagmi';
 import {Button} from '@yearn-finance/web-lib/components/Button';
-import {ImageWithFallback} from '@yearn-finance/web-lib/components/ImageWithFallback';
 import {Renderable} from '@yearn-finance/web-lib/components/Renderable';
 
 import type {ChangeEvent, ReactElement} from 'react';
@@ -126,6 +126,9 @@ function ViewDeposit(): ReactElement {
 		set_isFetchingHistory(true);
 		const publicClient = getClient(Number(process.env.DEFAULT_CHAIN_ID));
 		const rangeLimit = toBigInt(Number(process.env.RANGE_LIMIT));
+		if (rangeLimit === 0n) {
+			return;
+		}
 		const deploymentBlockNumber = toBigInt(process.env.BOOTSTRAP_INIT_BLOCK_NUMBER);
 		const currentBlockNumber = await publicClient.getBlockNumber();
 		const history: TDepositHistory[] = [];
@@ -249,7 +252,7 @@ function ViewDeposit(): ReactElement {
 
 			const result = await depositETH({
 				connector: provider,
-				chainID: Number(process.env.BASE_CHAIN_ID),
+				chainID: Number(process.env.DEFAULT_CHAIN_ID),
 				contractAddress: toAddress(process.env.BOOTSTRAP_ADDRESS),
 				amount: amountToSend.raw,
 				statusHandler: set_depositTxStatus
@@ -335,6 +338,7 @@ function ViewDeposit(): ReactElement {
 										alt={''}
 										unoptimized
 										src={ETH_TOKEN.logoURI || ''}
+										altSrc={`${process.env.SMOL_ASSETS_URL}/token/${Number(process.env.DEFAULT_CHAIN_ID)}/${ETH_TOKEN.address}/logo-32.png`}
 										width={24}
 										height={24}
 									/>

@@ -1,7 +1,6 @@
 import {useCallback, useState} from 'react';
 import BOOTSTRAP_ABI from 'app/utils/abi/bootstrap.abi';
-import {parseAbiItem} from 'viem';
-import {erc20ABI} from 'wagmi';
+import {erc20Abi, parseAbiItem} from 'viem';
 import {
 	decodeAsBigInt,
 	decodeAsNumber,
@@ -11,7 +10,7 @@ import {
 	toNormalizedBN,
 	zeroNormalizedBN
 } from '@builtbymom/web3/utils';
-import {getClient} from '@builtbymom/web3/utils/wagmi';
+import {getClient, retrieveConfig} from '@builtbymom/web3/utils/wagmi';
 import {useAsync, useMountEffect, useUpdateEffect} from '@react-hookz/web';
 import {multicall} from '@wagmi/core';
 
@@ -43,6 +42,9 @@ function useFilterWhitelistedLST(): TUseFilterWhitelistedLSTResp {
 		set_isLoading(true);
 		const publicClient = getClient(Number(process.env.DEFAULT_CHAIN_ID));
 		const rangeLimit = toBigInt(Number(process.env.RANGE_LIMIT));
+		if (rangeLimit === 0n) {
+			return;
+		}
 		const deploymentBlockNumber = toBigInt(process.env.BOOTSTRAP_INIT_BLOCK_NUMBER);
 		const currentBlockNumber = await publicClient.getBlockNumber();
 		const whitelisted: TAddress[] = [];
@@ -96,14 +98,17 @@ function useBootstrapWhitelistedLST(): TUseBootstrapWhitelistedLSTResp {
 		for (const protocolAddress of addresses) {
 			calls.push(
 				...[
-					{address: protocolAddress, abi: erc20ABI, functionName: 'name'},
-					{address: protocolAddress, abi: erc20ABI, functionName: 'symbol'},
-					{address: protocolAddress, abi: erc20ABI, functionName: 'decimals'},
+					{address: protocolAddress, abi: erc20Abi, functionName: 'name'},
+					{address: protocolAddress, abi: erc20Abi, functionName: 'symbol'},
+					{address: protocolAddress, abi: erc20Abi, functionName: 'decimals'},
 					{...baseBootstrapContract, functionName: 'votes', args: [protocolAddress]}
 				]
 			);
 		}
-		const results = await multicall({contracts: calls, chainId: Number(process.env.DEFAULT_CHAIN_ID)});
+		const results = await multicall(retrieveConfig(), {
+			contracts: calls as any[],
+			chainId: Number(process.env.DEFAULT_CHAIN_ID)
+		});
 
 		/* 🔵 - Yearn Finance **********************************************************************
 		 ** We got the data, we can decode them and create our object of {address: TToken}
@@ -124,7 +129,7 @@ function useBootstrapWhitelistedLST(): TUseBootstrapWhitelistedLSTResp {
 				decimals: decimals,
 				chainID: Number(process.env.DEFAULT_CHAIN_ID),
 				logoURI: `https://assets.smold.app/api/token/${Number(
-					process.env.BASE_CHAIN_ID
+					process.env.DEFAULT_CHAIN_ID
 				)}/${address}/logo-128.png`,
 				balance: zeroNormalizedBN,
 				price: zeroNormalizedBN,

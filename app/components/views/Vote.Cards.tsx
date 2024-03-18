@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
+import {VoteCardInclusion} from 'app/components/views/Vote.CardInclusion';
 import {VoteCardWeights} from 'app/components/views/Vote.CardWeights';
-import {VoteCardWhitelist} from 'app/components/views/Vote.CardWhitelist';
 import {useEpoch} from 'app/hooks/useEpoch';
 import {getCurrentEpoch} from 'app/utils/epochs';
 import {Button} from '@yearn-finance/web-lib/components/Button';
@@ -33,7 +33,7 @@ function VoteCards(): ReactElement {
 
 			<div className={'col-span-20 flex flex-col px-4 py-10 md:col-span-9 md:px-72'}>
 				<b className={'text-xl font-black'}>{'Whitelisting vote'}</b>
-				<VoteCardWhitelist />
+				<VoteCardInclusion />
 				{getCurrentEpoch().inclusion.candidates.length > 0 && (
 					<div className={'mt-auto pt-10'}>
 						<Link

@@ -3,8 +3,8 @@ import Markdown from 'react-markdown';
 import Link from 'next/link';
 import {useRouter} from 'next/router';
 import {voteAbstain, voteNay, voteYea} from 'app/actions';
+import {VoteCardInclusion} from 'app/components/views/Vote.CardInclusion';
 import {VoteCardWeights} from 'app/components/views/Vote.CardWeights';
-import {VoteCardWhitelist} from 'app/components/views/Vote.CardWhitelist';
 import {VoteHeader} from 'app/components/views/Vote.Header';
 import {useFetch} from 'app/hooks/useFetch';
 import {GOVERNOR_ABI} from 'app/utils/abi/governor.abi';
@@ -16,7 +16,7 @@ import {useContractRead} from 'wagmi';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {useAsyncTrigger} from '@builtbymom/web3/hooks/useAsyncTrigger';
 import {cl, formatAmount, isZeroAddress, toAddress, toNormalizedBN, zeroNormalizedBN} from '@builtbymom/web3/utils';
-import {defaultTxStatus} from '@builtbymom/web3/utils/wagmi';
+import {defaultTxStatus, retrieveConfig} from '@builtbymom/web3/utils/wagmi';
 import {multicall, readContract} from '@wagmi/core';
 import {Button} from '@yearn-finance/web-lib/components/Button';
 import {IconLinkOut} from '@yearn-finance/web-lib/icons/IconLinkOut';
@@ -213,7 +213,9 @@ function OnChainProposal(props: {
 		address: toAddress(process.env.ONCHAIN_GOV_ADDRESS),
 		functionName: 'voted',
 		args: [toAddress(address), props.proposal.index],
-		enabled: !isZeroAddress(address)
+		query: {
+			enabled: !isZeroAddress(address)
+		}
 	});
 
 	const onVote = useCallback(
@@ -221,7 +223,7 @@ function OnChainProposal(props: {
 			if (decision === 1n) {
 				const result = await voteYea({
 					connector: provider,
-					chainID: Number(process.env.BASE_CHAIN_ID),
+					chainID: Number(process.env.DEFAULT_CHAIN_ID),
 					contractAddress: toAddress(process.env.ONCHAIN_GOV_ADDRESS),
 					index: index,
 					statusHandler: set_voteYeaStatus
@@ -232,7 +234,7 @@ function OnChainProposal(props: {
 			} else if (decision === 0n) {
 				const result = await voteAbstain({
 					connector: provider,
-					chainID: Number(process.env.BASE_CHAIN_ID),
+					chainID: Number(process.env.DEFAULT_CHAIN_ID),
 					contractAddress: toAddress(process.env.ONCHAIN_GOV_ADDRESS),
 					index: index,
 					statusHandler: set_voteAbstainStatus
@@ -243,7 +245,7 @@ function OnChainProposal(props: {
 			} else if (decision === -1n) {
 				const result = await voteNay({
 					connector: provider,
-					chainID: Number(process.env.BASE_CHAIN_ID),
+					chainID: Number(process.env.DEFAULT_CHAIN_ID),
 					contractAddress: toAddress(process.env.ONCHAIN_GOV_ADDRESS),
 					index: index,
 					statusHandler: set_voteNayStatus
@@ -399,19 +401,21 @@ function OnChainProposals(): ReactElement {
 		abi: GOVERNOR_ABI,
 		address: toAddress(process.env.ONCHAIN_GOV_ADDRESS),
 		functionName: 'quorum',
-		select(data) {
-			return toNormalizedBN(data, 18);
+		query: {
+			select(data) {
+				return toNormalizedBN(data, 18);
+			}
 		}
 	});
 
 	const refreshProposals = useAsyncTrigger(async () => {
-		const proposalsCount = await readContract({
+		const proposalsCount = await readContract(retrieveConfig(), {
 			abi: GOVERNOR_ABI,
 			address: toAddress(process.env.ONCHAIN_GOV_ADDRESS),
 			functionName: 'num_proposals'
 		});
 
-		const data = await multicall({
+		const data = await multicall(retrieveConfig(), {
 			contracts: Array.from({length: Number(proposalsCount)}, (_, i) => ({
 				abi: GOVERNOR_ABI,
 				address: toAddress(process.env.ONCHAIN_GOV_ADDRESS),
@@ -424,7 +428,7 @@ function OnChainProposals(): ReactElement {
 		let index = 0n;
 		for (const proposal of data) {
 			if (proposal.status === 'success') {
-				const typedProposals = proposal.result as TOnchainProposal;
+				const typedProposals = proposal.result as unknown as TOnchainProposal;
 				const ipfsWithout0x = typedProposals.ipfs.replace('0x', '');
 				const multihashDigest = base16.decode('f' + ipfsWithout0x);
 				const multihash = create(18, multihashDigest);
@@ -484,7 +488,7 @@ function InclusionProposals(): ReactElement {
 			<div className={'mt-6 pl-4 text-neutral-700'}>
 				<p>{'The outcome of this vote will determine which asset will be newly added to the pool.'}</p>
 			</div>
-			<VoteCardWhitelist />
+			<VoteCardInclusion />
 		</div>
 	);
 }

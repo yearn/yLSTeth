@@ -1,206 +1,108 @@
-import React, {Fragment, useCallback, useMemo, useState} from 'react';
+import React, {Fragment, useMemo, useState} from 'react';
 import Toggle from 'app/components/common/toggle';
-import IconChevronPlain from 'app/components/icons/IconChevronPlain';
-import IconSpinner from 'app/components/icons/IconSpinner';
+import useBasket from 'app/contexts/useBasket';
+import useInclusion from 'app/contexts/useInclusion';
 import useLST from 'app/contexts/useLST';
-import useEpochIncentives from 'app/hooks/useEpochIncentives';
-import {NO_CHANGE_LST_LIKE} from 'app/utils/constants';
-import {getCurrentEpochNumber, getEpoch} from 'app/utils/epochs';
+import {usePrices} from 'app/contexts/usePrices';
+import {getCurrentEpochNumber} from 'app/utils/epochs';
+import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {useChainID} from '@builtbymom/web3/hooks/useChainID';
-import {cl, formatAmount, formatPercent, toAddress, toNormalizedBN, truncateHex} from '@builtbymom/web3/utils';
-import {ImageWithFallback} from '@yearn-finance/web-lib/components/ImageWithFallback';
+import {cl, formatAmount, formatPercent, toAddress, truncateHex} from '@builtbymom/web3/utils';
 import {IconChevronBottom} from '@yearn-finance/web-lib/icons/IconChevronBottom';
 
-import type {TIncentives} from 'app/hooks/useBootstrapIncentives';
-import type {TGroupedIncentives} from 'app/hooks/useIncentives';
-import type {TIndexedTokenInfo, TSortDirection} from 'app/utils/types';
+import {ImageWithFallback} from '../common/ImageWithFallback';
+import IconSpinner from '../icons/IconSpinner';
+import {SubIncentiveWrapper} from './SubIncentiveWrapper';
+
+import type {TIndexedTokenInfo, TTokenIncentive} from 'app/utils/types';
 import type {ReactElement} from 'react';
 import type {TDict} from '@builtbymom/web3/types';
 
-function IncentiveGroupBreakdownItem({item}: {item: TIncentives}): ReactElement {
-	return (
-		<div
-			aria-label={'content'}
-			className={'grid w-full grid-cols-8 py-2 md:w-[52%]'}>
-			<div className={'col-span-2 flex w-full flex-row items-center space-x-2'}>
-				<div className={'size-6 min-w-[24px]'}>
-					<ImageWithFallback
-						src={item.incentiveToken?.logoURI || ''}
-						alt={''}
-						unoptimized
-						width={24}
-						height={24}
-					/>
-				</div>
-				<div>
-					<p className={'text-xs'}>{item?.incentiveToken?.symbol || truncateHex(item.incentive, 6)}</p>
-				</div>
-			</div>
-			<div className={'col-span-2 flex items-center justify-end'}>
-				<p
-					suppressHydrationWarning
-					className={'font-number pr-1 text-xxs md:text-xs'}>
-					{`${formatAmount(
-						toNormalizedBN(item.amount, item.incentiveToken?.decimals || 18)?.normalized || 0,
-						6,
-						6
-					)}`}
-				</p>
-			</div>
-			<div className={'col-span-2 flex items-center justify-end'}>
-				<p
-					suppressHydrationWarning
-					className={'font-number pr-1 text-xxs md:text-xs'}>
-					{`$${formatAmount(item.value, 2, 2)}`}
-				</p>
-			</div>
-			<div className={'col-span-2 flex items-center justify-end'}>
-				<p
-					suppressHydrationWarning
-					className={'font-number pr-1 text-xxs md:text-xs'}>
-					{`${formatPercent(item.estimatedAPR, 4)}`}
-				</p>
-			</div>
-		</div>
-	);
-}
-
-function IncentiveGroupBreakdown({incentives}: {incentives: TIncentives[]}): ReactElement {
-	const [sortBy, set_sortBy] = useState<string>('');
-	const [sortDirection, set_sortDirection] = useState<TSortDirection>('');
-
-	/* 🔵 - Yearn Finance **************************************************************************
-	 **	Callback method used to sort the vaults list.
-	 **	The use of useCallback() is to prevent the method from being re-created on every render.
-	 **********************************************************************************************/
-	const onSort = useCallback((newSortBy: string, newSortDirection: string): void => {
-		set_sortBy(newSortBy);
-		set_sortDirection(newSortDirection as TSortDirection);
-	}, []);
-
-	/* 🔵 - Yearn Finance **************************************************************************
-	 **	Callback method used to toggle the sort direction.
-	 **	By default, the sort direction is descending. If the user clicks on the same column again,
-	 **	the sort direction will be toggled to ascending. If the user clicks on a different column,
-	 **	the sort direction will be set to descending.
-	 **********************************************************************************************/
-	const toggleSortDirection = (newSortBy: string): TSortDirection => {
-		return sortBy === newSortBy
-			? sortDirection === ''
-				? 'desc'
-				: sortDirection === 'desc'
-					? 'asc'
-					: 'desc'
-			: 'desc';
-	};
-
-	/* 🔵 - Yearn Finance **************************************************************************
-	 **	Callback method used to render the chevron icon.
-	 **	The chevron color and direction will change depending on the sort direction.
-	 **********************************************************************************************/
-	const renderChevron = useCallback(
-		(shouldSortBy: boolean): ReactElement => {
-			if (shouldSortBy && sortDirection === 'desc') {
-				return <IconChevronPlain className={'yearn--sort-chevron transition-all'} />;
-			}
-			if (shouldSortBy && sortDirection === 'asc') {
-				return <IconChevronPlain className={'yearn--sort-chevron rotate-180 transition-all'} />;
-			}
-			return (
-				<IconChevronPlain
-					className={'yearn--sort-chevron--off text-neutral-300 transition-all group-hover:text-neutral-500'}
-				/>
-			);
-		},
-		[sortDirection]
-	);
-
-	return (
-		<div className={'border-t border-neutral-300 bg-neutral-100 px-4 pb-2 pt-4 md:px-72'}>
-			<div className={'mb-4'}>
-				<b className={'text-xs'}>{'Incentives Breakdown'}</b>
-			</div>
-			<div
-				aria-label={'header'}
-				className={'mb-2 grid w-full grid-cols-8 md:w-[52%]'}>
-				<div className={'col-span-2'}>
-					<p className={'text-xs text-neutral-500'}>{'Token used'}</p>
-				</div>
-				<div className={'col-span-2 flex justify-end'}>
-					<p
-						onClick={(): void => onSort('amount', toggleSortDirection('amount'))}
-						className={'group flex flex-row text-xs text-neutral-500'}>
-						{'Amount'}
-						<span className={'pl-2'}>{renderChevron(sortBy === 'amount')}</span>
-					</p>
-				</div>
-				<div className={'col-span-2 flex justify-end'}>
-					<p
-						onClick={(): void => onSort('usdValue', toggleSortDirection('usdValue'))}
-						className={'group flex flex-row text-xs text-neutral-500'}>
-						<span className={'hidden md:block'}>{'USD Value'}</span>
-						<span className={'block md:hidden'}>{'$ Value'}</span>
-						<span className={'pl-2'}>{renderChevron(sortBy === 'usdValue')}</span>
-					</p>
-				</div>
-				<div className={'col-span-2 flex justify-end'}>
-					<p
-						onClick={(): void => onSort('apr', toggleSortDirection('apr'))}
-						className={'group flex flex-row text-xs text-neutral-500'}>
-						{'APR'}
-						<span className={'pl-2'}>{renderChevron(sortBy === 'apr')}</span>
-					</p>
-				</div>
-			</div>
-			{[...incentives]
-				.sort((a, b): number => {
-					let aValue = 0;
-					let bValue = 0;
-					if (sortBy === 'amount') {
-						aValue = Number(toNormalizedBN(a.amount, a.incentiveToken?.decimals || 18)?.normalized);
-						bValue = Number(toNormalizedBN(b.amount, b.incentiveToken?.decimals || 18)?.normalized);
-					} else if (sortBy === 'usdValue') {
-						aValue = a.value;
-						bValue = b.value;
-					} else if (sortBy === 'apr') {
-						aValue = a.estimatedAPR;
-						bValue = b.estimatedAPR;
-					}
-					return sortDirection === 'desc' ? Number(bValue) - Number(aValue) : Number(aValue) - Number(bValue);
-				})
-				.map(
-					(item, index): ReactElement => (
-						<IncentiveGroupBreakdownItem
-							key={index}
-							item={item}
-						/>
-					)
-				)}
-		</div>
-	);
-}
-
-function IncentiveGroup(props: {
+function IncentiveRow(props: {
 	item: TIndexedTokenInfo;
+	incentives: TDict<TTokenIncentive[]>;
 	shouldDisplayUserIncentive: boolean;
-	groupedIncentiveHistory: TGroupedIncentives;
 }): ReactElement {
-	const {safeChainID} = useChainID(Number(process.env.BASE_CHAIN_ID));
+	const {address} = useWeb3();
+	const {getPrice} = usePrices();
+	const {totalDepositedETH} = useLST();
+	const {safeChainID} = useChainID(Number(process.env.DEFAULT_CHAIN_ID));
+
+	/**************************************************************************
+	 ** This method calculates the total incentive value for the candidate.
+	 ** It does so by iterating over the incentives and summing the value of
+	 ** each.
+	 **************************************************************************/
+	const candidateIncentiveValue = useMemo((): number => {
+		let sum = 0;
+		for (const incentive of Object.values(props.incentives || {})) {
+			// We don't care about this level for candidates incentives
+			for (const eachIncentive of incentive) {
+				const price = getPrice({address: eachIncentive.address});
+				sum += eachIncentive.amount.normalized * price.normalized;
+			}
+		}
+		return sum;
+	}, [getPrice, props.incentives]);
+
+	/**************************************************************************
+	 ** This method calculates the value of incentives per staked basket token.
+	 **************************************************************************/
+	const candidateIncentivesPerStakedBasketToken = useMemo((): number => {
+		let sum = 0;
+		for (const incentive of Object.values(props.incentives || {})) {
+			// We don't care about this level for candidates incentives
+			for (const eachIncentive of incentive) {
+				const price = getPrice({address: eachIncentive.address});
+				const value = eachIncentive.amount.normalized * price.normalized;
+				const usdPerStakedBasketToken = value / totalDepositedETH.normalized;
+				sum += usdPerStakedBasketToken;
+			}
+		}
+		return sum;
+	}, [getPrice, props.incentives, totalDepositedETH.normalized]);
+
+	/**************************************************************************
+	 ** This method calculates the estimated APR for the candidate.
+	 **************************************************************************/
+	const candidateIncentivesEstimatedAPR = useMemo((): number => {
+		let sum = 0;
+		for (const incentive of Object.values(props.incentives || {})) {
+			// We don't care about this level for candidates incentives
+			for (const eachIncentive of incentive) {
+				const price = getPrice({address: eachIncentive.address});
+				const basketTokenPrice = getPrice({address: toAddress(process.env.STYETH_ADDRESS)});
+				const value = eachIncentive.amount.normalized * price.normalized;
+				sum += ((value * 12) / totalDepositedETH.normalized) * basketTokenPrice.normalized;
+			}
+		}
+		return sum;
+	}, [getPrice, props.incentives, totalDepositedETH.normalized]);
+
+	const allIncentives = useMemo((): TTokenIncentive[] => {
+		const flattenIncentives = Object.values(props.incentives || {}).flat();
+		if (props.shouldDisplayUserIncentive) {
+			return flattenIncentives.filter(
+				(incentive): boolean => toAddress(incentive.depositor) === toAddress(address)
+			);
+		}
+		return flattenIncentives;
+	}, [address, props.incentives, props.shouldDisplayUserIncentive]);
+
+	const hasIncentives = allIncentives.length > 0;
 
 	if (!props.item) {
 		return <Fragment />;
 	}
-
-	const hasSubIncentives = (props.groupedIncentiveHistory?.incentives || []).length > 0;
 	return (
 		<details
 			aria-label={'content'}
 			className={cl(
-				'border-b-2 border-neutral-0 bg-neutral-100/50 transition-colors open:bg-neutral-100',
-				hasSubIncentives ? 'hover:bg-neutral-100' : ''
+				'border-b-2 border-neutral-0 bg-neutral-200/50 transition-colors open:bg-neutral-200',
+				hasIncentives ? 'hover:bg-neutral-200' : ''
 			)}
 			onClick={(e): void => {
-				if (!hasSubIncentives) {
+				if (!hasIncentives) {
 					e.preventDefault();
 					e.stopPropagation();
 				}
@@ -208,7 +110,7 @@ function IncentiveGroup(props: {
 			<summary
 				className={cl(
 					'grid grid-cols-12 p-4 px-0 md:px-72',
-					hasSubIncentives ? 'cursor-pointer' : '!cursor-default'
+					hasIncentives ? 'cursor-pointer' : '!cursor-default'
 				)}>
 				<div className={'col-span-12 flex w-full flex-row items-center space-x-6 md:col-span-5'}>
 					<div className={'size-10 min-w-[40px]'}>
@@ -234,7 +136,7 @@ function IncentiveGroup(props: {
 					<p
 						suppressHydrationWarning
 						className={'font-number'}>
-						{`$${formatAmount(props.groupedIncentiveHistory?.normalizedSum || 0, 2, 2)}`}
+						{`$${formatAmount(candidateIncentiveValue, 2, 2)}`}
 					</p>
 				</div>
 				<div className={'col-span-12 mt-2 flex justify-between md:col-span-2 md:mt-0 md:justify-end'}>
@@ -242,7 +144,7 @@ function IncentiveGroup(props: {
 					<p
 						suppressHydrationWarning
 						className={'font-number'}>
-						{`${formatAmount(props.groupedIncentiveHistory?.usdPerStETH || 0, 4, 4)}`}
+						{`$${formatAmount(candidateIncentivesPerStakedBasketToken, 2, 2)}`}
 					</p>
 				</div>
 				<div className={'col-span-12 mt-2 flex justify-between md:col-span-2 md:mt-0 md:justify-end'}>
@@ -250,75 +152,53 @@ function IncentiveGroup(props: {
 					<p
 						suppressHydrationWarning
 						className={'font-number'}>
-						{`${formatPercent(props.groupedIncentiveHistory?.estimatedAPR, 4)}`}
+						{`${formatPercent(candidateIncentivesEstimatedAPR, 4)}`}
 					</p>
 				</div>
 				<div className={'col-span-1 hidden justify-end md:flex'}>
 					<IconChevronBottom
-						className={cl('chev h-6 w-6 text-neutral-900', !hasSubIncentives ? 'opacity-20' : '')}
+						className={cl('chev h-6 w-6 text-neutral-900', !hasIncentives ? 'opacity-20' : '')}
 					/>
 				</div>
 			</summary>
 
-			<div className={hasSubIncentives ? 'block' : 'hidden'}>
-				<IncentiveGroupBreakdown incentives={props.groupedIncentiveHistory?.incentives || []} />
+			<div className={hasIncentives ? 'block' : 'hidden'}>
+				<SubIncentiveWrapper incentives={allIncentives || []} />
 			</div>
 		</details>
 	);
 }
 
-function IncentiveHistory({
-	epochToDisplay,
-	set_epochToDisplay,
-	currentTab
-}: {
+function IncentiveHistory(props: {
 	epochToDisplay: number;
 	set_epochToDisplay: (epoch: number) => void;
 	currentTab: 'current' | 'potential';
 }): ReactElement {
-	const {
-		incentives: {groupIncentiveHistory, isFetchingHistory}
-	} = useLST();
-	const [sortBy, set_sortBy] = useState<string>('totalIncentive');
-	const [sortDirection, set_sortDirection] = useState<TSortDirection>('desc');
+	const {candidates, inclusionIncentives, isLoaded: isInclusionLoaded} = useInclusion();
+	const {assets, weightIncentives, isLoaded: isWeightLoaded} = useBasket();
 	const [shouldDisplayUserIncentive, set_shouldDisplayUserIncentive] = useState<boolean>(false);
-	const isCurrentEpoch = useMemo((): boolean => epochToDisplay === getCurrentEpochNumber(), [epochToDisplay]);
 
-	/* 🔵 - Yearn Finance **************************************************************************
-	 **	Callback method used to sort the vaults list.
-	 **	The use of useCallback() is to prevent the method from being re-created on every render.
+	/**********************************************************************************************
+	 * Group to display, which is either the current assets or the potential candidates.
+	 * The user can toggle between the two using the currentTab prop.
 	 **********************************************************************************************/
-	const onSort = useCallback((newSortBy: string, newSortDirection: string): void => {
-		set_sortBy(newSortBy);
-		set_sortDirection(newSortDirection as TSortDirection);
-	}, []);
+	const groupToDisplay = useMemo((): TIndexedTokenInfo[] => {
+		if (props.currentTab === 'current') {
+			return assets;
+		}
+		return candidates;
+	}, [assets, candidates, props.currentTab]);
 
-	const toggleSortDirection = (newSortBy: string): TSortDirection => {
-		return sortBy === newSortBy
-			? sortDirection === ''
-				? 'desc'
-				: sortDirection === 'desc'
-					? 'asc'
-					: 'desc'
-			: 'desc';
-	};
-
-	const renderChevron = useCallback(
-		(shouldSortBy: boolean): ReactElement => {
-			if (shouldSortBy && sortDirection === 'desc') {
-				return <IconChevronPlain className={'yearn--sort-chevron transition-all'} />;
-			}
-			if (shouldSortBy && sortDirection === 'asc') {
-				return <IconChevronPlain className={'yearn--sort-chevron rotate-180 transition-all'} />;
-			}
-			return (
-				<IconChevronPlain
-					className={'yearn--sort-chevron--off text-neutral-300 transition-all group-hover:text-neutral-500'}
-				/>
-			);
-		},
-		[sortDirection]
-	);
+	/**********************************************************************************************
+	 * Group to display, which is either the current assets or the potential candidates.
+	 * The user can toggle between the two using the currentTab prop.
+	 **********************************************************************************************/
+	const incentivesToDisplay = useMemo((): TDict<TDict<TTokenIncentive[]>> => {
+		if (props.currentTab === 'current') {
+			return weightIncentives;
+		}
+		return inclusionIncentives;
+	}, [inclusionIncentives, props.currentTab, weightIncentives]);
 
 	const epochs = useMemo((): number[] => {
 		const epochArray = [];
@@ -327,72 +207,6 @@ function IncentiveHistory({
 		}
 		return epochArray;
 	}, []);
-
-	const {groupIncentiveHistory: epochGroupedIncentiveHistory} = useEpochIncentives({
-		epochNumber: isCurrentEpoch ? -1 : epochToDisplay
-	});
-
-	/** 🔵 - Yearn *************************************************************************************
-	 ** This memo hook selects either currentEpoch.inclusion.candidates if current tab is potential,
-	 ** or currentEpoch.weight.participants if current tab is current.
-	 **************************************************************************************************/
-	const possibleLSTs = useMemo((): TDict<TIndexedTokenInfo> => {
-		const epoch = getEpoch(epochToDisplay);
-		if (currentTab === 'potential') {
-			const candidates: TDict<TIndexedTokenInfo> = {};
-			for (const eachCandidate of epoch.inclusion.candidates) {
-				if (eachCandidate) {
-					candidates[toAddress(eachCandidate.address)] = eachCandidate;
-				}
-			}
-			return candidates;
-		}
-		const participants: TDict<TIndexedTokenInfo> = {};
-		for (const eachParticipant of epoch.weight.participants) {
-			if (eachParticipant) {
-				participants[toAddress(eachParticipant.address)] = eachParticipant;
-			}
-		}
-		return participants;
-	}, [currentTab, epochToDisplay]);
-
-	const sortedLSTs = useMemo((): TIndexedTokenInfo[] => {
-		return [NO_CHANGE_LST_LIKE, ...Object.values(possibleLSTs)]
-			.filter((e): boolean => Boolean(e))
-			.sort((lstA, lstB): number => {
-				let group = groupIncentiveHistory[shouldDisplayUserIncentive ? 'user' : 'protocols'];
-				if (!isCurrentEpoch) {
-					group = epochGroupedIncentiveHistory[shouldDisplayUserIncentive ? 'user' : 'protocols'];
-				}
-
-				const a = group[toAddress(lstA.address)];
-				const b = group[toAddress(lstB.address)];
-				if (!a || !b) {
-					return 0;
-				}
-				let aValue = 0;
-				let bValue = 0;
-				if (sortBy === 'totalIncentive') {
-					aValue = a.normalizedSum;
-					bValue = b.normalizedSum;
-				} else if (sortBy === 'vapr') {
-					aValue = a.estimatedAPR;
-					bValue = b.estimatedAPR;
-				} else if (sortBy === 'usdPerStETH') {
-					aValue = a.usdPerStETH;
-					bValue = b.usdPerStETH;
-				}
-				return sortDirection === 'desc' ? Number(bValue) - Number(aValue) : Number(aValue) - Number(bValue);
-			});
-	}, [
-		epochGroupedIncentiveHistory,
-		groupIncentiveHistory,
-		isCurrentEpoch,
-		possibleLSTs,
-		shouldDisplayUserIncentive,
-		sortBy,
-		sortDirection
-	]);
 
 	return (
 		<div className={'mt-2 pt-8'}>
@@ -410,8 +224,8 @@ function IncentiveHistory({
 								className={
 									'w-full overflow-x-scroll border-none bg-transparent px-0 py-4 outline-none scrollbar-none'
 								}
-								onChange={(e): void => set_epochToDisplay(Number(e.target.value))}
-								value={epochToDisplay}
+								onChange={(e): void => props.set_epochToDisplay(Number(e.target.value))}
+								value={props.epochToDisplay}
 								defaultValue={getCurrentEpochNumber()}>
 								{epochs.map(
 									(index): ReactElement => (
@@ -449,51 +263,38 @@ function IncentiveHistory({
 						<p className={'text-xs text-neutral-500'}>{'LST'}</p>
 					</div>
 					<div className={'col-span-2 flex justify-end'}>
-						<p
-							onClick={(): void => onSort('totalIncentive', toggleSortDirection('totalIncentive'))}
-							className={'group flex flex-row text-xs text-neutral-500 md:-mr-2'}>
+						<p className={'group flex flex-row text-xs text-neutral-500 md:-mr-2'}>
 							{'Total incentive (USD)'}
-							<span className={'pl-2'}>{renderChevron(sortBy === 'totalIncentive')}</span>
 						</p>
 					</div>
 					<div className={'col-span-2 flex justify-end'}>
-						<p
-							onClick={(): void => onSort('usdPerStETH', toggleSortDirection('usdPerStETH'))}
-							className={'group flex flex-row text-xs text-neutral-500 md:-mr-2'}>
-							{'USD/st-yETH'}
-							<span className={'pl-2'}>{renderChevron(sortBy === 'usdPerStETH')}</span>
-						</p>
+						<p className={'group flex flex-row text-xs text-neutral-500 md:-mr-2'}>{'USD/st-yETH'}</p>
 					</div>
 					<div className={'col-span-2 flex justify-end'}>
-						<p
-							onClick={(): void => onSort('vapr', toggleSortDirection('vapr'))}
-							className={'group flex flex-row text-xs text-neutral-500 md:-mr-2'}>
-							{'st-yETH vAPR'}
-							<span className={'pl-2'}>{renderChevron(sortBy === 'vapr')}</span>
-						</p>
+						<p className={'group flex flex-row text-xs text-neutral-500 md:-mr-2'}>{'st-yETH vAPR'}</p>
 					</div>
 					<div className={'col-span-1 flex justify-end'} />
 				</div>
 			</div>
 
-			<div className={'bg-neutral-200'}>
-				{sortedLSTs.map((item): ReactElement => {
-					let group = groupIncentiveHistory[shouldDisplayUserIncentive ? 'user' : 'protocols'];
-					if (!isCurrentEpoch) {
-						group = epochGroupedIncentiveHistory[shouldDisplayUserIncentive ? 'user' : 'protocols'];
-					}
-
+			<div className={'min-h-[74px] bg-neutral-100'}>
+				{groupToDisplay.map((item): ReactElement => {
 					return (
-						<IncentiveGroup
-							key={`${item.address}_${epochToDisplay}`}
-							groupedIncentiveHistory={group[toAddress(item.address)]}
-							item={item}
+						<IncentiveRow
+							key={`${item.address}_${props.epochToDisplay}`}
+							incentives={incentivesToDisplay[toAddress(item.address)]}
 							shouldDisplayUserIncentive={shouldDisplayUserIncentive}
+							item={item}
 						/>
 					);
 				})}
 
-				{isFetchingHistory && (
+				{props.currentTab === 'current' && !isWeightLoaded && (
+					<div className={'mt-6 flex flex-row items-center justify-center pb-12 pt-6'}>
+						<IconSpinner className={'!h-6 !w-6 !text-neutral-400'} />
+					</div>
+				)}
+				{props.currentTab === 'potential' && !isInclusionLoaded && (
 					<div className={'mt-6 flex flex-row items-center justify-center pb-12 pt-6'}>
 						<IconSpinner className={'!h-6 !w-6 !text-neutral-400'} />
 					</div>

@@ -1,5 +1,5 @@
 import React, {Fragment, useCallback, useMemo, useState} from 'react';
-import {approveERC20, stakeYETH, unstakeYETH} from 'app/actions';
+import {stakeYETH, unstakeYETH} from 'app/actions';
 import {RenderAmount} from 'app/components/common/RenderAmount';
 import TokenInput from 'app/components/common/TokenInput';
 import IconSwapSVG from 'app/components/icons/IconSwap';
@@ -8,7 +8,8 @@ import {ETH_TOKEN, STYETH_TOKEN, YETH_TOKEN} from 'app/tokens';
 import BOOTSTRAP_ABI from 'app/utils/abi/bootstrap.abi';
 import {ST_YETH_ABI} from 'app/utils/abi/styETH.abi';
 import assert from 'assert';
-import {erc20ABI, useContractRead} from 'wagmi';
+import {erc20Abi} from 'viem';
+import {useReadContract} from 'wagmi';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {
@@ -19,10 +20,10 @@ import {
 	toNormalizedBN,
 	zeroNormalizedBN
 } from '@builtbymom/web3/utils';
-import {defaultTxStatus} from '@builtbymom/web3/utils/wagmi';
+import {approveERC20, defaultTxStatus} from '@builtbymom/web3/utils/wagmi';
 import {Button} from '@yearn-finance/web-lib/components/Button';
 
-import type {TLST} from 'app/hooks/useLSTData';
+import type {TBasketItem} from 'app/utils/types';
 import type {ReactElement} from 'react';
 import type {TNormalizedBN} from '@builtbymom/web3/types';
 import type {TTxStatus} from '@builtbymom/web3/utils/wagmi';
@@ -30,7 +31,7 @@ import type {TTxStatus} from '@builtbymom/web3/utils/wagmi';
 function ViewStakeUnstake(): ReactElement {
 	const {isActive, provider, address} = useWeb3();
 	const {getBalance, onRefresh} = useWallet();
-	const APR = useAPR();
+	const {APR} = useAPR();
 	const [currentView, set_currentView] = useState<'stake' | 'unstake'>('stake');
 	const [fromAmount, set_fromAmount] = useState<TNormalizedBN>(zeroNormalizedBN);
 	const [toAmount, set_toAmount] = useState<TNormalizedBN>(zeroNormalizedBN);
@@ -40,10 +41,11 @@ function ViewStakeUnstake(): ReactElement {
 	 ** Retrieve the yETH/st-yETH rate.
 	 ** 1 st-yETH = rate
 	 **********************************************************************************************/
-	const {data: rate} = useContractRead({
+	const {data: rate} = useReadContract({
 		address: STYETH_TOKEN.address,
 		abi: ST_YETH_ABI,
 		functionName: 'convertToShares',
+		chainId: Number(process.env.DEFAULT_CHAIN_ID),
 		args: [toBigInt(1e18)]
 	});
 
@@ -51,10 +53,11 @@ function ViewStakeUnstake(): ReactElement {
 	 ** If the user wants to stake, he first needs to approve the staking contract to spend his
 	 ** yETH. Thus, we need to check the user's allowance.
 	 **********************************************************************************************/
-	const {data: allowance, refetch: refreshAllowance} = useContractRead({
+	const {data: allowance, refetch: refreshAllowance} = useReadContract({
 		address: YETH_TOKEN.address,
-		abi: erc20ABI,
+		abi: erc20Abi,
 		functionName: 'allowance',
+		chainId: Number(process.env.DEFAULT_CHAIN_ID),
 		args: [toAddress(address), STYETH_TOKEN.address]
 	});
 	const hasAllowance = useMemo((): boolean => {
@@ -109,7 +112,7 @@ function ViewStakeUnstake(): ReactElement {
 
 		const result = await approveERC20({
 			connector: provider,
-			chainID: Number(process.env.BASE_CHAIN_ID),
+			chainID: Number(process.env.DEFAULT_CHAIN_ID),
 			contractAddress: YETH_TOKEN.address,
 			spenderAddress: STYETH_TOKEN.address,
 			amount: fromAmount.raw,
@@ -131,7 +134,7 @@ function ViewStakeUnstake(): ReactElement {
 
 		const result = await stakeYETH({
 			connector: provider,
-			chainID: Number(process.env.BASE_CHAIN_ID),
+			chainID: Number(process.env.DEFAULT_CHAIN_ID),
 			contractAddress: STYETH_TOKEN.address,
 			amount: fromAmount.raw,
 			statusHandler: set_txStatus
@@ -153,7 +156,7 @@ function ViewStakeUnstake(): ReactElement {
 
 		const result = await unstakeYETH({
 			connector: provider,
-			chainID: Number(process.env.BASE_CHAIN_ID),
+			chainID: Number(process.env.DEFAULT_CHAIN_ID),
 			contractAddress: STYETH_TOKEN.address,
 			amount: fromAmount.raw,
 			statusHandler: set_txStatus
@@ -202,7 +205,7 @@ function ViewStakeUnstake(): ReactElement {
 				<div className={'mt-5 grid'}>
 					<TokenInput
 						allowance={toNormalizedBN(allowance || 0n, 18)}
-						token={(currentView === 'stake' ? YETH_TOKEN : STYETH_TOKEN) as TLST}
+						token={(currentView === 'stake' ? YETH_TOKEN : STYETH_TOKEN) as TBasketItem}
 						value={fromAmount}
 						onChange={onUpdateFromAmount}
 					/>
@@ -217,7 +220,7 @@ function ViewStakeUnstake(): ReactElement {
 						shouldCheckAllowance={false}
 						shouldCheckBalance={false}
 						allowance={toNormalizedBN(MAX_UINT_256, 18)}
-						token={(currentView === 'stake' ? STYETH_TOKEN : YETH_TOKEN) as TLST}
+						token={(currentView === 'stake' ? STYETH_TOKEN : YETH_TOKEN) as TBasketItem}
 						value={toAmount}
 						onChange={onUpdateToAmount}
 					/>
@@ -253,10 +256,11 @@ function ViewStakeUnstake(): ReactElement {
 function ViewDetails(): ReactElement {
 	const {address} = useWeb3();
 	const {getBalance} = useWallet();
-	const {data: rate} = useContractRead({
+	const {data: rate} = useReadContract({
 		address: STYETH_TOKEN.address,
 		abi: ST_YETH_ABI,
 		functionName: 'convertToAssets',
+		chainId: Number(process.env.DEFAULT_CHAIN_ID),
 		args: [toBigInt(1e18)]
 	});
 
@@ -274,16 +278,17 @@ function ViewDetails(): ReactElement {
 	 ** Retrieve the totalSupply of st-yETH. Based on that and the user's balance, calculate the
 	 ** user's share of the pool.
 	 **********************************************************************************************/
-	const {data: totalSupply} = useContractRead({
+	const {data: totalSupply} = useReadContract({
 		address: STYETH_TOKEN.address,
 		abi: ST_YETH_ABI,
+		chainId: Number(process.env.DEFAULT_CHAIN_ID),
 		functionName: 'totalSupply'
 	});
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	 ** Retrieve the locked st-yETH in the bootstrap contract for the current user
 	 **********************************************************************************************/
-	const {data: lockedTokens} = useContractRead({
+	const {data: lockedTokens} = useReadContract({
 		abi: BOOTSTRAP_ABI,
 		address: toAddress(process.env.BOOTSTRAP_ADDRESS),
 		functionName: 'deposits',

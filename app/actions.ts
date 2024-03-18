@@ -4,113 +4,22 @@ import assert from 'assert';
 import {CID} from 'multiformats';
 import {toString as uint8ArrayToString} from 'uint8arrays/to-string';
 import {type Hex, zeroAddress} from 'viem';
-import {assertAddress, ETH_TOKEN_ADDRESS, MAX_UINT_256, toAddress, WETH_TOKEN_ADDRESS} from '@builtbymom/web3/utils';
-import {handleTx, toWagmiProvider} from '@builtbymom/web3/utils/wagmi';
-import {erc20ABI, readContract} from '@wagmi/core';
+import {assertAddress, ETH_TOKEN_ADDRESS, toAddress, WETH_TOKEN_ADDRESS} from '@builtbymom/web3/utils';
+import {handleTx} from '@builtbymom/web3/utils/wagmi';
 
 import {STYETH_TOKEN, YETH_TOKEN} from './tokens';
+import {BASKET_ABI} from './utils/abi/basket.abi';
 import {CURVE_SWAP_ABI} from './utils/abi/curveswap.abi';
 import {GOVERNOR_ABI} from './utils/abi/governor.abi';
 import {INCLUSION_ABI} from './utils/abi/inclusion.abi';
+import {ONCHAIN_VOTE_INCLUSION_ABI} from './utils/abi/onchainVoteInclusion.abi';
 import {ONCHAIN_VOTE_WEIGHT_ABI} from './utils/abi/onchainVoteWeight.abi';
 import {ST_YETH_ABI} from './utils/abi/styETH.abi';
 import {VOTE_ABI} from './utils/abi/vote.abi';
-import {YETH_POOL_ABI} from './utils/abi/yETHPool.abi';
 import {ZAP_ABI} from './utils/abi/zap.abi';
 
-import type {Connector} from 'wagmi';
 import type {TAddress} from '@builtbymom/web3/types';
 import type {TTxResponse, TWriteTransaction} from '@builtbymom/web3/utils/wagmi';
-
-//Because USDT do not return a boolean on approve, we need to use this ABI
-const ALTERNATE_ERC20_APPROVE_ABI = [
-	{
-		constant: false,
-		inputs: [
-			{name: '_spender', type: 'address'},
-			{name: '_value', type: 'uint256'}
-		],
-		name: 'approve',
-		outputs: [],
-		payable: false,
-		stateMutability: 'nonpayable',
-		type: 'function'
-	}
-] as const;
-
-/* 🔵 - Yearn Finance **********************************************************
- ** isApprovedERC20 is a _VIEW_ function that checks if a token is approved for
- ** a spender.
- ******************************************************************************/
-export async function isApprovedERC20(
-	connector: Connector | undefined,
-	tokenAddress: TAddress,
-	spender: TAddress,
-	amount = MAX_UINT_256
-): Promise<boolean> {
-	const wagmiProvider = await toWagmiProvider(connector);
-	const result = await readContract({
-		...wagmiProvider,
-		abi: erc20ABI,
-		address: tokenAddress,
-		functionName: 'allowance',
-		args: [wagmiProvider.address, spender]
-	});
-	return (result || 0n) >= amount;
-}
-
-/* 🔵 - Yearn Finance **********************************************************
- ** allowanceOf is a _VIEW_ function that returns the amount of a token that is
- ** approved for a spender.
- ******************************************************************************/
-type TAllowanceOf = {
-	connector: Connector | undefined;
-	tokenAddress: TAddress;
-	spenderAddress: TAddress;
-};
-export async function allowanceOf(props: TAllowanceOf): Promise<bigint> {
-	const wagmiProvider = await toWagmiProvider(props.connector);
-	const result = await readContract({
-		...wagmiProvider,
-		abi: erc20ABI,
-		address: props.tokenAddress,
-		functionName: 'allowance',
-		args: [wagmiProvider.address, props.spenderAddress]
-	});
-	return result || 0n;
-}
-
-/* 🔵 - Yearn Finance **********************************************************
- ** approveERC20 is a _WRITE_ function that approves a token for a spender.
- **
- ** @param spenderAddress - The address of the spender.
- ** @param amount - The amount of collateral to deposit.
- ******************************************************************************/
-type TApproveERC20 = TWriteTransaction & {
-	spenderAddress: TAddress | undefined;
-	amount: bigint;
-};
-export async function approveERC20(props: TApproveERC20): Promise<TTxResponse> {
-	assertAddress(props.spenderAddress, 'spenderAddress');
-	assertAddress(props.contractAddress);
-
-	props.onTrySomethingElse = async (): Promise<TTxResponse> => {
-		assertAddress(props.spenderAddress, 'spenderAddress');
-		return await handleTx(props, {
-			address: props.contractAddress,
-			abi: ALTERNATE_ERC20_APPROVE_ABI,
-			functionName: 'approve',
-			args: [props.spenderAddress, props.amount]
-		});
-	};
-
-	return await handleTx(props, {
-		address: props.contractAddress,
-		abi: erc20ABI,
-		functionName: 'approve',
-		args: [props.spenderAddress, props.amount]
-	});
-}
 
 /* 🔵 - Yearn Finance **********************************************************
  ** depositETH is a _WRITE_ function that deposits ETH into the bootstrap
@@ -267,7 +176,7 @@ export async function addLiquidityToPool(props: TAddLiquidityToPool): Promise<TT
 
 	return await handleTx(props, {
 		address: toAddress(process.env.POOL_ADDRESS),
-		abi: YETH_POOL_ABI,
+		abi: BASKET_ABI,
 		functionName: 'add_liquidity',
 		args: [props.amounts, props.estimateOut]
 	});
@@ -297,7 +206,7 @@ export async function removeLiquidityFromPool(props: TRemoveLiquidityFromPool): 
 
 	return await handleTx(props, {
 		address: toAddress(process.env.POOL_ADDRESS),
-		abi: YETH_POOL_ABI,
+		abi: BASKET_ABI,
 		functionName: 'remove_liquidity',
 		args: [props.amount, props.minOuts]
 	});
@@ -327,7 +236,7 @@ export async function removeLiquiditySingleFromPool(props: TRemoveLiquiditySingl
 
 	return await handleTx(props, {
 		address: toAddress(process.env.POOL_ADDRESS),
-		abi: YETH_POOL_ABI,
+		abi: BASKET_ABI,
 		functionName: 'remove_liquidity_single',
 		args: [props.index, props.amount, props.minOut]
 	});
@@ -407,7 +316,7 @@ export async function swapLST(props: TSwapLST): Promise<TTxResponse> {
 
 	return await handleTx(props, {
 		address: toAddress(process.env.POOL_ADDRESS),
-		abi: YETH_POOL_ABI,
+		abi: BASKET_ABI,
 		functionName: 'swap',
 		args: [props.lstTokenFromIndex, props.lstTokenToIndex, props.amount, props.minAmountOut]
 	});
@@ -443,7 +352,7 @@ export async function swapOutLST(props: TSwapOutLST): Promise<TTxResponse> {
 
 	return await handleTx(props, {
 		address: toAddress(process.env.POOL_ADDRESS),
-		abi: YETH_POOL_ABI,
+		abi: BASKET_ABI,
 		functionName: 'swap_exact_out',
 		args: [props.lstTokenFromIndex, props.lstTokenToIndex, props.amount, props.maxAmountIn]
 	});
@@ -664,6 +573,12 @@ export async function voteAbstain(props: TVoteForProposal): Promise<TTxResponse>
 	});
 }
 
+/* 🔵 - Yearn Finance **********************************************************
+ ** voteWeights is a _WRITE_ function that cast a vote for the weights of the
+ ** LST tokens.
+ **
+ ** @app - yETH
+ ******************************************************************************/
 type TVoteForWeight = TWriteTransaction & {
 	weight: bigint[];
 };
@@ -673,6 +588,26 @@ export async function voteWeights(props: TVoteForWeight): Promise<TTxResponse> {
 	return await handleTx(props, {
 		address: toAddress(process.env.WEIGHT_VOTE_ADDRESS),
 		abi: ONCHAIN_VOTE_WEIGHT_ABI,
+		functionName: 'vote',
+		args: [props.weight]
+	});
+}
+
+/* 🔵 - Yearn Finance **********************************************************
+ ** voteInclusion is a _WRITE_ function that cast a vote for the inclusion of new
+ ** LST tokens.
+ **
+ ** @app - yETH
+ ******************************************************************************/
+type TVoteForInclusion = TWriteTransaction & {
+	weight: bigint[];
+};
+export async function voteInclusion(props: TVoteForInclusion): Promise<TTxResponse> {
+	assert(props.connector, 'No connector');
+
+	return await handleTx(props, {
+		address: toAddress(process.env.INCLUSION_VOTE_ADDRESS),
+		abi: ONCHAIN_VOTE_INCLUSION_ABI,
 		functionName: 'vote',
 		args: [props.weight]
 	});

@@ -1,25 +1,26 @@
-import React, {Fragment, useCallback, useState} from 'react';
+import React, {Fragment, useCallback, useEffect, useMemo, useState} from 'react';
 import Link from 'next/link';
+import {ImageWithFallback} from 'app/components/common/ImageWithFallback';
 import IconChevronBoth from 'app/components/icons/IconChevronBoth';
 import ViewDeposit from 'app/components/views/Deposit';
 import ViewStake from 'app/components/views/Stake';
 import ViewSwap from 'app/components/views/Swap';
 import LSTInPool from 'app/components/views/ViewLSTInPool';
 import ViewWithdraw from 'app/components/views/Withdraw';
+import useBasket from 'app/contexts/useBasket';
 import useLST from 'app/contexts/useLST';
 import useAPR from 'app/hooks/useAPR';
 import {STYETH_TOKEN, YETH_TOKEN} from 'app/tokens';
 import BOOTSTRAP_ABI from 'app/utils/abi/bootstrap.abi';
 import {ST_YETH_ABI} from 'app/utils/abi/styETH.abi';
 import {getCurrentEpoch} from 'app/utils/epochs';
-import {useContractRead} from 'wagmi';
+import {useBlockNumber, useReadContract} from 'wagmi';
 import {useAnimate} from 'framer-motion';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {cl, formatAmount, toAddress, toBigInt, toNormalizedBN} from '@builtbymom/web3/utils';
 import {Listbox, Transition} from '@headlessui/react';
 import {useMountEffect, useUnmountEffect} from '@react-hookz/web';
-import {ImageWithFallback} from '@yearn-finance/web-lib/components/ImageWithFallback';
 
 import type {AnimationScope} from 'framer-motion';
 import type {Router} from 'next/router';
@@ -41,37 +42,66 @@ const basicLighterColorTransition = cl(
 );
 
 function Composition(): ReactElement {
-	const {lst} = useLST();
+	const {basket, isLoaded} = useBasket();
 
 	return (
-		<div className={'flex flex-col space-y-4'}>
-			{[...lst]
-				.sort((a, b): number => Number(b.weightRatio) - Number(a.weightRatio))
-				.map((token, index): ReactElement => {
-					return (
-						<div
-							key={index}
-							className={'flex flex-row justify-between space-x-4'}>
-							<div className={'flex flex-row'}>
-								<div className={'size-6 min-w-[24px]'}>
-									<ImageWithFallback
-										alt={token.name}
-										unoptimized
-										src={token.logoURI || ''}
-										width={24}
-										height={24}
-									/>
+		<div className={'col-span-6 flex flex-col space-y-2'}>
+			<div>
+				<small className={cl('text-xs', basicLighterColorTransition)}>{'Composition'}</small>
+			</div>
+			<div className={'flex min-h-80 flex-col space-y-4'}>
+				{isLoaded ? (
+					[...basket]
+						.sort((a, b): number => Number(b.weightRatio) - Number(a.weightRatio))
+						.map((token, index): ReactElement => {
+							return (
+								<div
+									key={index}
+									className={'flex flex-row justify-between space-x-4'}>
+									<div className={'flex flex-row'}>
+										<div className={'size-6 min-w-[24px]'}>
+											<ImageWithFallback
+												alt={token.name}
+												unoptimized
+												src={token.logoURI || ''}
+												altSrc={`${process.env.SMOL_ASSETS_URL}/token/${Number(process.env.DEFAULT_CHAIN_ID)}/${token.address}/logo-32.png`}
+												width={24}
+												height={24}
+											/>
+										</div>
+										<p className={cl(basicColorTransition, 'text-sm md:text-base px-2')}>
+											{token.symbol}
+										</p>
+									</div>
+									<b
+										suppressHydrationWarning
+										className={cl(basicColorTransition, 'text-sm md:text-base')}>
+										{`${formatAmount((token?.weightRatio || 0) * 100, 2, 2)}%`}
+									</b>
 								</div>
-								<p className={cl(basicColorTransition, 'text-sm md:text-base px-2')}>{token.symbol}</p>
-							</div>
-							<b
-								suppressHydrationWarning
-								className={cl(basicColorTransition, 'text-sm md:text-base')}>
-								{`${formatAmount((token?.weightRatio || 0) * 100, 2, 2)}%`}
-							</b>
+							);
+						})
+				) : (
+					<>
+						<div className={'flex flex-row items-center justify-between space-x-2'}>
+							<div className={'skeleton-full size-6 min-w-[24px]'} />
+							<div className={'skeleton-lg h-4 w-full'} />
 						</div>
-					);
-				})}
+						<div className={'flex flex-row items-center justify-between space-x-2'}>
+							<div className={'skeleton-full size-6 min-w-[24px]'} />
+							<div className={'skeleton-lg h-4 w-full'} />
+						</div>
+						<div className={'flex flex-row items-center justify-between space-x-2'}>
+							<div className={'skeleton-full size-6 min-w-[24px]'} />
+							<div className={'skeleton-lg h-4 w-full'} />
+						</div>
+						<div className={'flex flex-row items-center justify-between space-x-2'}>
+							<div className={'skeleton-full size-6 min-w-[24px]'} />
+							<div className={'skeleton-lg h-4 w-full'} />
+						</div>
+					</>
+				)}
+			</div>
 		</div>
 	);
 }
@@ -95,15 +125,20 @@ function RenderYETHValue({amount}: {amount: bigint}): ReactElement {
 	/* 🔵 - Yearn Finance **************************************************************************
 	 ** Retrieve the locked st-yETH in the bootstrap contract for the current user
 	 **********************************************************************************************/
-	const {data: yETHValue} = useContractRead({
+	const {data: blockNumber} = useBlockNumber({watch: true});
+	const {data: yETHValue, refetch} = useReadContract({
 		abi: ST_YETH_ABI,
 		address: toAddress(process.env.STYETH_ADDRESS),
 		functionName: 'convertToAssets',
 		args: [amount],
 		chainId: Number(process.env.DEFAULT_CHAIN_ID),
-		watch: true,
-		enabled: timer > 0
+		query: {
+			enabled: timer > 0
+		}
 	});
+	useEffect(() => {
+		refetch();
+	}, [blockNumber, refetch]);
 
 	return (
 		<p
@@ -116,16 +151,14 @@ function RenderYETHValue({amount}: {amount: bigint}): ReactElement {
 	);
 }
 
-function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
+function HeadingUserPosition(): ReactElement {
 	const {address} = useWeb3();
-	const {balances} = useWallet();
-	const {TVL, TAL} = useLST();
-	const APR = useAPR();
+	const {getBalance, isLoading: isLoadingBalance, balances} = useWallet();
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	 ** Retrieve the locked st-yETH in the bootstrap contract for the current user
 	 **********************************************************************************************/
-	const {data: lockedTokens} = useContractRead({
+	const {data: lockedTokens} = useReadContract({
 		abi: BOOTSTRAP_ABI,
 		address: toAddress(process.env.BOOTSTRAP_ADDRESS),
 		functionName: 'deposits',
@@ -133,28 +166,65 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 		chainId: Number(process.env.DEFAULT_CHAIN_ID)
 	});
 
-	function renderYouPosition(): ReactElement {
-		return (
-			<div className={'divider mt-6 grid grid-cols-1 space-y-2 border-t-2 pt-6'}>
-				<div>
-					<small className={cl('text-xs', basicLighterColorTransition)}>{'Your yETH'}</small>
-					<b
-						suppressHydrationWarning
-						className={cl(
-							'block text-lg md:text-lg leading-6 md:leading-8 font-number',
-							basicColorTransition
-						)}>
-						{formatAmount(
-							balances?.[Number(process.env.DEFAULT_CHAIN_ID)]?.[YETH_TOKEN.address]?.balance
-								?.normalized || 0,
-							6,
-							6
-						)}
-					</b>
-				</div>
+	/**********************************************************************************************
+	 ** Retrieve the basket balance for the current user
+	 **********************************************************************************************/
+	const basketTokenBalance = useMemo(
+		() => getBalance({address: YETH_TOKEN.address, chainID: YETH_TOKEN.chainID}),
+		[getBalance]
+	);
 
+	/**********************************************************************************************
+	 ** Retrieve the basket staked balance for the current user
+	 **********************************************************************************************/
+	const basketTokenStBalance = useMemo(
+		() => getBalance({address: STYETH_TOKEN.address, chainID: STYETH_TOKEN.chainID}),
+		[getBalance]
+	);
+
+	return (
+		<div className={'divider mt-6 grid grid-cols-1 space-y-2 border-t-2 pt-6'}>
+			<div>
+				<small className={cl('text-xs', basicLighterColorTransition)}>{'Your yETH'}</small>
+				<b
+					suppressHydrationWarning
+					className={cl('block text-lg md:text-lg leading-6 md:leading-8 font-number', basicColorTransition)}>
+					{isLoadingBalance || !balances || Object.keys(balances).length === 0 ? (
+						<div className={'py-1'}>
+							<div className={'skeleton-lg h-6 w-1/2'} />
+						</div>
+					) : (
+						formatAmount(basketTokenBalance.normalized, 6, 6)
+					)}
+				</b>
+			</div>
+
+			<div>
+				<small className={cl('text-xs', basicLighterColorTransition)}>{'Your st-yETH'}</small>
+				<span className={'flex w-full items-center justify-between whitespace-nowrap'}>
+					{isLoadingBalance || !balances || Object.keys(balances).length === 0 ? (
+						<div className={'h-8 w-full py-1'}>
+							<div className={'skeleton-lg h-6 w-full'} />
+						</div>
+					) : (
+						<>
+							<b
+								suppressHydrationWarning
+								className={cl(
+									'text-lg md:text-lg leading-6 md:leading-8 font-number',
+									basicColorTransition
+								)}>
+								{formatAmount(basketTokenStBalance.normalized, 6, 6)}
+							</b>
+							<RenderYETHValue amount={basketTokenStBalance.raw} />
+						</>
+					)}
+				</span>
+			</div>
+
+			{lockedTokens && lockedTokens >= 0n ? (
 				<div>
-					<small className={cl('text-xs', basicLighterColorTransition)}>{'Your st-yETH'}</small>
+					<small className={cl('text-xs', basicLighterColorTransition)}>{'Your bootstrap st-yETH'}</small>
 					<span className={'flex w-full items-center justify-between whitespace-nowrap'}>
 						<b
 							suppressHydrationWarning
@@ -162,42 +232,19 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 								'text-lg md:text-lg leading-6 md:leading-8 font-number',
 								basicColorTransition
 							)}>
-							{formatAmount(
-								Number(
-									balances?.[Number(process.env.DEFAULT_CHAIN_ID)]?.[STYETH_TOKEN.address]?.balance
-										?.normalized || 0
-								),
-								6,
-								6
-							)}
+							{formatAmount(toNormalizedBN(lockedTokens || 0n, 18).normalized, 6, 6)}
 						</b>
-						<RenderYETHValue
-							amount={toBigInt(
-								balances?.[Number(process.env.DEFAULT_CHAIN_ID)]?.[STYETH_TOKEN.address]?.balance?.raw
-							)}
-						/>
+						<RenderYETHValue amount={toBigInt(lockedTokens)} />
 					</span>
 				</div>
+			) : null}
+		</div>
+	);
+}
 
-				{lockedTokens && lockedTokens >= 0n ? (
-					<div>
-						<small className={cl('text-xs', basicLighterColorTransition)}>{'Your bootstrap st-yETH'}</small>
-						<span className={'flex w-full items-center justify-between whitespace-nowrap'}>
-							<b
-								suppressHydrationWarning
-								className={cl(
-									'text-lg md:text-lg leading-6 md:leading-8 font-number',
-									basicColorTransition
-								)}>
-								{formatAmount(toNormalizedBN(lockedTokens || 0n, 18).normalized, 6, 6)}
-							</b>
-							<RenderYETHValue amount={toBigInt(lockedTokens)} />
-						</span>
-					</div>
-				) : null}
-			</div>
-		);
-	}
+function HeadingPoolData(): ReactElement {
+	const {TVL, TAL, isTVLLoaded} = useLST();
+	const {APR, isLoaded: isAPRLoaded} = useAPR();
 
 	function renderIncentiveAPR(): ReactElement {
 		const epoch = getCurrentEpoch();
@@ -221,6 +268,77 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 	}
 
 	return (
+		<div className={'col-span-6 flex flex-col space-y-4'}>
+			<div>
+				<small className={cl('text-xs', basicLighterColorTransition)}>{'TVL, USD'}</small>
+				<b
+					suppressHydrationWarning
+					className={cl('block text-lg md:text-lg leading-6 md:leading-8 font-number', basicColorTransition)}>
+					{!isTVLLoaded ? (
+						<div className={'py-1'}>
+							<div className={'skeleton-lg h-6 w-3/4'} />
+						</div>
+					) : (
+						formatAmount(TVL, 0, 0)
+					)}
+				</b>
+			</div>
+
+			<div>
+				<small className={cl('text-xs', basicLighterColorTransition)}>{'TVL, ETH'}</small>
+				<b
+					suppressHydrationWarning
+					className={cl('block text-lg md:text-lg leading-6 md:leading-8 font-number', basicColorTransition)}>
+					{!isTVLLoaded ? (
+						<div className={'py-1'}>
+							<div className={'skeleton-lg h-6 w-3/4'} />
+						</div>
+					) : (
+						formatAmount(TAL.normalized, 4, 4)
+					)}
+				</b>
+			</div>
+
+			<div>
+				<small className={cl('text-xs text-purple-300 group-hover:text-neutral-0', basicTransition)}>
+					{'APR'}
+				</small>
+
+				<span className={'tooltip'}>
+					<b
+						suppressHydrationWarning
+						className={cl(
+							'block text-lg md:text-2xl leading-6 md:leading-8 text-purple-300 group-hover:text-neutral-0 font-number',
+							basicTransition
+						)}>
+						{!isAPRLoaded ? (
+							<div className={'py-1'}>
+								<div className={'skeleton-lg h-6 w-3/4'} />
+							</div>
+						) : (
+							`~${formatAmount(APR, 2, 2)}%`
+						)}
+					</b>
+					<span className={'tooltipLight !-inset-x-24 top-full mt-2 !w-auto'}>
+						<div
+							suppressHydrationWarning
+							className={
+								'w-fit rounded-md border border-neutral-700 bg-neutral-900 p-1 px-2 text-center text-xs font-medium text-neutral-0'
+							}>
+							{
+								"APY is calculated based on last week's yETH yield generated by the protocol, streamed to st-yETH holders this week"
+							}
+						</div>
+					</span>
+				</span>
+				{renderIncentiveAPR()}
+			</div>
+		</div>
+	);
+}
+
+function Heading({scope}: {scope: AnimationScope}): ReactElement {
+	return (
 		<div
 			ref={scope}
 			id={'yeth-main-heading'}
@@ -242,77 +360,17 @@ function YETHHeading({scope}: {scope: AnimationScope}): ReactElement {
 			<div
 				id={'composition'}
 				className={'col-span-12 flex w-full flex-col py-4 pl-0 transition-colors md:py-8 md:pl-72'}>
-				<div className={'flex w-full flex-row justify-between'}>
-					<div className={'flex flex-col space-y-4'}>
-						<div>
-							<small className={cl('text-xs', basicLighterColorTransition)}>{'TVL, USD'}</small>
-							<b
-								suppressHydrationWarning
-								className={cl(
-									'block text-lg md:text-lg leading-6 md:leading-8 font-number',
-									basicColorTransition
-								)}>
-								{formatAmount(TVL, 0, 0)}
-							</b>
-						</div>
-
-						<div>
-							<small className={cl('text-xs', basicLighterColorTransition)}>{'TVL, ETH'}</small>
-							<b
-								suppressHydrationWarning
-								className={cl(
-									'block text-lg md:text-lg leading-6 md:leading-8 font-number',
-									basicColorTransition
-								)}>
-								{formatAmount(TAL.normalized, 4, 4)}
-							</b>
-						</div>
-
-						<div>
-							<small
-								className={cl('text-xs text-purple-300 group-hover:text-neutral-0', basicTransition)}>
-								{'APR'}
-							</small>
-
-							<span className={'tooltip'}>
-								<b
-									suppressHydrationWarning
-									className={cl(
-										'block text-lg md:text-2xl leading-6 md:leading-8 text-purple-300 group-hover:text-neutral-0 font-number',
-										basicTransition
-									)}>
-									{`~${formatAmount(APR, 2, 2)}%`}
-								</b>
-								<span className={'tooltipLight !-inset-x-24 top-full mt-2 !w-auto'}>
-									<div
-										suppressHydrationWarning
-										className={
-											'w-fit rounded-md border border-neutral-700 bg-neutral-900 p-1 px-2 text-center text-xs font-medium text-neutral-0'
-										}>
-										{
-											"APY is calculated based on last week's yETH yield generated by the protocol, streamed to st-yETH holders this week"
-										}
-									</div>
-								</span>
-							</span>
-							{renderIncentiveAPR()}
-						</div>
-					</div>
-
-					<div className={'flex flex-col space-y-2'}>
-						<div>
-							<small className={cl('text-xs', basicLighterColorTransition)}>{'Composition'}</small>
-						</div>
-						<Composition />
-					</div>
+				<div className={'grid w-full grid-cols-12 justify-between'}>
+					<HeadingPoolData />
+					<Composition />
 				</div>
-				{renderYouPosition()}
+				<HeadingUserPosition />
 			</div>
 		</div>
 	);
 }
 
-function YETH({router}: {router: Router}): ReactElement {
+function Index({router}: {router: Router}): ReactElement {
 	const [tabsCope, animateTabs] = useAnimate();
 	const [headingScope, headingAnimate] = useAnimate();
 	const [lpPoolScope, lpPoolAnimate] = useAnimate();
@@ -373,21 +431,7 @@ function YETH({router}: {router: Router}): ReactElement {
 	function renderTab(): ReactElement {
 		switch (currentTab.value) {
 			case 0:
-				return (
-					<ViewDeposit
-						key={'lst'}
-						type={'LST'}
-						onChangeTab={(): void => set_currentTab(tabs[3])}
-					/>
-				);
-			case 1:
-				return (
-					<ViewDeposit
-						key={'eth'}
-						type={'ETH'}
-						onChangeTab={(): void => set_currentTab(tabs[3])}
-					/>
-				);
+				return <ViewDeposit />;
 			case 2:
 				return <ViewWithdraw />;
 			case 3:
@@ -395,20 +439,14 @@ function YETH({router}: {router: Router}): ReactElement {
 			case 4:
 				return <ViewSwap />;
 			default:
-				return (
-					<ViewDeposit
-						key={'lst'}
-						type={'LST'}
-						onChangeTab={(): void => set_currentTab(tabs[3])}
-					/>
-				);
+				return <ViewDeposit />;
 		}
 	}
 
 	return (
 		<div className={'relative mx-auto mt-6 w-screen max-w-5xl'}>
 			<div onClick={(): void => triggerPoolView(true)}>
-				<YETHHeading scope={headingScope} />
+				<Heading scope={headingScope} />
 			</div>
 
 			<div
@@ -541,7 +579,7 @@ export default function Wrapper({router}: {router: Router}): ReactElement {
 		<div
 			id={'yeth-main-page'}
 			className={'relative mx-auto mb-0 flex min-h-screen w-full flex-col bg-neutral-0 pt-20'}>
-			<YETH router={router} />
+			<Index router={router} />
 		</div>
 	);
 }

@@ -4,7 +4,7 @@ import type {TToken} from '@builtbymom/web3/types';
 
 export const ETH_TOKEN: TToken = {
 	address: toAddress(ETH_TOKEN_ADDRESS),
-	chainID: 1,
+	chainID: Number(process.env.DEFAULT_CHAIN_ID),
 	name: 'Ether',
 	symbol: 'ETH',
 	decimals: 18,
@@ -15,7 +15,7 @@ export const ETH_TOKEN: TToken = {
 };
 export const STYETH_TOKEN: TToken = {
 	address: toAddress(process.env.STYETH_ADDRESS),
-	chainID: 1,
+	chainID: Number(process.env.DEFAULT_CHAIN_ID),
 	name: 'Staked Yearn ETH',
 	symbol: 'st-yETH',
 	decimals: 18,
@@ -26,7 +26,7 @@ export const STYETH_TOKEN: TToken = {
 };
 export const YETH_TOKEN: TToken = {
 	address: toAddress(process.env.YETH_ADDRESS),
-	chainID: 1,
+	chainID: Number(process.env.DEFAULT_CHAIN_ID),
 	name: 'Yearn ETH',
 	symbol: 'yETH',
 	decimals: 18,
@@ -40,7 +40,7 @@ export const YETH_TOKEN: TToken = {
  ** Whitelisted tokens related to yETH ecosystem
  **********************************************************************************************/
 export const SFRXETH_TOKEN: TToken = {
-	chainID: 1,
+	chainID: Number(process.env.DEFAULT_CHAIN_ID),
 	address: toAddress('0xac3E018457B222d93114458476f3E3416Abbe38F'),
 	name: 'Staked Frax Ether',
 	symbol: 'sfrxETH',
@@ -51,7 +51,7 @@ export const SFRXETH_TOKEN: TToken = {
 	balance: zeroNormalizedBN
 };
 export const SWETH_TOKEN: TToken = {
-	chainID: 1,
+	chainID: Number(process.env.DEFAULT_CHAIN_ID),
 	address: toAddress('0xf951E335afb289353dc249e82926178EaC7DEd78'),
 	name: 'Swell Network Ether',
 	symbol: 'swETH',
@@ -62,7 +62,7 @@ export const SWETH_TOKEN: TToken = {
 	balance: zeroNormalizedBN
 };
 export const WSTETH_TOKEN: TToken = {
-	chainID: 1,
+	chainID: Number(process.env.DEFAULT_CHAIN_ID),
 	address: toAddress('0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0'),
 	name: 'Wrapped liquid staked Ether 2.0',
 	symbol: 'wstETH',
@@ -73,7 +73,7 @@ export const WSTETH_TOKEN: TToken = {
 	balance: zeroNormalizedBN
 };
 export const STADERETH_TOKEN: TToken = {
-	chainID: 1,
+	chainID: Number(process.env.DEFAULT_CHAIN_ID),
 	address: toAddress('0xA35b1B31Ce002FBF2058D22F30f95D405200A15b'),
 	name: 'Stader ETHx',
 	symbol: 'ETHx',
@@ -84,7 +84,7 @@ export const STADERETH_TOKEN: TToken = {
 	balance: zeroNormalizedBN
 };
 export const CBETH_TOKEN: TToken = {
-	chainID: 1,
+	chainID: Number(process.env.DEFAULT_CHAIN_ID),
 	address: toAddress('0xBe9895146f7AF43049ca1c1AE358B0541Ea49704'),
 	name: 'Coinbase Wrapped Staked ETH',
 	symbol: 'cbETH',
@@ -96,7 +96,7 @@ export const CBETH_TOKEN: TToken = {
 };
 
 export const MPETH_TOKEN: TToken = {
-	chainID: 1,
+	chainID: Number(process.env.DEFAULT_CHAIN_ID),
 	address: toAddress('0x48AFbBd342F64EF8a9Ab1C143719b63C2AD81710'),
 	name: 'Meta Pool ETH',
 	symbol: 'mpETH',
@@ -108,7 +108,7 @@ export const MPETH_TOKEN: TToken = {
 };
 
 export const RETH_TOKEN: TToken = {
-	chainID: 1,
+	chainID: Number(process.env.DEFAULT_CHAIN_ID),
 	address: toAddress('0xae78736Cd615f374D3085123A210448E74Fc6393'),
 	name: 'Rocket Pool ETH',
 	symbol: 'rETH',
@@ -120,7 +120,7 @@ export const RETH_TOKEN: TToken = {
 };
 
 export const MEVETH_TOKEN: TToken = {
-	chainID: 1,
+	chainID: Number(process.env.DEFAULT_CHAIN_ID),
 	address: toAddress('0x24Ae2dA0f361AA4BE46b48EB19C91e02c5e4f27E'),
 	name: 'MEV Protocol ETH',
 	symbol: 'mevETH',
@@ -132,7 +132,7 @@ export const MEVETH_TOKEN: TToken = {
 };
 
 export const WEETH_TOKEN: TToken = {
-	chainID: 1,
+	chainID: Number(process.env.DEFAULT_CHAIN_ID),
 	address: toAddress('0xCd5fE23C85820F7B72D0926FC9b05b43E359b7ee'),
 	name: 'EtherFi Wrapped ETH',
 	symbol: 'weETH',
@@ -144,7 +144,7 @@ export const WEETH_TOKEN: TToken = {
 };
 
 export const APXETH_TOKEN: TToken = {
-	chainID: 1,
+	chainID: Number(process.env.DEFAULT_CHAIN_ID),
 	address: toAddress('0x9Ba021B0a9b958B5E75cE9f6dff97C7eE52cb3E6'),
 	name: 'Autocompounding Pirex ETH',
 	symbol: 'apxETH',
@@ -159,7 +159,7 @@ export const APXETH_TOKEN: TToken = {
  ** Other tokens related to yETH ecosystem
  **********************************************************************************************/
 export const QETH_TOKEN: TToken = {
-	chainID: 1,
+	chainID: Number(process.env.DEFAULT_CHAIN_ID),
 	address: toAddress('0x93ef1Ea305D11A9b2a3EbB9bB4FCc34695292E7d'),
 	name: 'TranchessV2 WETH QUEEN',
 	symbol: 'qETH',
@@ -170,7 +170,7 @@ export const QETH_TOKEN: TToken = {
 	balance: zeroNormalizedBN
 };
 export const WBETH_TOKEN: TToken = {
-	chainID: 1,
+	chainID: Number(process.env.DEFAULT_CHAIN_ID),
 	address: toAddress('0xa2E3356610840701BDf5611a53974510Ae27E2e1'),
 	name: 'Wrapped Binance Beacon ETH',
 	symbol: 'wBETH',
@@ -181,7 +181,7 @@ export const WBETH_TOKEN: TToken = {
 	balance: zeroNormalizedBN
 };
 export const STRATFIRETH_TOKEN: TToken = {
-	chainID: 1,
+	chainID: Number(process.env.DEFAULT_CHAIN_ID),
 	address: toAddress('0x9559Aaa82d9649C7A7b220E7c461d2E74c9a3593'),
 	name: 'StaFi',
 	symbol: 'rETH',

@@ -1,17 +1,18 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import Link from 'next/link';
 import {useRouter} from 'next/router';
-import assert from 'assert';
+import {localhost, mainnet} from 'viem/chains';
 import {useConnect, usePublicClient} from 'wagmi';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {truncateHex} from '@builtbymom/web3/utils';
+import {retrieveConfig} from '@builtbymom/web3/utils/wagmi';
 import {useAccountModal, useChainModal} from '@rainbow-me/rainbowkit';
 import {LogoPopover} from '@yearn-finance/web-lib/components/LogoPopover';
 import {ModalMobileMenu} from '@yearn-finance/web-lib/components/ModalMobileMenu';
 import {IconWallet} from '@yearn-finance/web-lib/icons/IconWallet';
 
 import type {ReactElement} from 'react';
-import type {Chain} from '@wagmi/chains';
+import type {Chain} from 'viem';
 
 type TMenu = {path: string; label: string | ReactElement; target?: string};
 type TNavbar = {nav: TMenu[]; currentPathName: string};
@@ -78,14 +79,13 @@ export function NetworkSelector({networks}: {networks: number[]}): ReactElement 
 	const {onSwitchChain} = useWeb3();
 	const publicClient = usePublicClient();
 	const {connectors} = useConnect();
-	const safeChainID = toSafeChainID(publicClient?.chain.id, Number(process.env.BASE_CHAIN_ID));
+	const safeChainID = toSafeChainID(Number(publicClient?.chain.id), Number(process.env.BASE_CHAINID));
 
 	const supportedNetworks = useMemo((): TNetwork[] => {
-		const injectedConnector = connectors.find((e): boolean => e.id.toLocaleLowerCase() === 'injected');
-		assert(injectedConnector, 'No injected connector found');
-		const chainsForInjected = injectedConnector.chains;
-
-		return chainsForInjected
+		connectors; //Hard trigger re-render when connectors change
+		const config = retrieveConfig();
+		const noFork = config.chains.filter(({id}): boolean => id !== 1337);
+		return noFork
 			.filter(({id}): boolean => id !== 1337 && ((networks.length > 0 && networks.includes(id)) || true))
 			.map((network: Chain): TNetwork => ({value: network.id, label: network.name}));
 	}, [connectors, networks]);
@@ -246,7 +246,8 @@ function AppHeader(): ReactElement {
 				shouldUseWallets={true}
 				shouldUseNetworks={true}
 				isOpen={isMenuOpen}
-				onClose={(): void => set_isMenuOpen(false)}>
+				onClose={(): void => set_isMenuOpen(false)}
+				supportedNetworks={[mainnet, localhost]}>
 				{nav?.map(
 					(option): ReactElement => (
 						<Link

@@ -1,14 +1,13 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useRouter} from 'next/router';
-import {approveERC20, depositIncentive} from 'app/actions';
+import {depositIncentive} from 'app/actions';
 import ComboboxAddressInput from 'app/components/common/ComboboxAddressInput';
-import useLST from 'app/contexts/useLST';
 import {ETH_TOKEN} from 'app/tokens';
 import {NO_CHANGE_LST_LIKE} from 'app/utils/constants';
 import {getCurrentEpoch} from 'app/utils/epochs';
 import assert from 'assert';
-import {zeroAddress} from 'viem';
-import {erc20ABI, useContractRead} from 'wagmi';
+import {erc20Abi, zeroAddress} from 'viem';
+import {useReadContract} from 'wagmi';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {useTokenList} from '@builtbymom/web3/contexts/WithTokenList';
@@ -25,20 +24,18 @@ import {
 	toNormalizedBN,
 	zeroNormalizedBN
 } from '@builtbymom/web3/utils';
-import {defaultTxStatus} from '@builtbymom/web3/utils/wagmi';
+import {approveERC20, defaultTxStatus} from '@builtbymom/web3/utils/wagmi';
 import {useDeepCompareEffect} from '@react-hookz/web';
 import {Button} from '@yearn-finance/web-lib/components/Button';
-import {ImageWithFallback} from '@yearn-finance/web-lib/components/ImageWithFallback';
+
+import {ImageWithFallback} from '../common/ImageWithFallback';
 
 import type {TIndexedTokenInfo} from 'app/utils/types';
 import type {ChangeEvent, ReactElement} from 'react';
 import type {TDict, TNormalizedBN, TToken} from '@builtbymom/web3/types';
 import type {TTxStatus} from '@builtbymom/web3/utils/wagmi';
 
-function IncentiveMenuTabs({
-	set_currentTab,
-	currentTab
-}: {
+function IncentiveMenuTabs(props: {
 	currentTab: 'current' | 'potential';
 	set_currentTab: (tab: 'current' | 'potential') => void;
 }): ReactElement {
@@ -49,11 +46,11 @@ function IncentiveMenuTabs({
 		const action = urlParams.get('action');
 
 		if (action === 'current' || action === 'potential') {
-			set_currentTab(action);
+			props.set_currentTab(action);
 		} else if (router.query?.action === 'current' || router.query?.action === 'potential') {
-			set_currentTab(router.query.action);
+			props.set_currentTab(router.query.action);
 		}
-	}, [set_currentTab, router.query]);
+	}, [props.set_currentTab, router.query]);
 
 	return (
 		<div className={'overflow-hidden'}>
@@ -64,7 +61,7 @@ function IncentiveMenuTabs({
 					}}
 					className={cl(
 						'mx-4 mb-2 text-lg transition-colors',
-						currentTab === 'current' ? 'text-purple-300 font-bold' : 'text-neutral-400'
+						props.currentTab === 'current' ? 'text-purple-300 font-bold' : 'text-neutral-400'
 					)}>
 					{'Weight votes'}
 				</button>
@@ -74,7 +71,7 @@ function IncentiveMenuTabs({
 					}}
 					className={cl(
 						'mx-4 mb-2 text-lg transition-colors',
-						currentTab === 'potential' ? 'text-purple-300 font-bold' : 'text-neutral-400'
+						props.currentTab === 'potential' ? 'text-purple-300 font-bold' : 'text-neutral-400'
 					)}>
 					{'Inclusion votes'}
 				</button>
@@ -82,7 +79,7 @@ function IncentiveMenuTabs({
 					<div
 						className={cl(
 							'h-full w-fit transition-colors ml-4',
-							currentTab === 'current' ? 'bg-purple-300' : 'bg-transparent'
+							props.currentTab === 'current' ? 'bg-purple-300' : 'bg-transparent'
 						)}>
 						<button className={'pointer-events-none invisible h-0 p-0 text-lg font-bold opacity-0'}>
 							{'Weight votes'}
@@ -91,7 +88,7 @@ function IncentiveMenuTabs({
 					<div
 						className={cl(
 							'h-full w-fit transition-colors ml-4',
-							currentTab === 'potential' ? 'bg-purple-300' : 'bg-transparent'
+							props.currentTab === 'potential' ? 'bg-purple-300' : 'bg-transparent'
 						)}>
 						<button className={'pointer-events-none invisible h-0 p-0 text-lg font-bold opacity-0'}>
 							{'Inclusion votes'}
@@ -103,24 +100,18 @@ function IncentiveMenuTabs({
 	);
 }
 
-function IncentiveSelector({
-	isIncentivePeriodClosed,
-	possibleLSTs,
-	currentTab,
-	set_currentTab
-}: {
+function IncentiveSelector(props: {
 	isIncentivePeriodClosed: boolean;
-	possibleLSTs: TDict<TIndexedTokenInfo>;
+	possibleLSTs: TIndexedTokenInfo[];
 	currentTab: 'current' | 'potential';
+	isLoading: boolean;
+	onSubmit: VoidFunction;
 	set_currentTab: (tab: 'current' | 'potential') => void;
 }): ReactElement {
 	const {address, isActive, provider} = useWeb3();
-	const {safeChainID} = useChainID(Number(process.env.BASE_CHAIN_ID));
+	const {safeChainID} = useChainID(Number(process.env.DEFAULT_CHAIN_ID));
 	const {getBalance, onRefresh} = useWallet();
 	const {currentNetworkTokenList} = useTokenList();
-	const {
-		incentives: {refreshIncentives}
-	} = useLST();
 	const [amountToSend, set_amountToSend] = useState<TNormalizedBN>(zeroNormalizedBN);
 	const [possibleTokensToUse, set_possibleTokensToUse] = useState<TDict<TToken | undefined>>({});
 	const [lstToIncentive, set_lstToIncentive] = useState<TToken | undefined>();
@@ -128,10 +119,11 @@ function IncentiveSelector({
 	const [approvalStatus, set_approvalStatus] = useState<TTxStatus>(defaultTxStatus);
 	const [depositStatus, set_depositStatus] = useState<TTxStatus>(defaultTxStatus);
 
-	const {data: allowanceOf, refetch: refetchAllowance} = useContractRead({
-		abi: erc20ABI,
+	const {data: allowanceOf, refetch: refetchAllowance} = useReadContract({
+		abi: erc20Abi,
 		address: tokenToUse?.address,
 		functionName: 'allowance',
+		chainId: Number(process.env.DEFAULT_CHAIN_ID),
 		args: [toAddress(address), toAddress(process.env.VOTE_ADDRESS)]
 	});
 
@@ -253,7 +245,7 @@ function IncentiveSelector({
 
 		const result = await approveERC20({
 			connector: provider,
-			chainID: Number(process.env.BASE_CHAIN_ID),
+			chainID: Number(process.env.DEFAULT_CHAIN_ID),
 			contractAddress: tokenToUse.address,
 			spenderAddress: toAddress(process.env.VOTE_ADDRESS),
 			amount: amountToSend.raw,
@@ -268,7 +260,7 @@ function IncentiveSelector({
 					name: tokenToUse.name,
 					symbol: tokenToUse.symbol,
 					address: tokenToUse.address,
-					chainID: Number(process.env.BASE_CHAIN_ID)
+					chainID: Number(process.env.DEFAULT_CHAIN_ID)
 				}
 			]);
 		}
@@ -284,9 +276,11 @@ function IncentiveSelector({
 		assertAddress(tokenToUse?.address, 'Token to use not selected');
 
 		const currentEpochData = getCurrentEpoch();
-		const voteID = currentTab === 'current' ? currentEpochData.weight.id : currentEpochData.inclusion.id;
+		const voteID = props.currentTab === 'current' ? currentEpochData.weight.id : currentEpochData.inclusion.id;
 		const possibleLST =
-			currentTab === 'current' ? currentEpochData.weight.participants : currentEpochData.inclusion.candidates;
+			props.currentTab === 'current'
+				? currentEpochData.weight.participants
+				: currentEpochData.inclusion.candidates;
 		const indexOfSelectedLST = possibleLST.findIndex(
 			(eachLST): boolean => eachLST?.address === lstToIncentive?.address
 		);
@@ -296,7 +290,7 @@ function IncentiveSelector({
 
 		const result = await depositIncentive({
 			connector: provider,
-			chainID: Number(process.env.BASE_CHAIN_ID),
+			chainID: Number(process.env.DEFAULT_CHAIN_ID),
 			contractAddress: toAddress(process.env.VOTE_ADDRESS),
 			tokenAsIncentive: tokenToUse.address,
 			vote: voteID,
@@ -311,7 +305,7 @@ function IncentiveSelector({
 		if (result.isSuccessful) {
 			refetchAllowance();
 			await Promise.all([
-				refreshIncentives(),
+				props.onSubmit(),
 				onRefresh([
 					ETH_TOKEN,
 					{
@@ -319,7 +313,7 @@ function IncentiveSelector({
 						name: tokenToUse.name,
 						symbol: tokenToUse.symbol,
 						address: tokenToUse.address,
-						chainID: Number(process.env.BASE_CHAIN_ID)
+						chainID: Number(process.env.DEFAULT_CHAIN_ID)
 					}
 				])
 			]);
@@ -333,18 +327,17 @@ function IncentiveSelector({
 		tokenToUse?.decimals,
 		tokenToUse?.name,
 		tokenToUse?.symbol,
-		currentTab,
+		props,
 		lstToIncentive?.address,
 		refetchAllowance,
-		refreshIncentives,
 		onRefresh
 	]);
 
 	return (
 		<div className={'bg-neutral-100 pt-4'}>
 			<IncentiveMenuTabs
-				currentTab={currentTab}
-				set_currentTab={set_currentTab}
+				currentTab={props.currentTab}
+				set_currentTab={props.set_currentTab}
 			/>
 			<div className={'p-4 md:px-72 md:py-10'}>
 				<b className={'text-xl font-black'}>{'Select LST to incentivize '}</b>
@@ -354,8 +347,18 @@ function IncentiveSelector({
 						<p className={'pb-1 text-sm text-neutral-600 md:text-base'}>{'Select LST'}</p>
 						<ComboboxAddressInput
 							shouldDisplayBalance={false}
+							isLoading={props.isLoading}
 							value={lstToIncentive?.address}
-							possibleValues={{[zeroAddress]: NO_CHANGE_LST_LIKE, ...possibleLSTs}}
+							possibleValues={{
+								[zeroAddress]: NO_CHANGE_LST_LIKE,
+								...props.possibleLSTs.reduce(
+									(acc, eachLST): TDict<TToken> => ({
+										...acc,
+										[eachLST.address]: eachLST
+									}),
+									{}
+								)
+							}}
 							onChangeValue={set_lstToIncentive}
 						/>
 						<p className={'hidden pt-1 text-xs lg:block'}>&nbsp;</p>
@@ -386,6 +389,7 @@ function IncentiveSelector({
 									unoptimized
 									key={tokenToUse?.logoURI || ''}
 									src={tokenToUse?.logoURI || ''}
+									altSrc={`${process.env.SMOL_ASSETS_URL}/token/${Number(process.env.DEFAULT_CHAIN_ID)}/${tokenToUse?.address}/logo-32.png`}
 									width={24}
 									height={24}
 								/>
@@ -432,7 +436,7 @@ function IncentiveSelector({
 							isBusy={hasAllowance ? depositStatus.pending : approvalStatus.pending}
 							isDisabled={
 								!(hasAllowance ? depositStatus.none : approvalStatus.none) ||
-								isIncentivePeriodClosed ||
+								props.isIncentivePeriodClosed ||
 								amountToSend.raw === 0n ||
 								amountToSend.raw > balanceOf.raw ||
 								lstToIncentive === undefined ||

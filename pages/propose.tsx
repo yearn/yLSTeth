@@ -16,7 +16,7 @@ import {useAccount, useContractRead} from 'wagmi';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {useAsyncTrigger} from '@builtbymom/web3/hooks/useAsyncTrigger';
 import {cl, toAddress, toBigInt, toNormalizedBN} from '@builtbymom/web3/utils';
-import {defaultTxStatus} from '@builtbymom/web3/utils/wagmi';
+import {defaultTxStatus, retrieveConfig} from '@builtbymom/web3/utils/wagmi';
 import {multicall, readContract} from '@wagmi/core';
 import {Button} from '@yearn-finance/web-lib/components/Button';
 import {IconLinkOut} from '@yearn-finance/web-lib/icons/IconLinkOut';
@@ -62,8 +62,10 @@ function Form(props: {canPropose: boolean}): ReactElement {
 		address: toAddress(process.env.ONCHAIN_GOV_ADDRESS),
 		abi: GOVERNOR_ABI,
 		functionName: 'propose_min_weight',
-		select(data) {
-			return toNormalizedBN(toBigInt(data), 18);
+		query: {
+			select(data) {
+				return toNormalizedBN(toBigInt(data), 18);
+			}
 		}
 	});
 	const {data: votePower} = useContractRead({
@@ -71,8 +73,10 @@ function Form(props: {canPropose: boolean}): ReactElement {
 		address: toAddress(process.env.VOTE_POWER_ADDRESS),
 		functionName: 'vote_weight',
 		args: [toAddress(address)],
-		select(data) {
-			return toNormalizedBN(toBigInt(data), 18);
+		query: {
+			select(data) {
+				return toNormalizedBN(toBigInt(data), 18);
+			}
 		}
 	});
 
@@ -105,7 +109,7 @@ function Form(props: {canPropose: boolean}): ReactElement {
 
 			const result = await propose({
 				connector: provider,
-				chainID: Number(process.env.BASE_CHAIN_ID),
+				chainID: Number(process.env.DEFAULT_CHAIN_ID),
 				contractAddress: toAddress(process.env.ONCHAIN_GOV_ADDRESS),
 				ipfs: ipfsPinURI,
 				script: scriptHex || '',
@@ -248,7 +252,7 @@ function OnChainProposal(props: {
 		async (index: bigint) => {
 			const result = await retract({
 				connector: provider,
-				chainID: Number(process.env.BASE_CHAIN_ID),
+				chainID: Number(process.env.DEFAULT_CHAIN_ID),
 				contractAddress: toAddress(process.env.ONCHAIN_GOV_ADDRESS),
 				index: index,
 				statusHandler: set_retractStatus
@@ -295,13 +299,13 @@ function OnChainProposals(props: {canRetract: boolean}): ReactElement {
 	const [proposals, set_proposals] = useState<TOnchainProposal[]>([]);
 
 	const refreshProposals = useAsyncTrigger(async () => {
-		const proposalsCount = await readContract({
+		const proposalsCount = await readContract(retrieveConfig(), {
 			abi: GOVERNOR_ABI,
 			address: toAddress(process.env.ONCHAIN_GOV_ADDRESS),
 			functionName: 'num_proposals'
 		});
 
-		const data = await multicall({
+		const data = await multicall(retrieveConfig(), {
 			contracts: Array.from({length: Number(proposalsCount)}, (_, i) => ({
 				abi: GOVERNOR_ABI,
 				address: toAddress(process.env.ONCHAIN_GOV_ADDRESS),
@@ -314,7 +318,7 @@ function OnChainProposals(props: {canRetract: boolean}): ReactElement {
 		let index = 0n;
 		for (const proposal of data) {
 			if (proposal.status === 'success') {
-				const typedProposals = proposal.result as TOnchainProposal;
+				const typedProposals = proposal.result as unknown as TOnchainProposal;
 				const ipfsWithout0x = typedProposals.ipfs.replace('0x', '');
 				const multihashDigest = base16.decode('f' + ipfsWithout0x);
 				const multihash = create(18, multihashDigest);

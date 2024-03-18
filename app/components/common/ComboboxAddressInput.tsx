@@ -2,8 +2,7 @@ import React, {Fragment, useCallback, useEffect, useMemo, useState} from 'react'
 import IconCheck from 'app/components/icons/IconCheck';
 import IconChevronBoth from 'app/components/icons/IconChevronBoth';
 import IconSpinner from 'app/components/icons/IconSpinner';
-import {isAddress} from 'viem';
-import {erc20ABI} from 'wagmi';
+import {erc20Abi, isAddress} from 'viem';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {useTokenList} from '@builtbymom/web3/contexts/WithTokenList';
@@ -18,10 +17,12 @@ import {
 	truncateHex,
 	zeroNormalizedBN
 } from '@builtbymom/web3/utils';
+import {retrieveConfig} from '@builtbymom/web3/utils/wagmi';
 import {Combobox, Transition} from '@headlessui/react';
 import {useAsync, useThrottledState} from '@react-hookz/web';
 import {multicall} from '@wagmi/core';
-import {ImageWithFallback} from '@yearn-finance/web-lib/components/ImageWithFallback';
+
+import {ImageWithFallback} from './ImageWithFallback';
 
 import type {Dispatch, ReactElement, SetStateAction} from 'react';
 import type {TAddress, TDict, TToken} from '@builtbymom/web3/types';
@@ -32,6 +33,7 @@ type TComboboxAddressInput = {
 	onChangeValue: Dispatch<SetStateAction<TToken | undefined>>;
 	onAddValue?: Dispatch<SetStateAction<TDict<TToken | undefined>>>;
 	shouldDisplayBalance?: boolean;
+	isLoading?: boolean;
 };
 
 function ComboboxOption({
@@ -59,6 +61,7 @@ function ComboboxOption({
 							alt={''}
 							unoptimized
 							src={option?.logoURI || ''}
+							altSrc={`${process.env.SMOL_ASSETS_URL}/token/${Number(process.env.DEFAULT_CHAIN_ID)}/${option?.address}/logo-32.png`}
 							width={24}
 							height={24}
 						/>
@@ -102,11 +105,12 @@ function ComboboxAddressInput({
 	value,
 	onChangeValue,
 	onAddValue,
-	shouldDisplayBalance
+	shouldDisplayBalance,
+	isLoading
 }: TComboboxAddressInput): ReactElement {
 	const {isActive} = useWeb3();
 	const {getBalance, onRefresh} = useWallet();
-	const {safeChainID} = useChainID(Number(process.env.BASE_CHAIN_ID));
+	const {safeChainID} = useChainID(Number(process.env.DEFAULT_CHAIN_ID));
 	const [query, set_query] = useState('');
 	const [isOpen, set_isOpen] = useThrottledState(false, 400);
 	const [isLoadingTokenData, set_isLoadingTokenData] = useState(false);
@@ -129,11 +133,11 @@ function ComboboxAddressInput({
 				};
 			}
 
-			const results = await multicall({
+			const results = await multicall(retrieveConfig(), {
 				contracts: [
-					{address: _query, abi: erc20ABI, functionName: 'name'},
-					{address: _query, abi: erc20ABI, functionName: 'symbol'},
-					{address: _query, abi: erc20ABI, functionName: 'decimals'}
+					{address: _query, abi: erc20Abi, functionName: 'name'},
+					{address: _query, abi: erc20Abi, functionName: 'symbol'},
+					{address: _query, abi: erc20Abi, functionName: 'decimals'}
 				],
 				chainId: _safeChainID
 			});
@@ -253,12 +257,8 @@ function ComboboxAddressInput({
 								<ImageWithFallback
 									alt={''}
 									unoptimized
-									src={
-										possibleValues?.[toAddress(value)]?.logoURI ||
-										`https://assets.smold.app/api/token/${safeChainID}/${toAddress(
-											value
-										)}/logo-128.png`
-									}
+									src={possibleValues?.[toAddress(value)]?.logoURI || ''}
+									altSrc={`${process.env.SMOL_ASSETS_URL}/token/${Number(process.env.DEFAULT_CHAIN_ID)}/${value}/logo-32.png`}
 									width={24}
 									height={24}
 								/>
@@ -355,6 +355,11 @@ function ComboboxAddressInput({
 										/>
 									)
 								)
+							)}
+							{isLoading && (
+								<div className={'my-6 flex flex-row items-center justify-center'}>
+									<IconSpinner className={'!h-6 !w-6 !text-neutral-400'} />
+								</div>
 							)}
 						</Combobox.Options>
 					</Transition>

@@ -49,7 +49,7 @@ function VoteConfirmationModal({
 
 		const result = await vote({
 			connector: provider,
-			chainID: Number(process.env.BASE_CHAIN_ID),
+			chainID: Number(process.env.DEFAULT_CHAIN_ID),
 			contractAddress: toAddress(process.env.BOOTSTRAP_ADDRESS),
 			protocols: protocols,
 			amounts: amounts,
