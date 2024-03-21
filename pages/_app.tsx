@@ -4,7 +4,6 @@ import Head from 'next/head';
 import {useRouter} from 'next/router';
 import AppHeader from 'app/components/common/Header';
 import {BasketContextApp} from 'app/contexts/useBasket';
-import {BootstrapContextApp} from 'app/contexts/useBootstrap';
 import {InclusionContextApp} from 'app/contexts/useInclusion';
 import {LSTContextApp} from 'app/contexts/useLST';
 import {PriceContextApp} from 'app/contexts/usePrices';
@@ -98,20 +97,18 @@ function MyApp(props: AppProps): ReactElement {
 				]}>
 				<PriceContextApp>
 					<WalletContextApp>
-						<BootstrapContextApp>
-							<LSTContextApp>
-								<BasketContextApp>
-									<InclusionContextApp>
-										<main className={cl('flex flex-col mb-32', aeonik.className)}>
-											<AppWrapper
-												supportedNetworks={supportedNetworks}
-												{...props}
-											/>
-										</main>
-									</InclusionContextApp>
-								</BasketContextApp>
-							</LSTContextApp>
-						</BootstrapContextApp>
+						<LSTContextApp>
+							<BasketContextApp>
+								<InclusionContextApp>
+									<main className={cl('flex flex-col mb-32', aeonik.className)}>
+										<AppWrapper
+											supportedNetworks={supportedNetworks}
+											{...props}
+										/>
+									</main>
+								</InclusionContextApp>
+							</BasketContextApp>
+						</LSTContextApp>
 					</WalletContextApp>
 				</PriceContextApp>
 			</WithMom>

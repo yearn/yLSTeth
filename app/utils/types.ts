@@ -33,11 +33,9 @@ export type TEpoch = {
 	incentiveAPR?: number;
 	inclusion: {
 		id: Hex;
-		candidates: TIndexedTokenInfo[];
 	};
 	weight: {
 		id: Hex;
-		participants: TIndexedTokenInfo[];
 	};
 	merkle: {
 		[key: Hex]: TMerkle[];
@@ -64,7 +62,7 @@ export type TEstOutWithBonusPenalty = {value: bigint; bonusOrPenalty: number; vb
 /** 🔵 - Yearn *************************************************************************************
  ** Humanized Price Schema
  **************************************************************************************************/
-export const yDaemonPriceSchema = z.number();
+export const yDaemonPriceSchema = z.string().or(z.number());
 export const yDaemonPricesSchema = z.record(addressSchema, yDaemonPriceSchema);
 export type TYDaemonPrices = z.infer<typeof yDaemonPricesSchema>;
 

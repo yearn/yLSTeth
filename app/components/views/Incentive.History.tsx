@@ -4,6 +4,7 @@ import useBasket from 'app/contexts/useBasket';
 import useInclusion from 'app/contexts/useInclusion';
 import useLST from 'app/contexts/useLST';
 import {usePrices} from 'app/contexts/usePrices';
+import {NO_CHANGE_LST_LIKE} from 'app/utils/constants';
 import {getCurrentEpochNumber} from 'app/utils/epochs';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {useChainID} from '@builtbymom/web3/hooks/useChainID';
@@ -278,7 +279,7 @@ function IncentiveHistory(props: {
 			</div>
 
 			<div className={'min-h-[74px] bg-neutral-100'}>
-				{groupToDisplay.map((item): ReactElement => {
+				{[NO_CHANGE_LST_LIKE, ...groupToDisplay].map((item): ReactElement => {
 					return (
 						<IncentiveRow
 							key={`${item.address}_${props.epochToDisplay}`}

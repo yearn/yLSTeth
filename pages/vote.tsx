@@ -8,14 +8,23 @@ import {VoteCardWeights} from 'app/components/views/Vote.CardWeights';
 import {VoteHeader} from 'app/components/views/Vote.Header';
 import {useFetch} from 'app/hooks/useFetch';
 import {GOVERNOR_ABI} from 'app/utils/abi/governor.abi';
+import {VOTE_WEIGHT_ABI} from 'app/utils/abi/voteWeight.abi';
 import {onChainProposalSchema, proposalSchema} from 'app/utils/types';
 import {CID} from 'multiformats';
 import {base16} from 'multiformats/bases/base16';
 import {create} from 'multiformats/hashes/digest';
-import {useContractRead} from 'wagmi';
+import {useBlockNumber, useContractRead, useReadContract} from 'wagmi';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {useAsyncTrigger} from '@builtbymom/web3/hooks/useAsyncTrigger';
-import {cl, formatAmount, isZeroAddress, toAddress, toNormalizedBN, zeroNormalizedBN} from '@builtbymom/web3/utils';
+import {
+	cl,
+	formatAmount,
+	isZeroAddress,
+	toAddress,
+	toBigInt,
+	toNormalizedBN,
+	zeroNormalizedBN
+} from '@builtbymom/web3/utils';
 import {defaultTxStatus, retrieveConfig} from '@builtbymom/web3/utils/wagmi';
 import {multicall, readContract} from '@wagmi/core';
 import {Button} from '@yearn-finance/web-lib/components/Button';
@@ -466,7 +475,7 @@ function GovernanceProposals(): ReactElement {
 	);
 }
 
-function LSTWeightsProposal(): ReactElement {
+function LSTWeightsProposal(props: {votePower: TNormalizedBN | undefined}): ReactElement {
 	return (
 		<div className={'grid gap-0 bg-neutral-100 px-4 pb-10 pt-0 md:px-14'}>
 			<div className={'mt-6 pl-4 text-neutral-700'}>
@@ -477,28 +486,53 @@ function LSTWeightsProposal(): ReactElement {
 				</p>
 			</div>
 
-			<VoteCardWeights />
+			<VoteCardWeights votePower={props.votePower} />
 		</div>
 	);
 }
 
-function InclusionProposals(): ReactElement {
+function InclusionProposals(props: {votePower: TNormalizedBN | undefined}): ReactElement {
 	return (
 		<div className={'grid gap-0 bg-neutral-100 px-4 pb-10 pt-0 md:px-14'}>
 			<div className={'mt-6 pl-4 text-neutral-700'}>
 				<p>{'The outcome of this vote will determine which asset will be newly added to the pool.'}</p>
 			</div>
-			<VoteCardInclusion />
+			<VoteCardInclusion votePower={props.votePower} />
 		</div>
 	);
 }
 
 function ProposalWrapper(): ReactElement {
+	const {address} = useWeb3();
 	const [currentTab, set_currentTab] = useState<'weight' | 'inclusion' | 'governance'>('weight');
+	const {data: blockNumber} = useBlockNumber({watch: true});
+	const {
+		data: votePower,
+		isLoading,
+		refetch
+	} = useReadContract({
+		abi: VOTE_WEIGHT_ABI,
+		address: toAddress(process.env.VOTE_POWER_ADDRESS),
+		functionName: 'vote_weight',
+		chainId: Number(process.env.DEFAULT_CHAIN_ID),
+		args: [toAddress(address)],
+		query: {
+			select(data) {
+				return toNormalizedBN(toBigInt(data), 18);
+			}
+		}
+	});
+	useEffect(() => {
+		refetch();
+	}, [blockNumber, refetch]);
+
 	return (
 		<div className={'relative mx-auto mb-0 flex min-h-screen w-full flex-col bg-neutral-0 pt-20'}>
 			<div className={'relative mx-auto mt-6 w-screen max-w-5xl'}>
-				<VoteHeader />
+				<VoteHeader
+					votePower={votePower}
+					isLoading={isLoading}
+				/>
 				<section className={'py-10'}>
 					<div className={'bg-neutral-100 pb-0 pt-4'}>
 						<Tabs
@@ -506,8 +540,8 @@ function ProposalWrapper(): ReactElement {
 							set_currentTab={set_currentTab}
 						/>
 					</div>
-					{currentTab === 'weight' ? <LSTWeightsProposal /> : null}
-					{currentTab === 'inclusion' ? <InclusionProposals /> : null}
+					{currentTab === 'weight' ? <LSTWeightsProposal votePower={votePower} /> : null}
+					{currentTab === 'inclusion' ? <InclusionProposals votePower={votePower} /> : null}
 					{currentTab === 'governance' ? <GovernanceProposals /> : null}
 				</section>
 			</div>

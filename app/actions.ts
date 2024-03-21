@@ -12,94 +12,15 @@ import {BASKET_ABI} from './utils/abi/basket.abi';
 import {CURVE_SWAP_ABI} from './utils/abi/curveswap.abi';
 import {GOVERNOR_ABI} from './utils/abi/governor.abi';
 import {INCLUSION_ABI} from './utils/abi/inclusion.abi';
+import {INCLUSION_INCENTIVE_ABI} from './utils/abi/inclusionIncentives.abi';
 import {ONCHAIN_VOTE_INCLUSION_ABI} from './utils/abi/onchainVoteInclusion.abi';
 import {ONCHAIN_VOTE_WEIGHT_ABI} from './utils/abi/onchainVoteWeight.abi';
 import {ST_YETH_ABI} from './utils/abi/styETH.abi';
-import {VOTE_ABI} from './utils/abi/vote.abi';
+import {WEIGHT_INCENTIVE_ABI} from './utils/abi/weightIncentives.abi';
 import {ZAP_ABI} from './utils/abi/zap.abi';
 
 import type {TAddress} from '@builtbymom/web3/types';
 import type {TTxResponse, TWriteTransaction} from '@builtbymom/web3/utils/wagmi';
-
-/* 🔵 - Yearn Finance **********************************************************
- ** depositETH is a _WRITE_ function that deposits ETH into the bootstrap
- ** contract in exchange for yETH.
- **
- ** @app - yETH
- ** @param amount - The amount of collateral to deposit.
- ******************************************************************************/
-type TDepositEth = TWriteTransaction & {
-	amount: bigint;
-};
-export async function depositETH(props: TDepositEth): Promise<TTxResponse> {
-	assert(props.connector, 'No connector');
-	assert(props.amount > 0n, 'Amount is 0');
-	assertAddress(process.env.BOOTSTRAP_ADDRESS, 'BOOTSTRAP_ADDRESS');
-
-	return await handleTx(props, {
-		address: process.env.BOOTSTRAP_ADDRESS,
-		abi: BOOTSTRAP_ABI,
-		functionName: 'deposit',
-		value: props.amount
-	});
-}
-
-/* 🔵 - Yearn Finance **********************************************************
- ** Incentivize is a _WRITE_ function that incentivizes one of the LST protocols
- ** with some tokens to vote for it.
- **
- ** @app - yETH
- ** @param amount - The amount of collateral to deposit.
- ******************************************************************************/
-type TIncentivize = TWriteTransaction & {
-	protocolAddress: TAddress;
-	incentiveAddress: TAddress;
-	amount: bigint;
-};
-export async function incentivize(props: TIncentivize): Promise<TTxResponse> {
-	assert(props.connector, 'No connector');
-	assert(props.amount > 0n, 'Amount is 0');
-	assertAddress(process.env.BOOTSTRAP_ADDRESS, 'BOOTSTRAP_ADDRESS');
-	assertAddress(props.protocolAddress, 'protocolAddress');
-	assertAddress(props.incentiveAddress, 'incentiveAddress');
-
-	return await handleTx(props, {
-		address: process.env.BOOTSTRAP_ADDRESS,
-		abi: BOOTSTRAP_ABI,
-		functionName: 'incentivize',
-		args: [props.protocolAddress, props.incentiveAddress, props.amount]
-	});
-}
-
-/* 🔵 - Yearn Finance **********************************************************
- ** Vote is a _WRITE_ function that can be used to vote for a protocol. Multiple
- ** votes can be made at the same time.
- **
- ** @app - yETH
- ** @param protocols - an array of protocols to vote for.
- ** @param amounts - an array of amounts to vote for each protocol.
- ******************************************************************************/
-type TVote = TWriteTransaction & {
-	protocols: TAddress[];
-	amounts: bigint[];
-};
-export async function vote(props: TVote): Promise<TTxResponse> {
-	assert(props.connector, 'No connector');
-	assert(props.amounts.length === props.protocols.length, 'Amount is 0');
-	assertAddress(process.env.BOOTSTRAP_ADDRESS, 'BOOTSTRAP_ADDRESS');
-	for (const protocol of props.protocols) {
-		assertAddress(protocol, protocol);
-	}
-	const sumAmount = props.amounts.reduce((a, b): bigint => a + b, 0n);
-	assert(sumAmount > 0n, 'Amount is 0');
-
-	return await handleTx(props, {
-		address: process.env.BOOTSTRAP_ADDRESS,
-		abi: BOOTSTRAP_ABI,
-		functionName: 'vote',
-		args: [props.protocols, props.amounts]
-	});
-}
 
 /* 🔵 - Yearn Finance **********************************************************
  ** multicall is a _WRITE_ function that can be used to cast a multicall
@@ -120,6 +41,7 @@ export async function multicall(props: TMulticall): Promise<TTxResponse> {
 		address: multicallAddress,
 		abi: MULTICALL_ABI,
 		functionName: 'tryAggregate',
+		confirmation: 1,
 		args: [true, props.multicallData],
 		value: 0n
 	});
@@ -149,6 +71,7 @@ export async function multicallValue(props: TMulticallValue): Promise<TTxRespons
 		address: props.contractAddress,
 		abi: MULTICALL_ABI,
 		functionName: 'aggregate3Value',
+		confirmation: 1,
 		args: [props.multicallData],
 		value: value
 	});
@@ -178,6 +101,7 @@ export async function addLiquidityToPool(props: TAddLiquidityToPool): Promise<TT
 		address: toAddress(process.env.POOL_ADDRESS),
 		abi: BASKET_ABI,
 		functionName: 'add_liquidity',
+		confirmation: 1,
 		args: [props.amounts, props.estimateOut]
 	});
 }
@@ -208,6 +132,7 @@ export async function removeLiquidityFromPool(props: TRemoveLiquidityFromPool): 
 		address: toAddress(process.env.POOL_ADDRESS),
 		abi: BASKET_ABI,
 		functionName: 'remove_liquidity',
+		confirmation: 1,
 		args: [props.amount, props.minOuts]
 	});
 }
@@ -238,6 +163,7 @@ export async function removeLiquiditySingleFromPool(props: TRemoveLiquiditySingl
 		address: toAddress(process.env.POOL_ADDRESS),
 		abi: BASKET_ABI,
 		functionName: 'remove_liquidity_single',
+		confirmation: 1,
 		args: [props.index, props.amount, props.minOut]
 	});
 }
@@ -261,6 +187,7 @@ export async function stakeYETH(props: TStakeYETH): Promise<TTxResponse> {
 		address: STYETH_TOKEN.address,
 		abi: ST_YETH_ABI,
 		functionName: 'deposit',
+		confirmation: 1,
 		args: [props.amount]
 	});
 }
@@ -284,6 +211,7 @@ export async function unstakeYETH(props: TUnstakeYETH): Promise<TTxResponse> {
 		address: STYETH_TOKEN.address,
 		abi: ST_YETH_ABI,
 		functionName: 'redeem',
+		confirmation: 1,
 		args: [props.amount]
 	});
 }
@@ -318,6 +246,7 @@ export async function swapLST(props: TSwapLST): Promise<TTxResponse> {
 		address: toAddress(process.env.POOL_ADDRESS),
 		abi: BASKET_ABI,
 		functionName: 'swap',
+		confirmation: 1,
 		args: [props.lstTokenFromIndex, props.lstTokenToIndex, props.amount, props.minAmountOut]
 	});
 }
@@ -354,6 +283,7 @@ export async function swapOutLST(props: TSwapOutLST): Promise<TTxResponse> {
 		address: toAddress(process.env.POOL_ADDRESS),
 		abi: BASKET_ABI,
 		functionName: 'swap_exact_out',
+		confirmation: 1,
 		args: [props.lstTokenFromIndex, props.lstTokenToIndex, props.amount, props.maxAmountIn]
 	});
 }
@@ -382,38 +312,58 @@ export async function depositAndStake(props: TDepositAndStake): Promise<TTxRespo
 		address: toAddress(process.env.ZAP_ADDRESS),
 		abi: ZAP_ABI,
 		functionName: 'add_liquidity',
+		confirmation: 1,
 		args: [props.amounts, props.estimateOut]
 	});
 }
 
 /* 🔵 - Yearn Finance **********************************************************
- ** depositIncentive is a _WRITE_ function that deposits incentives for a given
+ ** depositXIncentive is a _WRITE_ function that deposits incentives for a given
  ** choice of vote.
  **
  ** @app - yETH
- ** @param vote - byte32 id of the vote
  ** @param choice - index of the choice, 0 always being no change
  ** @param tokenAsIncentive - address of the token to incentivize
  ** @param amount - The amount of incentives to deposit.
  ******************************************************************************/
-type TDepositIncentive = TWriteTransaction & {
-	vote: Hex;
+type TDepositInclusionIncentive = TWriteTransaction & {
+	choice: TAddress;
+	tokenAsIncentive: TAddress;
+	amount: bigint;
+};
+export async function depositInclusionIncentive(props: TDepositInclusionIncentive): Promise<TTxResponse> {
+	assert(props.connector, 'No connector');
+	assert(props.amount > 0n, 'Amount is 0');
+	assertAddress(props.tokenAsIncentive, 'tokenAsIncentive');
+	assertAddress(process.env.INCLUSION_INCENTIVES_ADDRESS, 'INCLUSION_INCENTIVES_ADDRESS');
+
+	return await handleTx(props, {
+		address: toAddress(process.env.INCLUSION_INCENTIVES_ADDRESS),
+		abi: INCLUSION_INCENTIVE_ABI,
+		functionName: 'deposit',
+		confirmation: 1,
+		args: [props.choice, props.tokenAsIncentive, props.amount]
+	});
+}
+
+type TDepositWeightIncentive = TWriteTransaction & {
 	choice: bigint;
 	tokenAsIncentive: TAddress;
 	amount: bigint;
 };
-export async function depositIncentive(props: TDepositIncentive): Promise<TTxResponse> {
+export async function depositWeightIncentive(props: TDepositWeightIncentive): Promise<TTxResponse> {
 	assert(props.connector, 'No connector');
 	assert(props.amount > 0n, 'Amount is 0');
 	assert(props.choice >= 0n, 'choice is negative');
 	assertAddress(props.tokenAsIncentive, 'tokenAsIncentive');
-	assertAddress(process.env.VOTE_ADDRESS, 'VOTE_ADDRESS');
+	assertAddress(process.env.WEIGHT_INCENTIVES_ADDRESS, 'WEIGHT_INCENTIVES_ADDRESS');
 
 	return await handleTx(props, {
-		address: toAddress(process.env.VOTE_ADDRESS),
-		abi: VOTE_ABI,
+		address: toAddress(process.env.WEIGHT_INCENTIVES_ADDRESS),
+		abi: WEIGHT_INCENTIVE_ABI,
 		functionName: 'deposit',
-		args: [props.vote, props.choice, props.tokenAsIncentive, props.amount]
+		confirmation: 1,
+		args: [props.choice, props.tokenAsIncentive, props.amount]
 	});
 }
 
@@ -438,6 +388,7 @@ export async function curveExchangeMultiple(props: TCurveExchangeMultiple): Prom
 		address: toAddress(props.contractAddress),
 		abi: CURVE_SWAP_ABI,
 		functionName: 'exchange_multiple',
+		confirmation: 1,
 		value: props.amount,
 		args: [
 			[
@@ -481,6 +432,7 @@ export async function unlockFromBootstrap(props: TUnlockFromBootstrap): Promise<
 		address: toAddress(process.env.BOOTSTRAP_ADDRESS),
 		abi: BOOTSTRAP_ABI,
 		functionName: 'claim',
+		confirmation: 1,
 		args: [props.amount]
 	});
 }
@@ -507,6 +459,7 @@ export async function propose(props: TPropose): Promise<TTxResponse> {
 		address: toAddress(process.env.ONCHAIN_GOV_ADDRESS),
 		abi: GOVERNOR_ABI,
 		functionName: 'propose',
+		confirmation: 1,
 		args: [`0x${multihashDigestInHex}`, props.script]
 	});
 }
@@ -527,6 +480,7 @@ export async function retract(props: TRetract): Promise<TTxResponse> {
 		address: toAddress(process.env.ONCHAIN_GOV_ADDRESS),
 		abi: GOVERNOR_ABI,
 		functionName: 'retract',
+		confirmation: 1,
 		args: [props.index]
 	});
 }
@@ -547,6 +501,7 @@ export async function voteYea(props: TVoteForProposal): Promise<TTxResponse> {
 		address: toAddress(process.env.ONCHAIN_GOV_ADDRESS),
 		abi: GOVERNOR_ABI,
 		functionName: 'vote_yea',
+		confirmation: 1,
 		args: [props.index]
 	});
 }
@@ -558,6 +513,7 @@ export async function voteNay(props: TVoteForProposal): Promise<TTxResponse> {
 		address: toAddress(process.env.ONCHAIN_GOV_ADDRESS),
 		abi: GOVERNOR_ABI,
 		functionName: 'vote_nay',
+		confirmation: 1,
 		args: [props.index]
 	});
 }
@@ -569,6 +525,7 @@ export async function voteAbstain(props: TVoteForProposal): Promise<TTxResponse>
 		address: toAddress(process.env.ONCHAIN_GOV_ADDRESS),
 		abi: GOVERNOR_ABI,
 		functionName: 'vote_abstain',
+		confirmation: 1,
 		args: [props.index]
 	});
 }
@@ -589,6 +546,7 @@ export async function voteWeights(props: TVoteForWeight): Promise<TTxResponse> {
 		address: toAddress(process.env.WEIGHT_VOTE_ADDRESS),
 		abi: ONCHAIN_VOTE_WEIGHT_ABI,
 		functionName: 'vote',
+		confirmation: 1,
 		args: [props.weight]
 	});
 }
@@ -609,6 +567,7 @@ export async function voteInclusion(props: TVoteForInclusion): Promise<TTxRespon
 		address: toAddress(process.env.INCLUSION_VOTE_ADDRESS),
 		abi: ONCHAIN_VOTE_INCLUSION_ABI,
 		functionName: 'vote',
+		confirmation: 1,
 		args: [props.weight]
 	});
 }
@@ -630,6 +589,7 @@ export async function apply(props: TApply): Promise<TTxResponse> {
 		address: toAddress(process.env.INCLUSION_VOTE_ADDRESS),
 		abi: INCLUSION_ABI,
 		functionName: 'apply',
+		confirmation: 1,
 		args: [toAddress(props.lstAddress)]
 	});
 }

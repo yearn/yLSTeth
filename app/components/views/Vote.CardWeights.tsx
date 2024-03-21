@@ -22,10 +22,11 @@ import {readContract, readContracts} from '@wagmi/core';
 import {Button} from '@yearn-finance/web-lib/components/Button';
 
 import {ImageWithFallback} from '../common/ImageWithFallback';
+import IconSpinner from '../icons/IconSpinner';
 
 import type {TBasketItem, TIndexedTokenInfo} from 'app/utils/types';
 import type {ReactElement} from 'react';
-import type {TDict} from '@builtbymom/web3/types';
+import type {TDict, TNormalizedBN} from '@builtbymom/web3/types';
 import type {TTxStatus} from '@builtbymom/web3/utils/wagmi';
 
 /******************************************************************************
@@ -36,6 +37,7 @@ function VoteWeightRow(props: {
 	votePowerPerLST: TDict<number>;
 	set_votePowerPerLST: React.Dispatch<React.SetStateAction<TDict<number>>>;
 	hasAlreadyVoted: boolean;
+	isLoadingVoteData: boolean;
 }): ReactElement {
 	const {weightIncentives} = useBasket();
 	const {getPrice} = usePrices();
@@ -127,13 +129,17 @@ function VoteWeightRow(props: {
 								'font-number',
 								!props.votePowerPerLST[props.currentLST.address] ? 'text-neutral-900/30' : ''
 							)}>
-							{`${formatAmount(
-								((props.votePowerPerLST[props.currentLST.address] || 0) /
-									Object.values(props.votePowerPerLST).reduce((a, b) => a + b, 0)) *
-									100,
-								0,
-								2
-							)}%`}
+							{props.isLoadingVoteData ? (
+								<IconSpinner className={'mx-auto flex size-6 text-center opacity-30'} />
+							) : (
+								`${formatAmount(
+									((props.votePowerPerLST[props.currentLST.address] || 0) /
+										Object.values(props.votePowerPerLST).reduce((a, b) => a + b, 0)) *
+										100,
+									0,
+									2
+								)}%`
+							)}
 						</p>
 					</div>
 					<div className={'flex items-center justify-end pr-1'}>
@@ -158,12 +164,13 @@ function VoteWeightRow(props: {
 	);
 }
 
-function VoteCardWeights(): ReactElement {
+function VoteCardWeights(props: {votePower: TNormalizedBN | undefined}): ReactElement {
 	const {provider, address} = useWeb3();
 	const [votePowerPerLST, set_votePowerPerLST] = useState<TDict<number>>({});
 	const [voteWeightStatus, set_voteWeightStatus] = useState<TTxStatus>(defaultTxStatus);
 	const [hasAlreadyVoted, set_hasAlreadyVoted] = useState(true);
 	const [isVoteOpen, set_isVoteOpen] = useState(false);
+	const [isLoadingVoteData, set_isLoadingVoteData] = useState(false);
 	const {basket, isLoaded} = useBasket();
 
 	/**********************************************************************************************
@@ -174,6 +181,7 @@ function VoteCardWeights(): ReactElement {
 			return;
 		}
 
+		set_isLoadingVoteData(true);
 		/* 🔵 - Yearn Finance **********************************************************************
 		 **	First we need to retrive the current epoch
 		 ******************************************************************************************/
@@ -182,11 +190,13 @@ function VoteCardWeights(): ReactElement {
 				{
 					abi: ONCHAIN_VOTE_WEIGHT_ABI,
 					address: toAddress(process.env.WEIGHT_VOTE_ADDRESS),
+					chainId: Number(process.env.DEFAULT_CHAIN_ID),
 					functionName: 'epoch'
 				},
 				{
 					abi: ONCHAIN_VOTE_WEIGHT_ABI,
 					address: toAddress(process.env.WEIGHT_VOTE_ADDRESS),
+					chainId: Number(process.env.DEFAULT_CHAIN_ID),
 					functionName: 'vote_open'
 				}
 			]
@@ -201,6 +211,7 @@ function VoteCardWeights(): ReactElement {
 		const hasAlreadyVoted = await readContract(retrieveConfig(), {
 			abi: ONCHAIN_VOTE_WEIGHT_ABI,
 			address: toAddress(process.env.WEIGHT_VOTE_ADDRESS),
+			chainId: Number(process.env.DEFAULT_CHAIN_ID),
 			functionName: 'voted',
 			args: [toAddress(address), epoch]
 		});
@@ -215,14 +226,16 @@ function VoteCardWeights(): ReactElement {
 					{
 						abi: ONCHAIN_VOTE_WEIGHT_ABI,
 						address: toAddress(process.env.WEIGHT_VOTE_ADDRESS),
-						functionName: 'votes',
-						args: [toAddress(address), 0]
+						chainId: Number(process.env.DEFAULT_CHAIN_ID),
+						functionName: 'votes_user',
+						args: [toAddress(address), epoch, 0]
 					},
 					...basket.map(e => ({
 						abi: ONCHAIN_VOTE_WEIGHT_ABI,
 						address: toAddress(process.env.WEIGHT_VOTE_ADDRESS),
-						functionName: 'votes',
-						args: [toAddress(address), e.index]
+						chainId: Number(process.env.DEFAULT_CHAIN_ID),
+						functionName: 'votes_user',
+						args: [toAddress(address), epoch, e.index]
 					}))
 				]
 			});
@@ -233,6 +246,7 @@ function VoteCardWeights(): ReactElement {
 			votes[NO_CHANGE_LST_LIKE.address] = Number(votesUser[0]?.result || 0);
 			set_votePowerPerLST(votes);
 		}
+		set_isLoadingVoteData(false);
 	}, [address, basket]);
 
 	/**********************************************************************************************
@@ -292,6 +306,7 @@ function VoteCardWeights(): ReactElement {
 							votePowerPerLST={votePowerPerLST}
 							set_votePowerPerLST={set_votePowerPerLST}
 							hasAlreadyVoted={hasAlreadyVoted}
+							isLoadingVoteData={isLoadingVoteData}
 						/>
 					);
 				})}
@@ -319,7 +334,8 @@ function VoteCardWeights(): ReactElement {
 						hasAlreadyVoted ||
 						Object.values(votePowerPerLST).reduce((a, b) => a + b, 0) === 0 ||
 						Object.values(votePowerPerLST).reduce((a, b) => a + b, 0) > 100 ||
-						isZeroAddress(address)
+						isZeroAddress(address) ||
+						toBigInt(props.votePower?.raw) === 0n
 					}
 					className={'w-full md:w-[264px]'}>
 					{'Vote'}

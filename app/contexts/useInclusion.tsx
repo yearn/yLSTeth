@@ -41,6 +41,7 @@ const defaultProps: TUseInclusionProps = {
 
 const InclusionContext = createContext<TUseInclusionProps>(defaultProps);
 export const InclusionContextApp = ({children}: {children: React.ReactElement}): React.ReactElement => {
+	const [isLoaded, set_isLoaded] = useState(false);
 	const [candidates, set_candidates] = useState<TIndexedTokenInfo[]>([]);
 	const [inclusionIncentives, set_inclusionIncentives] = useState<TIncentives>({});
 	const [areIncentivesLoaded, set_areIncentivesLoaded] = useState(false);
@@ -135,6 +136,7 @@ export const InclusionContextApp = ({children}: {children: React.ReactElement}):
 			});
 		}
 		set_candidates(candidatesTokens);
+		set_isLoaded(true);
 	}, [epoch]);
 
 	/**************************************************************************
@@ -209,14 +211,18 @@ export const InclusionContextApp = ({children}: {children: React.ReactElement}):
 				}))
 			]
 		});
-		const tokens: TDict<TTokenIncentive> = {};
+		const byCandidate: TDict<TDict<TTokenIncentive[]>> = {};
 		for (let i = 0; i < detectedIncentives.length; i++) {
+			const {candidate, token} = detectedIncentives[i];
+			if (!byCandidate[candidate]) byCandidate[candidate] = {};
+			if (!byCandidate[candidate][token]) byCandidate[candidate][token] = [];
+
 			const tokenAddress = detectedIncentives[i].token;
 			const tokenName = decodeAsString(tokensData[i]);
 			const tokenSymbol = decodeAsString(tokensData[i + detectedIncentives.length]);
 			const tokenDecimals = decodeAsNumber(tokensData[i + detectedIncentives.length * 2]);
 			const amount = toNormalizedBN(detectedIncentives[i].amount, tokenDecimals);
-			tokens[toAddress(tokenAddress)] = {
+			byCandidate[candidate][token].push({
 				address: toAddress(tokenAddress),
 				name: tokenName,
 				symbol: tokenSymbol,
@@ -227,24 +233,7 @@ export const InclusionContextApp = ({children}: {children: React.ReactElement}):
 				depositor: detectedIncentives[i].depositor,
 				value: 0,
 				amount
-			};
-		}
-
-		/**********************************************************************
-		 * Once this is done, we should have an object where the keys are the
-		 * token addresses and the values are the TToken objects.
-		 * We can now create two set of objects:
-		 * - One where the key is the candidate address and the value is the
-		 *   list of incentives for this candidate
-		 * - One where the key is the depositors address and the value is the
-		 *   list of incentives for this depositor
-		 *********************************************************************/
-		const byCandidate: TDict<TDict<TTokenIncentive[]>> = {};
-		for (const incentive of detectedIncentives) {
-			const {candidate, token} = incentive;
-			if (!byCandidate[candidate]) byCandidate[candidate] = {};
-			if (!byCandidate[candidate][token]) byCandidate[candidate][token] = [];
-			byCandidate[candidate][token].push(tokens[token]);
+			});
 		}
 
 		set_areIncentivesLoaded(true);
@@ -257,10 +246,17 @@ export const InclusionContextApp = ({children}: {children: React.ReactElement}):
 			inclusionIncentives,
 			refreshCandidates: refreshInclusionList,
 			refreshIncentives: refreshInclusionIncentives,
-			isLoaded: candidates.length > 0,
+			isLoaded: isLoaded,
 			areIncentivesLoaded
 		}),
-		[candidates, inclusionIncentives, refreshInclusionList, refreshInclusionIncentives, areIncentivesLoaded]
+		[
+			candidates,
+			inclusionIncentives,
+			isLoaded,
+			refreshInclusionList,
+			refreshInclusionIncentives,
+			areIncentivesLoaded
+		]
 	);
 
 	return <InclusionContext.Provider value={contextValue}>{children}</InclusionContext.Provider>;

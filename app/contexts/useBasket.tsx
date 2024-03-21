@@ -3,6 +3,7 @@
 import React, {createContext, useContext, useMemo, useState} from 'react';
 import {BASKET_ABI} from 'app/utils/abi/basket.abi';
 import {WEIGHT_INCENTIVE_ABI} from 'app/utils/abi/weightIncentives.abi';
+import {NO_CHANGE_LST_LIKE} from 'app/utils/constants';
 import {erc20Abi} from 'viem';
 import {getLogs} from 'viem/actions';
 import {useReadContract} from 'wagmi';
@@ -339,14 +340,20 @@ export const BasketContextApp = ({children}: {children: React.ReactElement}): Re
 				}))
 			]
 		});
-		const tokens: TDict<TTokenIncentive> = {};
+		const assetsWithNoChange = [NO_CHANGE_LST_LIKE, ...assets];
+		const byCandidate: TDict<TDict<TTokenIncentive[]>> = {};
 		for (let i = 0; i < detectedIncentives.length; i++) {
+			const {idx, token} = detectedIncentives[i];
+			const candidate = assetsWithNoChange[Number(idx)].address;
+			if (!byCandidate[candidate]) byCandidate[candidate] = {};
+			if (!byCandidate[candidate][token]) byCandidate[candidate][token] = [];
+
 			const tokenAddress = detectedIncentives[i].token;
 			const tokenName = decodeAsString(tokensData[i]);
 			const tokenSymbol = decodeAsString(tokensData[i + detectedIncentives.length]);
 			const tokenDecimals = decodeAsNumber(tokensData[i + detectedIncentives.length * 2]);
 			const amount = toNormalizedBN(detectedIncentives[i].amount, tokenDecimals);
-			tokens[toAddress(tokenAddress)] = {
+			byCandidate[candidate][token].push({
 				address: toAddress(tokenAddress),
 				name: tokenName,
 				symbol: tokenSymbol,
@@ -357,26 +364,7 @@ export const BasketContextApp = ({children}: {children: React.ReactElement}): Re
 				value: 0,
 				depositor: detectedIncentives[i].depositor,
 				amount
-			};
-		}
-
-		/**********************************************************************
-		 * Once this is done, we should have an object where the keys are the
-		 * token addresses and the values are the TToken objects.
-		 * We can now create two set of objects:
-		 * - One where the key is the candidate address and the value is the
-		 *   list of incentives for this candidate
-		 * - One where the key is the depositors address and the value is the
-		 *   list of incentives for this depositor
-		 *********************************************************************/
-		const byCandidate: TDict<TDict<TTokenIncentive[]>> = {};
-		for (const incentive of detectedIncentives) {
-			const {idx, token} = incentive;
-			const candidate = assets[Number(idx)].address;
-
-			if (!byCandidate[candidate]) byCandidate[candidate] = {};
-			if (!byCandidate[candidate][token]) byCandidate[candidate][token] = [];
-			byCandidate[candidate][token].push(tokens[token]);
+			});
 		}
 
 		set_areIncentivesLoaded(true);

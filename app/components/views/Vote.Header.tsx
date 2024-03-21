@@ -1,13 +1,11 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import {useEpoch} from 'app/hooks/useEpoch';
 import {useTimer} from 'app/hooks/useTimer';
-import {VOTE_WEIGHT_ABI} from 'app/utils/abi/voteWeight.abi';
-import {useBlockNumber, useReadContract} from 'wagmi';
-import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
-import {formatAmount, toAddress, toBigInt, toNormalizedBN} from '@builtbymom/web3/utils';
+import {formatAmount, toBigInt} from '@builtbymom/web3/utils';
 import {Renderable} from '@yearn-finance/web-lib/components/Renderable';
 
 import type {ReactElement} from 'react';
+import type {TNormalizedBN} from '@builtbymom/web3/types';
 
 function Timer(): ReactElement {
 	const {voteStart, endPeriod, hasVotingStarted} = useEpoch();
@@ -36,29 +34,7 @@ function VoteDecayTimer(): ReactElement {
 	);
 }
 
-function VoteHeader(): ReactElement {
-	const {address} = useWeb3();
-	const {data: blockNumber} = useBlockNumber({watch: true});
-	const {
-		data: votePower,
-		isLoading,
-		refetch
-	} = useReadContract({
-		abi: VOTE_WEIGHT_ABI,
-		address: toAddress(process.env.VOTE_POWER_ADDRESS),
-		functionName: 'vote_weight',
-		chainId: Number(process.env.DEFAULT_CHAIN_ID),
-		args: [toAddress(address)],
-		query: {
-			select(data) {
-				return toNormalizedBN(toBigInt(data), 18);
-			}
-		}
-	});
-	useEffect(() => {
-		refetch();
-	}, [blockNumber, refetch]);
-
+function VoteHeader(props: {votePower: TNormalizedBN | undefined; isLoading: boolean}): ReactElement {
 	return (
 		<div className={'mb-10 flex w-full flex-col justify-center'}>
 			<h1 className={'text-3xl font-black md:text-8xl'}>{'Vote'}</h1>
@@ -84,16 +60,16 @@ function VoteHeader(): ReactElement {
 							suppressHydrationWarning
 							className={'font-number block text-3xl'}>
 							<Renderable
-								shouldRender={!isLoading}
+								shouldRender={!props.isLoading}
 								fallback={<div className={'skeleton-lg col-span-5 h-10 w-2/3'} />}>
-								{formatAmount(votePower?.normalized || 0, 4, 4)}
+								{formatAmount(props.votePower?.normalized || 0, 4, 4)}
 							</Renderable>
 						</b>
 
 						<div suppressHydrationWarning>
-							{toBigInt(votePower?.raw) > 0n ? (
+							{toBigInt(props.votePower?.raw) > 0n ? (
 								<VoteDecayTimer />
-							) : isLoading ? (
+							) : props.isLoading ? (
 								<div className={'skeleton-lg col-span-5 mt-2 h-4 w-full'} />
 							) : (
 								<div className={'invisible pt-2 text-xs'}>{'-'}</div>

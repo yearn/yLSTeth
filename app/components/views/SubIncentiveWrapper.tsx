@@ -33,7 +33,7 @@ export function SubIncentiveWrapper(props: {incentives: TTokenIncentive[]}): Rea
 			{[...props.incentives].map(
 				(item, index): ReactElement => (
 					<SubIncentiveRow
-						key={index}
+						key={`${index}_${item.address}`}
 						item={item}
 					/>
 				)

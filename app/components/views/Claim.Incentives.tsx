@@ -2,6 +2,7 @@ import React, {Fragment, useCallback, useMemo, useState} from 'react';
 import {useFetch} from 'app/hooks/useFetch';
 import {VOTE_ABI} from 'app/utils/abi/vote.abi';
 import {getCurrentEpochNumber, getEpoch} from 'app/utils/epochs';
+import {yDaemonPricesSchema} from 'app/utils/types';
 import {encodeFunctionData, erc20Abi, type Hex, type ReadContractParameters} from 'viem';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {useAsyncTrigger} from '@builtbymom/web3/hooks/useAsyncTrigger';
@@ -20,13 +21,11 @@ import {readContracts} from '@wagmi/core';
 import {Button} from '@yearn-finance/web-lib/components/Button';
 import {Modal} from '@yearn-finance/web-lib/components/Modal';
 import {useYDaemonBaseURI} from '@yearn-finance/web-lib/hooks/useYDaemonBaseURI';
-import {yDaemonPricesSchema} from '@yearn-finance/web-lib/utils/schemas/yDaemonPricesSchema';
 
 import {ClaimIncentiveModal} from './Claim.IncentivesModal';
 
-import type {TEpoch} from 'app/utils/types';
+import type {TEpoch, TYDaemonPrices} from 'app/utils/types';
 import type {ReactElement} from 'react';
-import type {TYDaemonPrices} from '@yearn-finance/web-lib/utils/schemas/yDaemonPricesSchema';
 import type {TAddress, TNormalizedBN, TToken} from '@builtbymom/web3/types';
 
 type TClaimDetails = {

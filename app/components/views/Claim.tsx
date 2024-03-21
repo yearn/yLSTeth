@@ -1,5 +1,5 @@
 import React from 'react';
-import useBootstrap from 'app/contexts/useBootstrap';
+import {useEpoch} from 'app/hooks/useEpoch';
 import {useTimer} from 'app/hooks/useTimer';
 
 import {ClaimIncentives} from './Claim.Incentives';
@@ -8,38 +8,15 @@ import {UnlockTokens} from './Claim.Unlock';
 import type {ReactElement} from 'react';
 
 function Timer(): ReactElement {
-	const {periods} = useBootstrap();
-	const {voteEnd} = periods || {};
-	const time = useTimer({endTime: Number(voteEnd)});
+	const {endPeriod} = useEpoch();
+	const time = useTimer({endTime: Number(endPeriod)});
 	return <>{`in ${time}`}</>;
 }
 
 function ClaimHeading(): ReactElement {
-	const {
-		periods: {voteStatus}
-	} = useBootstrap();
-	if (voteStatus === 'ended') {
-		return (
-			<div className={'mb-10 flex w-[52%] flex-col justify-center'}>
-				<h1 className={'text-3xl font-black md:text-8xl'}>{'Claim'}</h1>
-				<p className={'pt-8 text-neutral-700'}>{'You did your democratic duty beautifully anon.'}</p>
-				<p className={'text-neutral-700'}>
-					{'And now it’s time to claim your ‘good on chain citizen’ rewards. Enjoy!'}
-				</p>
-			</div>
-		);
-	}
-
 	return (
 		<div className={'mb-10 flex w-3/4 flex-col justify-center'}>
-			<h1 className={'text-3xl font-black md:text-8xl'}>
-				{'Claim'}
-				<span
-					suppressHydrationWarning
-					className={'text-xs font-normal italic text-neutral-400'}>
-					{'Soon ™️'}
-				</span>
-			</h1>
+			<h1 className={'text-3xl font-black md:text-8xl'}>{'Claim'}</h1>
 			<b
 				suppressHydrationWarning
 				className={'font-number mt-4 text-4xl leading-10 text-purple-300'}>

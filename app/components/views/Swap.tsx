@@ -7,7 +7,6 @@ import useBasket from 'app/contexts/useBasket';
 import useLST from 'app/contexts/useLST';
 import {ETH_TOKEN, YETH_TOKEN} from 'app/tokens';
 import {ESTIMATOR_ABI} from 'app/utils/abi/estimator.abi';
-import {LST} from 'app/utils/constants';
 import assert from 'assert';
 import {erc20Abi} from 'viem';
 import {useReadContract, useReadContracts} from 'wagmi';
@@ -289,9 +288,9 @@ function ViewSwapBox({
 		});
 		if (result.isSuccessful) {
 			refreshAllowance();
-			await onRefresh([ETH_TOKEN, ...LST]);
+			await onRefresh([ETH_TOKEN, ...basket]);
 		}
-	}, [fromAmount.raw, isActive, provider, onRefresh, refreshAllowance, selectedFromLST?.address]);
+	}, [fromAmount.raw, isActive, provider, onRefresh, refreshAllowance, selectedFromLST?.address, basket]);
 
 	const onSwap = useCallback(async (): Promise<void> => {
 		assert(isActive, 'Wallet not connected');
@@ -313,7 +312,7 @@ function ViewSwapBox({
 			});
 			if (result.isSuccessful) {
 				refreshBasket();
-				await onRefresh([ETH_TOKEN, YETH_TOKEN, ...LST]);
+				await onRefresh([ETH_TOKEN, YETH_TOKEN, ...basket]);
 				set_fromAmount(zeroNormalizedBN);
 				set_toAmount(zeroNormalizedBN);
 			}
@@ -331,7 +330,7 @@ function ViewSwapBox({
 			});
 			if (result.isSuccessful) {
 				refreshBasket();
-				await onRefresh([ETH_TOKEN, YETH_TOKEN, ...LST]);
+				await onRefresh([ETH_TOKEN, YETH_TOKEN, ...basket]);
 				set_fromAmount(zeroNormalizedBN);
 				set_toAmount(zeroNormalizedBN);
 			}
@@ -344,6 +343,7 @@ function ViewSwapBox({
 		lastInput,
 		toAmount.raw,
 		slippage,
+		basket,
 		fromAmount.raw,
 		refreshBasket,
 		onRefresh,

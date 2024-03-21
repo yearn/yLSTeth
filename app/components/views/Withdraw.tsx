@@ -6,7 +6,6 @@ import useBasket from 'app/contexts/useBasket';
 import useLST from 'app/contexts/useLST';
 import {ETH_TOKEN, STYETH_TOKEN, YETH_TOKEN} from 'app/tokens';
 import {ESTIMATOR_ABI} from 'app/utils/abi/estimator.abi';
-import {LST} from 'app/utils/constants';
 import assert from 'assert';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
@@ -226,7 +225,7 @@ function ViewSelectedTokens({
 				statusHandler: set_txStatus
 			});
 			if (result.isSuccessful) {
-				await onRefresh([ETH_TOKEN, STYETH_TOKEN, YETH_TOKEN, ...LST]);
+				await onRefresh([ETH_TOKEN, STYETH_TOKEN, YETH_TOKEN, ...basket]);
 			}
 		} else {
 			const result = await removeLiquiditySingleFromPool({
@@ -239,7 +238,7 @@ function ViewSelectedTokens({
 				statusHandler: set_txStatus
 			});
 			if (result.isSuccessful) {
-				await onRefresh([ETH_TOKEN, STYETH_TOKEN, YETH_TOKEN, ...LST]);
+				await onRefresh([ETH_TOKEN, STYETH_TOKEN, YETH_TOKEN, ...basket]);
 			}
 		}
 		set_fromAmount(zeroNormalizedBN);
@@ -253,7 +252,8 @@ function ViewSelectedTokens({
 		selectedLST?.index,
 		set_amounts,
 		shouldBalanceTokens,
-		slippage
+		slippage,
+		basket
 	]);
 
 	return (

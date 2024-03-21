@@ -4,7 +4,6 @@ import useBasket from 'app/contexts/useBasket';
 import useLST from 'app/contexts/useLST';
 import {ETH_TOKEN, STYETH_TOKEN, YETH_TOKEN} from 'app/tokens';
 import {ESTIMATOR_ABI} from 'app/utils/abi/estimator.abi';
-import {LST} from 'app/utils/constants';
 import assert from 'assert';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
@@ -235,10 +234,10 @@ function ViewDepositLST({
 		});
 		if (result.isSuccessful) {
 			refreshBasket();
-			await onRefresh([ETH_TOKEN, YETH_TOKEN, ...LST]);
+			await onRefresh([ETH_TOKEN, YETH_TOKEN, ...basket]);
 			set_amounts(amounts.map((item): TNormalizedBN => ({...item, raw: 0n})));
 		}
-	}, [amounts, estimateOut.value, isActive, refreshBasket, provider, onRefresh, slippage]);
+	}, [amounts, estimateOut.value, isActive, refreshBasket, provider, onRefresh, slippage, basket]);
 
 	const onDepositAndStake = useCallback(async (): Promise<void> => {
 		assert(isActive, 'Wallet not connected');
@@ -254,10 +253,10 @@ function ViewDepositLST({
 		});
 		if (result.isSuccessful) {
 			refreshBasket();
-			await onRefresh([ETH_TOKEN, YETH_TOKEN, STYETH_TOKEN, ...LST]);
+			await onRefresh([ETH_TOKEN, YETH_TOKEN, STYETH_TOKEN, ...basket]);
 			set_amounts(amounts.map((item): TNormalizedBN => ({...item, raw: 0n})));
 		}
-	}, [amounts, estimateOut, isActive, refreshBasket, provider, onRefresh, slippage]);
+	}, [amounts, estimateOut, isActive, refreshBasket, provider, onRefresh, slippage, basket]);
 
 	return (
 		<>
