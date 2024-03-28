@@ -27,10 +27,10 @@ function ClaimHeading(): ReactElement {
 			</b>
 			<p className={'pt-8 text-neutral-700'}>
 				{
-					'If you voted for any LSTs you’d like to see included in yETH, you’re eligble to recieve incentives from the top 5 protocols (even if you didn’t vote for them).'
+					"Democracy is a wonderful thing, and if you did your duty and voted for new inclusions or weight changes then it's time to collect your reward. Because let's be honest, governance is a lot more fun when you get paid."
 				}
 			</p>
-			<p className={'text-neutral-700'}>{' But hold your horses anon, you can claim soon.'}</p>
+			<p className={'text-neutral-700'}>{'Select the epoch you voted in below and claim your incentives.'}</p>
 		</div>
 	);
 }
