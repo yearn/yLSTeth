@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
-import React, {createContext, useContext, useMemo, useState} from 'react';
+import React, {createContext, useCallback, useContext, useMemo, useState} from 'react';
 import {INCLUSION_ABI} from 'app/utils/abi/inclusion.abi';
 import {INCLUSION_INCENTIVE_ABI} from 'app/utils/abi/inclusionIncentives.abi';
+import {getEpochEndBlock, getEpochStartBlock} from 'app/utils/epochs';
 import {erc20Abi} from 'viem';
 import {getLogs} from 'viem/actions';
 import {useReadContract} from 'wagmi';
@@ -20,23 +21,29 @@ import {retrieveConfig} from '@builtbymom/web3/utils/wagmi';
 import {getBlockNumber, getClient, readContract, readContracts} from '@wagmi/core';
 
 import type {TIncentives, TIndexedTokenInfo, TTokenIncentive} from 'app/utils/types';
-import type {TAddress, TDict} from '@builtbymom/web3/types';
+import type {TAddress, TDict, TNDict} from '@builtbymom/web3/types';
 
 type TUseInclusionProps = {
 	candidates: TIndexedTokenInfo[];
 	inclusionIncentives: TIncentives;
 	refreshCandidates: () => Promise<void>;
 	refreshIncentives: () => Promise<void>;
+	refreshEpochIncentives: (epoch: bigint) => Promise<void>;
+	getIncentivesForEpoch: (epoch: bigint) => {data: TIncentives; hasData: boolean};
 	isLoaded: boolean;
 	areIncentivesLoaded: boolean;
+	epoch: bigint | undefined;
 };
 const defaultProps: TUseInclusionProps = {
 	candidates: [],
 	inclusionIncentives: {},
 	refreshCandidates: async (): Promise<void> => undefined,
 	refreshIncentives: async (): Promise<void> => undefined,
+	refreshEpochIncentives: async (): Promise<void> => undefined,
+	getIncentivesForEpoch: (): {data: TIncentives; hasData: boolean} => ({data: {}, hasData: false}),
 	isLoaded: false,
-	areIncentivesLoaded: false
+	areIncentivesLoaded: false,
+	epoch: undefined
 };
 
 const InclusionContext = createContext<TUseInclusionProps>(defaultProps);
@@ -45,12 +52,18 @@ export const InclusionContextApp = ({children}: {children: React.ReactElement}):
 	const [candidates, set_candidates] = useState<TIndexedTokenInfo[]>([]);
 	const [inclusionIncentives, set_inclusionIncentives] = useState<TIncentives>({});
 	const [areIncentivesLoaded, set_areIncentivesLoaded] = useState(false);
+	const [pastInclusionIncentives, set_pastInclusionIncentives] = useState<
+		TNDict<{data: TIncentives; hasData: boolean}>
+	>({});
 
 	const {data: epoch} = useReadContract({
 		address: toAddress(process.env.INCLUSION_VOTE_ADDRESS),
 		abi: INCLUSION_ABI,
 		functionName: 'epoch',
-		chainId: Number(process.env.DEFAULT_CHAIN_ID)
+		chainId: Number(process.env.DEFAULT_CHAIN_ID),
+		query: {
+			select: (data): bigint => toBigInt(data)
+		}
 	});
 
 	/**************************************************************************
@@ -143,12 +156,10 @@ export const InclusionContextApp = ({children}: {children: React.ReactElement}):
 	 * Once we have the list of candidates, it's possible for us to try to
 	 * retrieve the list of incentives for each candidate
 	 *************************************************************************/
-	const refreshInclusionIncentives = useAsyncTrigger(async (): Promise<void> => {
-		if (!epoch) return;
-		if (!candidates.length) return;
+	const refreshInclusionIncentives = useCallback(async (_epoch: bigint): Promise<void> => {
 		const rangeLimit = 800n;
-		const epochStartBlock = 19439849n; //getEpochStartBlock(Number(epoch));
-		const epochEndBlock = 19439851n; //getEpochEndBlock(Number(epoch));
+		const epochStartBlock = getEpochStartBlock(Number(_epoch));
+		const epochEndBlock = getEpochEndBlock(Number(_epoch));
 		const currentBlock = await getBlockNumber(retrieveConfig());
 		const checkUpToBlock = epochEndBlock < currentBlock ? epochEndBlock : currentBlock;
 		const publicClient = getClient(retrieveConfig());
@@ -168,7 +179,7 @@ export const InclusionContextApp = ({children}: {children: React.ReactElement}):
 					fromBlock: i,
 					toBlock: i + rangeLimit,
 					args: {
-						epoch: epoch
+						epoch: _epoch
 					}
 				});
 				for (const log of events) {
@@ -238,24 +249,53 @@ export const InclusionContextApp = ({children}: {children: React.ReactElement}):
 
 		set_areIncentivesLoaded(true);
 		set_inclusionIncentives(byCandidate);
-	}, [candidates.length, epoch]);
+		set_pastInclusionIncentives(prev => ({...prev, [Number(_epoch)]: {data: byCandidate, hasData: true}}));
+	}, []);
+
+	const triggerInclusionIncentivesRefresh = useAsyncTrigger(async (): Promise<void> => {
+		if (!epoch) return;
+		await refreshInclusionIncentives(epoch);
+
+		//For the claim section, we need the previous epoch incentives
+		refreshInclusionIncentives(epoch - 1n);
+	}, [epoch, refreshInclusionIncentives]);
+
+	/**************************************************************************
+	 * getIncentivesForEpoch is a function that will retrieve the incentives
+	 * for a given epoch.
+	 *************************************************************************/
+	const getIncentivesForEpoch = useCallback(
+		(_epoch: bigint): {data: TIncentives; hasData: boolean} => {
+			if (!pastInclusionIncentives[Number(_epoch)]) {
+				return {data: {}, hasData: false};
+			}
+			return pastInclusionIncentives[Number(_epoch)];
+		},
+		[pastInclusionIncentives]
+	);
 
 	const contextValue = useMemo(
 		(): TUseInclusionProps => ({
 			candidates,
 			inclusionIncentives,
 			refreshCandidates: refreshInclusionList,
-			refreshIncentives: refreshInclusionIncentives,
+			refreshIncentives: triggerInclusionIncentivesRefresh,
+			refreshEpochIncentives: refreshInclusionIncentives,
+			getIncentivesForEpoch,
 			isLoaded: isLoaded,
-			areIncentivesLoaded
+			areIncentivesLoaded,
+			epoch
 		}),
 		[
 			candidates,
 			inclusionIncentives,
 			isLoaded,
+			getIncentivesForEpoch,
 			refreshInclusionList,
 			refreshInclusionIncentives,
-			areIncentivesLoaded
+			triggerInclusionIncentivesRefresh,
+			areIncentivesLoaded,
+			epoch
 		]
 	);
 

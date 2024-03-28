@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
-import React, {createContext, useContext, useMemo, useState} from 'react';
+import React, {createContext, useCallback, useContext, useMemo, useState} from 'react';
 import {BASKET_ABI} from 'app/utils/abi/basket.abi';
 import {WEIGHT_INCENTIVE_ABI} from 'app/utils/abi/weightIncentives.abi';
 import {NO_CHANGE_LST_LIKE} from 'app/utils/constants';
+import {getEpochEndBlock, getEpochStartBlock} from 'app/utils/epochs';
 import {erc20Abi} from 'viem';
 import {getLogs} from 'viem/actions';
 import {useReadContract} from 'wagmi';
@@ -23,7 +24,7 @@ import {retrieveConfig} from '@builtbymom/web3/utils/wagmi';
 import {getBlockNumber, getClient, readContract, readContracts} from '@wagmi/core';
 
 import type {TBasket, TBasketItem, TIncentives, TIndexedTokenInfo, TTokenIncentive} from 'app/utils/types';
-import type {TAddress, TDict} from '@builtbymom/web3/types';
+import type {TAddress, TDict, TNDict} from '@builtbymom/web3/types';
 
 type TUseBasketProps = {
 	assets: TIndexedTokenInfo[];
@@ -32,8 +33,11 @@ type TUseBasketProps = {
 	refreshAssets: () => Promise<void>;
 	refreshBasket: () => Promise<void>;
 	refreshIncentives: () => Promise<void>;
+	refreshEpochIncentives: (epoch: bigint) => Promise<void>;
+	getIncentivesForEpoch: (epoch: bigint) => {data: TIncentives; hasData: boolean};
 	isLoaded: boolean;
 	areIncentivesLoaded: boolean;
+	epoch: bigint | undefined;
 };
 const defaultProps: TUseBasketProps = {
 	assets: [],
@@ -42,8 +46,11 @@ const defaultProps: TUseBasketProps = {
 	refreshAssets: async (): Promise<void> => undefined,
 	refreshBasket: async (): Promise<void> => undefined,
 	refreshIncentives: async (): Promise<void> => undefined,
+	refreshEpochIncentives: async (): Promise<void> => undefined,
+	getIncentivesForEpoch: (): {data: TIncentives; hasData: boolean} => ({data: {}, hasData: false}),
 	isLoaded: false,
-	areIncentivesLoaded: false
+	areIncentivesLoaded: false,
+	epoch: undefined
 };
 
 const BasketContext = createContext<TUseBasketProps>(defaultProps);
@@ -53,12 +60,18 @@ export const BasketContextApp = ({children}: {children: React.ReactElement}): Re
 	const [basket, set_basket] = useState<TBasket>([]);
 	const [weightIncentives, set_weightIncentives] = useState<TIncentives>({});
 	const [areIncentivesLoaded, set_areIncentivesLoaded] = useState(false);
+	const [pastWeightIncentives, set_pastWeightIncentives] = useState<TNDict<{data: TIncentives; hasData: boolean}>>(
+		{}
+	);
 
 	const {data: epoch} = useReadContract({
 		address: toAddress(process.env.WEIGHT_INCENTIVES_ADDRESS),
 		abi: WEIGHT_INCENTIVE_ABI,
 		functionName: 'epoch',
-		chainId: Number(process.env.DEFAULT_CHAIN_ID)
+		chainId: Number(process.env.DEFAULT_CHAIN_ID),
+		query: {
+			select: (data): bigint => toBigInt(data)
+		}
 	});
 
 	/**************************************************************************
@@ -272,121 +285,161 @@ export const BasketContextApp = ({children}: {children: React.ReactElement}): Re
 	 * Once we have the list of candidates, it's possible for us to try to
 	 * retrieve the list of incentives for each candidate
 	 *************************************************************************/
-	const refreshWeightIncentives = useAsyncTrigger(async (): Promise<void> => {
-		if (!epoch) return;
-		if (!assets.length) return;
-		const rangeLimit = 800n;
-		const epochStartBlock = 19439849n; //getEpochStartBlock(Number(epoch));
-		const epochEndBlock = 19439851n; //getEpochEndBlock(Number(epoch));
-		const currentBlock = await getBlockNumber(retrieveConfig());
-		const checkUpToBlock = epochEndBlock < currentBlock ? epochEndBlock : currentBlock;
-		const publicClient = getClient(retrieveConfig());
+	const refreshWeightIncentives = useCallback(
+		async (_epoch: bigint): Promise<void> => {
+			if (!assets.length) return;
+			const rangeLimit = 800n;
+			const epochStartBlock = getEpochStartBlock(Number(_epoch));
+			const epochEndBlock = getEpochEndBlock(Number(_epoch));
+			const currentBlock = await getBlockNumber(retrieveConfig());
+			const checkUpToBlock = epochEndBlock < currentBlock ? epochEndBlock : currentBlock;
+			const publicClient = getClient(retrieveConfig());
 
-		type TDetectedIncentives = {
-			amount: bigint;
-			idx: bigint;
-			depositor: TAddress;
-			token: TAddress;
-		};
-		const detectedIncentives: TDetectedIncentives[] = [];
-		if (publicClient) {
-			for (let i = epochStartBlock; i < checkUpToBlock; i += rangeLimit) {
-				const events = await getLogs(publicClient, {
-					address: toAddress(process.env.WEIGHT_INCENTIVES_ADDRESS),
-					event: WEIGHT_INCENTIVE_ABI[0],
-					fromBlock: i,
-					toBlock: i + rangeLimit,
-					args: {
-						epoch: epoch
-					}
-				});
-				for (const log of events) {
-					detectedIncentives.push({
-						amount: toBigInt(log.args.amount),
-						idx: toBigInt(log.args.idx),
-						depositor: toAddress(log.args.depositor),
-						token: toAddress(log.args.token)
+			type TDetectedIncentives = {
+				amount: bigint;
+				idx: bigint;
+				depositor: TAddress;
+				token: TAddress;
+			};
+			const detectedIncentives: TDetectedIncentives[] = [];
+			if (publicClient) {
+				for (let i = epochStartBlock; i < checkUpToBlock; i += rangeLimit) {
+					const events = await getLogs(publicClient, {
+						address: toAddress(process.env.WEIGHT_INCENTIVES_ADDRESS),
+						event: WEIGHT_INCENTIVE_ABI[0],
+						fromBlock: i,
+						toBlock: i + rangeLimit,
+						args: {
+							epoch: _epoch
+						}
 					});
+					for (const log of events) {
+						detectedIncentives.push({
+							amount: toBigInt(log.args.amount),
+							idx: toBigInt(log.args.idx),
+							depositor: toAddress(log.args.depositor),
+							token: toAddress(log.args.token)
+						});
+					}
 				}
 			}
-		}
 
-		/**********************************************************************
-		 * Once we have all the incentives for the current epoch, we can assign
-		 * them to the candidates. However, we first need to retrieve the
-		 * information about the token added to built a proper TToken object.
-		 * To avoid duplicate calls, we will build a map of unique token
-		 * address
-		 *********************************************************************/
-		const tokensData = await readContracts(retrieveConfig(), {
-			contracts: [
-				...detectedIncentives.map(item => ({
-					address: toAddress(item.token),
-					abi: erc20Abi,
-					functionName: 'name',
-					chainId: Number(process.env.DEFAULT_CHAIN_ID)
-				})),
-				...detectedIncentives.map(item => ({
-					address: toAddress(item.token),
-					abi: erc20Abi,
-					functionName: 'symbol',
-					chainId: Number(process.env.DEFAULT_CHAIN_ID)
-				})),
-				...detectedIncentives.map(item => ({
-					address: toAddress(item.token),
-					abi: erc20Abi,
-					functionName: 'decimals',
-					chainId: Number(process.env.DEFAULT_CHAIN_ID)
-				}))
-			]
-		});
-		const assetsWithNoChange = [NO_CHANGE_LST_LIKE, ...assets];
-		const byCandidate: TDict<TDict<TTokenIncentive[]>> = {};
-		for (let i = 0; i < detectedIncentives.length; i++) {
-			const {idx, token} = detectedIncentives[i];
-			const candidate = assetsWithNoChange[Number(idx)].address;
-			if (!byCandidate[candidate]) byCandidate[candidate] = {};
-			if (!byCandidate[candidate][token]) byCandidate[candidate][token] = [];
-
-			const tokenAddress = detectedIncentives[i].token;
-			const tokenName = decodeAsString(tokensData[i]);
-			const tokenSymbol = decodeAsString(tokensData[i + detectedIncentives.length]);
-			const tokenDecimals = decodeAsNumber(tokensData[i + detectedIncentives.length * 2]);
-			const amount = toNormalizedBN(detectedIncentives[i].amount, tokenDecimals);
-			byCandidate[candidate][token].push({
-				address: toAddress(tokenAddress),
-				name: tokenName,
-				symbol: tokenSymbol,
-				decimals: tokenDecimals,
-				chainID: Number(process.env.DEFAULT_CHAIN_ID),
-				balance: zeroNormalizedBN,
-				price: zeroNormalizedBN,
-				value: 0,
-				depositor: detectedIncentives[i].depositor,
-				amount
+			/**********************************************************************
+			 * Once we have all the incentives for the current epoch, we can assign
+			 * them to the candidates. However, we first need to retrieve the
+			 * information about the token added to built a proper TToken object.
+			 * To avoid duplicate calls, we will build a map of unique token
+			 * address
+			 *********************************************************************/
+			const tokensData = await readContracts(retrieveConfig(), {
+				contracts: [
+					...detectedIncentives.map(item => ({
+						address: toAddress(item.token),
+						abi: erc20Abi,
+						functionName: 'name',
+						chainId: Number(process.env.DEFAULT_CHAIN_ID)
+					})),
+					...detectedIncentives.map(item => ({
+						address: toAddress(item.token),
+						abi: erc20Abi,
+						functionName: 'symbol',
+						chainId: Number(process.env.DEFAULT_CHAIN_ID)
+					})),
+					...detectedIncentives.map(item => ({
+						address: toAddress(item.token),
+						abi: erc20Abi,
+						functionName: 'decimals',
+						chainId: Number(process.env.DEFAULT_CHAIN_ID)
+					}))
+				]
 			});
-		}
+			const assetsWithNoChange = [NO_CHANGE_LST_LIKE, ...assets];
+			const byCandidate: TDict<TDict<TTokenIncentive[]>> = {};
+			for (let i = 0; i < detectedIncentives.length; i++) {
+				const {idx, token} = detectedIncentives[i];
+				const candidate = assetsWithNoChange[Number(idx)].address;
+				if (!byCandidate[candidate]) byCandidate[candidate] = {};
+				if (!byCandidate[candidate][token]) byCandidate[candidate][token] = [];
 
-		set_areIncentivesLoaded(true);
-		set_weightIncentives(byCandidate);
-	}, [assets, epoch]);
+				const tokenAddress = detectedIncentives[i].token;
+				const tokenName = decodeAsString(tokensData[i]);
+				const tokenSymbol = decodeAsString(tokensData[i + detectedIncentives.length]);
+				const tokenDecimals = decodeAsNumber(tokensData[i + detectedIncentives.length * 2]);
+				const amount = toNormalizedBN(detectedIncentives[i].amount, tokenDecimals);
+				byCandidate[candidate][token].push({
+					address: toAddress(tokenAddress),
+					name: tokenName,
+					symbol: tokenSymbol,
+					decimals: tokenDecimals,
+					chainID: Number(process.env.DEFAULT_CHAIN_ID),
+					balance: zeroNormalizedBN,
+					price: zeroNormalizedBN,
+					value: 0,
+					depositor: detectedIncentives[i].depositor,
+					amount
+				});
+			}
+
+			set_areIncentivesLoaded(true);
+			set_weightIncentives(byCandidate);
+			set_pastWeightIncentives(prev => ({...prev, [Number(_epoch)]: {data: byCandidate, hasData: true}}));
+		},
+		[assets]
+	);
+
+	const triggerWeightIncentivesRefresh = useAsyncTrigger(async (): Promise<void> => {
+		if (!epoch) return;
+		await refreshWeightIncentives(epoch);
+
+		//For the claim section, we need the previous epoch incentives
+		refreshWeightIncentives(epoch - 1n);
+	}, [epoch, refreshWeightIncentives]);
+
+	/**************************************************************************
+	 * getIncentivesForEpoch is a function that will retrieve the incentives
+	 * for a given epoch.
+	 *************************************************************************/
+	const getIncentivesForEpoch = useCallback(
+		(_epoch: bigint): {data: TIncentives; hasData: boolean} => {
+			if (!pastWeightIncentives[Number(_epoch)]) {
+				return {data: {}, hasData: false};
+			}
+			return pastWeightIncentives[Number(_epoch)];
+		},
+		[pastWeightIncentives]
+	);
 
 	const contextValue = useMemo(
 		(): TUseBasketProps => ({
 			assets,
 			basket,
 			weightIncentives,
+			getIncentivesForEpoch,
 			refreshAssets,
 			refreshBasket,
-			refreshIncentives: refreshWeightIncentives,
+			refreshIncentives: triggerWeightIncentivesRefresh,
+			refreshEpochIncentives: refreshWeightIncentives,
 			isLoaded: basket.length > 0,
-			areIncentivesLoaded
+			areIncentivesLoaded,
+			epoch
 		}),
-		[assets, basket, refreshAssets, refreshBasket, refreshWeightIncentives, weightIncentives, areIncentivesLoaded]
+		[
+			assets,
+			basket,
+			refreshAssets,
+			refreshBasket,
+			triggerWeightIncentivesRefresh,
+			refreshWeightIncentives,
+			weightIncentives,
+			getIncentivesForEpoch,
+			areIncentivesLoaded,
+			epoch
+		]
 	);
 
 	return <BasketContext.Provider value={contextValue}>{children}</BasketContext.Provider>;
 };
 
 const useBasket = (): TUseBasketProps => useContext(BasketContext);
+
 export default useBasket;

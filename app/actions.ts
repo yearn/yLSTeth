@@ -593,3 +593,48 @@ export async function apply(props: TApply): Promise<TTxResponse> {
 		args: [toAddress(props.lstAddress)]
 	});
 }
+
+/* 🔵 - Yearn Finance **********************************************************
+ ** claimManyWeightIncentive is a _WRITE_ function that claims the incentives for
+ ** many tokens.
+ **
+ ** @app - yETH
+ ******************************************************************************/
+type TClaimManyWeightIncentive = TWriteTransaction & {
+	epochs: bigint[];
+	idxs: bigint[];
+	tokens: TAddress[];
+};
+export async function claimManyWeightIncentive(props: TClaimManyWeightIncentive): Promise<TTxResponse> {
+	assert(props.connector, 'No connector');
+
+	return await handleTx(props, {
+		address: toAddress(process.env.WEIGHT_INCENTIVES_ADDRESS),
+		abi: WEIGHT_INCENTIVE_ABI,
+		functionName: 'claim_many',
+		confirmation: 1,
+		args: [props.epochs, props.idxs, props.tokens]
+	});
+}
+
+/* 🔵 - Yearn Finance **********************************************************
+ ** claimManyInclusionIncentive is a _WRITE_ function that claims the incentives
+ ** for many inclusion tokens.
+ **
+ ** @app - yETH
+ ******************************************************************************/
+type TClaimManyInclusionIncentive = TWriteTransaction & {
+	epochs: bigint[];
+	tokens: TAddress[];
+};
+export async function claimManyInclusionIncentive(props: TClaimManyInclusionIncentive): Promise<TTxResponse> {
+	assert(props.connector, 'No connector');
+
+	return await handleTx(props, {
+		address: toAddress(process.env.INCLUSION_INCENTIVES_ADDRESS),
+		abi: INCLUSION_INCENTIVE_ABI,
+		functionName: 'claim_many',
+		confirmation: 1,
+		args: [props.epochs, props.tokens]
+	});
+}
