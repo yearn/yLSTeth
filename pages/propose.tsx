@@ -177,7 +177,7 @@ function Form(props: {canPropose: boolean}): ReactElement {
 						isDisabled={
 							!isValid || toBigInt(votePower?.raw) < toBigInt(minWeight?.raw) || !props.canPropose
 						}>
-						{'Apply'}
+						{'Submit'}
 					</Button>
 				</div>
 			</div>

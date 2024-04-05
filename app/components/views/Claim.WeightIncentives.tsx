@@ -185,7 +185,6 @@ function ClaimWeightIncentives(props: {epoch: bigint | undefined}): ReactElement
 				parentIndex: data[0].parentIndex
 			});
 		}
-		console.log(claimData);
 		set_claimableWeightIncentives(claimData);
 	}, [address, getIncentivesForEpoch, epoch, assets]);
 

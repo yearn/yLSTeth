@@ -252,7 +252,6 @@ function VoteCardInclusion(props: {votePower: TNormalizedBN | undefined}): React
 		const sumOfVotes = Object.values(votePowerPerLST).reduce((a, b) => a + b, 0);
 		const votes = [];
 		for (const item of candidates) {
-			console.log(item);
 			const numberOfVoteForThisLST = votePowerPerLST[item.address] || 0;
 			votes[item.index] = Math.floor((numberOfVoteForThisLST / sumOfVotes) * voteScale);
 		}

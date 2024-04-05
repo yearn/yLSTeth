@@ -1,5 +1,6 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {apply} from 'app/actions';
+import useBasket from 'app/contexts/useBasket';
 import {useEpoch} from 'app/hooks/useEpoch';
 import {useTimer} from 'app/hooks/useTimer';
 import {INCLUSION_ABI} from 'app/utils/abi/inclusion.abi';
@@ -47,7 +48,8 @@ function CheckboxElement({onChange, content}: {onChange: () => void; content: st
 
 function Form(): ReactElement {
 	const {address, isActive, provider} = useWeb3();
-	const {balances, isLoading, getBalance} = useWallet();
+	const {getBalance} = useWallet();
+	const {basket} = useBasket();
 	const [lstAddress, set_lstAddress] = useState<TAddress | undefined>(undefined);
 	const [isValid, set_isValid] = useState(false);
 	const [approveStatus, set_approveStatus] = useState<TTxStatus>(defaultTxStatus);
@@ -56,8 +58,6 @@ function Form(): ReactElement {
 		() => getBalance({address: toAddress(process.env.YETH_ADDRESS), chainID: Number(process.env.DEFAULT_CHAIN_ID)}),
 		[getBalance, address] // eslint-disable-line react-hooks/exhaustive-deps
 	);
-
-	console.warn(yETHBalance, balances, isLoading);
 
 	/**************************************************************************
 	 * Check if the form is valid to eventually enable the submit button or
@@ -83,6 +83,12 @@ function Form(): ReactElement {
 			enabled: !isZeroAddress(lstAddress)
 		}
 	});
+
+	const basketAddresses = useMemo(() => basket.map(({address}) => toAddress(address)), [basket]);
+	const isAlreadyInBasket = useMemo(
+		() => basketAddresses.includes(toAddress(lstAddress)),
+		[basketAddresses, lstAddress]
+	);
 
 	/**************************************************************************
 	 * Retrieve the application fee for the LST address.
@@ -297,7 +303,9 @@ function Form(): ReactElement {
 
 				<div className={'mt-24 pt-2'}>{renderActionButton()}</div>
 				<small className={'text-red-900'}>
-					{hasAlreadyApplied ? 'This LST has already been proposed for inclusion in the yETH basket.' : ''}
+					{hasAlreadyApplied || isAlreadyInBasket
+						? 'This LST has already been proposed for inclusion in the yETH basket.'
+						: ''}
 					&nbsp;
 				</small>
 			</div>
