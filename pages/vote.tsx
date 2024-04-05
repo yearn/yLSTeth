@@ -6,18 +6,23 @@ import {voteAbstain, voteNay, voteYea} from 'app/actions';
 import {VoteCardInclusion} from 'app/components/views/Vote.CardInclusion';
 import {VoteCardWeights} from 'app/components/views/Vote.CardWeights';
 import {VoteHeader} from 'app/components/views/Vote.Header';
+import useBasket from 'app/contexts/useBasket';
 import {useFetch} from 'app/hooks/useFetch';
 import {GOVERNOR_ABI} from 'app/utils/abi/governor.abi';
+import {ONCHAIN_VOTE_INCLUSION_ABI} from 'app/utils/abi/onchainVoteInclusion.abi';
+import {ONCHAIN_VOTE_WEIGHT_ABI} from 'app/utils/abi/onchainVoteWeight.abi';
 import {VOTE_WEIGHT_ABI} from 'app/utils/abi/voteWeight.abi';
 import {onChainProposalSchema, proposalSchema} from 'app/utils/types';
 import {CID} from 'multiformats';
 import {base16} from 'multiformats/bases/base16';
 import {create} from 'multiformats/hashes/digest';
-import {useBlockNumber, useContractRead, useReadContract} from 'wagmi';
+import {useBlockNumber, useReadContract, useReadContracts} from 'wagmi';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {useAsyncTrigger} from '@builtbymom/web3/hooks/useAsyncTrigger';
 import {
 	cl,
+	decodeAsBigInt,
+	decodeAsBoolean,
 	formatAmount,
 	isZeroAddress,
 	toAddress,
@@ -26,7 +31,7 @@ import {
 	zeroNormalizedBN
 } from '@builtbymom/web3/utils';
 import {defaultTxStatus, retrieveConfig} from '@builtbymom/web3/utils/wagmi';
-import {multicall, readContract} from '@wagmi/core';
+import {multicall, readContract, readContracts} from '@wagmi/core';
 import {Button} from '@yearn-finance/web-lib/components/Button';
 import {IconLinkOut} from '@yearn-finance/web-lib/icons/IconLinkOut';
 
@@ -49,10 +54,8 @@ type TOnchainProposal = {
 	index: bigint;
 };
 
-function Tabs({
-	set_currentTab,
-	currentTab
-}: {
+function Tabs(props: {
+	shouldVote: [boolean, boolean, boolean];
 	currentTab: 'weight' | 'inclusion' | 'governance';
 	set_currentTab: (tab: 'weight' | 'inclusion' | 'governance') => void;
 }): ReactElement {
@@ -63,54 +66,84 @@ function Tabs({
 		const action = urlParams.get('action');
 
 		if (action && ['weight', 'inclusion', 'governance'].includes(action)) {
-			set_currentTab(action as 'weight' | 'inclusion' | 'governance');
+			props.set_currentTab(action as 'weight' | 'inclusion' | 'governance');
 		} else if (
 			router.query?.action &&
 			['weight', 'inclusion', 'governance'].includes(router.query.action as string)
 		) {
-			set_currentTab(router.query.action as 'weight' | 'inclusion' | 'governance');
+			props.set_currentTab(router.query.action as 'weight' | 'inclusion' | 'governance');
 		}
-	}, [set_currentTab, router.query]);
+	}, [props.set_currentTab, router.query]);
 
 	return (
-		<div className={'overflow-hidden'}>
-			<div className={'relative -mx-4 px-4 md:px-72'}>
+		<div className={'overflow-x-e'}>
+			<div className={'relative px-4 md:px-[56px]'}>
 				<button
 					onClick={(): void => {
 						router.push({pathname: router.pathname, query: {action: 'weight'}});
 					}}
 					className={cl(
-						'mx-4 mb-2 text-lg transition-colors',
-						currentTab === 'weight' ? 'text-purple-300 font-bold' : 'text-neutral-400'
+						'mx-4 mb-2 text-lg transition-colors relative',
+						props.currentTab === 'weight' ? 'text-purple-300 font-bold' : 'text-neutral-400'
 					)}>
 					{'LST weights'}
+					{props.currentTab !== 'weight' && props.shouldVote[0] && (
+						<span className={'absolute -right-3 -top-1 z-10 flex size-2.5'}>
+							<span
+								className={
+									'absolute inline-flex size-full animate-ping rounded-full bg-purple-300 opacity-75'
+								}
+							/>
+							<span className={'relative inline-flex size-2.5 rounded-full bg-purple-300'} />
+						</span>
+					)}
 				</button>
 				<button
 					onClick={(): void => {
 						router.push({pathname: router.pathname, query: {action: 'inclusion'}});
 					}}
 					className={cl(
-						'mx-4 mb-2 text-lg transition-colors',
-						currentTab === 'inclusion' ? 'text-purple-300 font-bold' : 'text-neutral-400'
+						'mx-4 mb-2 text-lg transition-colors relative',
+						props.currentTab === 'inclusion' ? 'text-purple-300 font-bold' : 'text-neutral-400'
 					)}>
 					{'Inclusion'}
+					{props.currentTab !== 'inclusion' && props.shouldVote[1] && (
+						<span className={'absolute -right-3 -top-1 z-10 flex size-2.5'}>
+							<span
+								className={
+									'absolute inline-flex size-full animate-ping rounded-full bg-purple-300 opacity-75'
+								}
+							/>
+							<span className={'relative inline-flex size-2.5 rounded-full bg-purple-300'} />
+						</span>
+					)}
 				</button>
 				<button
 					onClick={(): void => {
 						router.push({pathname: router.pathname, query: {action: 'governance'}});
 					}}
 					className={cl(
-						'mx-4 mb-2 text-lg transition-colors',
-						currentTab === 'governance' ? 'text-purple-300 font-bold' : 'text-neutral-400'
+						'mx-4 mb-2 text-lg transition-colors relative',
+						props.currentTab === 'governance' ? 'text-purple-300 font-bold' : 'text-neutral-400'
 					)}>
 					{'Proposals'}
+					{props.currentTab !== 'governance' && props.shouldVote[2] && (
+						<span className={'absolute -right-3 -top-1 z-10 flex size-2.5'}>
+							<span
+								className={
+									'absolute inline-flex size-full animate-ping rounded-full bg-purple-300 opacity-75'
+								}
+							/>
+							<span className={'relative inline-flex size-2.5 rounded-full bg-purple-300'} />
+						</span>
+					)}
 				</button>
 
-				<div className={'absolute bottom-0 left-0 flex h-0.5 w-full flex-row bg-neutral-300 px-4 md:px-72'}>
+				<div className={'absolute bottom-0 left-0 flex h-0.5 w-full flex-row bg-neutral-300 px-4 md:px-[56px]'}>
 					<div
 						className={cl(
-							'h-full w-fit transition-colors ml-4',
-							currentTab === 'weight' ? 'bg-purple-300' : 'bg-transparent'
+							'h-full transition-colors ml-4 w-fit',
+							props.currentTab === 'weight' ? 'bg-purple-300' : 'bg-transparent'
 						)}>
 						<button className={'pointer-events-none invisible h-0 p-0 text-lg font-bold opacity-0'}>
 							{'LST weights'}
@@ -118,8 +151,8 @@ function Tabs({
 					</div>
 					<div
 						className={cl(
-							'h-full w-fit transition-colors ml-7',
-							currentTab === 'inclusion' ? 'bg-purple-300' : 'bg-transparent'
+							'h-full transition-colors ml-7 w-fit',
+							props.currentTab === 'inclusion' ? 'bg-purple-300' : 'bg-transparent'
 						)}>
 						<button className={'pointer-events-none invisible h-0 p-0 text-lg font-bold opacity-0'}>
 							{'Inclusion'}
@@ -128,7 +161,7 @@ function Tabs({
 					<div
 						className={cl(
 							'h-full w-fit transition-colors ml-7',
-							currentTab === 'governance' ? 'bg-purple-300' : 'bg-transparent'
+							props.currentTab === 'governance' ? 'bg-purple-300' : 'bg-transparent'
 						)}>
 						<button className={'pointer-events-none invisible h-0 p-0 text-lg font-bold opacity-0'}>
 							{'Proposals'}
@@ -217,7 +250,7 @@ function OnChainProposal(props: {
 		schema: onChainProposalSchema
 	});
 
-	const {data: hasVoted} = useContractRead({
+	const {data: hasVoted} = useReadContract({
 		abi: GOVERNOR_ABI,
 		address: toAddress(process.env.ONCHAIN_GOV_ADDRESS),
 		functionName: 'voted',
@@ -403,10 +436,8 @@ function OnChainProposal(props: {
 	);
 }
 
-function OnChainProposals(): ReactElement {
-	const [proposals, set_proposals] = useState<TOnchainProposal[]>([]);
-
-	const {data: quorum} = useContractRead({
+function OnChainProposals(props: {proposals: TOnchainProposal[]; onRefreshProposals: VoidFunction}): ReactElement {
+	const {data: quorum} = useReadContract({
 		abi: GOVERNOR_ABI,
 		address: toAddress(process.env.ONCHAIN_GOV_ADDRESS),
 		functionName: 'quorum',
@@ -416,6 +447,129 @@ function OnChainProposals(): ReactElement {
 			}
 		}
 	});
+
+	return (
+		<div>
+			{props.proposals.map(data => (
+				<OnChainProposal
+					key={data.cid}
+					proposal={data}
+					quorum={quorum || zeroNormalizedBN}
+					onRefreshProposals={props.onRefreshProposals}
+				/>
+			))}
+		</div>
+	);
+}
+
+function GovernanceProposals(props: {proposals: TOnchainProposal[]; onRefreshProposals: VoidFunction}): ReactElement {
+	return (
+		<div className={'grid gap-0 divide-y divide-neutral-300 pt-0'}>
+			<OnChainProposals {...props} />
+			<SnapshotProposals />
+		</div>
+	);
+}
+
+function LSTWeightsProposal(props: {
+	votePower: TNormalizedBN | undefined;
+	isVoteOpen: boolean;
+	hasVoted: boolean;
+}): ReactElement {
+	return (
+		<div className={'grid gap-0 bg-neutral-100 px-4 pb-10 pt-0 md:px-14'}>
+			<div className={'mt-6 pl-4 text-neutral-700'}>
+				<p>
+					{
+						'Per the yETH YIP, 10% of the weight is redistributed every epoch. The outcome of this vote determines how it is redistributed.'
+					}
+				</p>
+			</div>
+
+			<VoteCardWeights {...props} />
+		</div>
+	);
+}
+
+function InclusionProposals(props: {
+	votePower: TNormalizedBN | undefined;
+	isVoteOpen: boolean;
+	hasVoted: boolean;
+}): ReactElement {
+	return (
+		<div className={'grid gap-0 bg-neutral-100 px-4 pb-10 pt-0 md:px-14'}>
+			<div className={'mt-6 pl-4 text-neutral-700'}>
+				<p>{'The outcome of this vote will determine which asset will be newly added to the pool.'}</p>
+			</div>
+			<VoteCardInclusion {...props} />
+		</div>
+	);
+}
+
+function ProposalWrapper(): ReactElement {
+	const {address} = useWeb3();
+	const {epoch} = useBasket();
+	const [currentTab, set_currentTab] = useState<'weight' | 'inclusion' | 'governance'>('weight');
+	const [governanceProposals, set_governanceProposals] = useState<TOnchainProposal[]>([]);
+	const [shouldVoteForProposals, set_shouldVoteForProposals] = useState<boolean>(false);
+	const {data: blockNumber} = useBlockNumber({watch: true});
+
+	/**********************************************************************************************
+	 ** In order to display nice little badges on the tabs, we need to check if the user has voted
+	 ** for any of the open proposals, weight, inclusion or governance.
+	 ** This requires us to fetch a bunch of data prior to rendering the component.
+	 **********************************************************************************************/
+	const {data, isLoading, refetch} = useReadContracts({
+		contracts: [
+			{
+				abi: VOTE_WEIGHT_ABI,
+				address: toAddress(process.env.VOTE_POWER_ADDRESS),
+				functionName: 'vote_weight',
+				chainId: Number(process.env.DEFAULT_CHAIN_ID),
+				args: [toAddress(address)]
+			},
+			{
+				abi: ONCHAIN_VOTE_WEIGHT_ABI,
+				address: toAddress(process.env.WEIGHT_VOTE_ADDRESS),
+				chainId: Number(process.env.DEFAULT_CHAIN_ID),
+				functionName: 'voted',
+				args: [toAddress(address), toBigInt(epoch)]
+			},
+			{
+				abi: ONCHAIN_VOTE_WEIGHT_ABI,
+				address: toAddress(process.env.WEIGHT_VOTE_ADDRESS),
+				chainId: Number(process.env.DEFAULT_CHAIN_ID),
+				functionName: 'vote_open'
+			},
+			{
+				abi: ONCHAIN_VOTE_INCLUSION_ABI,
+				address: toAddress(process.env.INCLUSION_VOTE_ADDRESS),
+				chainId: Number(process.env.DEFAULT_CHAIN_ID),
+				functionName: 'vote_open'
+			},
+			{
+				abi: ONCHAIN_VOTE_INCLUSION_ABI,
+				address: toAddress(process.env.INCLUSION_VOTE_ADDRESS),
+				chainId: Number(process.env.DEFAULT_CHAIN_ID),
+				functionName: 'votes_user',
+				args: [toAddress(address), toBigInt(epoch)]
+			}
+		],
+		query: {
+			select(data) {
+				const votePower = toNormalizedBN(decodeAsBigInt(data[0]), 18);
+				const hasVotedForWeight = decodeAsBoolean(data[1]);
+				const isWeightOpen = decodeAsBoolean(data[2]);
+				const hasVotedForInclusion = decodeAsBigInt(data[3]) > 0n;
+				const isInclusionOpen = decodeAsBoolean(data[4]);
+				return {votePower, hasVotedForWeight, isWeightOpen, hasVotedForInclusion, isInclusionOpen};
+			}
+		}
+	});
+
+	useEffect(() => {
+		refetch();
+	}, [blockNumber, refetch]);
 
 	const refreshProposals = useAsyncTrigger(async () => {
 		const proposalsCount = await readContract(retrieveConfig(), {
@@ -448,101 +602,81 @@ function OnChainProposals(): ReactElement {
 			}
 			index++;
 		}
+		set_governanceProposals(allProposals);
 
-		set_proposals(allProposals);
-	}, []);
+		/******************************************************************************************
+		 ** If we want to provide a smooth experience, we need to display a badge only if the user
+		 ** needs to vote. To do this, we need to check if the user has voted for any of the open
+		 ** proposals.
+		 ** As this can take a while, we will do this in parallel.
+		 ******************************************************************************************/
+		const openProposals = allProposals.filter(proposal => proposal.state === 1n);
+		if (openProposals.length === 0 || isZeroAddress(address)) {
+			set_shouldVoteForProposals(false);
+			return;
+		}
+		const hasVotedForOpenProposals = await readContracts(retrieveConfig(), {
+			contracts: openProposals.map(proposal => ({
+				abi: GOVERNOR_ABI,
+				address: toAddress(process.env.ONCHAIN_GOV_ADDRESS),
+				functionName: 'voted',
+				args: [toAddress(address), proposal.index]
+			}))
+		});
 
-	return (
-		<div>
-			{proposals.map(data => (
-				<OnChainProposal
-					key={data.cid}
-					proposal={data}
-					quorum={quorum || zeroNormalizedBN}
-					onRefreshProposals={refreshProposals}
-				/>
-			))}
-		</div>
-	);
-}
-
-function GovernanceProposals(): ReactElement {
-	return (
-		<div className={'grid gap-0 divide-y divide-neutral-300 pt-0'}>
-			<OnChainProposals />
-			<SnapshotProposals />
-		</div>
-	);
-}
-
-function LSTWeightsProposal(props: {votePower: TNormalizedBN | undefined}): ReactElement {
-	return (
-		<div className={'grid gap-0 bg-neutral-100 px-4 pb-10 pt-0 md:px-14'}>
-			<div className={'mt-6 pl-4 text-neutral-700'}>
-				<p>
-					{
-						'Per the yETH YIP, 10% of the weight is redistributed every epoch. The outcome of this vote determines how it is redistributed.'
-					}
-				</p>
-			</div>
-
-			<VoteCardWeights votePower={props.votePower} />
-		</div>
-	);
-}
-
-function InclusionProposals(props: {votePower: TNormalizedBN | undefined}): ReactElement {
-	return (
-		<div className={'grid gap-0 bg-neutral-100 px-4 pb-10 pt-0 md:px-14'}>
-			<div className={'mt-6 pl-4 text-neutral-700'}>
-				<p>{'The outcome of this vote will determine which asset will be newly added to the pool.'}</p>
-			</div>
-			<VoteCardInclusion votePower={props.votePower} />
-		</div>
-	);
-}
-
-function ProposalWrapper(): ReactElement {
-	const {address} = useWeb3();
-	const [currentTab, set_currentTab] = useState<'weight' | 'inclusion' | 'governance'>('weight');
-	const {data: blockNumber} = useBlockNumber({watch: true});
-	const {
-		data: votePower,
-		isLoading,
-		refetch
-	} = useReadContract({
-		abi: VOTE_WEIGHT_ABI,
-		address: toAddress(process.env.VOTE_POWER_ADDRESS),
-		functionName: 'vote_weight',
-		chainId: Number(process.env.DEFAULT_CHAIN_ID),
-		args: [toAddress(address)],
-		query: {
-			select(data) {
-				return toNormalizedBN(toBigInt(data), 18);
+		//Count the number of proposals the user has voted for
+		let votedProposals = 0;
+		for (const voted of hasVotedForOpenProposals) {
+			if (decodeAsBoolean(voted)) {
+				votedProposals++;
 			}
 		}
-	});
-	useEffect(() => {
-		refetch();
-	}, [blockNumber, refetch]);
+		set_shouldVoteForProposals(votedProposals > 0);
+	}, [address]);
 
+	/**********************************************************************************************
+	 ** Once everything is ready to render, we render
+	 **********************************************************************************************/
+	const hasOpenProposals = governanceProposals.some(proposal => proposal.state === 1n);
 	return (
 		<div className={'relative mx-auto mb-0 flex min-h-screen w-full flex-col bg-neutral-0 pt-20'}>
 			<div className={'relative mx-auto mt-6 w-screen max-w-5xl'}>
 				<VoteHeader
-					votePower={votePower}
+					votePower={data?.votePower}
 					isLoading={isLoading}
 				/>
 				<section className={'py-10'}>
 					<div className={'bg-neutral-100 pb-0 pt-4'}>
 						<Tabs
+							shouldVote={[
+								data ? data.isWeightOpen && !data.hasVotedForWeight : false,
+								data ? data.isInclusionOpen && !data.hasVotedForInclusion : false,
+								hasOpenProposals && shouldVoteForProposals
+							]}
 							currentTab={currentTab}
 							set_currentTab={set_currentTab}
 						/>
 					</div>
-					{currentTab === 'weight' ? <LSTWeightsProposal votePower={votePower} /> : null}
-					{currentTab === 'inclusion' ? <InclusionProposals votePower={votePower} /> : null}
-					{currentTab === 'governance' ? <GovernanceProposals /> : null}
+					{currentTab === 'weight' ? (
+						<LSTWeightsProposal
+							isVoteOpen={data ? data.isWeightOpen : false}
+							hasVoted={data ? data.hasVotedForWeight : true}
+							votePower={data?.votePower}
+						/>
+					) : null}
+					{currentTab === 'inclusion' ? (
+						<InclusionProposals
+							isVoteOpen={data ? data.isInclusionOpen : false}
+							hasVoted={data ? data.hasVotedForInclusion : true}
+							votePower={data?.votePower}
+						/>
+					) : null}
+					{currentTab === 'governance' ? (
+						<GovernanceProposals
+							proposals={governanceProposals}
+							onRefreshProposals={refreshProposals}
+						/>
+					) : null}
 				</section>
 			</div>
 		</div>

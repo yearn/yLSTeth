@@ -11,7 +11,6 @@ import {useAsyncTrigger} from '@builtbymom/web3/hooks/useAsyncTrigger';
 import {
 	cl,
 	decodeAsBigInt,
-	decodeAsBoolean,
 	formatAmount,
 	isZeroAddress,
 	toAddress,
@@ -152,11 +151,13 @@ function VoteInclusionRow(props: {
 	);
 }
 
-function VoteCardInclusion(props: {votePower: TNormalizedBN | undefined}): ReactElement {
+function VoteCardInclusion(props: {
+	votePower: TNormalizedBN | undefined;
+	hasVoted: boolean;
+	isVoteOpen: boolean;
+}): ReactElement {
 	const {provider, address} = useWeb3();
 	const [votePowerPerLST, set_votePowerPerLST] = useState<TDict<number>>({});
-	const [hasAlreadyVoted, set_hasAlreadyVoted] = useState(true);
-	const [isVoteOpen, set_isVoteOpen] = useState(false);
 	const [voteWeightStatus, set_voteWeightStatus] = useState<TTxStatus>(defaultTxStatus);
 	const {candidates, isLoaded} = useInclusion();
 	const [isLoadingVoteData, set_isLoadingVoteData] = useState(false);
@@ -173,25 +174,17 @@ function VoteCardInclusion(props: {votePower: TNormalizedBN | undefined}): React
 		/******************************************************************************************
 		 **	First we need to retrive the current epoch
 		 ******************************************************************************************/
-		const [_epoch, _voteOpen] = await readContracts(retrieveConfig(), {
+		const [_epoch] = await readContracts(retrieveConfig(), {
 			contracts: [
 				{
 					abi: ONCHAIN_VOTE_INCLUSION_ABI,
 					address: toAddress(process.env.INCLUSION_VOTE_ADDRESS),
 					chainId: Number(process.env.DEFAULT_CHAIN_ID),
 					functionName: 'epoch'
-				},
-				{
-					abi: ONCHAIN_VOTE_INCLUSION_ABI,
-					address: toAddress(process.env.INCLUSION_VOTE_ADDRESS),
-					chainId: Number(process.env.DEFAULT_CHAIN_ID),
-					functionName: 'vote_open'
 				}
 			]
 		});
 		const epoch = decodeAsBigInt(_epoch);
-		const isVoteOpenBool = decodeAsBoolean(_voteOpen);
-		set_isVoteOpen(isVoteOpenBool);
 
 		/******************************************************************************************
 		 **	Then we need to check if the user already voted for this epoch
@@ -204,7 +197,6 @@ function VoteCardInclusion(props: {votePower: TNormalizedBN | undefined}): React
 			args: [toAddress(address), epoch]
 		});
 		const hasAlreadyVoted = votedWeight > 0n;
-		set_hasAlreadyVoted(hasAlreadyVoted);
 
 		/******************************************************************************************
 		 **	If so, we can try to retrieve the vote weight for each LST and display them.
@@ -298,7 +290,7 @@ function VoteCardInclusion(props: {votePower: TNormalizedBN | undefined}): React
 									currentLST={currentLST}
 									votePowerPerLST={votePowerPerLST}
 									set_votePowerPerLST={set_votePowerPerLST}
-									hasAlreadyVoted={hasAlreadyVoted}
+									hasAlreadyVoted={props.hasVoted}
 									isLoadingVoteData={isLoadingVoteData}
 								/>
 							);
@@ -318,8 +310,8 @@ function VoteCardInclusion(props: {votePower: TNormalizedBN | undefined}): React
 					isBusy={voteWeightStatus.pending}
 					isDisabled={
 						!isLoaded ||
-						!isVoteOpen ||
-						hasAlreadyVoted ||
+						!props.isVoteOpen ||
+						props.hasVoted ||
 						Object.values(votePowerPerLST).reduce((a, b) => a + b, 0) === 0 ||
 						Object.values(votePowerPerLST).reduce((a, b) => a + b, 0) > 100 ||
 						isZeroAddress(address) ||

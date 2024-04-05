@@ -9,7 +9,6 @@ import {useAsyncTrigger} from '@builtbymom/web3/hooks/useAsyncTrigger';
 import {
 	cl,
 	decodeAsBigInt,
-	decodeAsBoolean,
 	formatAmount,
 	formatPercent,
 	isZeroAddress,
@@ -18,7 +17,7 @@ import {
 	truncateHex
 } from '@builtbymom/web3/utils';
 import {defaultTxStatus, retrieveConfig} from '@builtbymom/web3/utils/wagmi';
-import {readContract, readContracts} from '@wagmi/core';
+import {readContracts} from '@wagmi/core';
 import {Button} from '@yearn-finance/web-lib/components/Button';
 
 import {ImageWithFallback} from '../common/ImageWithFallback';
@@ -164,12 +163,14 @@ function VoteWeightRow(props: {
 	);
 }
 
-function VoteCardWeights(props: {votePower: TNormalizedBN | undefined}): ReactElement {
+function VoteCardWeights(props: {
+	votePower: TNormalizedBN | undefined;
+	isVoteOpen: boolean;
+	hasVoted: boolean;
+}): ReactElement {
 	const {provider, address} = useWeb3();
 	const [votePowerPerLST, set_votePowerPerLST] = useState<TDict<number>>({});
 	const [voteWeightStatus, set_voteWeightStatus] = useState<TTxStatus>(defaultTxStatus);
-	const [hasAlreadyVoted, set_hasAlreadyVoted] = useState(true);
-	const [isVoteOpen, set_isVoteOpen] = useState(false);
 	const [isLoadingVoteData, set_isLoadingVoteData] = useState(false);
 	const {basket, isLoaded} = useBasket();
 
@@ -185,42 +186,22 @@ function VoteCardWeights(props: {votePower: TNormalizedBN | undefined}): ReactEl
 		/* 🔵 - Yearn Finance **********************************************************************
 		 **	First we need to retrive the current epoch
 		 ******************************************************************************************/
-		const [_epoch, _voteOpen] = await readContracts(retrieveConfig(), {
+		const [_epoch] = await readContracts(retrieveConfig(), {
 			contracts: [
 				{
 					abi: ONCHAIN_VOTE_WEIGHT_ABI,
 					address: toAddress(process.env.WEIGHT_VOTE_ADDRESS),
 					chainId: Number(process.env.DEFAULT_CHAIN_ID),
 					functionName: 'epoch'
-				},
-				{
-					abi: ONCHAIN_VOTE_WEIGHT_ABI,
-					address: toAddress(process.env.WEIGHT_VOTE_ADDRESS),
-					chainId: Number(process.env.DEFAULT_CHAIN_ID),
-					functionName: 'vote_open'
 				}
 			]
 		});
 		const epoch = decodeAsBigInt(_epoch);
-		const isVoteOpenBool = decodeAsBoolean(_voteOpen);
-		set_isVoteOpen(isVoteOpenBool);
-
-		/* 🔵 - Yearn Finance **********************************************************************
-		 **	Then we need to check if the user already voted for this epoch
-		 ******************************************************************************************/
-		const hasAlreadyVoted = await readContract(retrieveConfig(), {
-			abi: ONCHAIN_VOTE_WEIGHT_ABI,
-			address: toAddress(process.env.WEIGHT_VOTE_ADDRESS),
-			chainId: Number(process.env.DEFAULT_CHAIN_ID),
-			functionName: 'voted',
-			args: [toAddress(address), epoch]
-		});
-		set_hasAlreadyVoted(hasAlreadyVoted);
 
 		/* 🔵 - Yearn Finance **********************************************************************
 		 **	If so, we can try to retrieve the vote weight for each LST and display them.
 		 ******************************************************************************************/
-		if (hasAlreadyVoted) {
+		if (props.hasVoted) {
 			const votesUser = await readContracts(retrieveConfig(), {
 				contracts: [
 					{
@@ -247,7 +228,7 @@ function VoteCardWeights(props: {votePower: TNormalizedBN | undefined}): ReactEl
 			set_votePowerPerLST(votes);
 		}
 		set_isLoadingVoteData(false);
-	}, [address, basket]);
+	}, [address, basket, props.hasVoted]);
 
 	/**********************************************************************************************
 	 **	Trigger an onchain vote and update the vote weight for each LST.
@@ -305,7 +286,7 @@ function VoteCardWeights(props: {votePower: TNormalizedBN | undefined}): ReactEl
 							currentLST={currentLST}
 							votePowerPerLST={votePowerPerLST}
 							set_votePowerPerLST={set_votePowerPerLST}
-							hasAlreadyVoted={hasAlreadyVoted}
+							hasAlreadyVoted={props.hasVoted}
 							isLoadingVoteData={isLoadingVoteData}
 						/>
 					);
@@ -330,8 +311,8 @@ function VoteCardWeights(props: {votePower: TNormalizedBN | undefined}): ReactEl
 					isBusy={voteWeightStatus.pending}
 					isDisabled={
 						!isLoaded ||
-						!isVoteOpen ||
-						hasAlreadyVoted ||
+						!props.isVoteOpen ||
+						props.hasVoted ||
 						Object.values(votePowerPerLST).reduce((a, b) => a + b, 0) === 0 ||
 						Object.values(votePowerPerLST).reduce((a, b) => a + b, 0) > 100 ||
 						isZeroAddress(address) ||
