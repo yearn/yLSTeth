@@ -38,7 +38,7 @@ module.exports = phase =>
 		},
 		env: {
 			JSON_RPC_URL: {
-				1: process.env.RPC_URL_MAINNET
+				1: 'https://rpc.tenderly.co/fork/6527af6e-0268-4d23-a53d-f1d34f114212' || process.env.RPC_URL_MAINNET
 			},
 			TELEGRAM_BOT: process.env.TELEGRAM_BOT,
 			TELEGRAM_CHAT: process.env.TELEGRAM_CHAT,
