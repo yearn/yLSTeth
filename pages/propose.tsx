@@ -12,7 +12,7 @@ import assert from 'assert';
 import {CID} from 'multiformats';
 import {base16} from 'multiformats/bases/base16';
 import {create} from 'multiformats/hashes/digest';
-import {useAccount, useContractRead} from 'wagmi';
+import {useAccount, useReadContract} from 'wagmi';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {useAsyncTrigger} from '@builtbymom/web3/hooks/useAsyncTrigger';
 import {cl, toAddress, toBigInt, toNormalizedBN} from '@builtbymom/web3/utils';
@@ -58,7 +58,7 @@ function Form(props: {canPropose: boolean}): ReactElement {
 	const [submitStatus, set_submitStatus] = useState<TTxStatus>(defaultTxStatus);
 	const [isValid, set_isValid] = useState(false);
 
-	const {data: minWeight} = useContractRead({
+	const {data: minWeight} = useReadContract({
 		address: toAddress(process.env.ONCHAIN_GOV_ADDRESS),
 		abi: GOVERNOR_ABI,
 		functionName: 'propose_min_weight',
@@ -68,7 +68,7 @@ function Form(props: {canPropose: boolean}): ReactElement {
 			}
 		}
 	});
-	const {data: votePower} = useContractRead({
+	const {data: votePower} = useReadContract({
 		abi: VOTE_WEIGHT_ABI,
 		address: toAddress(process.env.VOTE_POWER_ADDRESS),
 		functionName: 'vote_weight',
@@ -111,12 +111,12 @@ function Form(props: {canPropose: boolean}): ReactElement {
 				connector: provider,
 				chainID: Number(process.env.DEFAULT_CHAIN_ID),
 				contractAddress: toAddress(process.env.ONCHAIN_GOV_ADDRESS),
-				ipfs: ipfsPinURI,
+				ipfs: ipfsPinURI.replace('ipfs://', ''),
 				script: scriptHex || '',
 				statusHandler: set_submitStatus
 			});
 			if (result.isSuccessful) {
-				//
+				document.getElementById('refresh-proposals')?.click();
 			}
 		},
 		[isActive, provider]
@@ -179,6 +179,10 @@ function Form(props: {canPropose: boolean}): ReactElement {
 						}>
 						{'Submit'}
 					</Button>
+					<small className={'text-neutral-400'}>
+						{`Minimum weight to submit: ${minWeight?.normalized || 0} - Your weight: ${votePower?.normalized || 0}`}
+						&nbsp;
+					</small>
 				</div>
 			</div>
 		</form>
@@ -344,6 +348,12 @@ function OnChainProposals(props: {canRetract: boolean}): ReactElement {
 					onRefreshProposals={refreshProposals}
 				/>
 			))}
+			<button
+				id={'refresh-proposals'}
+				onClick={refreshProposals}
+				className={'pointer-events-none invisible hidden size-0 opacity-0'}>
+				{'Refresh'}
+			</button>
 		</>
 	);
 }
@@ -397,7 +407,7 @@ function Proposals(props: {canRetract: boolean}): ReactElement {
 }
 
 function ProposalWrapper(): ReactElement {
-	const {data: isProposeOpen} = useContractRead({
+	const {data: isProposeOpen} = useReadContract({
 		address: toAddress(process.env.ONCHAIN_GOV_ADDRESS),
 		abi: GOVERNOR_ABI,
 		functionName: 'propose_open'

@@ -178,7 +178,7 @@ const nav: TMenu[] = [
 	{path: '/vote', label: 'Vote'},
 	{path: '/claim', label: 'Claim'},
 	{path: '/apply', label: 'Apply'},
-	{path: '/propose', label: 'Proposal'},
+	{path: '/propose', label: 'Propose'},
 	{path: 'https://docs.yearn.fi/getting-started/products/yeth/overview', label: 'Docs'}
 ];
 
