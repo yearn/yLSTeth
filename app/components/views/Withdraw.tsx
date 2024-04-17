@@ -135,6 +135,7 @@ function ViewSelectedTokens({
 					try {
 						const estimatedAmount = await readContract(retrieveConfig(), {
 							address: toAddress(process.env.ESTIMATOR_ADDRESS),
+							chainId: Number(process.env.DEFAULT_CHAIN_ID),
 							abi: ESTIMATOR_ABI,
 							functionName: 'get_remove_lp',
 							args: [newAmount.raw]
@@ -157,6 +158,7 @@ function ViewSelectedTokens({
 					try {
 						const estimatedAmount = await readContract(retrieveConfig(), {
 							address: toAddress(process.env.ESTIMATOR_ADDRESS),
+							chainId: Number(process.env.DEFAULT_CHAIN_ID),
 							abi: ESTIMATOR_ABI,
 							functionName: 'get_remove_single_lp',
 							args: [toBigInt(selectedLSTIndex), newAmount.raw]

@@ -306,6 +306,7 @@ function OnChainProposals(props: {canRetract: boolean}): ReactElement {
 		const proposalsCount = await readContract(retrieveConfig(), {
 			abi: GOVERNOR_ABI,
 			address: toAddress(process.env.ONCHAIN_GOV_ADDRESS),
+			chainId: Number(process.env.DEFAULT_CHAIN_ID),
 			functionName: 'num_proposals'
 		});
 
@@ -313,6 +314,7 @@ function OnChainProposals(props: {canRetract: boolean}): ReactElement {
 			contracts: Array.from({length: Number(proposalsCount)}, (_, i) => ({
 				abi: GOVERNOR_ABI,
 				address: toAddress(process.env.ONCHAIN_GOV_ADDRESS),
+				chainId: Number(process.env.DEFAULT_CHAIN_ID),
 				functionName: 'proposal',
 				args: [i]
 			}))

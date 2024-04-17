@@ -450,9 +450,9 @@ function OnChainProposals(props: {proposals: TOnchainProposal[]; onRefreshPropos
 
 	return (
 		<div>
-			{props.proposals.map(data => (
+			{props.proposals.map((data, index) => (
 				<OnChainProposal
-					key={data.cid}
+					key={`${data.cid}_${index}`}
 					proposal={data}
 					quorum={quorum || zeroNormalizedBN}
 					onRefreshProposals={props.onRefreshProposals}
@@ -574,6 +574,7 @@ function ProposalWrapper(): ReactElement {
 	const refreshProposals = useAsyncTrigger(async () => {
 		const proposalsCount = await readContract(retrieveConfig(), {
 			abi: GOVERNOR_ABI,
+			chainId: Number(process.env.DEFAULT_CHAIN_ID),
 			address: toAddress(process.env.ONCHAIN_GOV_ADDRESS),
 			functionName: 'num_proposals'
 		});
@@ -581,6 +582,7 @@ function ProposalWrapper(): ReactElement {
 		const data = await multicall(retrieveConfig(), {
 			contracts: Array.from({length: Number(proposalsCount)}, (_, i) => ({
 				abi: GOVERNOR_ABI,
+				chainId: Number(process.env.DEFAULT_CHAIN_ID),
 				address: toAddress(process.env.ONCHAIN_GOV_ADDRESS),
 				functionName: 'proposal',
 				args: [i]
