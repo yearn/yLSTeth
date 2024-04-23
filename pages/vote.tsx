@@ -321,7 +321,7 @@ function OnChainProposal(props: {
 		}
 	}
 
-	if (isLoading || !data) {
+	if (isLoading) {
 		return (
 			<div className={'flex w-full flex-col gap-2 bg-neutral-100 px-8 py-6'}>
 				<div className={'mb-2 h-8 w-1/2 animate-pulse rounded-lg bg-neutral-400/80'} />
@@ -334,6 +334,112 @@ function OnChainProposal(props: {
 
 	const totalVotes = props.proposal.yea + props.proposal.nay + props.proposal.abstain;
 	const isClosed = props.proposal.state >= 2n;
+	if (!data) {
+		return (
+			<div className={'relative flex w-full flex-col gap-4 bg-neutral-100 px-8 py-6'}>
+				<div className={'absolute right-8 top-6'}>
+					<div
+						className={cl(
+							'rounded-xl px-3 py-1.5 text-xs font-bold text-white',
+							[3n, 4n, 5n].includes(props.proposal.state)
+								? 'bg-red-900'
+								: [6n, 2n].includes(props.proposal.state)
+									? 'bg-[hsl(135,51%,42%)]'
+									: 'bg-purple-300'
+						)}>
+						{stateToString(props.proposal.state)}
+					</div>
+				</div>
+				<b className={'text-2xl'}>{props.proposal.ipfs}</b>
+				<div className={'markdown scrollbar-show max-h-60 overflow-y-scroll'}>
+					<Markdown>{`No description available for this proposal: \n\r-CID: **[${props.proposal.cid}](${props.proposal.cid})** \n\r-Author: **[${props.proposal.author}](https://etherscan.io/address/${props.proposal.author})**`}</Markdown>
+				</div>
+				<div>
+					<dl className={'-mt-4 grid grid-cols-2 gap-0 rounded bg-neutral-200 p-4'}>
+						<dt>{'Yea'}</dt>
+						<dd className={'text-right'}>
+							{`${formatAmount(toNormalizedBN(props.proposal.yea, 18).normalized, 6, 6)} / ${formatAmount(toNormalizedBN(totalVotes, 18).normalized, 6, 6)}`}
+						</dd>
+						<dt>{'Nay'}</dt>
+						<dd className={'text-right'}>
+							{`${formatAmount(toNormalizedBN(props.proposal.nay, 18).normalized, 6, 6)} / ${formatAmount(toNormalizedBN(totalVotes, 18).normalized, 6, 6)}`}
+						</dd>
+						<dt>{'Abstain'}</dt>
+						<dd className={'text-right'}>
+							{`${formatAmount(toNormalizedBN(props.proposal.abstain, 18).normalized, 6, 6)} / ${formatAmount(toNormalizedBN(totalVotes, 18).normalized, 6, 6)}`}
+						</dd>
+						<dt>{'Quorum'}</dt>
+						<dd className={'text-right'}>{formatAmount(props.quorum.normalized, 6, 6)}</dd>
+					</dl>
+					<div className={'relative mt-4 h-3 w-full overflow-hidden rounded bg-neutral-200'}>
+						<div
+							className={'absolute top-0 z-10 h-3 bg-[hsl(135,51%,42%)]'}
+							style={{
+								width: `${(Number(props.proposal.yea) / Number(totalVotes)) * 100}%`
+							}}
+						/>
+						<div
+							className={'absolute top-0 h-3 bg-red-900'}
+							style={{
+								width: `${(Number(props.proposal.nay) / Number(totalVotes)) * 100}%`,
+								left: `${(Number(props.proposal.yea) / Number(totalVotes)) * 100}%`
+							}}
+						/>
+						<div
+							className={'absolute top-0 h-3 bg-neutral-300'}
+							style={{
+								width: `${(Number(props.proposal.abstain) / Number(totalVotes)) * 100}%`,
+								left: `${(Number(props.proposal.yea) / Number(totalVotes)) * 100 + (Number(props.proposal.nay) / Number(totalVotes)) * 100}%`
+							}}
+						/>
+						<div
+							className={cl(
+								'absolute top-0 z-50 h-full w-[2px] bg-black',
+								totalVotes === 0n ? 'hidden' : ''
+							)}
+							style={{
+								left: `${(Number(props.quorum.normalized) / Number(totalVotes)) * 100}%`
+							}}
+						/>
+					</div>
+				</div>
+				<div className={'flex gap-4'}>
+					{isClosed ? (
+						<Button
+							isDisabled
+							className={'w-48'}>
+							{'Closed'}
+						</Button>
+					) : (
+						<>
+							<Button
+								onClick={async () => onVote(props.proposal.index, 1n)}
+								isBusy={voteYeaStatus.pending}
+								isDisabled={hasVoted || props.proposal.state >= 2n}
+								className={'w-48'}>
+								{'Yea'}
+							</Button>
+							<Button
+								onClick={async () => onVote(props.proposal.index, -1n)}
+								isBusy={voteNayStatus.pending}
+								isDisabled={hasVoted || props.proposal.state >= 2n}
+								className={'w-48'}>
+								{'Nay'}
+							</Button>
+							<Button
+								onClick={async () => onVote(props.proposal.index, 0n)}
+								isBusy={voteAbstainStatus.pending}
+								isDisabled={hasVoted || props.proposal.state >= 2n}
+								className={'w-48'}>
+								{'Abstain'}
+							</Button>
+						</>
+					)}
+				</div>
+			</div>
+		);
+	}
+
 	return (
 		<div className={'relative flex w-full flex-col gap-4 bg-neutral-100 px-8 py-6'}>
 			<div className={'absolute right-8 top-6'}>
@@ -588,6 +694,7 @@ function ProposalWrapper(): ReactElement {
 				args: [i]
 			}))
 		});
+		console.log(data);
 
 		const allProposals = [];
 		let index = 0n;
@@ -599,11 +706,11 @@ function ProposalWrapper(): ReactElement {
 				const multihash = create(18, multihashDigest);
 				const v1 = CID.createV1(0x70, multihash);
 				const v0 = v1.toV0();
-
 				allProposals.push({...typedProposals, cid: `ipfs://${v0.toString()}`, index});
 			}
 			index++;
 		}
+		allProposals.reverse();
 		set_governanceProposals(allProposals);
 
 		/******************************************************************************************
