@@ -12,11 +12,12 @@ import {GOVERNOR_ABI} from 'app/utils/abi/governor.abi';
 import {ONCHAIN_VOTE_INCLUSION_ABI} from 'app/utils/abi/onchainVoteInclusion.abi';
 import {ONCHAIN_VOTE_WEIGHT_ABI} from 'app/utils/abi/onchainVoteWeight.abi';
 import {VOTE_WEIGHT_ABI} from 'app/utils/abi/voteWeight.abi';
-import {onChainProposalSchema, proposalSchema} from 'app/utils/types';
+import {proposalSchema} from 'app/utils/types';
 import {CID} from 'multiformats';
 import {base16} from 'multiformats/bases/base16';
 import {create} from 'multiformats/hashes/digest';
 import {useBlockNumber, useReadContract, useReadContracts} from 'wagmi';
+import axios from 'axios';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {useAsyncTrigger} from '@builtbymom/web3/hooks/useAsyncTrigger';
 import {
@@ -43,6 +44,7 @@ import type {TTxStatus} from '@builtbymom/web3/utils/wagmi';
 
 type TOnchainProposal = {
 	cid: string;
+	cidV1?: string;
 	abstain: bigint;
 	author: TAddress;
 	epoch: bigint;
@@ -244,11 +246,24 @@ function OnChainProposal(props: {
 	const [voteYeaStatus, set_voteYeaStatus] = useState<TTxStatus>(defaultTxStatus);
 	const [voteNayStatus, set_voteNayStatus] = useState<TTxStatus>(defaultTxStatus);
 	const [voteAbstainStatus, set_voteAbstainStatus] = useState<TTxStatus>(defaultTxStatus);
-	const sanitizedURI = props.proposal.cid.replace('ipfs://', 'https://snapshot.4everland.link/ipfs/');
-	const {data, isLoading} = useFetch<TOnChainProposal>({
-		endpoint: sanitizedURI,
-		schema: onChainProposalSchema
-	});
+	const [data, set_data] = useState<TOnChainProposal | null>(null);
+	const [isLoading, set_isLoading] = useState<boolean>(true);
+
+	useAsyncTrigger(async () => {
+		set_isLoading(true);
+		const getters = [
+			axios.get(props.proposal.cid.replace('ipfs://', 'https://snapshot.4everland.link/ipfs/')),
+			axios.get((props.proposal.cidV1 || '').replace('ipfs://', 'https://snapshot.4everland.link/ipfs/'))
+		];
+		const result = await Promise.allSettled(getters);
+		if (result[0].status === 'fulfilled') {
+			set_data(result[0].value.data);
+		}
+		if (result[1].status === 'fulfilled') {
+			set_data(result[1].value.data);
+		}
+		set_isLoading(false);
+	}, [props.proposal.cid, props.proposal.cidV1]);
 
 	const {data: hasVoted} = useReadContract({
 		abi: GOVERNOR_ABI,
@@ -334,6 +349,7 @@ function OnChainProposal(props: {
 
 	const totalVotes = props.proposal.yea + props.proposal.nay + props.proposal.abstain;
 	const isClosed = props.proposal.state >= 2n;
+	// console.log(dataV0, dataV1);
 	if (!data) {
 		return (
 			<div className={'relative flex w-full flex-col gap-4 bg-neutral-100 px-8 py-6'}>
@@ -694,7 +710,6 @@ function ProposalWrapper(): ReactElement {
 				args: [i]
 			}))
 		});
-		console.log(data);
 
 		const allProposals = [];
 		let index = 0n;
@@ -703,10 +718,23 @@ function ProposalWrapper(): ReactElement {
 				const typedProposals = proposal.result as unknown as TOnchainProposal;
 				const ipfsWithout0x = typedProposals.ipfs.replace('0x', '');
 				const multihashDigest = base16.decode('f' + ipfsWithout0x);
+
+				// Standard method
 				const multihash = create(18, multihashDigest);
-				const v1 = CID.createV1(0x70, multihash);
-				const v0 = v1.toV0();
-				allProposals.push({...typedProposals, cid: `ipfs://${v0.toString()}`, index});
+				const createv1 = CID.createV1(0x70, multihash);
+				const v0 = createv1.toV0();
+
+				// Other method
+				const multihashAlt = create(18, multihashDigest);
+				const createV1Alt = CID.createV1(0x55, multihashAlt);
+				const v1 = createV1Alt.toV1();
+
+				allProposals.push({
+					...typedProposals,
+					cid: `ipfs://${v0.toString()}`,
+					cidV1: `ipfs://${v1.toString()}`,
+					index
+				});
 			}
 			index++;
 		}
