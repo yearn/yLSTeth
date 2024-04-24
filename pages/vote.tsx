@@ -258,8 +258,7 @@ function OnChainProposal(props: {
 		const result = await Promise.allSettled(getters);
 		if (result[0].status === 'fulfilled') {
 			set_data(result[0].value.data);
-		}
-		if (result[1].status === 'fulfilled') {
+		} else if (result[1].status === 'fulfilled') {
 			set_data(result[1].value.data);
 		}
 		set_isLoading(false);
@@ -349,7 +348,6 @@ function OnChainProposal(props: {
 
 	const totalVotes = props.proposal.yea + props.proposal.nay + props.proposal.abstain;
 	const isClosed = props.proposal.state >= 2n;
-	// console.log(dataV0, dataV1);
 	if (!data) {
 		return (
 			<div className={'relative flex w-full flex-col gap-4 bg-neutral-100 px-8 py-6'}>
@@ -458,7 +456,12 @@ function OnChainProposal(props: {
 
 	return (
 		<div className={'relative flex w-full flex-col gap-4 bg-neutral-100 px-8 py-6'}>
-			<div className={'absolute right-8 top-6'}>
+			<div className={'absolute right-8 top-6 flex gap-4'}>
+				{hasVoted ? (
+					<div className={cl('rounded-xl px-3 py-1.5 text-xs font-bold text-white', 'bg-[hsl(135,51%,42%)]')}>
+						{'Voted ✔'}
+					</div>
+				) : null}
 				<div
 					className={cl(
 						'rounded-xl px-3 py-1.5 text-xs font-bold text-white',
