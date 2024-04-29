@@ -1,65 +1,83 @@
-import React, {useMemo, useState} from 'react';
-import {useEpoch} from 'app/hooks/useEpoch';
-import {getCurrentEpochNumber, getEpoch} from 'app/utils/epochs';
-import {toAddress} from '@builtbymom/web3/utils';
+import React, {useState} from 'react';
+import {INCLUSION_INCENTIVE_ABI} from 'app/utils/abi/inclusionIncentives.abi';
+import {WEIGHT_INCENTIVE_ABI} from 'app/utils/abi/weightIncentives.abi';
+import {EPOCH_DURATION} from 'app/utils/constants';
+import {getCurrentEpochNumber} from 'app/utils/epochs';
+import {useAsyncTrigger} from '@builtbymom/web3/hooks/useAsyncTrigger';
+import {decodeAsBigInt, toAddress, toBigInt} from '@builtbymom/web3/utils';
+import {retrieveConfig} from '@builtbymom/web3/utils/wagmi';
+import {readContracts} from '@wagmi/core';
 
 import {IncentiveHeader} from './Incentive.Header';
 import {IncentiveHistory} from './Incentive.History';
 import {IncentiveSelector} from './Incentive.Selector';
 
-import type {TEpoch, TIndexedTokenInfo} from 'app/utils/types';
 import type {ReactElement} from 'react';
-import type {TDict} from '@builtbymom/web3/types';
 
 function ViewIncentive(): ReactElement {
 	const [currentTab, set_currentTab] = useState<'current' | 'potential'>('current');
 	const [epochToDisplay, set_epochToDisplay] = useState<number>(getCurrentEpochNumber());
-	const {endPeriod} = useEpoch();
-	const currentEpoch = useMemo((): TEpoch => {
-		return getEpoch(epochToDisplay);
-	}, [epochToDisplay]);
+	const [areIncentivesOpen, set_areIncentivesLoaded] = useState({
+		isWeightIncentiveOpen: false,
+		isInclusionIncentiveOpen: false
+	});
 
-	/* 🔵 - Yearn Finance **************************************************************************
-	 ** Incentive period is closed for the 3 last days of the epoch.
+	/**********************************************************************************************
+	 ** Retrieve the deadline and genesis of the weight and inclusion incentives to know if they are
+	 ** open or closed.
 	 **********************************************************************************************/
-	const isIncentivePeriodClosed = useMemo((): boolean => {
-		const currentTimestamp = Math.floor(Date.now() / 1000);
-		if (currentTimestamp > endPeriod - 3 * 24 * 3600 && currentTimestamp < endPeriod) {
-			return true;
-		}
-		return false;
-	}, [endPeriod]);
-
-	/** 🔵 - Yearn *************************************************************************************
-	 ** This memo hook selects either currentEpoch.inclusion.candidates if current tab is potential,
-	 ** or currentEpoch.weight.participants if current tab is current.
-	 **************************************************************************************************/
-	const possibleLSTs = useMemo((): TDict<TIndexedTokenInfo> => {
-		if (currentTab === 'potential') {
-			const candidates: TDict<TIndexedTokenInfo> = {};
-			for (const eachCandidate of currentEpoch.inclusion.candidates) {
-				if (eachCandidate) {
-					candidates[toAddress(eachCandidate.address)] = eachCandidate;
+	useAsyncTrigger(async () => {
+		const data = await readContracts(retrieveConfig(), {
+			contracts: [
+				{
+					abi: WEIGHT_INCENTIVE_ABI,
+					address: toAddress(process.env.WEIGHT_INCENTIVES_ADDRESS),
+					functionName: 'deposit_deadline',
+					chainId: Number(process.env.DEFAULT_CHAIN_ID),
+					args: []
+				},
+				{
+					abi: WEIGHT_INCENTIVE_ABI,
+					address: toAddress(process.env.WEIGHT_INCENTIVES_ADDRESS),
+					functionName: 'genesis',
+					chainId: Number(process.env.DEFAULT_CHAIN_ID),
+					args: []
+				},
+				{
+					abi: INCLUSION_INCENTIVE_ABI,
+					address: toAddress(process.env.INCLUSION_INCENTIVES_ADDRESS),
+					functionName: 'deposit_deadline',
+					chainId: Number(process.env.DEFAULT_CHAIN_ID),
+					args: []
+				},
+				{
+					abi: INCLUSION_INCENTIVE_ABI,
+					address: toAddress(process.env.INCLUSION_INCENTIVES_ADDRESS),
+					functionName: 'genesis',
+					chainId: Number(process.env.DEFAULT_CHAIN_ID),
+					args: []
 				}
-			}
-			return candidates;
-		}
-		const participants: TDict<TIndexedTokenInfo> = {};
-		for (const eachParticipant of currentEpoch.weight.participants) {
-			if (eachParticipant) {
-				participants[toAddress(eachParticipant.address)] = eachParticipant;
-			}
-		}
-		return participants;
-	}, [currentTab, currentEpoch]);
+			]
+		});
+		const weightIncentiveDeadline = decodeAsBigInt(data[0]);
+		const weightIncentiveGenesis = decodeAsBigInt(data[1]);
+		const inclusionIncentiveDeadline = decodeAsBigInt(data[2]);
+		const inclusionIncentiveGenesis = decodeAsBigInt(data[3]);
+		const now = toBigInt(Math.floor(Date.now() / 1000));
+		const epochDuration = toBigInt(EPOCH_DURATION);
+
+		set_areIncentivesLoaded({
+			isWeightIncentiveOpen: (now - weightIncentiveGenesis) % epochDuration <= weightIncentiveDeadline,
+			isInclusionIncentiveOpen: (now - inclusionIncentiveGenesis) % epochDuration <= inclusionIncentiveDeadline
+		});
+	}, []);
 
 	return (
 		<section className={'grid grid-cols-1 pt-10 md:mb-20 md:pt-12'}>
 			<div className={'mb-20 md:mb-0'}>
-				<IncentiveHeader isIncentivePeriodClosed={isIncentivePeriodClosed} />
+				<IncentiveHeader isIncentivePeriodClosed={areIncentivesOpen.isInclusionIncentiveOpen} />
 				<IncentiveSelector
-					isIncentivePeriodClosed={isIncentivePeriodClosed}
-					possibleLSTs={possibleLSTs}
+					incentivePeriodOpen={areIncentivesOpen}
 					currentTab={currentTab}
 					set_currentTab={set_currentTab}
 				/>

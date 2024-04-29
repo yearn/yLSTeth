@@ -49,6 +49,7 @@
 		"next.config.js",
 		"theme.config.js",
 		".eslintrc.js",
-		".next/types/**/*.ts"
+		".next/types/**/*.ts",
+		"permit.ts.experimentation"
 	]
 }

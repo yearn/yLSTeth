@@ -1,15 +1,12 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
 import React, {createContext, useContext, useMemo, useState} from 'react';
-import useIncentives from 'app/hooks/useIncentives';
-import useLSTData from 'app/hooks/useLSTData';
 import useTVL from 'app/hooks/useTVL';
-import {YETH_POOL_ABI} from 'app/utils/abi/yETHPool.abi';
-import {useContractReads} from 'wagmi';
-import {toAddress, toBigInt, zeroNormalizedBN} from '@builtbymom/web3/utils';
+import {BASKET_ABI} from 'app/utils/abi/basket.abi';
+import {erc20Abi} from 'viem';
+import {useContractReads, useReadContract} from 'wagmi';
+import {toAddress, toBigInt, toNormalizedBN, zeroNormalizedBN} from '@builtbymom/web3/utils';
 
-import type {TIncentivesFor, TUseIncentivesResp} from 'app/hooks/useIncentives';
-import type {TLST} from 'app/hooks/useLSTData';
 import type {TNormalizedBN} from '@builtbymom/web3/types';
 
 type TUseLSTProps = {
@@ -18,15 +15,14 @@ type TUseLSTProps = {
 	dailyVolume: number;
 	TVL: number;
 	TAL: TNormalizedBN;
-	lst: TLST[];
+	isTVLLoaded: boolean;
+	totalDepositedETH: TNormalizedBN;
 	stats: {
 		amplification: bigint;
 		rampStopTime: bigint;
 		targetAmplification: bigint;
 		swapFeeRate: bigint;
 	};
-	onUpdateLST: () => void;
-	incentives: TUseIncentivesResp;
 };
 const defaultProps: TUseLSTProps = {
 	slippage: 50n,
@@ -34,54 +30,62 @@ const defaultProps: TUseLSTProps = {
 	dailyVolume: 0,
 	TVL: 0,
 	TAL: zeroNormalizedBN,
-	lst: [] as unknown as TLST[],
-	onUpdateLST: (): void => {},
+	isTVLLoaded: false,
+	totalDepositedETH: zeroNormalizedBN,
 	stats: {
 		amplification: toBigInt(0),
 		rampStopTime: toBigInt(0),
 		targetAmplification: toBigInt(0),
 		swapFeeRate: toBigInt(0)
-	},
-	incentives: {
-		groupIncentiveHistory: {} as TIncentivesFor,
-		isFetchingHistory: false,
-		refreshIncentives: (): void => undefined,
-		totalDepositedETH: zeroNormalizedBN,
-		totalDepositedUSD: 0
 	}
 };
 
 const LSTContext = createContext<TUseLSTProps>(defaultProps);
 export const LSTContextApp = ({children}: {children: React.ReactElement}): React.ReactElement => {
 	const [slippage, set_slippage] = useState(10n);
-	const {lst, updateLST} = useLSTData();
-	// const dailyVolume = useDailyVolume();
-	const {TVL, TAL} = useTVL();
-	const incentives = useIncentives();
+	const TVLData = useTVL();
+
+	/* 🔵 - Yearn Finance **************************************************************************
+	 ** useContractRead calling the `deposited` method from the bootstrap contract to get the total
+	 ** deposited ETH from the contract.
+	 **
+	 ** @returns: bigint - total deposited eth
+	 **********************************************************************************************/
+	const {data: totalDepositedETH} = useReadContract({
+		address: toAddress(process.env.YETH_ADDRESS),
+		abi: erc20Abi,
+		chainId: Number(process.env.DEFAULT_CHAIN_ID),
+		functionName: 'totalSupply',
+		query: {
+			select(data) {
+				return toNormalizedBN(data, 18);
+			}
+		}
+	});
 
 	const {data: stats, isFetched: areStatsFetched} = useContractReads({
 		contracts: [
 			{
 				address: toAddress(process.env.POOL_ADDRESS),
-				abi: YETH_POOL_ABI,
+				abi: BASKET_ABI,
 				functionName: 'amplification',
 				chainId: Number(process.env.DEFAULT_CHAIN_ID)
 			},
 			{
 				address: toAddress(process.env.POOL_ADDRESS),
-				abi: YETH_POOL_ABI,
+				abi: BASKET_ABI,
 				functionName: 'ramp_stop_time',
 				chainId: Number(process.env.DEFAULT_CHAIN_ID)
 			},
 			{
 				address: toAddress(process.env.POOL_ADDRESS),
-				abi: YETH_POOL_ABI,
+				abi: BASKET_ABI,
 				functionName: 'target_amplification',
 				chainId: Number(process.env.DEFAULT_CHAIN_ID)
 			},
 			{
 				address: toAddress(process.env.POOL_ADDRESS),
-				abi: YETH_POOL_ABI,
+				abi: BASKET_ABI,
 				functionName: 'swap_fee_rate',
 				chainId: Number(process.env.DEFAULT_CHAIN_ID)
 			}
@@ -93,9 +97,10 @@ export const LSTContextApp = ({children}: {children: React.ReactElement}): React
 			slippage,
 			set_slippage,
 			dailyVolume: 0,
-			lst,
-			TVL,
-			TAL,
+			TVL: TVLData.TVL,
+			TAL: TVLData.TAL,
+			isTVLLoaded: TVLData.isLoaded,
+			totalDepositedETH: totalDepositedETH || zeroNormalizedBN,
 			stats: areStatsFetched
 				? {
 						amplification: toBigInt(stats?.[0]?.result as bigint),
@@ -103,11 +108,9 @@ export const LSTContextApp = ({children}: {children: React.ReactElement}): React
 						targetAmplification: toBigInt(stats?.[2]?.result as bigint),
 						swapFeeRate: toBigInt(stats?.[3]?.result as bigint)
 					}
-				: defaultProps.stats,
-			onUpdateLST: updateLST,
-			incentives
+				: defaultProps.stats
 		}),
-		[slippage, lst, TVL, TAL, areStatsFetched, stats, updateLST, incentives]
+		[slippage, TVLData.TAL, TVLData.TVL, TVLData.isLoaded, areStatsFetched, stats, totalDepositedETH]
 	);
 
 	return <LSTContext.Provider value={contextValue}>{children}</LSTContext.Provider>;

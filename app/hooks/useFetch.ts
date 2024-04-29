@@ -1,3 +1,4 @@
+import axios from 'axios';
 import useSWR from 'swr';
 import {baseFetcher} from '@builtbymom/web3/utils';
 
@@ -27,6 +28,28 @@ export function useFetch<T>({endpoint, schema, config}: TUseZodProps<T>): SWRRes
 
 	const parsedData = schema.safeParse(result.data);
 
+	if (!parsedData.success) {
+		console.error(endpoint, parsedData.error);
+		return {...result, isSuccess: false};
+	}
+
+	return {...result, data: parsedData.data, isSuccess: true};
+}
+
+export async function fetcher<T>({endpoint, schema}: TUseZodProps<T>): Promise<{
+	data: T | undefined;
+	isSuccess: boolean;
+}> {
+	if (!endpoint) {
+		return {data: undefined, isSuccess: false};
+	}
+	const result = await axios.get(endpoint);
+
+	if (!result.data || result.status !== 200) {
+		return {...result, isSuccess: false};
+	}
+
+	const parsedData = schema.safeParse(result.data);
 	if (!parsedData.success) {
 		console.error(endpoint, parsedData.error);
 		return {...result, isSuccess: false};

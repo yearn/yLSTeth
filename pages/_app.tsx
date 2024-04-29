@@ -1,20 +1,23 @@
 import React from 'react';
 import localFont from 'next/font/local';
+import Head from 'next/head';
 import {useRouter} from 'next/router';
 import AppHeader from 'app/components/common/Header';
-import {BootstrapContextApp} from 'app/contexts/useBootstrap';
+import {BasketContextApp} from 'app/contexts/useBasket';
+import {InclusionContextApp} from 'app/contexts/useInclusion';
 import {LSTContextApp} from 'app/contexts/useLST';
-import {arbitrum, base, fantom, optimism, polygon} from 'viem/chains';
+import {PriceContextApp} from 'app/contexts/usePrices';
+import {arbitrum, base, fantom, mainnet, optimism, polygon} from 'viem/chains';
 import {AnimatePresence, motion} from 'framer-motion';
 import {WalletContextApp} from '@builtbymom/web3/contexts/useWallet';
 import {WithMom} from '@builtbymom/web3/contexts/WithMom';
 import {cl} from '@builtbymom/web3/utils/cl';
 import {motionVariants} from '@builtbymom/web3/utils/helpers';
 import {localhost} from '@builtbymom/web3/utils/wagmi';
-import {mainnet} from '@wagmi/chains';
 
 import type {AppProps} from 'next/app';
 import type {ReactElement} from 'react';
+import type {Chain} from 'viem/chains';
 
 import '../style.css';
 
@@ -40,24 +43,24 @@ const aeonik = localFont({
 	]
 });
 
-function AppWrapper(props: AppProps): ReactElement {
+function AppWrapper(props: AppProps & {supportedNetworks: Chain[]}): ReactElement {
 	const router = useRouter();
 	const {Component, pageProps} = props;
 
 	return (
 		<div
 			id={'app'}
-			className={cl('mx-auto mb-0 flex font-aeonik')}>
-			<div className={'block size-full min-h-max w-screen'}>
+			className={cl('mx-auto mb-0 flex font-aeonik w-full transition-colors duration-[800ms]')}>
+			<div className={'block size-full min-h-max'}>
 				<AppHeader />
-				<div className={'mx-auto my-0 pt-4 md:mb-0 md:!px-0'}>
+				<div className={'mx-auto my-0 w-full max-w-6xl pt-4 md:mb-0 md:!px-0'}>
 					<AnimatePresence mode={'wait'}>
 						<motion.div
-							key={router.asPath}
+							key={router.pathname}
 							initial={'initial'}
 							animate={'enter'}
 							exit={'exit'}
-							className={'my-0 size-full md:mb-0'}
+							className={'my-0 size-full md:mb-16'}
 							variants={motionVariants}>
 							<Component
 								router={props.router}
@@ -72,30 +75,42 @@ function AppWrapper(props: AppProps): ReactElement {
 }
 
 function MyApp(props: AppProps): ReactElement {
+	const supportedNetworks = [mainnet, optimism, polygon, fantom, base, arbitrum, localhost];
 	return (
 		<>
-			<style
-				jsx
-				global>{`
-				html {
-					font-family: ${aeonik.style.fontFamily};
-				}
-			`}</style>
+			<Head>
+				<style
+					jsx
+					global>
+					{`
+						html {
+							font-family: ${aeonik.style.fontFamily};
+						}
+					`}
+				</style>
+			</Head>
 			<WithMom
-				supportedChains={[mainnet, optimism, polygon, fantom, base, arbitrum, localhost]}
+				supportedChains={supportedNetworks}
 				tokenLists={[
 					'https://raw.githubusercontent.com/SmolDapp/tokenLists/main/lists/yearn.json',
 					'https://raw.githubusercontent.com/SmolDapp/tokenLists/main/lists/smolAssets.json'
 				]}>
-				<WalletContextApp>
-					<BootstrapContextApp>
+				<PriceContextApp>
+					<WalletContextApp>
 						<LSTContextApp>
-							<main className={cl('flex flex-col mb-32', aeonik.className)}>
-								<AppWrapper {...props} />
-							</main>
+							<BasketContextApp>
+								<InclusionContextApp>
+									<main className={cl('flex flex-col mb-32', aeonik.className)}>
+										<AppWrapper
+											supportedNetworks={supportedNetworks}
+											{...props}
+										/>
+									</main>
+								</InclusionContextApp>
+							</BasketContextApp>
 						</LSTContextApp>
-					</BootstrapContextApp>
-				</WalletContextApp>
+					</WalletContextApp>
+				</PriceContextApp>
 			</WithMom>
 		</>
 	);

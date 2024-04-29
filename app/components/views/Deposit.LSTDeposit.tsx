@@ -4,9 +4,10 @@ import IconWarning from 'app/components/icons/IconWarning';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {cl, formatAmount, handleInputChangeEventValue, toBigInt, toNormalizedBN} from '@builtbymom/web3/utils';
-import {ImageWithFallback} from '@yearn-finance/web-lib/components/ImageWithFallback';
 
-import type {TLST} from 'app/hooks/useLSTData';
+import {ImageWithFallback} from '../common/ImageWithFallback';
+
+import type {TBasketItem} from 'app/utils/types';
 import type {ChangeEvent, ReactElement} from 'react';
 import type {TNormalizedBN} from '@builtbymom/web3/types';
 
@@ -16,7 +17,7 @@ function LSTDepositForm({
 	onUpdateAmount,
 	isDisabled
 }: {
-	token: TLST;
+	token: TBasketItem;
 	amount: TNormalizedBN;
 	onUpdateAmount: (amount: TNormalizedBN) => void;
 	isDisabled: boolean;
@@ -50,6 +51,7 @@ function LSTDepositForm({
 						alt={token.name}
 						unoptimized
 						src={token.logoURI || ''}
+						altSrc={`${process.env.SMOL_ASSETS_URL}/token/${Number(process.env.DEFAULT_CHAIN_ID)}/${token?.address}/logo-32.png`}
 						width={24}
 						height={24}
 					/>

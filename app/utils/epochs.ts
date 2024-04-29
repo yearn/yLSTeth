@@ -1,30 +1,22 @@
 import {toBigInt} from '@builtbymom/web3/utils';
 
 import {
-	APXETH_TOKEN,
-	CBETH_TOKEN,
-	MEVETH_TOKEN,
-	MPETH_TOKEN,
-	RETH_TOKEN,
-	SFRXETH_TOKEN,
-	STADERETH_TOKEN,
-	SWETH_TOKEN,
-	WEETH_TOKEN,
-	WSTETH_TOKEN
-} from '../tokens';
-import {EPOCH_AVG_BLOCKS, EPOCH_DURATION, INITIAL_PERIOD_BLOCK, INITIAL_PERIOD_TIMESTAMP} from './constants';
+	DAILY_AVG_BLOCKS,
+	EPOCH_AVG_BLOCKS,
+	EPOCH_DURATION,
+	INITIAL_PERIOD_BLOCK,
+	INITIAL_PERIOD_TIMESTAMP
+} from './constants';
 
 import type {TEpoch} from './types';
 
 const emptyEpoch: TEpoch = {
 	index: 0,
 	inclusion: {
-		id: '0x0',
-		candidates: []
+		id: '0x0'
 	},
 	weight: {
-		id: '0x0',
-		participants: []
+		id: '0x0'
 	},
 	merkle: {}
 };
@@ -99,6 +91,12 @@ export function getEpochEndBlock(epochNumber: number): bigint {
 	return INITIAL_PERIOD_BLOCK + toBigInt(epochNumber) * EPOCH_AVG_BLOCKS + EPOCH_AVG_BLOCKS;
 }
 
+export function getEpochStartBlock(epochNumber: number): bigint {
+	const fourDays = DAILY_AVG_BLOCKS * 4n;
+	const xEpochs = toBigInt(epochNumber) * EPOCH_AVG_BLOCKS;
+	return INITIAL_PERIOD_BLOCK + xEpochs - fourDays;
+}
+
 /** 🔵 - Yearn *************************************************************************************
  ** To add a new epoch, follow these steps:
  **
@@ -142,18 +140,10 @@ const allEpochs: TEpoch[] = [];
 allEpochs.push({
 	index: 0,
 	inclusion: {
-		id: '0x0101000000000000000000000000000000000000000000000000000000000000',
-		candidates: [{...MPETH_TOKEN, index: 0}]
+		id: '0x0101000000000000000000000000000000000000000000000000000000000000'
 	},
 	weight: {
-		id: '0x0102000000000000000000000000000000000000000000000000000000000000',
-		participants: [
-			{...SFRXETH_TOKEN, index: 0},
-			{...SWETH_TOKEN, index: 1},
-			{...WSTETH_TOKEN, index: 2},
-			{...STADERETH_TOKEN, index: 3},
-			{...CBETH_TOKEN, index: 4}
-		]
+		id: '0x0102000000000000000000000000000000000000000000000000000000000000'
 	},
 	merkle: {
 		'0xD619F816156EFfABF9dDab313cff6b46cad3Fbdd': [
@@ -267,22 +257,10 @@ allEpochs.push({
 allEpochs.push({
 	index: 1,
 	inclusion: {
-		id: '0x0201000000000000000000000000000000000000000000000000000000000000',
-		candidates: [
-			{...MPETH_TOKEN, index: 0},
-			{...RETH_TOKEN, index: 1},
-			{...MEVETH_TOKEN, index: 2}
-		]
+		id: '0x0201000000000000000000000000000000000000000000000000000000000000'
 	},
 	weight: {
-		id: '0x0202000000000000000000000000000000000000000000000000000000000000',
-		participants: [
-			{...SFRXETH_TOKEN, index: 0},
-			{...SWETH_TOKEN, index: 1},
-			{...WSTETH_TOKEN, index: 2},
-			{...STADERETH_TOKEN, index: 3},
-			{...CBETH_TOKEN, index: 4}
-		]
+		id: '0x0202000000000000000000000000000000000000000000000000000000000000'
 	},
 	merkle: {
 		'0xd7F9c6EfDFa2bd42b440E61Bbbd263203025AA32': [
@@ -2561,22 +2539,10 @@ allEpochs.push({
 	index: 2,
 	incentiveAPR: 22.1,
 	inclusion: {
-		id: '0x0301000000000000000000000000000000000000000000000000000000000000',
-		candidates: [
-			{...WEETH_TOKEN, index: 0},
-			{...RETH_TOKEN, index: 1}
-		]
+		id: '0x0301000000000000000000000000000000000000000000000000000000000000'
 	},
 	weight: {
-		id: '0x0302000000000000000000000000000000000000000000000000000000000000',
-		participants: [
-			{...SFRXETH_TOKEN, index: 0},
-			{...SWETH_TOKEN, index: 1},
-			{...WSTETH_TOKEN, index: 2},
-			{...STADERETH_TOKEN, index: 3},
-			{...CBETH_TOKEN, index: 4},
-			{...MEVETH_TOKEN, index: 5}
-		]
+		id: '0x0302000000000000000000000000000000000000000000000000000000000000'
 	},
 	merkle: {}
 });
@@ -2585,23 +2551,10 @@ allEpochs.push({
 allEpochs.push({
 	index: 3,
 	inclusion: {
-		id: '0x0401000000000000000000000000000000000000000000000000000000000000',
-		candidates: [
-			{...WEETH_TOKEN, index: 0},
-			{...MPETH_TOKEN, index: 1}
-		]
+		id: '0x0401000000000000000000000000000000000000000000000000000000000000'
 	},
 	weight: {
-		id: '0x0402000000000000000000000000000000000000000000000000000000000000',
-		participants: [
-			{...SFRXETH_TOKEN, index: 0},
-			{...SWETH_TOKEN, index: 1},
-			{...WSTETH_TOKEN, index: 2},
-			{...STADERETH_TOKEN, index: 3},
-			{...CBETH_TOKEN, index: 4},
-			{...MEVETH_TOKEN, index: 5},
-			{...RETH_TOKEN, index: 6}
-		]
+		id: '0x0402000000000000000000000000000000000000000000000000000000000000'
 	},
 	merkle: {}
 });
@@ -2610,23 +2563,10 @@ allEpochs.push({
 allEpochs.push({
 	index: 4,
 	inclusion: {
-		id: '0x0501000000000000000000000000000000000000000000000000000000000000',
-		candidates: [
-			{...MPETH_TOKEN, index: 0},
-			{...APXETH_TOKEN, index: 1}
-		]
+		id: '0x0501000000000000000000000000000000000000000000000000000000000000'
 	},
 	weight: {
-		id: '0x0502000000000000000000000000000000000000000000000000000000000000',
-		participants: [
-			{...SFRXETH_TOKEN, index: 0},
-			{...SWETH_TOKEN, index: 1},
-			{...WSTETH_TOKEN, index: 2},
-			{...STADERETH_TOKEN, index: 3},
-			{...CBETH_TOKEN, index: 4},
-			{...MEVETH_TOKEN, index: 5},
-			{...RETH_TOKEN, index: 6}
-		]
+		id: '0x0502000000000000000000000000000000000000000000000000000000000000'
 	},
 	merkle: {
 		'0xb957DccaA1CCFB1eB78B495B499801D591d8a403': [
@@ -3327,21 +3267,10 @@ allEpochs.push({
 	index: 5,
 	incentiveAPR: 4.4,
 	inclusion: {
-		id: '0x0601000000000000000000000000000000000000000000000000000000000000',
-		candidates: []
+		id: '0x0601000000000000000000000000000000000000000000000000000000000000'
 	},
 	weight: {
-		id: '0x0602000000000000000000000000000000000000000000000000000000000000',
-		participants: [
-			{...SFRXETH_TOKEN, index: 0},
-			{...SWETH_TOKEN, index: 1},
-			{...WSTETH_TOKEN, index: 2},
-			{...STADERETH_TOKEN, index: 3},
-			{...CBETH_TOKEN, index: 4},
-			{...MEVETH_TOKEN, index: 5},
-			{...RETH_TOKEN, index: 6},
-			{...APXETH_TOKEN, index: 7}
-		]
+		id: '0x0602000000000000000000000000000000000000000000000000000000000000'
 	},
 	merkle: {}
 });

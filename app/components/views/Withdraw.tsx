@@ -1,11 +1,11 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {removeLiquidityFromPool, removeLiquiditySingleFromPool} from 'app/actions';
 import SettingsPopover from 'app/components/common/SettingsPopover';
 import TokenInput from 'app/components/common/TokenInput';
+import useBasket from 'app/contexts/useBasket';
 import useLST from 'app/contexts/useLST';
 import {ETH_TOKEN, STYETH_TOKEN, YETH_TOKEN} from 'app/tokens';
 import {ESTIMATOR_ABI} from 'app/utils/abi/estimator.abi';
-import {LST} from 'app/utils/constants';
 import assert from 'assert';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
@@ -18,13 +18,14 @@ import {
 	toNormalizedBN,
 	zeroNormalizedBN
 } from '@builtbymom/web3/utils';
-import {defaultTxStatus} from '@builtbymom/web3/utils/wagmi';
+import {defaultTxStatus, retrieveConfig} from '@builtbymom/web3/utils/wagmi';
 import {readContract} from '@wagmi/core';
 import {Button} from '@yearn-finance/web-lib/components/Button';
-import {ImageWithFallback} from '@yearn-finance/web-lib/components/ImageWithFallback';
 import {IconChevronBottom} from '@yearn-finance/web-lib/icons/IconChevronBottom';
 
-import type {TLST} from 'app/hooks/useLSTData';
+import {ImageWithFallback} from '../common/ImageWithFallback';
+
+import type {TBasketItem} from 'app/utils/types';
 import type {ReactElement} from 'react';
 import type {TNormalizedBN} from '@builtbymom/web3/types';
 import type {TTxStatus} from '@builtbymom/web3/utils/wagmi';
@@ -36,9 +37,9 @@ function ViewLSTWithdrawForm({
 	isSelected,
 	shouldHideRadio
 }: {
-	token: TLST;
+	token: TBasketItem;
 	amount: TNormalizedBN;
-	onSelect: (token: TLST) => void;
+	onSelect: (token: TBasketItem) => void;
 	isSelected: boolean;
 	shouldHideRadio?: boolean;
 }): ReactElement {
@@ -56,17 +57,18 @@ function ViewLSTWithdrawForm({
 						radioGroup={'singleToken'}
 						checked={isSelected}
 						className={
-							'size-2 absolute left-12 mt-0.5 cursor-pointer border-none bg-transparent text-purple-300 outline outline-2 outline-offset-2 outline-neutral-600 checked:bg-purple-300 checked:outline-purple-300 focus-within:bg-purple-300 focus:bg-purple-300'
+							'absolute left-12 mt-0.5 size-2 cursor-pointer border-none bg-transparent text-purple-300 outline outline-2 outline-offset-2 outline-neutral-600 checked:bg-purple-300 checked:outline-purple-300 focus-within:bg-purple-300 focus:bg-purple-300'
 						}
 						style={{backgroundImage: 'none'}}
 						onChange={(): void => onSelect(token)}
 					/>
 				)}
-				<div className={'size-6 mr-2 min-w-[24px]'}>
+				<div className={'mr-2 size-6 min-w-[24px]'}>
 					<ImageWithFallback
 						alt={token.name}
 						unoptimized
 						src={token.logoURI || ''}
+						altSrc={`${process.env.SMOL_ASSETS_URL}/token/${Number(process.env.DEFAULT_CHAIN_ID)}/${token.address}/logo-32.png`}
 						width={24}
 						height={24}
 					/>
@@ -106,16 +108,17 @@ function ViewSelectedTokens({
 	set_bonusOrPenalty
 }: {
 	amounts: TNormalizedBN[];
-	selectedLST: TLST;
+	selectedLST: TBasketItem;
 	shouldBalanceTokens: boolean;
 	set_amounts: (amounts: TNormalizedBN[]) => void;
-	set_selectedLST: (token: TLST) => void;
+	set_selectedLST: (token: TBasketItem) => void;
 	set_shouldBalanceTokens: (shouldBalance: boolean) => void;
 	set_bonusOrPenalty: (bonusOrPenalty: number) => void;
 }): ReactElement {
 	const {isActive, provider} = useWeb3();
 	const {onRefresh} = useWallet();
-	const {lst, slippage} = useLST();
+	const {slippage} = useLST();
+	const {basket, isLoaded} = useBasket();
 	const [txStatus, set_txStatus] = useState<TTxStatus>(defaultTxStatus);
 	const [fromAmount, set_fromAmount] = useState<TNormalizedBN>(zeroNormalizedBN);
 
@@ -130,8 +133,9 @@ function ViewSelectedTokens({
 			if (shouldBalance) {
 				if (newAmount.raw > 0n) {
 					try {
-						const estimatedAmount = await readContract({
+						const estimatedAmount = await readContract(retrieveConfig(), {
 							address: toAddress(process.env.ESTIMATOR_ADDRESS),
+							chainId: Number(process.env.DEFAULT_CHAIN_ID),
 							abi: ESTIMATOR_ABI,
 							functionName: 'get_remove_lp',
 							args: [newAmount.raw]
@@ -152,8 +156,9 @@ function ViewSelectedTokens({
 			} else {
 				if (newAmount.raw > 0n) {
 					try {
-						const estimatedAmount = await readContract({
+						const estimatedAmount = await readContract(retrieveConfig(), {
 							address: toAddress(process.env.ESTIMATOR_ADDRESS),
+							chainId: Number(process.env.DEFAULT_CHAIN_ID),
 							abi: ESTIMATOR_ABI,
 							functionName: 'get_remove_single_lp',
 							args: [toBigInt(selectedLSTIndex), newAmount.raw]
@@ -164,7 +169,7 @@ function ViewSelectedTokens({
 							}
 							return zeroNormalizedBN;
 						});
-						const vb = await readContract({
+						const vb = await readContract(retrieveConfig(), {
 							abi: ESTIMATOR_ABI,
 							address: toAddress(process.env.ESTIMATOR_ADDRESS),
 							functionName: 'get_vb',
@@ -215,19 +220,19 @@ function ViewSelectedTokens({
 		if (shouldBalanceTokens) {
 			const result = await removeLiquidityFromPool({
 				connector: provider,
-				chainID: Number(process.env.BASE_CHAIN_ID),
+				chainID: Number(process.env.DEFAULT_CHAIN_ID),
 				contractAddress: STYETH_TOKEN.address,
 				amount: fromAmount.raw,
 				minOuts: amounts.map((item): bigint => item.raw),
 				statusHandler: set_txStatus
 			});
 			if (result.isSuccessful) {
-				await onRefresh([ETH_TOKEN, STYETH_TOKEN, YETH_TOKEN, ...LST]);
+				await onRefresh([ETH_TOKEN, STYETH_TOKEN, YETH_TOKEN, ...basket]);
 			}
 		} else {
 			const result = await removeLiquiditySingleFromPool({
 				connector: provider,
-				chainID: Number(process.env.BASE_CHAIN_ID),
+				chainID: Number(process.env.DEFAULT_CHAIN_ID),
 				contractAddress: STYETH_TOKEN.address,
 				index: toBigInt(selectedLST.index),
 				amount: fromAmount.raw,
@@ -235,7 +240,7 @@ function ViewSelectedTokens({
 				statusHandler: set_txStatus
 			});
 			if (result.isSuccessful) {
-				await onRefresh([ETH_TOKEN, STYETH_TOKEN, YETH_TOKEN, ...LST]);
+				await onRefresh([ETH_TOKEN, STYETH_TOKEN, YETH_TOKEN, ...basket]);
 			}
 		}
 		set_fromAmount(zeroNormalizedBN);
@@ -246,10 +251,11 @@ function ViewSelectedTokens({
 		isActive,
 		provider,
 		onRefresh,
-		selectedLST.index,
+		selectedLST?.index,
 		set_amounts,
 		shouldBalanceTokens,
-		slippage
+		slippage,
+		basket
 	]);
 
 	return (
@@ -266,12 +272,14 @@ function ViewSelectedTokens({
 							radioGroup={'singleToken'}
 							checked={!shouldBalanceTokens}
 							className={
-								'size-3 mt-0.5 border-none bg-transparent text-purple-300 outline outline-2 outline-offset-2 outline-neutral-600 checked:bg-purple-300 checked:outline-purple-300 focus-within:bg-purple-300 focus:bg-purple-300'
+								'mt-0.5 size-3 border-none bg-transparent text-purple-300 outline outline-2 outline-offset-2 outline-neutral-600 checked:bg-purple-300 checked:outline-purple-300 focus-within:bg-purple-300 focus:bg-purple-300'
 							}
 							style={{backgroundImage: 'none'}}
 							onChange={(): void => {
 								set_shouldBalanceTokens(false);
-								onUpdateFromAmount(fromAmount, selectedLST.index, false);
+								if (selectedLST) {
+									onUpdateFromAmount(fromAmount, selectedLST.index, false);
+								}
 							}}
 						/>
 						<p
@@ -289,7 +297,7 @@ function ViewSelectedTokens({
 							radioGroup={'singleToken'}
 							checked={shouldBalanceTokens}
 							className={
-								'size-3 mt-0.5 border-none bg-transparent text-purple-300 outline outline-2 outline-offset-2 outline-neutral-600 checked:bg-purple-300 checked:outline-purple-300 focus-within:bg-purple-300 focus:bg-purple-300'
+								'mt-0.5 size-3 border-none bg-transparent text-purple-300 outline outline-2 outline-offset-2 outline-neutral-600 checked:bg-purple-300 checked:outline-purple-300 focus-within:bg-purple-300 focus:bg-purple-300'
 							}
 							style={{backgroundImage: 'none'}}
 							onChange={(): void => {
@@ -311,7 +319,7 @@ function ViewSelectedTokens({
 					<TokenInput
 						allowance={toNormalizedBN(MAX_UINT_256, 18)}
 						shouldCheckAllowance={false}
-						token={YETH_TOKEN as TLST}
+						token={YETH_TOKEN as TBasketItem}
 						value={fromAmount}
 						onChange={(v): void => {
 							onUpdateFromAmount(v, selectedLST.index, shouldBalanceTokens);
@@ -324,22 +332,37 @@ function ViewSelectedTokens({
 					</div>
 					<div className={'mt-4'}>
 						<div className={'grid gap-5'}>
-							{lst.map(
-								(token, index): ReactElement => (
-									<ViewLSTWithdrawForm
-										key={token.address}
-										isSelected={selectedLST.address === token.address}
-										onSelect={(token): void => {
-											set_selectedLST(token);
-											onUpdateFromAmount(fromAmount, token.index, shouldBalanceTokens);
-										}}
-										shouldHideRadio={shouldBalanceTokens}
-										token={token}
-										amount={
-											toBigInt(amounts[index]?.raw) === -1n ? zeroNormalizedBN : amounts[index]
-										}
-									/>
+							{isLoaded ? (
+								basket.map(
+									(token, index): ReactElement => (
+										<ViewLSTWithdrawForm
+											key={token.address}
+											isSelected={toAddress(selectedLST?.address) === toAddress(token.address)}
+											onSelect={(token): void => {
+												set_selectedLST(token);
+												onUpdateFromAmount(fromAmount, token.index, shouldBalanceTokens);
+											}}
+											shouldHideRadio={shouldBalanceTokens}
+											token={token}
+											amount={
+												toBigInt(amounts[index]?.raw) === -1n
+													? zeroNormalizedBN
+													: amounts[index]
+											}
+										/>
+									)
 								)
+							) : (
+								<>
+									<div className={'skeleton-lg mb-5 h-10 w-full'}></div>
+									<div className={'skeleton-lg mb-5 h-10 w-full'}></div>
+									<div className={'skeleton-lg mb-5 h-10 w-full'}></div>
+									<div className={'skeleton-lg mb-5 h-10 w-full'}></div>
+									<div className={'skeleton-lg mb-5 h-10 w-full'}></div>
+									<div className={'skeleton-lg mb-5 h-10 w-full'}></div>
+									<div className={'skeleton-lg mb-5 h-10 w-full'}></div>
+									<div className={'skeleton-lg mb-5 h-10 w-full'}></div>
+								</>
 							)}
 						</div>
 					</div>
@@ -363,12 +386,7 @@ function ViewSelectedTokens({
 	);
 }
 
-function ViewDetails({
-	isOutOfBand,
-	minOut,
-	tokenToReceive,
-	bonusOrPenalty
-}: {
+function ViewDetails(props: {
 	isOutOfBand: boolean;
 	minOut: bigint;
 	tokenToReceive: string;
@@ -376,17 +394,17 @@ function ViewDetails({
 }): ReactElement {
 	const {slippage} = useLST();
 	const bonusOrPenaltyFormatted = useMemo((): string => {
-		if (Number.isNaN(bonusOrPenalty)) {
+		if (Number.isNaN(props.bonusOrPenalty)) {
 			return formatAmount(0, 2, 2);
 		}
-		if (bonusOrPenalty === 0) {
+		if (props.bonusOrPenalty === 0) {
 			return formatAmount(0, 2, 2);
 		}
-		if (Number(bonusOrPenalty.toFixed(6)) === 0) {
+		if (Number(props.bonusOrPenalty.toFixed(6)) === 0) {
 			return formatAmount(0, 2, 2);
 		}
-		return bonusOrPenalty.toFixed(6);
-	}, [bonusOrPenalty]);
+		return props.bonusOrPenalty.toFixed(6);
+	}, [props.bonusOrPenalty]);
 
 	return (
 		<div className={'col-span-12 py-6 pl-0 md:py-10 md:pl-72'}>
@@ -416,13 +434,13 @@ function ViewDetails({
 					</dd>
 				</dl>
 
-				{minOut > -1 ? (
+				{props.minOut > -1 ? (
 					<dl className={'grid grid-cols-3 gap-2 pt-4'}>
-						<dt className={'col-span-2'}>{`Min ${tokenToReceive} to receive`}</dt>
+						<dt className={'col-span-2'}>{`Min ${props.tokenToReceive} to receive`}</dt>
 						<dd
 							suppressHydrationWarning
 							className={'text-right font-bold'}>
-							{formatAmount(toNormalizedBN(minOut, 18).normalized, 6, 6)}
+							{formatAmount(toNormalizedBN(props.minOut, 18).normalized, 6, 6)}
 						</dd>
 					</dl>
 				) : null}
@@ -430,8 +448,8 @@ function ViewDetails({
 				<dl className={'pt-4'}>
 					<dd
 						suppressHydrationWarning
-						className={cl('text-left font-bold', isOutOfBand ? 'text-red-900' : '')}>
-						{isOutOfBand ? 'Out of bands' : ''}
+						className={cl('text-left font-bold', props.isOutOfBand ? 'text-red-900' : '')}>
+						{props.isOutOfBand ? 'Out of bands' : ''}
 					</dd>
 				</dl>
 			</div>
@@ -446,11 +464,20 @@ function ViewDetails({
 }
 
 function ViewWithdraw(): ReactElement {
-	const {lst, slippage} = useLST();
+	const {slippage} = useLST();
+	const {basket} = useBasket();
 	const [shouldBalanceTokens, set_shouldBalanceTokens] = useState(true);
-	const [selectedLST, set_selectedLST] = useState<TLST>(lst[0]);
-	const [amounts, set_amounts] = useState<TNormalizedBN[]>(LST.map((): TNormalizedBN => zeroNormalizedBN));
+	const [selectedLST, set_selectedLST] = useState<TBasketItem>(basket[0]);
+	const [amounts, set_amounts] = useState<TNormalizedBN[]>([]);
 	const [bonusOrPenalty, set_bonusOrPenalty] = useState<number>(0);
+
+	/**********************************************************************************************
+	 ** Initialize the selectedLST to the first token in the basket.
+	 **********************************************************************************************/
+	useEffect(() => {
+		set_selectedLST(basket[0]);
+		set_amounts(basket.map((): TNormalizedBN => zeroNormalizedBN));
+	}, [basket]);
 
 	return (
 		<section className={'relative px-4 md:px-72'}>
@@ -469,9 +496,13 @@ function ViewWithdraw(): ReactElement {
 				/>
 
 				<ViewDetails
-					minOut={shouldBalanceTokens ? -1n : (amounts[selectedLST.index].raw * (10000n - slippage)) / 10000n}
+					minOut={
+						shouldBalanceTokens
+							? -1n
+							: (toBigInt(amounts?.[selectedLST?.index]?.raw) * (10000n - slippage)) / 10000n
+					}
 					bonusOrPenalty={bonusOrPenalty}
-					tokenToReceive={selectedLST.symbol}
+					tokenToReceive={selectedLST?.symbol || 'token'}
 					isOutOfBand={amounts.some((amount): boolean => amount.raw === -1n)}
 				/>
 			</div>

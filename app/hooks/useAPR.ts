@@ -1,10 +1,10 @@
 import {useMemo} from 'react';
 import {ST_YETH_ABI} from 'app/utils/abi/styETH.abi';
-import {useContractRead} from 'wagmi';
+import {useReadContract} from 'wagmi';
 import {toAddress, toNormalizedBN} from '@builtbymom/web3/utils';
 
-function useAPR(): number {
-	const {data} = useContractRead({
+function useAPR(): {APR: number; isLoaded: boolean} {
+	const {data} = useReadContract({
 		address: toAddress(process.env.STYETH_ADDRESS),
 		abi: ST_YETH_ABI,
 		functionName: 'get_amounts'
@@ -18,7 +18,7 @@ function useAPR(): number {
 
 	const estimatedAPR = useMemo((): number => {
 		if (!data) {
-			return 0;
+			return -1;
 		}
 		const [, streamingAmount, unlockedAmount] = data;
 		const _streamingAmount = toNormalizedBN(streamingAmount, 18);
@@ -32,7 +32,7 @@ function useAPR(): number {
 		return _estimatedAPR * 100;
 	}, [data]);
 
-	return estimatedAPR;
+	return {APR: estimatedAPR === -1 ? 0 : estimatedAPR, isLoaded: estimatedAPR !== -1};
 }
 
 export default useAPR;

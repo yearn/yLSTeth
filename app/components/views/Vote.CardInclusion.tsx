@@ -1,52 +1,50 @@
 import React, {useCallback, useMemo, useState} from 'react';
-import {voteWeights} from 'app/actions';
-import useBasket from 'app/contexts/useBasket';
+import {voteInclusion} from 'app/actions';
+import useInclusion from 'app/contexts/useInclusion';
 import {usePrices} from 'app/contexts/usePrices';
-import {ONCHAIN_VOTE_WEIGHT_ABI} from 'app/utils/abi/onchainVoteWeight.abi';
+import {ONCHAIN_VOTE_INCLUSION_ABI} from 'app/utils/abi/onchainVoteInclusion.abi';
 import {NO_CHANGE_LST_LIKE} from 'app/utils/constants';
+import {getEpochEndBlock, getEpochStartBlock} from 'app/utils/epochs';
+import {getLogs} from 'viem/actions';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {useAsyncTrigger} from '@builtbymom/web3/hooks/useAsyncTrigger';
 import {
 	cl,
 	decodeAsBigInt,
 	formatAmount,
-	formatPercent,
 	isZeroAddress,
 	toAddress,
 	toBigInt,
 	truncateHex
 } from '@builtbymom/web3/utils';
 import {defaultTxStatus, retrieveConfig} from '@builtbymom/web3/utils/wagmi';
-import {readContracts} from '@wagmi/core';
+import {getBlockNumber, getClient, readContract, readContracts} from '@wagmi/core';
 import {Button} from '@yearn-finance/web-lib/components/Button';
 
 import {ImageWithFallback} from '../common/ImageWithFallback';
 import IconSpinner from '../icons/IconSpinner';
 
-import type {TBasketItem, TIndexedTokenInfo} from 'app/utils/types';
+import type {TIndexedTokenInfo} from 'app/utils/types';
 import type {ReactElement} from 'react';
 import type {TDict, TNormalizedBN} from '@builtbymom/web3/types';
 import type {TTxStatus} from '@builtbymom/web3/utils/wagmi';
 
-/******************************************************************************
- ** This method is used to display the vote weight for each LST.
- *****************************************************************************/
-function VoteWeightRow(props: {
+function VoteInclusionRow(props: {
 	currentLST: TIndexedTokenInfo;
 	votePowerPerLST: TDict<number>;
 	set_votePowerPerLST: React.Dispatch<React.SetStateAction<TDict<number>>>;
 	hasAlreadyVoted: boolean;
 	isLoadingVoteData: boolean;
 }): ReactElement {
-	const {weightIncentives} = useBasket();
+	const {inclusionIncentives} = useInclusion();
 	const {getPrice} = usePrices();
 
 	/**************************************************************************
 	 ** This method calculates the incentive value
 	 *************************************************************************/
-	const weigthIncentiveValue = useMemo((): number => {
+	const candidateIncentiveValue = useMemo((): number => {
 		let sum = 0;
-		for (const incentive of Object.values(weightIncentives[props.currentLST.address] || {})) {
+		for (const incentive of Object.values(inclusionIncentives[props.currentLST.address] || {})) {
 			// We don't care about this level for candidates incentives
 			for (const eachIncentive of incentive) {
 				const price = getPrice({address: eachIncentive.address});
@@ -54,14 +52,13 @@ function VoteWeightRow(props: {
 			}
 		}
 		return sum;
-	}, [getPrice, props.currentLST.address, weightIncentives]);
+	}, [inclusionIncentives, getPrice, props.currentLST.address]);
 
 	/**************************************************************************
 	 ** Row rendering
 	 *************************************************************************/
 	return (
 		<div
-			key={props.currentLST.address}
 			aria-label={'content'}
 			className={
 				'my-0.5 grid grid-cols-12 rounded-sm bg-neutral-100/50 p-4 transition-colors open:bg-neutral-100 hover:bg-neutral-100'
@@ -79,28 +76,19 @@ function VoteWeightRow(props: {
 				</div>
 				<div className={'flex flex-col'}>
 					<p className={'whitespace-nowrap'}>
-						{props.currentLST?.symbol || truncateHex(props.currentLST.address, 6)}
+						{props.currentLST.symbol || truncateHex(props.currentLST.address, 6)}
 					</p>
 					<small className={'whitespace-nowrap text-xs'}>{props.currentLST.name}</small>
 				</div>
 			</div>
-			<div className={'col-span-12 mt-4 flex items-center justify-between md:col-span-3 md:mt-0 md:justify-end'}>
+			<div className={'col-span-12 mt-4 flex items-center justify-between md:col-span-6 md:mt-0 md:justify-end'}>
 				<small className={'block text-neutral-500 md:hidden'}>{'Total incentive (USD)'}</small>
 				<p
 					suppressHydrationWarning
 					className={'font-number'}>
-					{`$${formatAmount(weigthIncentiveValue, 2, 2)}`}
+					{`$${formatAmount(candidateIncentiveValue, 2, 2)}`}
 				</p>
 			</div>
-			<div className={'col-span-12 mt-2 flex items-center justify-between md:col-span-3 md:mt-0 md:justify-end'}>
-				<small className={'block text-neutral-500 md:hidden'}>{'Current weight'}</small>
-				<p
-					suppressHydrationWarning
-					className={'font-number'}>
-					{formatPercent(Number((props.currentLST as TBasketItem)?.weight?.normalized || 0) * 100)}
-				</p>
-			</div>
-
 			<div className={'col-span-12 mt-2 flex w-full items-center pl-[40%] md:col-span-3 md:mt-0'}>
 				<div className={'grid h-10 w-full grid-cols-4 items-center rounded-lg bg-neutral-0'}>
 					<div className={'flex items-center justify-start pl-1'}>
@@ -163,16 +151,16 @@ function VoteWeightRow(props: {
 	);
 }
 
-function VoteCardWeights(props: {
+function VoteCardInclusion(props: {
 	votePower: TNormalizedBN | undefined;
-	isVoteOpen: boolean;
 	hasVoted: boolean;
+	isVoteOpen: boolean;
 }): ReactElement {
 	const {provider, address} = useWeb3();
 	const [votePowerPerLST, set_votePowerPerLST] = useState<TDict<number>>({});
 	const [voteWeightStatus, set_voteWeightStatus] = useState<TTxStatus>(defaultTxStatus);
+	const {candidates, isLoaded} = useInclusion();
 	const [isLoadingVoteData, set_isLoadingVoteData] = useState(false);
-	const {basket, isLoaded} = useBasket();
 
 	/**********************************************************************************************
 	 **	Retrieve the current vote info for the user.
@@ -183,14 +171,14 @@ function VoteCardWeights(props: {
 		}
 
 		set_isLoadingVoteData(true);
-		/* 🔵 - Yearn Finance **********************************************************************
+		/******************************************************************************************
 		 **	First we need to retrive the current epoch
 		 ******************************************************************************************/
 		const [_epoch] = await readContracts(retrieveConfig(), {
 			contracts: [
 				{
-					abi: ONCHAIN_VOTE_WEIGHT_ABI,
-					address: toAddress(process.env.WEIGHT_VOTE_ADDRESS),
+					abi: ONCHAIN_VOTE_INCLUSION_ABI,
+					address: toAddress(process.env.INCLUSION_VOTE_ADDRESS),
 					chainId: Number(process.env.DEFAULT_CHAIN_ID),
 					functionName: 'epoch'
 				}
@@ -198,37 +186,55 @@ function VoteCardWeights(props: {
 		});
 		const epoch = decodeAsBigInt(_epoch);
 
-		/* 🔵 - Yearn Finance **********************************************************************
+		/******************************************************************************************
+		 **	Then we need to check if the user already voted for this epoch
+		 ******************************************************************************************/
+		const votedWeight = await readContract(retrieveConfig(), {
+			abi: ONCHAIN_VOTE_INCLUSION_ABI,
+			address: toAddress(process.env.INCLUSION_VOTE_ADDRESS),
+			chainId: Number(process.env.DEFAULT_CHAIN_ID),
+			functionName: 'votes_user',
+			args: [toAddress(address), epoch]
+		});
+		const hasAlreadyVoted = votedWeight > 0n;
+
+		/******************************************************************************************
 		 **	If so, we can try to retrieve the vote weight for each LST and display them.
 		 ******************************************************************************************/
-		if (props.hasVoted) {
-			const votesUser = await readContracts(retrieveConfig(), {
-				contracts: [
-					{
-						abi: ONCHAIN_VOTE_WEIGHT_ABI,
-						address: toAddress(process.env.WEIGHT_VOTE_ADDRESS),
-						chainId: Number(process.env.DEFAULT_CHAIN_ID),
-						functionName: 'votes_user',
-						args: [toAddress(address), epoch, 0]
-					},
-					...basket.map(e => ({
-						abi: ONCHAIN_VOTE_WEIGHT_ABI,
-						address: toAddress(process.env.WEIGHT_VOTE_ADDRESS),
-						chainId: Number(process.env.DEFAULT_CHAIN_ID),
-						functionName: 'votes_user',
-						args: [toAddress(address), epoch, e.index]
-					}))
-				]
-			});
+		if (hasAlreadyVoted) {
+			const rangeLimit = toBigInt(Number(process.env.RANGE_LIMIT));
+			const epochStartBlock = getEpochStartBlock(Number(epoch));
+			const epochEndBlock = getEpochEndBlock(Number(epoch));
+			const currentBlock = await getBlockNumber(retrieveConfig());
+			const checkUpToBlock = epochEndBlock < currentBlock ? epochEndBlock : currentBlock;
+			const publicClient = getClient(retrieveConfig());
 			const votes: TDict<number> = {};
-			for (const item of basket) {
-				votes[item.address] = Number(votesUser[item.index]?.result || 0);
+			if (publicClient) {
+				for (let i = epochStartBlock; i < checkUpToBlock; i += rangeLimit) {
+					const events = await getLogs(publicClient, {
+						address: toAddress(process.env.INCLUSION_VOTE_ADDRESS),
+						event: ONCHAIN_VOTE_INCLUSION_ABI[2],
+						fromBlock: i,
+						toBlock: i + rangeLimit,
+						args: {
+							epoch: epoch,
+							account: toAddress(address)
+						}
+					});
+					for (const log of events) {
+						if (log.args.votes && log.args.epoch === epoch) {
+							for (const item of candidates) {
+								votes[item.address] = Number(log.args.votes[item.index] || 0);
+							}
+							votes[NO_CHANGE_LST_LIKE.address] = Number(log.args.votes[0] || 0);
+						}
+					}
+				}
 			}
-			votes[NO_CHANGE_LST_LIKE.address] = Number(votesUser[0]?.result || 0);
 			set_votePowerPerLST(votes);
 		}
 		set_isLoadingVoteData(false);
-	}, [address, basket, props.hasVoted]);
+	}, [address, candidates]);
 
 	/**********************************************************************************************
 	 **	Trigger an onchain vote and update the vote weight for each LST.
@@ -237,19 +243,18 @@ function VoteCardWeights(props: {
 		const voteScale = 10_000;
 		const sumOfVotes = Object.values(votePowerPerLST).reduce((a, b) => a + b, 0);
 		const votes = [];
-		for (const item of basket) {
+		for (const item of candidates) {
 			const numberOfVoteForThisLST = votePowerPerLST[item.address] || 0;
 			votes[item.index] = Math.floor((numberOfVoteForThisLST / sumOfVotes) * voteScale);
 		}
 		const numberOfVoteForNoChange = votePowerPerLST[NO_CHANGE_LST_LIKE.address] || 0;
-		votes.unshift(Math.floor((numberOfVoteForNoChange / sumOfVotes) * voteScale));
-
+		votes[0] = Math.floor((numberOfVoteForNoChange / sumOfVotes) * voteScale);
 		const totalVotePower = votes.reduce((a, b) => a + b, 0);
 		if (totalVotePower < voteScale) {
 			votes[0] += voteScale - totalVotePower;
 		}
 
-		const result = await voteWeights({
+		const result = await voteInclusion({
 			connector: provider,
 			chainID: Number(process.env.DEFAULT_CHAIN_ID),
 			contractAddress: toAddress(process.env.ONCHAIN_GOV_ADDRESS),
@@ -259,7 +264,7 @@ function VoteCardWeights(props: {
 		if (result.isSuccessful) {
 			onRefreshVotes();
 		}
-	}, [basket, provider, votePowerPerLST, onRefreshVotes]);
+	}, [candidates, provider, votePowerPerLST, onRefreshVotes]);
 
 	return (
 		<div className={'mt-8'}>
@@ -269,43 +274,37 @@ function VoteCardWeights(props: {
 				<div className={'col-span-3'}>
 					<p className={'text-xs text-neutral-500'}>{'LST'}</p>
 				</div>
-				<div className={'col-span-3 -mr-2 flex justify-end text-right'}>
+				<div className={'col-span-6 -mr-2 flex justify-end text-right'}>
 					<p className={'group flex flex-row text-xs text-neutral-500'}>{'Incentives (USD)'}</p>
-				</div>
-				<div className={'col-span-3 -mr-2 flex justify-end text-right'}>
-					<p className={'group flex flex-row text-xs text-neutral-500'}>{'Current weight'}</p>
 				</div>
 			</div>
 
-			{[NO_CHANGE_LST_LIKE, ...basket]
-				.filter((e): boolean => Boolean(e))
-				.map((currentLST): ReactElement => {
-					return (
-						<VoteWeightRow
-							key={currentLST.address}
-							currentLST={currentLST}
-							votePowerPerLST={votePowerPerLST}
-							set_votePowerPerLST={set_votePowerPerLST}
-							hasAlreadyVoted={props.hasVoted}
-							isLoadingVoteData={isLoadingVoteData}
-						/>
-					);
-				})}
+			{candidates.length === 0
+				? []
+				: [NO_CHANGE_LST_LIKE, ...candidates]
+						.filter((e): boolean => Boolean(e))
+						.map((currentLST): ReactElement => {
+							return (
+								<VoteInclusionRow
+									key={currentLST.address}
+									currentLST={currentLST}
+									votePowerPerLST={votePowerPerLST}
+									set_votePowerPerLST={set_votePowerPerLST}
+									hasAlreadyVoted={props.hasVoted}
+									isLoadingVoteData={isLoadingVoteData}
+								/>
+							);
+						})}
 
 			{!isLoaded && (
 				<div className={'grid'}>
 					<div className={'skeleton-lg mb-1 h-[70px] w-full'}></div>
 					<div className={'skeleton-lg mb-1 h-[70px] w-full'}></div>
 					<div className={'skeleton-lg mb-1 h-[70px] w-full'}></div>
-					<div className={'skeleton-lg mb-1 h-[70px] w-full'}></div>
-					<div className={'skeleton-lg mb-1 h-[70px] w-full'}></div>
-					<div className={'skeleton-lg mb-1 h-[70px] w-full'}></div>
-					<div className={'skeleton-lg mb-1 h-[70px] w-full'}></div>
-					<div className={'skeleton-lg mb-1 h-[70px] w-full'}></div>
 				</div>
 			)}
 
-			<div className={'mt-auto pt-10'}>
+			<div className={cl('mt-auto pt-10', candidates.length === 0 ? 'hidden' : '')}>
 				<Button
 					onClick={onVote}
 					isBusy={voteWeightStatus.pending}
@@ -326,4 +325,4 @@ function VoteCardWeights(props: {
 	);
 }
 
-export {VoteCardWeights};
+export {VoteCardInclusion};

@@ -1,18 +1,20 @@
-import React, {useCallback, useMemo, useState} from 'react';
-import {approveERC20, swapLST, swapOutLST} from 'app/actions';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {swapLST, swapOutLST} from 'app/actions';
 import SettingsPopover from 'app/components/common/SettingsPopover';
 import TokenInput from 'app/components/common/TokenInput';
 import IconSwapSVG from 'app/components/icons/IconSwap';
+import useBasket from 'app/contexts/useBasket';
 import useLST from 'app/contexts/useLST';
 import {ETH_TOKEN, YETH_TOKEN} from 'app/tokens';
 import {ESTIMATOR_ABI} from 'app/utils/abi/estimator.abi';
-import {LST} from 'app/utils/constants';
 import assert from 'assert';
-import {erc20ABI, useContractRead, useContractReads} from 'wagmi';
+import {erc20Abi} from 'viem';
+import {useReadContract, useReadContracts} from 'wagmi';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {useAsyncTrigger} from '@builtbymom/web3/hooks/useAsyncTrigger';
 import {
+	assertAddress,
 	cl,
 	decodeAsBigInt,
 	formatAmount,
@@ -22,21 +24,21 @@ import {
 	toNormalizedBN,
 	zeroNormalizedBN
 } from '@builtbymom/web3/utils';
-import {defaultTxStatus} from '@builtbymom/web3/utils/wagmi';
+import {approveERC20, defaultTxStatus} from '@builtbymom/web3/utils/wagmi';
 import {Button} from '@yearn-finance/web-lib/components/Button';
 
-import type {TLST} from 'app/hooks/useLSTData';
+import type {TBasketItem} from 'app/utils/types';
 import type {Dispatch, ReactElement, SetStateAction} from 'react';
 import type {TNormalizedBN} from '@builtbymom/web3/types';
 import type {TTxStatus} from '@builtbymom/web3/utils/wagmi';
 
 type TViewSwapBox = {
-	selectedFromLST: TLST;
-	selectedToLST: TLST;
+	selectedFromLST: TBasketItem;
+	selectedToLST: TBasketItem;
 	fromAmount: TNormalizedBN;
 	toAmount: TNormalizedBN;
-	set_selectedFromLST: Dispatch<SetStateAction<TLST>>;
-	set_selectedToLST: Dispatch<SetStateAction<TLST>>;
+	set_selectedFromLST: Dispatch<SetStateAction<TBasketItem>>;
+	set_selectedToLST: Dispatch<SetStateAction<TBasketItem>>;
 	set_fromAmount: Dispatch<SetStateAction<TNormalizedBN>>;
 	set_toAmount: Dispatch<SetStateAction<TNormalizedBN>>;
 	set_bonusOrPenalty: Dispatch<SetStateAction<number>>;
@@ -55,7 +57,8 @@ function ViewSwapBox({
 	set_rate
 }: TViewSwapBox): ReactElement {
 	const {isActive, provider, address} = useWeb3();
-	const {lst, onUpdateLST, slippage} = useLST();
+	const {basket, isLoaded, refreshBasket} = useBasket();
+	const {slippage} = useLST();
 	const {getBalance, onRefresh} = useWallet();
 	const [txStatus, set_txStatus] = useState<TTxStatus>(defaultTxStatus);
 	const [lastInput, set_lastInput] = useState<'from' | 'to'>('from');
@@ -64,11 +67,15 @@ function ViewSwapBox({
 	 ** If the user wants to swap, he first needs to approve the pool to spend the token he wants
 	 ** to spend. This is done by calling the approve function on the ERC20 token contract.
 	 **********************************************************************************************/
-	const {data: allowance, refetch: refreshAllowance} = useContractRead({
-		address: selectedFromLST.address,
-		abi: erc20ABI,
+	const {data: allowance, refetch: refreshAllowance} = useReadContract({
+		address: selectedFromLST?.address,
+		abi: erc20Abi,
 		functionName: 'allowance',
-		args: [toAddress(address), toAddress(process.env.POOL_ADDRESS)]
+		chainId: Number(process.env.DEFAULT_CHAIN_ID),
+		args: [toAddress(address), toAddress(process.env.POOL_ADDRESS)],
+		query: {
+			enabled: Boolean(selectedFromLST)
+		}
 	});
 	const hasAllowance = useMemo((): boolean => {
 		if (!fromAmount || !allowance) {
@@ -84,21 +91,21 @@ function ViewSwapBox({
 	 ** We use useContractReads to call both functions at the same time and display the one we want
 	 ** based on the user input.
 	 **********************************************************************************************/
-	const {data: dyDxVb, error: dyDxVbError} = useContractReads({
+	const {data: dyDxVb, error: dyDxVbError} = useReadContracts({
 		contracts: [
 			{
 				abi: ESTIMATOR_ABI,
 				address: toAddress(process.env.ESTIMATOR_ADDRESS),
 				functionName: 'get_dy',
 				chainId: Number(process.env.DEFAULT_CHAIN_ID),
-				args: [toBigInt(selectedFromLST.index), toBigInt(selectedToLST.index), fromAmount.raw]
+				args: [toBigInt(selectedFromLST?.index), toBigInt(selectedToLST?.index), fromAmount.raw]
 			},
 			{
 				abi: ESTIMATOR_ABI,
 				address: toAddress(process.env.ESTIMATOR_ADDRESS),
 				functionName: 'get_dx',
 				chainId: Number(process.env.DEFAULT_CHAIN_ID),
-				args: [toBigInt(selectedToLST.index), toBigInt(selectedFromLST.index), toAmount.raw]
+				args: [toBigInt(selectedToLST?.index), toBigInt(selectedFromLST?.index), toAmount.raw]
 			},
 			{
 				abi: ESTIMATOR_ABI,
@@ -106,31 +113,39 @@ function ViewSwapBox({
 				functionName: 'get_vb',
 				chainId: Number(process.env.DEFAULT_CHAIN_ID),
 				args: [
-					lst.map((item): bigint => {
-						if (item.index === selectedFromLST.index) {
+					basket.map((item): bigint => {
+						if (item.index === selectedFromLST?.index) {
 							return fromAmount.raw;
 						}
 						return 0n;
 					})
 				]
 			}
-		]
+		],
+		query: {
+			enabled: Boolean(selectedFromLST) && Boolean(selectedToLST)
+		}
 	});
 
-	const {data: vbOut} = useContractRead({
-		enabled: Boolean(dyDxVb),
+	const {data: vbOut} = useReadContract({
 		abi: ESTIMATOR_ABI,
 		address: toAddress(process.env.ESTIMATOR_ADDRESS),
 		functionName: 'get_vb',
 		chainId: Number(process.env.DEFAULT_CHAIN_ID),
 		args: [
-			lst.map((item): bigint => {
+			basket.map((item): bigint => {
+				if (!selectedToLST) {
+					return 0n;
+				}
 				if (item.index === selectedToLST.index) {
 					return toBigInt(dyDxVb?.[0].result);
 				}
 				return 0n;
 			})
-		]
+		],
+		query: {
+			enabled: Boolean(dyDxVb) && Boolean(selectedToLST)
+		}
 	});
 
 	/* 🔵 - Yearn Finance **************************************************************************
@@ -186,13 +201,13 @@ function ViewSwapBox({
 	 ** as the fromToken. This is to prevent the user from swapping the same token to itself.
 	 **********************************************************************************************/
 	const onUpdateFromToken = useCallback(
-		(token: TLST): void => {
+		(token: TBasketItem): void => {
 			if (token.address === selectedToLST.address) {
 				set_selectedToLST(selectedFromLST);
 			}
 			set_selectedFromLST(token);
 		},
-		[selectedFromLST, selectedToLST.address, set_selectedFromLST, set_selectedToLST]
+		[selectedFromLST, selectedToLST?.address, set_selectedFromLST, set_selectedToLST]
 	);
 
 	/* 🔵 - Yearn Finance **************************************************************************
@@ -221,13 +236,13 @@ function ViewSwapBox({
 	 ** as the toToken. This is to prevent the user from swapping the same token to itself.
 	 **********************************************************************************************/
 	const onUpdateToToken = useCallback(
-		(token: TLST): void => {
-			if (token.address === selectedFromLST.address) {
+		(token: TBasketItem): void => {
+			if (toAddress(token.address) === toAddress(selectedFromLST?.address)) {
 				set_selectedFromLST(selectedToLST);
 			}
 			set_selectedToLST(token);
 		},
-		[selectedFromLST.address, selectedToLST, set_selectedFromLST, set_selectedToLST]
+		[selectedFromLST?.address, selectedToLST, set_selectedFromLST, set_selectedToLST]
 	);
 
 	/* 🔵 - Yearn Finance **************************************************************************
@@ -261,10 +276,11 @@ function ViewSwapBox({
 		assert(isActive, 'Wallet not connected');
 		assert(provider, 'Provider not connected');
 		assert(fromAmount.raw > 0n, 'Amount must be greater than 0');
+		assertAddress(selectedFromLST?.address, 'Invalid token address');
 
 		const result = await approveERC20({
 			connector: provider,
-			chainID: Number(process.env.BASE_CHAIN_ID),
+			chainID: Number(process.env.DEFAULT_CHAIN_ID),
 			contractAddress: selectedFromLST.address,
 			spenderAddress: toAddress(process.env.POOL_ADDRESS),
 			amount: fromAmount.raw,
@@ -272,19 +288,21 @@ function ViewSwapBox({
 		});
 		if (result.isSuccessful) {
 			refreshAllowance();
-			await onRefresh([ETH_TOKEN, ...LST]);
+			await onRefresh([ETH_TOKEN, ...basket]);
 		}
-	}, [fromAmount.raw, isActive, provider, onRefresh, refreshAllowance, selectedFromLST.address, lst]);
+	}, [fromAmount.raw, isActive, provider, onRefresh, refreshAllowance, selectedFromLST?.address, basket]);
 
 	const onSwap = useCallback(async (): Promise<void> => {
 		assert(isActive, 'Wallet not connected');
 		assert(provider, 'Provider not connected');
+		assert(selectedFromLST, 'Invalid from token');
+		assert(selectedToLST, 'Invalid to token');
 
 		if (lastInput === 'from') {
 			const minOutWith1PercentSlippage: bigint = toAmount.raw - toAmount.raw / (slippage || 1n);
 			const result = await swapLST({
 				connector: provider,
-				chainID: Number(process.env.BASE_CHAIN_ID),
+				chainID: Number(process.env.DEFAULT_CHAIN_ID),
 				contractAddress: toAddress(process.env.POOL_ADDRESS),
 				lstTokenFromIndex: toBigInt(selectedFromLST.index),
 				lstTokenToIndex: toBigInt(selectedToLST.index),
@@ -293,8 +311,8 @@ function ViewSwapBox({
 				statusHandler: set_txStatus
 			});
 			if (result.isSuccessful) {
-				onUpdateLST();
-				await onRefresh([ETH_TOKEN, YETH_TOKEN, ...LST]);
+				refreshBasket();
+				await onRefresh([ETH_TOKEN, YETH_TOKEN, ...basket]);
 				set_fromAmount(zeroNormalizedBN);
 				set_toAmount(zeroNormalizedBN);
 			}
@@ -302,7 +320,7 @@ function ViewSwapBox({
 			const maxInWith1PercentSlippage: bigint = fromAmount.raw + fromAmount.raw / (slippage || 1n);
 			const result = await swapOutLST({
 				connector: provider,
-				chainID: Number(process.env.BASE_CHAIN_ID),
+				chainID: Number(process.env.DEFAULT_CHAIN_ID),
 				contractAddress: toAddress(process.env.POOL_ADDRESS),
 				lstTokenFromIndex: toBigInt(selectedFromLST.index),
 				lstTokenToIndex: toBigInt(selectedToLST.index),
@@ -311,8 +329,8 @@ function ViewSwapBox({
 				statusHandler: set_txStatus
 			});
 			if (result.isSuccessful) {
-				onUpdateLST();
-				await onRefresh([ETH_TOKEN, YETH_TOKEN, ...LST]);
+				refreshBasket();
+				await onRefresh([ETH_TOKEN, YETH_TOKEN, ...basket]);
 				set_fromAmount(zeroNormalizedBN);
 				set_toAmount(zeroNormalizedBN);
 			}
@@ -320,13 +338,14 @@ function ViewSwapBox({
 	}, [
 		isActive,
 		provider,
+		selectedFromLST,
+		selectedToLST,
 		lastInput,
 		toAmount.raw,
 		slippage,
-		selectedFromLST.index,
-		selectedToLST.index,
+		basket,
 		fromAmount.raw,
-		onUpdateLST,
+		refreshBasket,
 		onRefresh,
 		set_fromAmount,
 		set_toAmount
@@ -342,9 +361,9 @@ function ViewSwapBox({
 				<div className={'pt-4'}>
 					<div className={'mt-5 grid'}>
 						<TokenInput
-							key={selectedFromLST.address}
+							key={selectedFromLST?.address}
 							token={selectedFromLST}
-							tokens={lst}
+							tokens={basket}
 							onChangeToken={onUpdateFromToken}
 							value={fromAmount}
 							allowance={toNormalizedBN(allowance || 0n, 18)}
@@ -353,15 +372,15 @@ function ViewSwapBox({
 						<div className={'mb-8 mt-6 flex w-full justify-center'}>
 							<button
 								tabIndex={-1}
-								className={'cursor-pointer'}
+								disabled={!isLoaded}
 								onClick={onSwitchTokens}>
-								<IconSwapSVG />
+								<IconSwapSVG className={isLoaded ? '' : 'pointer-events-none opacity-40'} />
 							</button>
 						</div>
 						<TokenInput
-							key={selectedToLST.address}
+							key={selectedToLST?.address}
 							token={selectedToLST}
-							tokens={lst}
+							tokens={basket}
 							onChangeToken={onUpdateToToken}
 							value={toAmount}
 							allowance={toNormalizedBN(MAX_UINT_256, 18)}
@@ -381,7 +400,7 @@ function ViewSwapBox({
 							!provider ||
 							fromAmount.raw >
 								getBalance({
-									address: selectedFromLST.address,
+									address: selectedFromLST?.address,
 									chainID: Number(process.env.DEFAULT_CHAIN_ID)
 								})?.raw
 						}
@@ -402,8 +421,8 @@ function ViewSwapBox({
 }
 
 type TViewDetailsProps = {
-	selectedFromLST: TLST;
-	selectedToLST: TLST;
+	selectedFromLST: TBasketItem;
+	selectedToLST: TBasketItem;
 	fromAmount: TNormalizedBN;
 	toAmount: TNormalizedBN;
 	bonusOrPenalty: number;
@@ -476,13 +495,22 @@ function ViewDetails(props: TViewDetailsProps): ReactElement {
 }
 
 function ViewSwap(): ReactElement {
-	const {lst} = useLST();
-	const [selectedFromLST, set_selectedFromLST] = useState<TLST>(lst[0]);
-	const [selectedToLST, set_selectedToLST] = useState<TLST>(lst[1]);
+	const {basket} = useBasket();
+	const [selectedFromLST, set_selectedFromLST] = useState<TBasketItem>(basket[0]);
+	const [selectedToLST, set_selectedToLST] = useState<TBasketItem>(basket[1]);
 	const [bonusOrPenalty, set_bonusOrPenalty] = useState<number>(0);
 	const [fromAmount, set_fromAmount] = useState<TNormalizedBN>(zeroNormalizedBN);
 	const [toAmount, set_toAmount] = useState<TNormalizedBN>(zeroNormalizedBN);
 	const [rate, set_rate] = useState<TNormalizedBN>(zeroNormalizedBN);
+
+	/**********************************************************************************************
+	 ** Initialize the selectedFromLST to the first token in the basket.
+	 ** Initialize the selectedToLST to the second token in the basket.
+	 **********************************************************************************************/
+	useEffect(() => {
+		set_selectedFromLST(basket[0]);
+		set_selectedToLST(basket[1]);
+	}, [basket]);
 
 	return (
 		<section className={'relative px-4 md:px-72'}>

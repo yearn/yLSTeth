@@ -1,4 +1,4 @@
-export const YETH_POOL_ABI = [
+export const BASKET_ABI = [
 	{
 		anonymous: false,
 		inputs: [
