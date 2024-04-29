@@ -157,7 +157,7 @@ export const InclusionContextApp = ({children}: {children: React.ReactElement}):
 	 * retrieve the list of incentives for each candidate
 	 *************************************************************************/
 	const refreshInclusionIncentives = useCallback(async (_epoch: bigint): Promise<void> => {
-		const rangeLimit = 800n;
+		const rangeLimit = toBigInt(Number(process.env.RANGE_LIMIT));
 		const epochStartBlock = getEpochStartBlock(Number(_epoch));
 		const epochEndBlock = getEpochEndBlock(Number(_epoch));
 		const currentBlock = await getBlockNumber(retrieveConfig());

@@ -288,7 +288,7 @@ export const BasketContextApp = ({children}: {children: React.ReactElement}): Re
 	const refreshWeightIncentives = useCallback(
 		async (_epoch: bigint): Promise<void> => {
 			if (!assets.length) return;
-			const rangeLimit = 800n;
+			const rangeLimit = toBigInt(Number(process.env.RANGE_LIMIT));
 			const epochStartBlock = getEpochStartBlock(Number(_epoch));
 			const epochEndBlock = getEpochEndBlock(Number(_epoch));
 			const currentBlock = await getBlockNumber(retrieveConfig());

@@ -202,7 +202,7 @@ function VoteCardInclusion(props: {
 		 **	If so, we can try to retrieve the vote weight for each LST and display them.
 		 ******************************************************************************************/
 		if (hasAlreadyVoted) {
-			const rangeLimit = 800n;
+			const rangeLimit = toBigInt(Number(process.env.RANGE_LIMIT));
 			const epochStartBlock = getEpochStartBlock(Number(epoch));
 			const epochEndBlock = getEpochEndBlock(Number(epoch));
 			const currentBlock = await getBlockNumber(retrieveConfig());
