@@ -46,7 +46,7 @@
 }
 
 #ypools-main-heading {
-	@apply grid cursor-pointer grid-cols-1 md:grid-cols-30 divide-x-0 md:divide-x-2 divide-neutral-300 rounded-md bg-neutral-100 px-4 md:px-72 text-neutral-900 transition-all hover:px-4 md:hover:px-[80px] hover:mx-0 md:hover:-mx-2 hover:divide-neutral-0/20 hover:bg-primary hover:text-neutral-0;
+	@apply grid cursor-pointer grid-cols-1 md:grid-cols-30 divide-x-0 md:divide-x-2 divide-neutral-300 rounded-md bg-neutral-100 px-4 md:px-72 text-neutral-900 transition-all hover:px-4 md:hover:px-[80px] hover:mx-0 md:hover:-mx-2 hover:divide-neutral-0/20 hover:bg-accent hover:text-neutral-0;
 	& .divider {
 		@apply border-neutral-300;
 	}
@@ -54,17 +54,17 @@
 
 .lpPoolTheme {
 	& #app {
-		@apply bg-primary;
+		@apply bg-accent;
 	}
 	& #ypools-main-page {
-		@apply bg-primary;
+		@apply bg-accent;
 	}
 	& #ypools-title-explore {
 		@apply left-0 opacity-100;
 	}
 	& #ypools-main-heading {
-		@apply grid grid-cols-1 md:grid-cols-30 divide-x-0 md:divide-x-2 rounded-md px-4 md:px-72 transition-all divide-neutral-0/20 bg-primary text-neutral-0 cursor-default;
-		@apply hover:px-4 md:hover:px-72 hover:mx-0 hover:divide-neutral-0/20 hover:bg-primary hover:text-neutral-0;
+		@apply grid grid-cols-1 md:grid-cols-30 divide-x-0 md:divide-x-2 rounded-md px-4 md:px-72 transition-all divide-neutral-0/20 bg-accent text-neutral-0 cursor-default;
+		@apply hover:px-4 md:hover:px-72 hover:mx-0 hover:divide-neutral-0/20 hover:bg-accent hover:text-neutral-0;
 		& * {
 			@apply !text-neutral-0;
 		}
@@ -82,7 +82,7 @@
 		@apply flex flex-col;
 	}
 	& #head {
-		@apply bg-primary transition-colors duration-700;
+		@apply bg-accent transition-colors duration-700;
 		& .yearn--header-nav-item {
 			@apply text-neutral-300 hover:!text-neutral-0;
 			&.active {
@@ -129,12 +129,12 @@
 				}
 			}
 			&[data-variant='filled'] {
-				@apply bg-primary font-bold;
+				@apply bg-accent font-bold;
 				&:disabled {
-					@apply bg-primary opacity-40;
+					@apply bg-accent opacity-40;
 				}
 				&:not(:disabled):not([aria-busy='true']):hover {
-					@apply bg-primary/90;
+					@apply bg-accent/90;
 				}
 			}
 			&[data-variant='reverted'] {

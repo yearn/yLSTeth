@@ -185,7 +185,7 @@ function ViewStakeUnstake(): ReactElement {
 					<span className={'tooltip'}>
 						<b
 							suppressHydrationWarning
-							className={'text-primary'}>
+							className={'text-accent'}>
 							{`APR: ~${formatAmount(APR, 2, 2)}%`}
 						</b>
 						<span className={'tooltipLight !-inset-x-24 top-full mt-2 !w-auto'}>

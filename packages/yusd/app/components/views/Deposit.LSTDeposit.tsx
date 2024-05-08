@@ -115,7 +115,7 @@ function LSTDepositForm({
 						tabIndex={-1}
 						onClick={(): void => onUpdateAmount(balanceOf)}
 						className={cl(
-							'px-2 py-1 text-xs rounded-md border border-primary transition-colors bg-primary text-white',
+							'px-2 py-1 text-xs rounded-md border border-accent transition-colors bg-accent text-white',
 							isDisabled ? 'opacity-0 pointer-events-none' : ''
 						)}>
 						{'Max'}

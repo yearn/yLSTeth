@@ -43,21 +43,21 @@ export default function SettingsPopover(): ReactElement {
 												<button
 													onClick={(): void => set_slippage(10n)}
 													className={`flex h-8 items-center rounded border-2 bg-neutral-100 px-1.5 py-2 ${
-														slippage === 10n ? 'border-primary' : 'border-transparent'
+														slippage === 10n ? 'border-accent' : 'border-transparent'
 													}`}>
 													<p className={'font-number pr-4 text-neutral-900'}>{'0.1%'}</p>
 												</button>
 												<button
 													onClick={(): void => set_slippage(30n)}
 													className={`flex h-8 items-center rounded border-2 bg-neutral-100 px-1.5 py-2 ${
-														slippage === 30n ? 'border-primary' : 'border-transparent'
+														slippage === 30n ? 'border-accent' : 'border-transparent'
 													}`}>
 													<p className={'font-number pr-4'}>{'0.3%'}</p>
 												</button>
 												<button
 													onClick={(): void => set_slippage(50n)}
 													className={`flex h-8 items-center rounded border-2 bg-neutral-100 px-1.5 py-2 ${
-														slippage === 50n ? 'border-primary' : 'border-transparent'
+														slippage === 50n ? 'border-accent' : 'border-transparent'
 													}`}>
 													<p className={'font-number pr-4'}>{'0.5%'}</p>
 												</button>
@@ -68,7 +68,7 @@ export default function SettingsPopover(): ReactElement {
 												<div
 													className={`flex h-8 w-full min-w-[48px] items-center rounded border-2 bg-neutral-100 px-0 py-4 md:min-w-72 ${
 														slippage !== 10n && slippage !== 30n && slippage !== 50n
-															? 'border-primary'
+															? 'border-accent'
 															: 'border-transparent'
 													}`}>
 													<input

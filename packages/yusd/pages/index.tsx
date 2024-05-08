@@ -278,15 +278,13 @@ function HeadingPoolData(): ReactElement {
 			</div>
 
 			<div>
-				<small className={cl('text-xs text-primary group-hover:text-neutral-0', basicTransition)}>
-					{'APR'}
-				</small>
+				<small className={cl('text-xs text-accent group-hover:text-neutral-0', basicTransition)}>{'APR'}</small>
 
 				<span className={'tooltip'}>
 					<b
 						suppressHydrationWarning
 						className={cl(
-							'block text-lg md:text-2xl leading-6 md:leading-8 text-primary group-hover:text-neutral-0 font-number',
+							'block text-lg md:text-2xl leading-6 md:leading-8 text-accent group-hover:text-neutral-0 font-number',
 							basicTransition
 						)}>
 						{!isAPRLoaded ? (

@@ -5,10 +5,8 @@ import type {ReactElement} from 'react';
 export default function IconSwapSVG({className}: {className?: string}): ReactElement {
 	return (
 		<svg
-			className={cl(
-				'group fill-neutral-100 text-purple-300 hover:!fill-purple-300 hover:text-purple-300',
-				className
-			)}
+			className={cl('group fill-white text-accent hover:!fill-accent hover:text-accent', className)}
+			style={{fill: 'white'}}
 			width={'48'}
 			height={'48'}
 			viewBox={'0 0 48 48'}
@@ -16,7 +14,7 @@ export default function IconSwapSVG({className}: {className?: string}): ReactEle
 			xmlns={'http://www.w3.org/2000/svg'}>
 			<g id={'Group 3528'}>
 				<rect
-					className={'group-hover:fill-purple-300'}
+					className={'group-hover:fill-accent'}
 					id={'Rectangle 579'}
 					x={'0.5'}
 					y={'0.5'}

@@ -61,7 +61,7 @@ function IncentiveMenuTabs(props: {
 					}}
 					className={cl(
 						'mx-4 mb-2 text-lg transition-colors',
-						props.currentTab === 'current' ? 'text-primary font-bold' : 'text-neutral-400'
+						props.currentTab === 'current' ? 'text-accent font-bold' : 'text-neutral-400'
 					)}>
 					{'Weight votes'}
 				</button>
@@ -71,7 +71,7 @@ function IncentiveMenuTabs(props: {
 					}}
 					className={cl(
 						'mx-4 mb-2 text-lg transition-colors',
-						props.currentTab === 'potential' ? 'text-primary font-bold' : 'text-neutral-400'
+						props.currentTab === 'potential' ? 'text-accent font-bold' : 'text-neutral-400'
 					)}>
 					{'Inclusion votes'}
 				</button>
@@ -79,7 +79,7 @@ function IncentiveMenuTabs(props: {
 					<div
 						className={cl(
 							'h-full w-fit transition-colors ml-4',
-							props.currentTab === 'current' ? 'bg-primary' : 'bg-transparent'
+							props.currentTab === 'current' ? 'bg-accent' : 'bg-transparent'
 						)}>
 						<button className={'pointer-events-none invisible h-0 p-0 text-lg font-bold opacity-0'}>
 							{'Weight votes'}
@@ -88,7 +88,7 @@ function IncentiveMenuTabs(props: {
 					<div
 						className={cl(
 							'h-full w-fit transition-colors ml-4',
-							props.currentTab === 'potential' ? 'bg-primary' : 'bg-transparent'
+							props.currentTab === 'potential' ? 'bg-accent' : 'bg-transparent'
 						)}>
 						<button className={'pointer-events-none invisible h-0 p-0 text-lg font-bold opacity-0'}>
 							{'Inclusion votes'}
@@ -379,7 +379,7 @@ function WeightIncentiveSelector(props: {isIncentivePeriodOpen: boolean}): React
 								tabIndex={-1}
 								onClick={(): void => updateToPercent(100)}
 								className={cl(
-									'px-2 py-1 text-xs rounded-md border border-primary transition-colors bg-primary text-white'
+									'px-2 py-1 text-xs rounded-md border border-accent transition-colors bg-accent text-white'
 								)}>
 								{'Max'}
 							</button>
@@ -691,7 +691,7 @@ function InclusionIncentiveSelector(props: {isIncentivePeriodOpen: boolean}): Re
 								tabIndex={-1}
 								onClick={(): void => updateToPercent(100)}
 								className={cl(
-									'px-2 py-1 text-xs rounded-md border border-primary transition-colors bg-primary text-white'
+									'px-2 py-1 text-xs rounded-md border border-accent transition-colors bg-accent text-white'
 								)}>
 								{'Max'}
 							</button>

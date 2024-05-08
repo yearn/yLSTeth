@@ -48,7 +48,7 @@ function InclusionIncentiveList(props: {
 								checked={!props.unselectedIncentive[incentive.address]}
 								type={'checkbox'}
 								className={
-									'focus:ring-primary text-primary -mt-1 size-[14px] rounded-[4px] border-0 border-neutral-400 bg-neutral-200 indeterminate:ring-2 focus:bg-neutral-200 focus:ring-2 focus:ring-offset-neutral-100'
+									'focus:ring-accent text-accent -mt-1 size-[14px] rounded-[4px] border-0 border-neutral-400 bg-neutral-200 indeterminate:ring-2 focus:bg-neutral-200 focus:ring-2 focus:ring-offset-neutral-100'
 								}
 							/>
 						</div>

@@ -159,7 +159,7 @@ function LSTInPool({scope}: {scope: AnimationScope}): ReactElement {
 						target={'_blank'}>
 						<div
 							className={
-								'border-neutral-0 text-neutral-0 hover:bg-neutral-0 hover:text-primary flex cursor-pointer flex-row items-center justify-center rounded border px-3 py-2 text-center text-xs transition-colors'
+								'border-neutral-0 text-neutral-0 hover:bg-neutral-0 hover:text-accent flex cursor-pointer flex-row items-center justify-center rounded border px-3 py-2 text-center text-xs transition-colors'
 							}>
 							{'Pool'}
 							<IconLinkOut className={'ml-2 size-4'} />
@@ -171,7 +171,7 @@ function LSTInPool({scope}: {scope: AnimationScope}): ReactElement {
 						target={'_blank'}>
 						<div
 							className={
-								'border-neutral-0 text-neutral-0 hover:bg-neutral-0 hover:text-primary flex cursor-pointer flex-row items-center justify-center rounded border px-3 py-2 text-center text-xs transition-colors'
+								'border-neutral-0 text-neutral-0 hover:bg-neutral-0 hover:text-accent flex cursor-pointer flex-row items-center justify-center rounded border px-3 py-2 text-center text-xs transition-colors'
 							}>
 							{'yUSD'}
 							<IconLinkOut className={'ml-2 size-4'} />
@@ -183,7 +183,7 @@ function LSTInPool({scope}: {scope: AnimationScope}): ReactElement {
 						target={'_blank'}>
 						<div
 							className={
-								'border-neutral-0 text-neutral-0 hover:bg-neutral-0 hover:text-primary flex cursor-pointer flex-row items-center justify-center rounded border px-3 py-2 text-center text-xs transition-colors'
+								'border-neutral-0 text-neutral-0 hover:bg-neutral-0 hover:text-accent flex cursor-pointer flex-row items-center justify-center rounded border px-3 py-2 text-center text-xs transition-colors'
 							}>
 							{'st-yUSD'}
 							<IconLinkOut className={'ml-2 size-4'} />

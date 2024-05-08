@@ -57,7 +57,7 @@ function ViewLSTWithdrawForm({
 						radioGroup={'singleToken'}
 						checked={isSelected}
 						className={
-							'text-primary checked:bg-primary checked:outline-primary focus-within:bg-primary focus:bg-primary absolute left-12 mt-0.5 size-2 cursor-pointer border-none bg-transparent outline outline-2 outline-offset-2 outline-neutral-600'
+							'text-accent checked:bg-accent checked:outline-accent focus-within:bg-accent focus:bg-accent absolute left-12 mt-0.5 size-2 cursor-pointer border-none bg-transparent outline outline-2 outline-offset-2 outline-neutral-600'
 						}
 						style={{backgroundImage: 'none'}}
 						onChange={(): void => onSelect(token)}
@@ -272,7 +272,7 @@ function ViewSelectedTokens({
 							radioGroup={'singleToken'}
 							checked={!shouldBalanceTokens}
 							className={
-								'text-primary checked:bg-primary checked:outline-primary focus-within:bg-primary focus:bg-primary mt-0.5 size-3 border-none bg-transparent outline outline-2 outline-offset-2 outline-neutral-600'
+								'text-accent checked:bg-accent checked:outline-accent focus-within:bg-accent focus:bg-accent mt-0.5 size-3 border-none bg-transparent outline outline-2 outline-offset-2 outline-neutral-600'
 							}
 							style={{backgroundImage: 'none'}}
 							onChange={(): void => {
@@ -286,7 +286,7 @@ function ViewSelectedTokens({
 							title={'Single token'}
 							className={cl(
 								'hover-fix pt-1',
-								!shouldBalanceTokens ? 'text-primary font-bold' : 'text-neutral-600 font-normal'
+								!shouldBalanceTokens ? 'text-accent font-bold' : 'text-neutral-600 font-normal'
 							)}>
 							{'Single token'}
 						</p>
@@ -297,7 +297,7 @@ function ViewSelectedTokens({
 							radioGroup={'singleToken'}
 							checked={shouldBalanceTokens}
 							className={
-								'text-primary checked:bg-primary checked:outline-primary focus-within:bg-primary focus:bg-primary mt-0.5 size-3 border-none bg-transparent outline outline-2 outline-offset-2 outline-neutral-600'
+								'text-accent checked:bg-accent checked:outline-accent focus-within:bg-accent focus:bg-accent mt-0.5 size-3 border-none bg-transparent outline outline-2 outline-offset-2 outline-neutral-600'
 							}
 							style={{backgroundImage: 'none'}}
 							onChange={(): void => {
@@ -309,7 +309,7 @@ function ViewSelectedTokens({
 							title={'Balanced amounts'}
 							className={cl(
 								'hover-fix pt-1',
-								shouldBalanceTokens ? 'text-primary font-bold' : 'text-neutral-600 font-normal'
+								shouldBalanceTokens ? 'text-accent font-bold' : 'text-neutral-600 font-normal'
 							)}>
 							{'Balanced amounts'}
 						</p>

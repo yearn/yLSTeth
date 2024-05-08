@@ -86,17 +86,17 @@ function Tabs(props: {
 					}}
 					className={cl(
 						'mx-4 mb-2 text-lg transition-colors relative',
-						props.currentTab === 'weight' ? 'text-primary font-bold' : 'text-neutral-400'
+						props.currentTab === 'weight' ? 'text-accent font-bold' : 'text-neutral-400'
 					)}>
 					{'LST weights'}
 					{props.currentTab !== 'weight' && props.shouldVote[0] && (
 						<span className={'absolute -right-3 -top-1 z-10 flex size-2.5'}>
 							<span
 								className={
-									'bg-primary absolute inline-flex size-full animate-ping rounded-full opacity-75'
+									'bg-accent absolute inline-flex size-full animate-ping rounded-full opacity-75'
 								}
 							/>
-							<span className={'bg-primary relative inline-flex size-2.5 rounded-full'} />
+							<span className={'bg-accent relative inline-flex size-2.5 rounded-full'} />
 						</span>
 					)}
 				</button>
@@ -106,17 +106,17 @@ function Tabs(props: {
 					}}
 					className={cl(
 						'mx-4 mb-2 text-lg transition-colors relative',
-						props.currentTab === 'inclusion' ? 'text-primary font-bold' : 'text-neutral-400'
+						props.currentTab === 'inclusion' ? 'text-accent font-bold' : 'text-neutral-400'
 					)}>
 					{'Inclusion'}
 					{props.currentTab !== 'inclusion' && props.shouldVote[1] && (
 						<span className={'absolute -right-3 -top-1 z-10 flex size-2.5'}>
 							<span
 								className={
-									'bg-primary absolute inline-flex size-full animate-ping rounded-full opacity-75'
+									'bg-accent absolute inline-flex size-full animate-ping rounded-full opacity-75'
 								}
 							/>
-							<span className={'bg-primary relative inline-flex size-2.5 rounded-full'} />
+							<span className={'bg-accent relative inline-flex size-2.5 rounded-full'} />
 						</span>
 					)}
 				</button>
@@ -126,17 +126,17 @@ function Tabs(props: {
 					}}
 					className={cl(
 						'mx-4 mb-2 text-lg transition-colors relative',
-						props.currentTab === 'governance' ? 'text-primary font-bold' : 'text-neutral-400'
+						props.currentTab === 'governance' ? 'text-accent font-bold' : 'text-neutral-400'
 					)}>
 					{'Proposals'}
 					{props.currentTab !== 'governance' && props.shouldVote[2] && (
 						<span className={'absolute -right-3 -top-1 z-10 flex size-2.5'}>
 							<span
 								className={
-									'bg-primary absolute inline-flex size-full animate-ping rounded-full opacity-75'
+									'bg-accent absolute inline-flex size-full animate-ping rounded-full opacity-75'
 								}
 							/>
-							<span className={'bg-primary relative inline-flex size-2.5 rounded-full'} />
+							<span className={'bg-accent relative inline-flex size-2.5 rounded-full'} />
 						</span>
 					)}
 				</button>
@@ -145,7 +145,7 @@ function Tabs(props: {
 					<div
 						className={cl(
 							'h-full transition-colors ml-4 w-fit',
-							props.currentTab === 'weight' ? 'bg-primary' : 'bg-transparent'
+							props.currentTab === 'weight' ? 'bg-accent' : 'bg-transparent'
 						)}>
 						<button className={'pointer-events-none invisible h-0 p-0 text-lg font-bold opacity-0'}>
 							{'LST weights'}
@@ -154,7 +154,7 @@ function Tabs(props: {
 					<div
 						className={cl(
 							'h-full transition-colors ml-7 w-fit',
-							props.currentTab === 'inclusion' ? 'bg-primary' : 'bg-transparent'
+							props.currentTab === 'inclusion' ? 'bg-accent' : 'bg-transparent'
 						)}>
 						<button className={'pointer-events-none invisible h-0 p-0 text-lg font-bold opacity-0'}>
 							{'Inclusion'}
@@ -163,7 +163,7 @@ function Tabs(props: {
 					<div
 						className={cl(
 							'h-full w-fit transition-colors ml-7',
-							props.currentTab === 'governance' ? 'bg-primary' : 'bg-transparent'
+							props.currentTab === 'governance' ? 'bg-accent' : 'bg-transparent'
 						)}>
 						<button className={'pointer-events-none invisible h-0 p-0 text-lg font-bold opacity-0'}>
 							{'Proposals'}
@@ -359,7 +359,7 @@ function OnChainProposal(props: {
 								? 'bg-red-900'
 								: [6n, 2n].includes(props.proposal.state)
 									? 'bg-[hsl(135,51%,42%)]'
-									: 'bg-primary'
+									: 'bg-accent'
 						)}>
 						{stateToString(props.proposal.state)}
 					</div>
@@ -469,7 +469,7 @@ function OnChainProposal(props: {
 							? 'bg-red-900'
 							: [6n, 2n].includes(props.proposal.state)
 								? 'bg-[hsl(135,51%,42%)]'
-								: 'bg-primary'
+								: 'bg-accent'
 					)}>
 					{stateToString(props.proposal.state)}
 				</div>

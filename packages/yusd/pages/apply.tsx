@@ -24,7 +24,7 @@ function Timer(): ReactElement {
 	return (
 		<b
 			suppressHydrationWarning
-			className={'font-number text-primary mt-2 text-3xl leading-10'}>
+			className={'font-number text-accent mt-2 text-3xl leading-10'}>
 			{hasVotingStarted ? `Open in ${time}` : `${time}`}
 		</b>
 	);
@@ -38,7 +38,7 @@ function CheckboxElement({onChange, content}: {onChange: () => void; content: st
 				onChange={onChange}
 				type={'checkbox'}
 				className={
-					'focus:ring-primary border-primary bg-neutral-0 text-primary mr-4 mt-2 size-6 cursor-pointer rounded-sm border-2 indeterminate:ring-2 focus:bg-neutral-200 focus:ring-2 focus:ring-offset-neutral-100'
+					'focus:ring-accent border-accent bg-neutral-0 text-accent mr-4 mt-2 size-6 cursor-pointer rounded-sm border-2 indeterminate:ring-2 focus:bg-neutral-200 focus:ring-2 focus:ring-offset-neutral-100'
 				}
 			/>
 			<p className={'text-base text-neutral-700'}>{content}</p>
@@ -327,7 +327,7 @@ export default function Apply(): ReactElement {
 							<h1 className={'text-3xl font-black md:text-8xl'}>{'Apply'}</h1>
 							<b
 								suppressHydrationWarning
-								className={'font-number text-primary mt-4 text-3xl md:text-4xl'}>
+								className={'font-number text-accent mt-4 text-3xl md:text-4xl'}>
 								<Timer />
 							</b>
 						</div>

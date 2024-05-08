@@ -14,7 +14,7 @@ function Timer(): ReactElement {
 	return (
 		<b
 			suppressHydrationWarning
-			className={'font-number text-primary mt-4 text-4xl leading-10'}>
+			className={'font-number text-accent mt-4 text-4xl leading-10'}>
 			{hasVotingStarted ? `ends in ${time}` : `starts in ${time}`}
 		</b>
 	);

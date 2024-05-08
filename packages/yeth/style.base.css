@@ -2,7 +2,6 @@
 @tailwind base;
 
 :root {
-	--color-primary: 220 95% 50%;
 	--color-neutral-0: 0 0% 100%;
 	--color-neutral-50: 0 0% 98%;
 	--color-neutral-100: 0 0% 96%;

@@ -242,7 +242,7 @@ function IncentiveHistory(props: {
 					<div className={'flex flex-row items-center space-x-2'}>
 						<p
 							className={cl(
-								shouldDisplayUserIncentive ? 'font-bold text-primary' : 'font-normal text-neutral-600'
+								shouldDisplayUserIncentive ? 'font-bold text-accent' : 'font-normal text-neutral-600'
 							)}>
 							{'Show my incentives'}
 						</p>

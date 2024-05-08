@@ -180,7 +180,7 @@ function TokenAmount(props: TViewFromToken): ReactElement {
 					tabIndex={-1}
 					onClick={(): void => props.onChange(balanceOf)}
 					className={cl(
-						'px-2 py-1 text-xs rounded-md border border-primary transition-colors bg-primary text-white'
+						'px-2 py-1 text-xs rounded-md border border-accent transition-colors bg-accent text-white'
 					)}>
 					{'Max'}
 				</button>
@@ -232,7 +232,7 @@ function TokenInput({
 			/>
 
 			{token && toAddress(token.address) !== ETH_TOKEN_ADDRESS && (
-				<div className={'grow-1 text-primary col-span-5 flex w-full items-center justify-start pl-2 pt-1'}>
+				<div className={'grow-1 text-accent col-span-5 flex w-full items-center justify-start pl-2 pt-1'}>
 					<Link
 						tabIndex={-1}
 						href={`https://etherscan.io/address/${token?.address}`}

@@ -22,7 +22,7 @@ function ClaimHeading(): ReactElement {
 			<h1 className={'text-3xl font-black md:text-8xl'}>{'Claim'}</h1>
 			<b
 				suppressHydrationWarning
-				className={'font-number text-primary mt-4 text-4xl leading-10'}>
+				className={'font-number text-accent mt-4 text-4xl leading-10'}>
 				<Timer />
 			</b>
 			<p className={'pt-8 text-neutral-700'}>

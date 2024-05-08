@@ -37,7 +37,7 @@ function ViewDeposit(): ReactElement {
 
 						<div className={'pt-4'}>
 							<div className={'mt-4 flex flex-row items-center justify-between space-x-2'}>
-								<b className={'text-primary'}>{'Balance tokens in proportion'}</b>
+								<b className={'text-accent'}>{'Balance tokens in proportion'}</b>
 								<Toggle
 									isEnabled={shouldBalanceTokens}
 									onChange={(): void => set_shouldBalanceTokens(!shouldBalanceTokens)}

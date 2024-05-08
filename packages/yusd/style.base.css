@@ -1,7 +1,6 @@
 @tailwind base;
 
 :root {
-	--color-primary: 220 95% 50%;
 	--color-neutral-0: 0 0% 100%;
 	--color-neutral-50: 0 0% 98%;
 	--color-neutral-100: 0 0% 96%;
@@ -25,19 +24,6 @@
 	--color-red-200: 0 100% 90%;
 
 	--default-rounded: 6px;
-}
-
-:root.dark {
-	--color-neutral-900: 229 34% 100%;
-	--color-neutral-800: 229 34% 96%;
-	--color-neutral-600: 229 34% 90%;
-	--color-neutral-500: 229 34% 90%;
-	--color-neutral-400: 229 34% 48%;
-	--color-neutral-300: 229 34% 36%;
-	--color-neutral-200: 229 34% 24%;
-	--color-neutral-100: 229 34% 16%;
-	--color-neutral-50: 229 34% 8%;
-	--color-neutral-0: 229 34% 13%;
 }
 
 body {
@@ -156,15 +142,15 @@ label[aria-invalid='true'] {
 		}
 	}
 	&[data-variant='outlined'] {
-		@apply text-primary bg-transparent border-2 border-primary;
+		@apply text-accent bg-transparent border-2 border-accent;
 		&:disabled {
 			@apply opacity-40;
 		}
 		&:not(:disabled):not([aria-busy='true']):hover {
-			@apply bg-primary text-neutral-0;
+			@apply bg-accent text-neutral-0;
 		}
 		&[aria-busy='true'] svg {
-			@apply !text-primary;
+			@apply !text-accent;
 		}
 	}
 	&[data-variant='reverted'] {
@@ -291,7 +277,7 @@ label[aria-invalid='true'] {
 	@apply relative cursor-pointer transition-colors text-neutral-500 hover:text-neutral-900 font-normal text-sm;
 
 	&.active {
-		@apply text-primary font-bold;
+		@apply text-accent font-bold;
 	}
 }
 
@@ -393,9 +379,9 @@ label[aria-invalid='true'] {
 }
 
 .tab {
-	@apply font-normal text-neutral-600 transition-colors hover:text-primary cursor-pointer border-b-2 border-transparent pb-4 z-20;
+	@apply font-normal text-neutral-600 transition-colors hover:text-accent cursor-pointer border-b-2 border-transparent pb-4 z-20;
 	&[aria-selected='true'] {
-		@apply font-bold text-primary border-primary;
+		@apply font-bold text-accent border-accent;
 	}
 }
 .hover-fix::before {
