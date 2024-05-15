@@ -174,6 +174,11 @@ export type TBasketItem = TIndexedTokenInfo & {
 	virtualPoolSupply: TNormalizedBN;
 	weightRatio: number;
 	index: number;
+	voteForEpoch: {
+		vote: TNormalizedBN;
+		totalVotes: TNormalizedBN;
+		ratio: number;
+	};
 	poolStats?: {
 		amountInPool: TNormalizedBN;
 		amountInPoolPercent: number;

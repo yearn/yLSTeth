@@ -2,6 +2,7 @@
 
 import React, {createContext, useCallback, useContext, useMemo, useState} from 'react';
 import {BASKET_ABI} from 'app/utils/abi/basket.abi';
+import {ONCHAIN_VOTE_WEIGHT_ABI} from 'app/utils/abi/onchainVoteWeight.abi';
 import {WEIGHT_INCENTIVE_ABI} from 'app/utils/abi/weightIncentives.abi';
 import {NO_CHANGE_LST_LIKE} from 'app/utils/constants';
 import {getEpochEndBlock, getEpochStartBlock} from 'app/utils/epochs';
@@ -30,6 +31,7 @@ type TUseBasketProps = {
 	assets: TIndexedTokenInfo[];
 	basket: TBasket;
 	weightIncentives: TIncentives;
+	currentVotesForNoChanges: TBasketItem['voteForEpoch'];
 	refreshAssets: () => Promise<void>;
 	refreshBasket: () => Promise<void>;
 	refreshIncentives: () => Promise<void>;
@@ -43,6 +45,11 @@ const defaultProps: TUseBasketProps = {
 	assets: [],
 	basket: [],
 	weightIncentives: {},
+	currentVotesForNoChanges: {
+		vote: zeroNormalizedBN,
+		totalVotes: zeroNormalizedBN,
+		ratio: 0
+	},
 	refreshAssets: async (): Promise<void> => undefined,
 	refreshBasket: async (): Promise<void> => undefined,
 	refreshIncentives: async (): Promise<void> => undefined,
@@ -59,6 +66,11 @@ export const BasketContextApp = ({children}: {children: React.ReactElement}): Re
 	const [assets, set_assets] = useState<TIndexedTokenInfo[]>([]);
 	const [basket, set_basket] = useState<TBasket>([]);
 	const [weightIncentives, set_weightIncentives] = useState<TIncentives>({});
+	const [currentVotesForNoChanges, set_currentVotesForNoChanges] = useState<TBasketItem['voteForEpoch']>({
+		vote: zeroNormalizedBN,
+		totalVotes: zeroNormalizedBN,
+		ratio: 0
+	});
 	const [areIncentivesLoaded, set_areIncentivesLoaded] = useState(false);
 	const [pastWeightIncentives, set_pastWeightIncentives] = useState<TNDict<{data: TIncentives; hasData: boolean}>>(
 		{}
@@ -149,7 +161,7 @@ export const BasketContextApp = ({children}: {children: React.ReactElement}): Re
 				chainID: Number(process.env.DEFAULT_CHAIN_ID),
 				balance: toNormalizedBN(0n, candidateDecimals),
 				value: 0,
-				price: toNormalizedBN(0n, 18),
+				price: zeroNormalizedBN,
 				index: i + 1
 			});
 		}
@@ -172,6 +184,20 @@ export const BasketContextApp = ({children}: {children: React.ReactElement}): Re
 					address: toAddress(process.env.POOL_ADDRESS),
 					abi: BASKET_ABI,
 					functionName: 'vb_prod_sum',
+					chainId: Number(process.env.DEFAULT_CHAIN_ID)
+				},
+				{
+					address: toAddress(process.env.WEIGHT_VOTE_ADDRESS),
+					abi: ONCHAIN_VOTE_WEIGHT_ABI,
+					functionName: 'total_votes',
+					args: [epoch],
+					chainId: Number(process.env.DEFAULT_CHAIN_ID)
+				},
+				{
+					address: toAddress(process.env.WEIGHT_VOTE_ADDRESS),
+					abi: ONCHAIN_VOTE_WEIGHT_ABI,
+					functionName: 'votes',
+					args: [epoch, 0n],
 					chainId: Number(process.env.DEFAULT_CHAIN_ID)
 				},
 				...assets
@@ -218,6 +244,13 @@ export const BasketContextApp = ({children}: {children: React.ReactElement}): Re
 								functionName: 'allowance',
 								args: [toAddress(address), toAddress(process.env.ZAP_ADDRESS)],
 								chainId: Number(process.env.DEFAULT_CHAIN_ID)
+							},
+							{
+								address: toAddress(process.env.WEIGHT_VOTE_ADDRESS),
+								abi: ONCHAIN_VOTE_WEIGHT_ABI,
+								functionName: 'votes',
+								args: [epoch, toBigInt(index + 1)],
+								chainId: Number(process.env.DEFAULT_CHAIN_ID)
 							}
 						] as any[];
 					})
@@ -228,6 +261,15 @@ export const BasketContextApp = ({children}: {children: React.ReactElement}): Re
 		let idx = 0;
 		const supply = toNormalizedBN(decodeAsBigInt(data[idx++]), 18);
 		const vbSum = toNormalizedBN(toBigInt((data[idx++]?.result as [bigint, bigint])?.[1] as bigint) || 0n, 18);
+		const totalVotesForEpoch = toNormalizedBN(decodeAsBigInt(data[idx++]), 18);
+
+		const voteForNoChange = toNormalizedBN(decodeAsBigInt(data[idx++]), 18);
+		set_currentVotesForNoChanges({
+			vote: voteForNoChange,
+			totalVotes: totalVotesForEpoch,
+			ratio: voteForNoChange.normalized / totalVotesForEpoch.normalized
+		});
+
 		const itemsInBasket = assets.map((token, index): TBasketItem => {
 			const rate = toNormalizedBN(toBigInt(data?.[idx++]?.result as bigint) || 0n, 18);
 			const weight = toNormalizedBN(toBigInt((data?.[idx]?.result as bigint[])?.[0] as bigint) || 0n, 18);
@@ -245,6 +287,7 @@ export const BasketContextApp = ({children}: {children: React.ReactElement}): Re
 			const lstSupply = toNormalizedBN(toBigInt(data?.[idx++]?.result as bigint) || 0n, 18);
 			const virtualBalance = toNormalizedBN(toBigInt(data?.[idx++]?.result as bigint) || 0n, 18);
 			const zapAllowance = toNormalizedBN(toBigInt(data?.[idx++]?.result as bigint) || 0n, 18);
+			const voteForEpoch = toNormalizedBN(toBigInt(data?.[idx++]?.result as bigint) || 0n, 18);
 			const amountInPool = lstSupply;
 			const amountInPoolPercent = (Number(virtualBalance.normalized) / Number(vbSum.normalized)) * 100;
 			const currentBeaconEquivalentValue = virtualBalance;
@@ -265,6 +308,11 @@ export const BasketContextApp = ({children}: {children: React.ReactElement}): Re
 					((virtualBalance.raw * toBigInt(1e18)) / (supply.raw || 1n)) * 100n,
 					18
 				),
+				voteForEpoch: {
+					vote: voteForEpoch,
+					totalVotes: totalVotesForEpoch,
+					ratio: voteForEpoch.normalized / totalVotesForEpoch.normalized
+				},
 				poolStats: {
 					amountInPool,
 					amountInPoolPercent,
@@ -279,7 +327,7 @@ export const BasketContextApp = ({children}: {children: React.ReactElement}): Re
 			};
 		});
 		set_basket(itemsInBasket);
-	}, [address, assets]);
+	}, [address, assets, epoch]);
 
 	/**************************************************************************
 	 * Once we have the list of candidates, it's possible for us to try to
@@ -373,9 +421,9 @@ export const BasketContextApp = ({children}: {children: React.ReactElement}): Re
 					decimals: tokenDecimals,
 					chainID: Number(process.env.DEFAULT_CHAIN_ID),
 					balance: zeroNormalizedBN,
-					price: zeroNormalizedBN,
 					value: 0,
 					depositor: detectedIncentives[i].depositor,
+					price: zeroNormalizedBN,
 					amount
 				});
 			}
@@ -421,6 +469,7 @@ export const BasketContextApp = ({children}: {children: React.ReactElement}): Re
 			refreshEpochIncentives: refreshWeightIncentives,
 			isLoaded: basket.length > 0,
 			areIncentivesLoaded,
+			currentVotesForNoChanges,
 			epoch
 		}),
 		[

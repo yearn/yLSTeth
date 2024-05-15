@@ -38,7 +38,7 @@ function VoteWeightRow(props: {
 	hasAlreadyVoted: boolean;
 	isLoadingVoteData: boolean;
 }): ReactElement {
-	const {weightIncentives} = useBasket();
+	const {currentVotesForNoChanges, weightIncentives} = useBasket();
 	const {getPrice} = usePrices();
 
 	/**************************************************************************
@@ -55,6 +55,13 @@ function VoteWeightRow(props: {
 		}
 		return sum;
 	}, [getPrice, props.currentLST.address, weightIncentives]);
+
+	const currentVote = useMemo(() => {
+		if (isZeroAddress(props.currentLST.address)) {
+			return currentVotesForNoChanges;
+		}
+		return (props.currentLST as TBasketItem)?.voteForEpoch;
+	}, [props.currentLST, currentVotesForNoChanges]);
 
 	/**************************************************************************
 	 ** Row rendering
@@ -84,7 +91,7 @@ function VoteWeightRow(props: {
 					<small className={'whitespace-nowrap text-xs'}>{props.currentLST.name}</small>
 				</div>
 			</div>
-			<div className={'col-span-12 mt-4 flex items-center justify-between md:col-span-3 md:mt-0 md:justify-end'}>
+			<div className={'col-span-12 mt-4 flex items-center justify-between md:col-span-2 md:mt-0 md:justify-end'}>
 				<small className={'block text-neutral-500 md:hidden'}>{'Total incentive (USD)'}</small>
 				<p
 					suppressHydrationWarning
@@ -92,7 +99,8 @@ function VoteWeightRow(props: {
 					{`$${formatAmount(weigthIncentiveValue, 2, 2)}`}
 				</p>
 			</div>
-			<div className={'col-span-12 mt-2 flex items-center justify-between md:col-span-3 md:mt-0 md:justify-end'}>
+
+			<div className={'col-span-12 mt-2 flex items-center justify-between md:col-span-2 md:mt-0 md:justify-end'}>
 				<small className={'block text-neutral-500 md:hidden'}>{'Current weight'}</small>
 				<p
 					suppressHydrationWarning
@@ -101,7 +109,31 @@ function VoteWeightRow(props: {
 				</p>
 			</div>
 
-			<div className={'col-span-12 mt-2 flex w-full items-center pl-[40%] md:col-span-3 md:mt-0'}>
+			<div
+				className={
+					'col-span-12 mt-2 flex items-center justify-between md:col-span-2 md:-mr-2 md:mt-0 md:justify-end'
+				}>
+				<small className={'block text-neutral-500 md:hidden'}>{'Votes'}</small>
+				<div className={'relative flex flex-col text-right'}>
+					<p
+						suppressHydrationWarning
+						className={'font-number text-right'}>
+						{formatPercent(Number(currentVote.ratio || 0) * 100)}
+					</p>
+					<small
+						suppressHydrationWarning
+						className={
+							'absolute -bottom-4 right-0 block whitespace-nowrap text-right text-xs text-neutral-400'
+						}>
+						{`
+						${formatAmount(Number(currentVote.vote.normalized || 0))}
+						/
+						${formatAmount(Number(currentVote.totalVotes.normalized || 0), 0, 0)}`}
+					</small>
+				</div>
+			</div>
+
+			<div className={'col-span-12 mt-10 flex w-full items-center pl-0 md:col-span-3  md:mt-0 md:pl-[40%]'}>
 				<div className={'grid h-10 w-full grid-cols-4 items-center rounded-lg bg-neutral-0'}>
 					<div className={'flex items-center justify-start pl-1'}>
 						<button
@@ -269,11 +301,14 @@ function VoteCardWeights(props: {
 				<div className={'col-span-3'}>
 					<p className={'text-xs text-neutral-500'}>{'LST'}</p>
 				</div>
-				<div className={'col-span-3 -mr-2 flex justify-end text-right'}>
+				<div className={'col-span-2 -mr-2 flex justify-end text-right'}>
 					<p className={'group flex flex-row text-xs text-neutral-500'}>{'Incentives (USD)'}</p>
 				</div>
-				<div className={'col-span-3 -mr-2 flex justify-end text-right'}>
+				<div className={'col-span-2 -mr-2 flex justify-end text-right'}>
 					<p className={'group flex flex-row text-xs text-neutral-500'}>{'Current weight'}</p>
+				</div>
+				<div className={'col-span-2 -mr-2 flex justify-end text-right'}>
+					<p className={'group flex flex-row text-xs text-neutral-500'}>{'Votes'}</p>
 				</div>
 			</div>
 
