@@ -144,10 +144,10 @@ export const BasketContextApp = ({children}: {children: React.ReactElement}): Re
 			] as any[]
 		});
 
-		/**********************************************************************
+		/******************************************************************************************
 		 * And now we can build the list of assets with the information
 		 * we have retrieved
-		 *********************************************************************/
+		 ******************************************************************************************/
 		const assetsInBasket: TIndexedTokenInfo[] = [];
 		for (let i = 0; i < candidateAddresses.length; i++) {
 			const candidateName = decodeAsString(tokens[i]);
