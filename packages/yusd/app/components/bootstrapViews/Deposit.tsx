@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import assert from 'assert';
-import {depositETH} from 'packages/yusdBootstrap/utils/actions';
 import {parseAbiItem} from 'viem';
 import {useContractRead} from 'wagmi';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
@@ -105,14 +104,14 @@ function ViewDeposit(): ReactElement {
 		incentives: {totalDepositedETH}
 	} = useBootstrap();
 	const {address, isActive, provider, chainID} = useWeb3();
-	const {balances, onRefresh} = useWallet();
+	const {balances} = useWallet();
 	const [amountToSend, set_amountToSend] = useState<TNormalizedBN>(zeroNormalizedBN);
-	const [depositTxStatus, set_depositTxStatus] = useState<TTxStatus>(defaultTxStatus);
+	const [depositTxStatus] = useState<TTxStatus>(defaultTxStatus);
 	const [depositHistory, set_depositHistory] = useState<TDepositHistory[]>([]);
 	const [isFetchingHistory, set_isFetchingHistory] = useState<boolean>(false);
 	const [className, set_className] = useState<string>('pointer-events-none opacity-40');
 	const tokenToSend = ETH_TOKEN;
-	const {data: tokensDeposited, refetch} = useContractRead({
+	const {data: tokensDeposited} = useContractRead({
 		abi: BOOTSTRAP_ABI,
 		address: toAddress(process.env.BOOTSTRAP_ADDRESS),
 		functionName: 'deposits',
@@ -247,19 +246,9 @@ function ViewDeposit(): ReactElement {
 			assert(provider, 'Provider not connected');
 			assert(amountToSend.raw > 0n, 'Amount must be greater than 0');
 
-			const result = await depositETH({
-				connector: provider,
-				chainID: Number(process.env.BASE_CHAIN_ID),
-				contractAddress: toAddress(process.env.BOOTSTRAP_ADDRESS),
-				amount: amountToSend.raw,
-				statusHandler: set_depositTxStatus
-			});
-			if (result.isSuccessful) {
-				set_amountToSend(zeroNormalizedBN);
-				await Promise.all([filterEvents(), refetch(), onRefresh([{...ETH_TOKEN}])]);
-			}
+			throw 'NO DEPOSIT ETH FUNCTION';
 		},
-		[amountToSend.raw, isActive, onRefresh, refetch, filterEvents]
+		[amountToSend.raw, isActive]
 	);
 
 	return (
