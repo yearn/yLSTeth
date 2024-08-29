@@ -11,6 +11,7 @@ import {motionVariants} from '@builtbymom/web3/utils/helpers';
 import {localhost} from '@builtbymom/web3/utils/wagmi';
 import AppHeader from '@libComponents/Header';
 import {BasketContextApp} from '@yUSD/contexts/useBasket';
+import {BootstrapContextApp} from '@yUSD/contexts/useBootstrap';
 import {InclusionContextApp} from '@yUSD/contexts/useInclusion';
 import {LSTContextApp} from '@yUSD/contexts/useLST';
 import {PriceContextApp} from '@yUSD/contexts/usePrices';
@@ -95,22 +96,24 @@ function MyApp(props: AppProps): ReactElement {
 					'https://raw.githubusercontent.com/SmolDapp/tokenLists/main/lists/yearn.json',
 					'https://raw.githubusercontent.com/SmolDapp/tokenLists/main/lists/smolAssets.json'
 				]}>
-				<PriceContextApp>
-					<WalletContextApp>
-						<LSTContextApp>
-							<BasketContextApp>
-								<InclusionContextApp>
-									<main className={cl('flex flex-col mb-32', aeonik.className)}>
-										<AppWrapper
-											supportedNetworks={supportedNetworks}
-											{...props}
-										/>
-									</main>
-								</InclusionContextApp>
-							</BasketContextApp>
-						</LSTContextApp>
-					</WalletContextApp>
-				</PriceContextApp>
+				<BootstrapContextApp>
+					<PriceContextApp>
+						<WalletContextApp>
+							<LSTContextApp>
+								<BasketContextApp>
+									<InclusionContextApp>
+										<main className={cl('flex flex-col mb-32', aeonik.className)}>
+											<AppWrapper
+												supportedNetworks={supportedNetworks}
+												{...props}
+											/>
+										</main>
+									</InclusionContextApp>
+								</BasketContextApp>
+							</LSTContextApp>
+						</WalletContextApp>
+					</PriceContextApp>
+				</BootstrapContextApp>
 			</WithMom>
 		</>
 	);

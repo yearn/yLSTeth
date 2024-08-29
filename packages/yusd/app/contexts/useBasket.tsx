@@ -161,7 +161,6 @@ export const BasketContextApp = ({children}: {children: React.ReactElement}): Re
 				chainID: Number(process.env.DEFAULT_CHAIN_ID),
 				balance: toNormalizedBN(0n, candidateDecimals),
 				value: 0,
-				price: zeroNormalizedBN,
 				index: i + 1
 			});
 		}
@@ -429,7 +428,6 @@ export const BasketContextApp = ({children}: {children: React.ReactElement}): Re
 					balance: zeroNormalizedBN,
 					value: 0,
 					depositor: detectedIncentives[i].depositor,
-					price: zeroNormalizedBN,
 					amount
 				});
 			}

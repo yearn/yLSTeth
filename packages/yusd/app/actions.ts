@@ -619,3 +619,26 @@ export async function claimManyInclusionIncentive(props: TClaimManyInclusionInce
 		args: [props.epochs, props.tokens]
 	});
 }
+
+/* 🔵 - Yearn Finance **********************************************************
+ ** BOOTSTRAP
+ ******************************************************************************/
+type TIncentivize = TWriteTransaction & {
+	protocolAddress: TAddress;
+	incentiveAddress: TAddress;
+	amount: bigint;
+};
+export async function incentivize(props: TIncentivize): Promise<TTxResponse> {
+	assert(props.connector, 'No connector');
+	assert(props.amount > 0n, 'Amount is 0');
+	assertAddress(process.env.BOOTSTRAP_ADDRESS, 'BOOTSTRAP_ADDRESS');
+	assertAddress(props.protocolAddress, 'protocolAddress');
+	assertAddress(props.incentiveAddress, 'incentiveAddress');
+
+	return await handleTx(props, {
+		address: process.env.BOOTSTRAP_ADDRESS,
+		abi: BOOTSTRAP_ABI,
+		functionName: 'incentivize',
+		args: [props.protocolAddress, props.incentiveAddress, props.amount]
+	});
+}

@@ -8,7 +8,13 @@ import type {TAddress, TDict, TNormalizedBN, TToken} from '@builtbymom/web3/type
  ** The TIndexedTokenInfo type extends the TTokenInfo type by adding an index property. This index
  ** is used to uniquely identify tokens in certain contexts.
  **************************************************************************************************/
-export type TIndexedTokenInfo = TToken & {index: number};
+export type TIndexedTokenInfo = TToken & {index: number} & {
+	extra?: {
+		votes: bigint;
+		totalVotes: bigint;
+		weight: number;
+	};
+};
 
 /**************************************************************************************************
  ** TEpoch is a type that represents an epoch in the system. An epoch is a period of time in the
