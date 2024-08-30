@@ -371,6 +371,8 @@ export const BasketContextApp = ({children}: {children: React.ReactElement}): Re
 						});
 					}
 				}
+			} else {
+				console.error('No public client available');
 			}
 
 			/**********************************************************************
@@ -447,6 +449,10 @@ export const BasketContextApp = ({children}: {children: React.ReactElement}): Re
 
 		//For the claim section, we need the previous epoch incentives
 		refreshWeightIncentives(epoch - 1n);
+		// refreshWeightIncentives(epoch - 2n);
+		// refreshWeightIncentives(epoch - 3n);
+		// refreshWeightIncentives(epoch - 4n);
+		// refreshWeightIncentives(epoch - 5n);
 	}, [epoch, refreshWeightIncentives]);
 
 	/**************************************************************************
@@ -462,6 +468,15 @@ export const BasketContextApp = ({children}: {children: React.ReactElement}): Re
 		},
 		[pastWeightIncentives]
 	);
+
+	console.warn({
+		assets,
+		basket,
+		weightIncentives,
+		currentVotesForNoChanges,
+		areIncentivesLoaded,
+		pastWeightIncentives
+	});
 
 	const contextValue = useMemo(
 		(): TUseBasketProps => ({

@@ -44,8 +44,6 @@ module.exports = phase =>
 			JSON_RPC_URL: {
 				1: process.env.RPC_URL_MAINNET
 			},
-			TELEGRAM_BOT: process.env.TELEGRAM_BOT,
-			TELEGRAM_CHAT: process.env.TELEGRAM_CHAT,
 			ALCHEMY_KEY: process.env.ALCHEMY_KEY,
 			INFURA_PROJECT_ID: process.env.INFURA_PROJECT_ID,
 			WALLETCONNECT_PROJECT_ID: process.env.WALLETCONNECT_PROJECT_ID,
