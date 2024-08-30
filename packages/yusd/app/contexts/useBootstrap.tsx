@@ -22,6 +22,8 @@ const defaultProps: TUseBootstrapProps = {
 	incentives: {} as unknown as TUseBootstrapIncentivesResp
 };
 
+//TODO: FOR OUR BOOTSTRAP V2, WE PROBABLY NEED TO UPDATE THIS HOOK TO BEHAVE MORE LIKE USEBASKET
+
 const Bootstrap = createContext<TUseBootstrapProps>(defaultProps);
 export const BootstrapContextApp = ({children}: {children: React.ReactElement}): React.ReactElement => {
 	const periods = useBootstrapPeriods();

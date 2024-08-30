@@ -171,20 +171,30 @@ function WalletSelector(): ReactElement {
 	);
 }
 
-const nav: TMenu[] = [
-	{path: '/', label: 'yUSD'},
-	// {path: '/deposit', label: 'Deposit'},
-	{path: '/incentivize', label: 'Incentivize'},
-	{path: '/vote', label: 'Vote'},
-	{path: '/claim', label: 'Claim'},
-	{path: '/apply', label: 'Apply'},
-	{path: '/propose', label: 'Propose'},
-	{path: 'https://docs.yearn.fi/getting-started/products/ypools/yeth/overview', label: 'Docs'}
-];
-
-function AppHeader(): ReactElement {
+function AppHeader({version}: {version: 'bootstrap' | 'live'}): ReactElement {
 	const {pathname} = useRouter();
 	const [isMenuOpen, set_isMenuOpen] = useState<boolean>(false);
+
+	const nav = useMemo((): TMenu[] => {
+		if (version === 'bootstrap') {
+			return [
+				{path: '/', label: 'Bootstrap'},
+				{path: '/deposit', label: 'Deposit'},
+				{path: '/incentivize', label: 'Incentivize'},
+				{path: '/claim', label: 'Claim'}
+			];
+		}
+		return [
+			{path: '/', label: 'yUSD'},
+			// {path: '/deposit', label: 'Deposit'},
+			{path: '/incentivize', label: 'Incentivize'},
+			{path: '/vote', label: 'Vote'},
+			{path: '/claim', label: 'Claim'},
+			{path: '/apply', label: 'Apply'},
+			{path: '/propose', label: 'Propose'},
+			{path: 'https://docs.yearn.fi/getting-started/products/ypools/yeth/overview', label: 'Docs'}
+		];
+	}, [version]);
 
 	return (
 		<div

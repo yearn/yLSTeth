@@ -53,7 +53,7 @@ function AppWrapper(props: AppProps & {supportedNetworks: Chain[]}): ReactElemen
 			id={'app'}
 			className={cl('mx-auto mb-0 flex font-aeonik w-full transition-colors duration-700')}>
 			<div className={'block size-full min-h-max'}>
-				<AppHeader version={'bootstrap'} />
+				<AppHeader />
 				<div className={'mx-auto my-0 w-full max-w-6xl pt-4 md:mb-0 md:!px-0'}>
 					<AnimatePresence mode={'wait'}>
 						<motion.div

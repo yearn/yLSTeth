@@ -1,5 +1,4 @@
 import React from 'react';
-import Phase2 from '@yUSD/components/bootstrapViews/Phase2';
 
 import type {ReactElement} from 'react';
 
@@ -13,7 +12,7 @@ export default function Bootstrap(): ReactElement {
 				<div
 					className={'relative flex flex-row'}
 					style={{height: 'calc(100vh - 80px)'}}>
-					<Phase2 key={'phase-2'} />
+					{'YEahhhh depositing'}
 				</div>
 			</div>
 		</div>

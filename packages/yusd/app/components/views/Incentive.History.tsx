@@ -174,8 +174,8 @@ function IncentiveHistory(props: {
 	set_epochToDisplay: (epoch: number) => void;
 	currentTab: 'current' | 'potential';
 }): ReactElement {
-	const {candidates, inclusionIncentives, isLoaded: isInclusionLoaded} = useInclusion();
 	const {assets, weightIncentives, isLoaded: isWeightLoaded} = useBasket();
+	const {candidates, inclusionIncentives, isLoaded: isInclusionLoaded} = useInclusion();
 	const [shouldDisplayUserIncentive, set_shouldDisplayUserIncentive] = useState<boolean>(false);
 
 	/**********************************************************************************************

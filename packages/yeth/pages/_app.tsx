@@ -43,6 +43,11 @@ const aeonik = localFont({
 	]
 });
 
+/****************************************************************************************************
+ ** This function wraps the application's components, providing layout and animation for page transitions.
+ ** @param props - The properties passed to the AppWrapper, including AppProps and supportedNetworks
+ ** @return ReactElement - The wrapped application components with layout and animations
+ ****************************************************************************************************/
 function AppWrapper(props: AppProps & {supportedNetworks: Chain[]}): ReactElement {
 	const router = useRouter();
 	const {Component, pageProps} = props;
@@ -74,6 +79,12 @@ function AppWrapper(props: AppProps & {supportedNetworks: Chain[]}): ReactElemen
 	);
 }
 
+/****************************************************************************************************
+ ** This is the main application component that sets up the context providers and the application's
+ ** structure.
+ ** @param props - The properties passed to MyApp, including AppProps
+ ** @return ReactElement - The main application component wrapped with context providers
+ ****************************************************************************************************/
 function MyApp(props: AppProps): ReactElement {
 	const supportedNetworks = [mainnet, optimism, polygon, fantom, base, arbitrum, localhost];
 	return (
