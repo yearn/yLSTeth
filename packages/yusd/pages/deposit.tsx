@@ -1,4 +1,5 @@
 import React from 'react';
+import ViewDeposit from '@yUSD/components/views/Deposit';
 
 import type {ReactElement} from 'react';
 
@@ -12,7 +13,7 @@ export default function Bootstrap(): ReactElement {
 				<div
 					className={'relative flex flex-row'}
 					style={{height: 'calc(100vh - 80px)'}}>
-					{'YEahhhh depositing'}
+					<ViewDeposit />
 				</div>
 			</div>
 		</div>

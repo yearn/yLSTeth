@@ -5,6 +5,7 @@ import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {useTokenList} from '@builtbymom/web3/contexts/WithTokenList';
 import {useChainID} from '@builtbymom/web3/hooks/useChainID';
 import {
+	cl,
 	decodeAsNumber,
 	decodeAsString,
 	formatAmount,
@@ -33,6 +34,7 @@ type TComboboxAddressInput = {
 	onChangeValue: Dispatch<SetStateAction<TToken | undefined>>;
 	onAddValue?: Dispatch<SetStateAction<TDict<TToken | undefined>>>;
 	shouldDisplayBalance?: boolean;
+	buttonClassName?: string;
 	isLoading?: boolean;
 };
 
@@ -106,6 +108,7 @@ function ComboboxAddressInput({
 	onChangeValue,
 	onAddValue,
 	shouldDisplayBalance,
+	buttonClassName = '',
 	isLoading
 }: TComboboxAddressInput): ReactElement {
 	const {isActive} = useWeb3();
@@ -247,9 +250,10 @@ function ComboboxAddressInput({
 				<div className={'relative'}>
 					<Combobox.Button
 						onClick={(): void => set_isOpen((o: boolean): boolean => !o)}
-						className={
-							'grow-1 bg-neutral-0 col-span-12 flex h-10 w-full items-center rounded-md p-2 md:col-span-9'
-						}>
+						className={cl(
+							'grow-1 bg-neutral-0 col-span-12 flex h-10 w-full items-center rounded-md p-2 md:col-span-9',
+							buttonClassName
+						)}>
 						<div className={'relative flex w-full flex-row items-center space-x-2'}>
 							<div className={'size-6 min-w-[24px]'}>
 								<ImageWithFallback
