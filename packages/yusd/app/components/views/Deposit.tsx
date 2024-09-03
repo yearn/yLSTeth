@@ -8,6 +8,7 @@ import {readContracts} from '@wagmi/core';
 import {EPOCH_DURATION} from '@yUSD/utils/constants';
 
 import {DepositHeader} from './Deposit.Header';
+import {DepositHistory} from './Deposit.History';
 import {DepositSelector} from './Deposit.Selector';
 
 import type {ReactElement} from 'react';
@@ -73,6 +74,7 @@ function ViewDeposit(): ReactElement {
 			<div className={'mb-20 md:mb-0'}>
 				<DepositHeader isIncentivePeriodClosed={areIncentivesOpen.isInclusionIncentiveOpen} />
 				<DepositSelector />
+				<DepositHistory />
 			</div>
 		</section>
 	);
