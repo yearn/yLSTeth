@@ -22,7 +22,6 @@ import {defaultTxStatus, handleTx} from '@builtbymom/web3/utils/wagmi';
 import ComboboxAddressInput from '@libComponents/ComboboxAddressInput';
 import {useDeepCompareEffect} from '@react-hookz/web';
 import {Button} from '@yearn-finance/web-lib/components/Button';
-import useBasket from '@yUSD/contexts/useBasket';
 import {ETH_TOKEN} from '@yUSD/tokens';
 
 import {ImageWithFallback} from '../../../../lib/components/ImageWithFallback';
@@ -43,11 +42,10 @@ const possibleTokenAddressesToVoteFor = [
 	'0xdAC17F958D2ee523a2206206994597C13D831ec7'
 ];
 
-function DepositSelector(): ReactElement {
+function DepositSelector({refetchLogs}: {refetchLogs: () => void}): ReactElement {
 	const {address, isActive, provider} = useWeb3();
 	const {safeChainID} = useChainID(Number(process.env.DEFAULT_CHAIN_ID));
 	const {getBalance, onRefresh} = useWallet();
-	const {isLoaded, refreshIncentives} = useBasket();
 	const {currentNetworkTokenList} = useTokenList();
 	const [amountToSend, set_amountToSend] = useState<TNormalizedBN | undefined>(undefined);
 	const [possibleTokensToUse, set_possibleTokensToUse] = useState<TDict<TToken | undefined>>({});
@@ -65,7 +63,6 @@ function DepositSelector(): ReactElement {
 	});
 
 	const hasAllowance = toBigInt(allowance) >= toBigInt(amountToSend?.raw);
-	console.log(allowance);
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	 ** On mount, fetch the token list from the tokenlistooor.
@@ -291,10 +288,9 @@ function DepositSelector(): ReactElement {
 				args: [toAddress(tokenToUse.address), toBigInt(amountToSend?.raw), toAddress(tokenToVoteFor?.address)]
 			}
 		);
-		console.log(result);
 		if (result.isSuccessful) {
 			refetchAllowance();
-			refreshIncentives();
+			refetchLogs();
 			onRefresh([
 				ETH_TOKEN,
 				{
@@ -317,7 +313,7 @@ function DepositSelector(): ReactElement {
 		tokenToUse?.symbol,
 		tokenToVoteFor?.address,
 		refetchAllowance,
-		refreshIncentives,
+		refetchLogs,
 		onRefresh
 	]);
 
@@ -391,7 +387,7 @@ function DepositSelector(): ReactElement {
 				<p className={'pb-1 text-sm text-neutral-600 md:text-base'}>{'Token you vote for'}</p>
 				<ComboboxAddressInput
 					shouldDisplayBalance={false}
-					isLoading={!isLoaded}
+					// isLoading={!isLoaded}
 					value={tokenToVoteFor?.address}
 					buttonClassName={'border border-neutral-500'}
 					possibleValues={possibleTokensToVoteFor}
