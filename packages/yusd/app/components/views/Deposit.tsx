@@ -25,7 +25,6 @@ function ViewDeposit(): ReactElement {
 	const [isLoading, set_isLoading] = useState<boolean>(false);
 
 	const publicClient = useMemo(() => getClient(Number(process.env.DEFAULT_CHAIN_ID)), []);
-
 	const refetchLogs = useAsyncTrigger(async () => {
 		if (!block?.number) {
 			return;
@@ -46,7 +45,7 @@ function ViewDeposit(): ReactElement {
 				]
 			},
 			args: {
-				depositor: address
+				receiver: address
 			},
 			fromBlock: block.number - 1000n,
 			toBlock: block.number
@@ -69,24 +68,27 @@ function ViewDeposit(): ReactElement {
 			fromBlock: block.number - 1000n,
 			toBlock: block.number
 		});
+		const depositTopics = depositLogs
+			.map(log => ({
+				block: log.blockNumber,
+				decodedEvent: decodeEventLog({
+					abi: BOOTSTRAP_ABI_NEW,
+					data: log.data,
+					topics: log.topics
+				})
+			}))
+			.filter(each => (each.decodedEvent.args as {depositor: Address}).depositor === address);
 
-		const depositTopics = depositLogs.map(log => ({
-			block: log.blockNumber,
-			decodedEvent: decodeEventLog({
-				abi: BOOTSTRAP_ABI_NEW,
-				data: log.data,
-				topics: log.topics
-			})
-		}));
-
-		const voteTopics = voteLogs.map(log => ({
-			block: log.blockNumber,
-			decodedEvent: decodeEventLog({
-				abi: BOOTSTRAP_ABI_NEW,
-				data: log.data,
-				topics: log.topics
-			})
-		}));
+		const voteTopics = voteLogs
+			.map(log => ({
+				block: log.blockNumber,
+				decodedEvent: decodeEventLog({
+					abi: BOOTSTRAP_ABI_NEW,
+					data: log.data,
+					topics: log.topics
+				})
+			}))
+			.filter(each => (each.decodedEvent.args as {voter: Address}).voter === address);
 
 		const history = depositTopics.map(depositTopic => {
 			const voteTopic = voteTopics.find(voteTopic => voteTopic.block === depositTopic.block);
@@ -105,7 +107,7 @@ function ViewDeposit(): ReactElement {
 			};
 		});
 
-		set_history(history);
+		set_history(history.filter(each => each.asset !== undefined));
 		set_isLoading(false);
 	}, [address, block?.number, chainID, getToken, publicClient]);
 
