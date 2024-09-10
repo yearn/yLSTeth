@@ -23,24 +23,13 @@ import ComboboxAddressInput from '@libComponents/ComboboxAddressInput';
 import {useDeepCompareEffect} from '@react-hookz/web';
 import {Button} from '@yearn-finance/web-lib/components/Button';
 import {ETH_TOKEN} from '@yUSD/tokens';
+import {possibleTokenAddressesToUse, possibleTokensToVoteFor} from '@yUSD/utils/constants';
 
 import {ImageWithFallback} from '../../../../lib/components/ImageWithFallback';
 
 import type {ChangeEvent, Dispatch, ReactElement, SetStateAction} from 'react';
 import type {TDict, TNormalizedBN, TToken} from '@builtbymom/web3/types';
 import type {TTxStatus} from '@builtbymom/web3/utils/wagmi';
-
-const possibleTokenAddressesToUse = [
-	'0x83F20F44975D03b1b09e64809B757c47f942BEeA',
-	'0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-	'0xdAC17F958D2ee523a2206206994597C13D831ec7'
-];
-
-const possibleTokenAddressesToVoteFor = [
-	'0x6B175474E89094C44Da98b954EedeAC495271d0F',
-	'0x83F20F44975D03b1b09e64809B757c47f942BEeA',
-	'0xdAC17F958D2ee523a2206206994597C13D831ec7'
-];
 
 function DepositSelector({refetchLogs}: {refetchLogs: () => void}): ReactElement {
 	const {address, isActive, provider} = useWeb3();
@@ -49,7 +38,6 @@ function DepositSelector({refetchLogs}: {refetchLogs: () => void}): ReactElement
 	const {currentNetworkTokenList} = useTokenList();
 	const [amountToSend, set_amountToSend] = useState<TNormalizedBN | undefined>(undefined);
 	const [possibleTokensToUse, set_possibleTokensToUse] = useState<TDict<TToken | undefined>>({});
-	const [possibleTokensToVoteFor, set_possibleTokensToVoteFor] = useState<TDict<TToken | undefined>>({});
 	const [tokenToVoteFor, set_tokenToVoteFor] = useState<TToken | undefined>();
 	const [tokenToUse, set_tokenToUse] = useState<TToken | undefined>();
 	const [approvalStatus, set_approvalStatus] = useState<TTxStatus>(defaultTxStatus);
@@ -81,19 +69,6 @@ function DepositSelector({refetchLogs}: {refetchLogs: () => void}): ReactElement
 		set_possibleTokensToUse(possibleDestinationsTokens);
 	}, [currentNetworkTokenList, safeChainID]);
 
-	useDeepCompareEffect((): void => {
-		const possibleTokensToVoteFor: TDict<TToken> = {};
-		for (const eachAddress of possibleTokenAddressesToVoteFor) {
-			if (eachAddress === ETH_TOKEN_ADDRESS) {
-				continue;
-			}
-			if (currentNetworkTokenList[eachAddress]) {
-				possibleTokensToVoteFor[toAddress(eachAddress)] = currentNetworkTokenList[eachAddress];
-			}
-		}
-		set_possibleTokensToVoteFor(possibleTokensToVoteFor);
-	}, [currentNetworkTokenList, safeChainID]);
-
 	/* 🔵 - Yearn Finance **************************************************************************
 	 ** On balance or token change, update the balance of the token to use.
 	 **********************************************************************************************/
@@ -110,14 +85,14 @@ function DepositSelector({refetchLogs}: {refetchLogs: () => void}): ReactElement
 	/* 🔵 - Yearn Finance **************************************************************************
 	 ** If it is possible to vote for the selected token, set the token to vote for.
 	 **********************************************************************************************/
-	const onChangeTokenToUse = useCallback((token: TToken | undefined): void => {
-		if (!token) {
+	const onChangeTokenToUse = useCallback((selectedToken: TToken | undefined): void => {
+		if (!selectedToken) {
 			return;
 		}
-		set_tokenToUse(token);
+		set_tokenToUse(selectedToken);
 
-		if (possibleTokenAddressesToVoteFor.find(address => address === token.address)) {
-			set_tokenToVoteFor(token);
+		if (Object.values(possibleTokensToVoteFor).find(token => token.address === selectedToken.address)) {
+			set_tokenToVoteFor(selectedToken);
 		}
 	}, []);
 
@@ -326,7 +301,7 @@ function DepositSelector({refetchLogs}: {refetchLogs: () => void}): ReactElement
 					possibleValues={possibleTokensToUse}
 					onAddValue={set_possibleTokensToUse}
 					onChangeValue={onChangeTokenToUse as Dispatch<SetStateAction<TToken | undefined>>}
-					buttonClassName={'border border-neutral-500'}
+					buttonClassName={'border border-neutral-500 rounded-sm'}
 				/>
 				<p className={'hidden pt-1 text-xs lg:block'}>&nbsp;</p>
 			</div>
@@ -335,7 +310,7 @@ function DepositSelector({refetchLogs}: {refetchLogs: () => void}): ReactElement
 				<p className={'pb-1 text-sm text-neutral-600 md:text-base'}>{'Amount'}</p>
 				<div
 					className={
-						'grow-1 bg-neutral-0 flex h-10 w-full items-center justify-center rounded-md border border-neutral-500 p-2'
+						'grow-1 bg-neutral-0 flex h-10 w-full items-center justify-center rounded-sm border border-neutral-500 p-2'
 					}>
 					<div className={'mr-2 size-6 min-w-[24px]'}>
 						<ImageWithFallback
@@ -351,7 +326,7 @@ function DepositSelector({refetchLogs}: {refetchLogs: () => void}): ReactElement
 					<input
 						id={'amountToSend'}
 						className={
-							'scrollbar-none w-full overflow-x-scroll border-none bg-transparent px-0 py-4 font-mono text-sm outline-none'
+							'scrollbar-none w-full overflow-x-scroll border-none bg-transparent px-0 py-4 font-mono text-sm outline-none '
 						}
 						type={'number'}
 						min={0}
@@ -389,7 +364,7 @@ function DepositSelector({refetchLogs}: {refetchLogs: () => void}): ReactElement
 					shouldDisplayBalance={false}
 					// isLoading={!isLoaded}
 					value={tokenToVoteFor?.address}
-					buttonClassName={'border border-neutral-500'}
+					buttonClassName={'border border-neutral-500 rounded-sm'}
 					possibleValues={possibleTokensToVoteFor}
 					onChangeValue={set_tokenToVoteFor}
 				/>

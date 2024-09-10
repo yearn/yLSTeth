@@ -438,7 +438,7 @@ export const BasketContextApp = ({children}: {children: React.ReactElement}): Re
 			set_weightIncentives(byCandidate);
 			set_pastWeightIncentives(prev => ({...prev, [Number(_epoch)]: {data: byCandidate, hasData: true}}));
 		},
-		[assets]
+		[assets.length]
 	);
 
 	const triggerWeightIncentivesRefresh = useAsyncTrigger(async (): Promise<void> => {

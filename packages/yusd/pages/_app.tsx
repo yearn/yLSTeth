@@ -10,6 +10,7 @@ import {cl} from '@builtbymom/web3/utils/cl';
 import {motionVariants} from '@builtbymom/web3/utils/helpers';
 import {localhost} from '@builtbymom/web3/utils/wagmi';
 import AppHeader from '@libComponents/Header';
+import {BasketContextApp} from '@yUSD/contexts/useBasket';
 import {LSTContextApp} from '@yUSD/contexts/useLST';
 import {PriceContextApp} from '@yUSD/contexts/usePrices';
 
@@ -97,16 +98,16 @@ function MyApp(props: AppProps): ReactElement {
 				<PriceContextApp>
 					<WalletContextApp>
 						<LSTContextApp>
-							{/* <BasketContextApp> */}
-							{/* <InclusionContextApp> */}
-							<main className={cl('flex flex-col mb-32', aeonik.className)}>
-								<AppWrapper
-									supportedNetworks={supportedNetworks}
-									{...props}
-								/>
-							</main>
-							{/* </InclusionContextApp> */}
-							{/* </BasketContextApp> */}
+							<BasketContextApp>
+								{/* <InclusionContextApp> */}
+								<main className={cl('flex flex-col mb-32', aeonik.className)}>
+									<AppWrapper
+										supportedNetworks={supportedNetworks}
+										{...props}
+									/>
+								</main>
+								{/* </InclusionContextApp> */}
+							</BasketContextApp>
 						</LSTContextApp>
 					</WalletContextApp>
 				</PriceContextApp>

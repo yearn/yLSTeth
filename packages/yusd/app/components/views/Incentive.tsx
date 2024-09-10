@@ -76,18 +76,12 @@ function ViewIncentive(): ReactElement {
 		<section className={'grid grid-cols-1 pt-10 md:mb-20 md:pt-12'}>
 			<div className={'mb-20 md:mb-0'}>
 				<IncentiveHeader isIncentivePeriodClosed={areIncentivesOpen.isInclusionIncentiveOpen} />
-				<IncentiveSelector
-					incentivePeriodOpen={areIncentivesOpen}
+				<IncentiveSelector incentivePeriodOpen={areIncentivesOpen} />
+				<IncentiveHistory
+					epochToDisplay={epochToDisplay}
+					set_epochToDisplay={set_epochToDisplay}
 					currentTab={currentTab}
-					set_currentTab={set_currentTab}
 				/>
-				<div className={'bg-neutral-100'}>
-					<IncentiveHistory
-						epochToDisplay={epochToDisplay}
-						set_epochToDisplay={set_epochToDisplay}
-						currentTab={currentTab}
-					/>
-				</div>
 			</div>
 		</section>
 	);

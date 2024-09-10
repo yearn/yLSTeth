@@ -44,23 +44,14 @@ function IncentiveHeader({isIncentivePeriodClosed}: {isIncentivePeriodClosed: bo
 				<div className={'w-full'}>
 					<p className={'text-neutral-700'}>
 						{
-							'They say it’s not what you know, but who you… incentivize. You can incentivize with any amount and any token for:'
+							'Pick which STABLE you are incentivizing for, and which token you’ll be posting the incentive in. Remember, if your token is not included in the final yUSD basket you’ll be refunded the full amount of your incentive.'
 						}
 					</p>
-					<ul>
-						<li className={'list-inside list-disc text-neutral-700'}>
-							{
-								'Weight votes: anyone who votes in favor receives incentives accordingly. Incentives are non-refundable.'
-							}
-						</li>
-						<li className={'list-inside list-disc text-neutral-700'}>
-							{
-								'Inclusion votes: Support an LST to get added to yUSD or to not let any new LST in. Incentives are refundable if your outcome does not win.'
-							}
-						</li>
-					</ul>
 				</div>
-				<div className={'flex w-full justify-end space-x-4 pb-2 md:w-auto'}>
+				<div
+					className={
+						'flex w-full flex-col justify-end space-y-4 pb-2 md:w-auto md:flex-row md:space-x-4 md:space-y-0'
+					}>
 					<div className={'w-full min-w-[200px] bg-neutral-100 p-4 md:w-fit'}>
 						<p className={'whitespace-nowrap pb-2'}>{'Current total deposits, USD'}</p>
 						<b

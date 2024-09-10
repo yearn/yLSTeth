@@ -1,9 +1,9 @@
-import React, {Fragment, useMemo, useState} from 'react';
+import React, {Fragment, useEffect, useMemo, useState} from 'react';
+import {useRouter} from 'next/router';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {useChainID} from '@builtbymom/web3/hooks/useChainID';
 import {cl, formatAmount, formatPercent, toAddress, truncateHex} from '@builtbymom/web3/utils';
 import {ImageWithFallback} from '@libComponents/ImageWithFallback';
-import Toggle from '@libComponents/toggle';
 import IconSpinner from '@libIcons/IconSpinner';
 import {IconChevronBottom} from '@yearn-finance/web-lib/icons/IconChevronBottom';
 import {SubIncentiveWrapper} from '@yUSD/components/views/SubIncentiveWrapper';
@@ -11,12 +11,76 @@ import useBasket from '@yUSD/contexts/useBasket';
 import useInclusion from '@yUSD/contexts/useInclusion';
 import useLST from '@yUSD/contexts/useLST';
 import {usePrices} from '@yUSD/contexts/usePrices';
-import {NO_CHANGE_LST_LIKE} from '@yUSD/utils/constants';
-import {getCurrentEpochNumber} from '@yUSD/utils/epochs';
+import {possibleTokenAddressesToVoteFor} from '@yUSD/utils/constants';
 
 import type {ReactElement} from 'react';
 import type {TDict} from '@builtbymom/web3/types';
 import type {TIndexedTokenInfo, TTokenIncentive} from '@libUtils/types';
+
+function IncentiveHistoryTabs(props: {
+	currentTab: 'all' | 'your';
+	set_currentTab: (tab: 'all' | 'your') => void;
+}): ReactElement {
+	const router = useRouter();
+
+	useEffect((): void => {
+		const urlParams = new URLSearchParams(window.location.search);
+		const filter = urlParams.get('filter');
+
+		if (filter === 'all' || filter === 'your') {
+			props.set_currentTab(filter);
+		} else if (router.query?.filter === 'all' || router.query?.filter === 'your') {
+			props.set_currentTab(router.query.filter);
+		}
+	}, [props.set_currentTab, router.query]);
+
+	return (
+		<div className={'overflow-hidden'}>
+			<div className={'-mx-42 relative'}>
+				<button
+					onClick={(): void => {
+						router.push({pathname: router.pathname, query: {filter: 'all'}});
+					}}
+					className={cl(
+						'mx-4 mb-2 text-lg transition-colors',
+						props.currentTab === 'all' ? 'font-bold' : 'text-neutral-400'
+					)}>
+					{'All Incentives'}
+				</button>
+				<button
+					onClick={(): void => {
+						router.push({pathname: router.pathname, query: {filter: 'your'}});
+					}}
+					className={cl(
+						'mx-4 mb-2 text-lg transition-colors',
+						props.currentTab === 'your' ? 'font-bold' : 'text-neutral-400'
+					)}>
+					{'Your Incentives'}
+				</button>
+				<div className={'absolute bottom-0 left-0 flex h-0.5 w-full flex-row bg-neutral-300'}>
+					<div
+						className={cl(
+							'h-full w-fit transition-colors mx-4',
+							props.currentTab === 'all' ? 'bg-black' : 'bg-transparent'
+						)}>
+						<button className={'pointer-events-none invisible h-0 p-0 text-lg font-bold opacity-0'}>
+							{'All Incentives'}
+						</button>
+					</div>
+					<div
+						className={cl(
+							'h-full w-fit transition-colors ml-2',
+							props.currentTab === 'your' ? 'bg-black' : 'bg-transparent'
+						)}>
+						<button className={'pointer-events-none invisible h-0 p-0 text-lg font-bold opacity-0'}>
+							{'Your Incentives'}
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	);
+}
 
 function IncentiveRow(props: {
 	item: TIndexedTokenInfo;
@@ -109,7 +173,7 @@ function IncentiveRow(props: {
 			}}>
 			<summary
 				className={cl(
-					'grid grid-cols-12 p-4 px-0 md:px-72',
+					'grid grid-cols-12 p-4 px-0 md:px-4',
 					hasIncentives ? 'cursor-pointer' : '!cursor-default'
 				)}>
 				<div className={'col-span-12 flex w-full flex-row items-center space-x-6 md:col-span-5'}>
@@ -178,87 +242,31 @@ function IncentiveHistory(props: {
 	const {candidates, inclusionIncentives, isLoaded: isInclusionLoaded} = useInclusion();
 	const [shouldDisplayUserIncentive, set_shouldDisplayUserIncentive] = useState<boolean>(false);
 
-	/**********************************************************************************************
-	 * Group to display, which is either the current assets or the potential candidates.
-	 * The user can toggle between the two using the currentTab prop.
-	 **********************************************************************************************/
-	const groupToDisplay = useMemo((): TIndexedTokenInfo[] => {
-		if (props.currentTab === 'current') {
-			return assets;
-		}
-		return candidates;
-	}, [assets, candidates, props.currentTab]);
+	const [currentTab, set_currentTab] = useState<'all' | 'your'>('all');
 
 	/**********************************************************************************************
 	 * Group to display, which is either the current assets or the potential candidates.
 	 * The user can toggle between the two using the currentTab prop.
 	 **********************************************************************************************/
 	const incentivesToDisplay = useMemo((): TDict<TDict<TTokenIncentive[]>> => {
-		if (props.currentTab === 'current') {
-			return weightIncentives;
+		if (props.currentTab === 'all') {
+			return possibleTokenAddressesToVoteFor;
 		}
-		return inclusionIncentives;
-	}, [inclusionIncentives, props.currentTab, weightIncentives]);
-
-	const epochs = useMemo((): number[] => {
-		const epochArray = [];
-		for (let i = 0; i <= getCurrentEpochNumber(); i++) {
-			epochArray.push(i);
-		}
-		return epochArray;
-	}, []);
+		return possibleTokenAddressesToVoteFor; // TODO: update
+	}, [props.currentTab]);
 
 	return (
 		<div className={'mt-2 pt-8'}>
-			<div className={'px-4 md:px-72'}>
-				<b className={'text-xl font-black'}>{'Incentives'}</b>
-
-				<div className={'flex flex-col justify-between md:flex-row'}>
-					<div>
-						<p className={'mb-1 text-neutral-600'}>{'Select epoch'}</p>
-						<div
-							className={cl(
-								'grow-1 col-span-5 flex h-10 w-full items-center justify-start rounded-md p-2 bg-neutral-0 md:w-[264px] mb-9'
-							)}>
-							<select
-								className={
-									'scrollbar-none w-full overflow-x-scroll border-none bg-transparent px-0 py-4 outline-none'
-								}
-								onChange={(e): void => props.set_epochToDisplay(Number(e.target.value))}
-								value={props.epochToDisplay}
-								defaultValue={getCurrentEpochNumber()}>
-								{epochs.map(
-									(index): ReactElement => (
-										<option
-											key={index}
-											value={index}>
-											{index === getCurrentEpochNumber() ? 'Current' : `Epoch ${index + 1}`}
-										</option>
-									)
-								)}
-							</select>
-						</div>
-					</div>
-					<div className={'flex flex-row items-center space-x-2'}>
-						<p
-							className={cl(
-								shouldDisplayUserIncentive ? 'font-bold text-accent' : 'font-normal text-neutral-600'
-							)}>
-							{'Show my incentives'}
-						</p>
-						<Toggle
-							bgOffColor={'bg-neutral-0'}
-							isEnabled={shouldDisplayUserIncentive}
-							onChange={(): void => set_shouldDisplayUserIncentive(!shouldDisplayUserIncentive)}
-						/>
-					</div>
-				</div>
-
+			<div className={''}>
+				<IncentiveHistoryTabs
+					currentTab={currentTab}
+					set_currentTab={set_currentTab}
+				/>
 				<div
 					aria-label={'header'}
-					className={'my-4 hidden grid-cols-12 md:grid'}>
+					className={'mb-4 mt-6 hidden grid-cols-12 px-4 md:grid'}>
 					<div className={'col-span-5'}>
-						<p className={'text-xs text-neutral-500'}>{'LST'}</p>
+						<p className={'text-xs text-neutral-500'}>{'STABLE'}</p>
 					</div>
 					<div className={'col-span-2 flex justify-end'}>
 						<p className={'group flex flex-row text-xs text-neutral-500 md:-mr-2'}>
@@ -276,7 +284,7 @@ function IncentiveHistory(props: {
 			</div>
 
 			<div className={'min-h-[74px] bg-neutral-100'}>
-				{[NO_CHANGE_LST_LIKE, ...groupToDisplay].map((item): ReactElement => {
+				{/* {[incentivesToDisplay].map((item): ReactElement => {
 					return (
 						<IncentiveRow
 							key={`${item.address}_${props.epochToDisplay}`}
@@ -285,7 +293,7 @@ function IncentiveHistory(props: {
 							item={item}
 						/>
 					);
-				})}
+				})} */}
 
 				{props.currentTab === 'current' && !isWeightLoaded && (
 					<div className={'mt-6 flex flex-row items-center justify-center pb-12 pt-6'}>
