@@ -156,7 +156,7 @@ export async function removeLiquiditySingleFromPool(props: TRemoveLiquiditySingl
 	assert(props.minOut > 0n, 'minOut is 0');
 	assert(props.amount > 0n, 'Amount is 0');
 	assert(props.index >= 0n, 'Index is negative');
-	assert(props.index <= 4n, 'Index is too large');
+	assert(props.index <= 7n, 'Index is too large');
 	assertAddress(process.env.POOL_ADDRESS, 'POOL_ADDRESS');
 
 	return await handleTx(props, {
