@@ -27,7 +27,6 @@ export const BootstrapContextApp = ({children}: {children: React.ReactElement}):
 	// const whitelistedLST = useBootstrapWhitelistedLST();
 	// const voting = useBootstrapVoting();
 	const incentives = useBootstrapIncentives();
-	console.log(incentives);
 	const contextValue = useMemo(
 		(): TUseBootstrapProps => ({
 			// periods,

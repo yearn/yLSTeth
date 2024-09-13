@@ -4,7 +4,7 @@ import {zeroNormalizedBN} from '@builtbymom/web3/utils';
 import type {TDict} from '@builtbymom/web3/types';
 import type {TIndexedTokenInfo} from '@libUtils/types';
 
-export const INITIAL_PERIOD_BLOCK = 17_653_050n;
+export const INITIAL_PERIOD_BLOCK = 20_676_912n;
 export const DAILY_AVG_BLOCKS = 7_200n;
 export const EPOCH_AVG_BLOCKS = 201_600n; // 4 weeks
 
