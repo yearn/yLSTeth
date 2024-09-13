@@ -228,7 +228,12 @@ function ViewDeposit(): ReactElement {
 	 ** - Implements a locking mechanism to prevent concurrent executions
 	 ************************************************************************************************/
 	const refetchLogs = useCallback(async (): Promise<void> => {
-		if (!block?.number || !address) {
+		if (!block?.number) {
+			return;
+		}
+
+		if (!address) {
+			set_loading(prevLoading => ({...prevLoading, isLoading: false}));
 			return;
 		}
 
