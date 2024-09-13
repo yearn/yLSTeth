@@ -474,7 +474,7 @@ function Claim(): ReactElement {
 	}
 
 	return (
-		<section className={'grid w-full grid-cols-1 pt-10 md:mb-20 md:pt-12'}>
+		<section className={'grid w-full grid-cols-1 pt-10 md:mb-20 md:px-4 md:pt-12'}>
 			<div className={'mb-20 md:mb-0'}>
 				<ClaimHeading />
 				<div
