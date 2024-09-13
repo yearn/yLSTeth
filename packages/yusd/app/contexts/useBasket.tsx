@@ -61,10 +61,22 @@ export const BasketContextApp = ({children}: {children: React.ReactElement}): Re
 		{}
 	);
 
+	/**********************************************************************************************
+	 ** assets is an object with multiple level of depth. We want to create a unique hash from
+	 ** it to know when it changes. This new hash will be used to trigger the useEffect hook.
+	 ** We will use classic hash function to create a hash from the assets object.
+	 *********************************************************************************************/
+	const assetsHash = useMemo(() => {
+		acknowledge(assets);
+		const hash = createUniqueID(serialize(assets));
+		return hash;
+	}, [assets]);
+
 	const refreshBasket = useAsyncTrigger(async (): Promise<void> => {
 		if (!assets.length) {
 			return;
 		}
+		acknowledge(assetsHash);
 		const data = await readContracts(retrieveConfig(), {
 			contracts: assets
 				.map((item, index): any => {
@@ -149,7 +161,7 @@ export const BasketContextApp = ({children}: {children: React.ReactElement}): Re
 			};
 		});
 		set_basket(itemsInBasket);
-	}, [address, assets]);
+	}, [address, assets, assetsHash]);
 
 	/**************************************************************************
 	 * Once we have the list of candidates, it's possible for us to try to

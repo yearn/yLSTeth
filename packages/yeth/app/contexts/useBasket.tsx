@@ -185,6 +185,7 @@ export const BasketContextApp = ({children}: {children: React.ReactElement}): Re
 		if (!assets.length) {
 			return;
 		}
+		acknowledge(assetsHash);
 		const data = await readContracts(retrieveConfig(), {
 			contracts: [
 				{
@@ -340,7 +341,7 @@ export const BasketContextApp = ({children}: {children: React.ReactElement}): Re
 			};
 		});
 		set_basket(itemsInBasket);
-	}, [address, assets, epoch]);
+	}, [address, assets, epoch, assetsHash]);
 
 	/**************************************************************************
 	 * Once we have the list of candidates, it's possible for us to try to
