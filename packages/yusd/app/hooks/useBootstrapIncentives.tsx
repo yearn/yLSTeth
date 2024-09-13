@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import {erc20Abi, parseAbiItem, toHex} from 'viem';
-import {useContractRead} from 'wagmi';
+import {useBlock, useContractRead} from 'wagmi';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {
 	decodeAsNumber,
@@ -75,6 +75,7 @@ export type TUseBootstrapIncentivesResp = {
 };
 function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 	const {address} = useWeb3();
+	const {data: block} = useBlock({chainId: Number(process.env.DEFAULT_CHAIN_ID)});
 	const {voteStatus} = useBootstrapPeriods();
 	const [incentives, set_incentives] = useState<TIncentives[]>([]);
 	const [claimedIncentives, set_claimedIncentives] = useState<TIncentivesClaimed[] | undefined>(undefined);
@@ -92,7 +93,7 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 	 ** @returns: bigint - total deposited eth
 	 **********************************************************************************************/
 	const {data: totalDepositedETH} = useContractRead({
-		address: toAddress(process.env.BOOTSTRAP_ADDRESS),
+		address: toAddress(process.env.DEPOSIT_ADDRESS),
 		abi: BOOTSTRAP_ABI,
 		functionName: 'deposited'
 	});
@@ -130,30 +131,29 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 		const deploymentBlockNumber = toBigInt(process.env.BOOTSTRAP_INIT_BLOCK_NUMBER);
 		const currentBlockNumber = await publicClient.getBlockNumber();
 		const incentives: TIncentives[] = [];
-		for (let i = deploymentBlockNumber; i < currentBlockNumber; i += rangeLimit) {
-			const logs = await publicClient.getLogs({
-				address: toAddress(process.env.BOOTSTRAP_ADDRESS),
-				event: parseAbiItem(
-					'event Incentivize(address indexed protocol, address indexed incentive, address indexed depositor, uint256 amount)'
-				),
-				fromBlock: i,
-				toBlock: i + rangeLimit
+		const logs = await publicClient.getLogs({
+			address: toAddress(process.env.DEPOSIT_ADDRESS),
+			event: parseAbiItem(
+				'event Incentivize(address indexed protocol, address indexed incentive, address indexed depositor, uint256 amount)'
+			),
+			fromBlock: currentBlockNumber - 1000n,
+			toBlock: currentBlockNumber
+		});
+		console.log({logs});
+		for (const log of logs) {
+			const {protocol, incentive, amount, depositor} = log.args;
+			incentives.push({
+				blockNumber: toBigInt(log.blockNumber as bigint),
+				txHash: toHex(log.transactionHash || ''),
+				protocol: toAddress(protocol),
+				protocolName: truncateHex(protocol, 6),
+				protocolSymbol: truncateHex(protocol, 6),
+				incentive: toAddress(incentive),
+				depositor: toAddress(depositor),
+				amount: toBigInt(amount),
+				value: 0,
+				estimatedAPR: 0
 			});
-			for (const log of logs) {
-				const {protocol, incentive, amount, depositor} = log.args;
-				incentives.push({
-					blockNumber: toBigInt(log.blockNumber as bigint),
-					txHash: toHex(log.transactionHash || ''),
-					protocol: toAddress(protocol),
-					protocolName: truncateHex(protocol, 6),
-					protocolSymbol: truncateHex(protocol, 6),
-					incentive: toAddress(incentive),
-					depositor: toAddress(depositor),
-					amount: toBigInt(amount),
-					value: 0,
-					estimatedAPR: 0
-				});
-			}
 		}
 		set_incentives(incentives);
 	}, []);
@@ -179,7 +179,7 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 		const incentivesClaimed: TIncentivesClaimed[] = [];
 		for (let i = deploymentBlockNumber; i < currentBlockNumber; i += rangeLimit) {
 			const logs = await publicClient.getLogs({
-				address: toAddress(process.env.BOOTSTRAP_ADDRESS),
+				address: toAddress(process.env.DEPOSIT_ADDRESS),
 				event: parseAbiItem(
 					'event ClaimIncentive(address indexed protocol, address indexed incentive, address indexed claimer, uint256 amount)'
 				),

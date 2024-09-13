@@ -369,16 +369,11 @@ function WeightIncentiveSelector(props: {isIncentivePeriodOpen: boolean}): React
 	);
 }
 
-function IncentiveSelector(props: {
-	incentivePeriodOpen: {
-		isWeightIncentiveOpen: boolean;
-		isInclusionIncentiveOpen: boolean;
-	};
-}): ReactElement {
+function IncentiveSelector(props: {incentivePeriodOpen: boolean}): ReactElement {
 	return (
 		<div className={'pt-4'}>
 			<IncentiveMenuTabs />
-			<WeightIncentiveSelector isIncentivePeriodOpen={props.incentivePeriodOpen.isWeightIncentiveOpen} />
+			<WeightIncentiveSelector isIncentivePeriodOpen={props.incentivePeriodOpen} />
 		</div>
 	);
 }

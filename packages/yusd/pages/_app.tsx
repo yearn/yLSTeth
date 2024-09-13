@@ -19,6 +19,7 @@ import type {ReactElement} from 'react';
 import type {Chain} from 'viem/chains';
 
 import '../style.css';
+import {BootstrapContextApp} from '@yUSD/contexts/useBootstrap';
 
 const aeonik = localFont({
 	variable: '--font-aeonik',
@@ -94,24 +95,24 @@ function MyApp(props: AppProps): ReactElement {
 					'https://raw.githubusercontent.com/SmolDapp/tokenLists/main/lists/yearn.json',
 					'https://raw.githubusercontent.com/SmolDapp/tokenLists/main/lists/smolAssets.json'
 				]}>
-				{/* <BootstrapContextApp> */}
-				<PriceContextApp>
-					<WalletContextApp>
-						<LSTContextApp>
-							<BasketContextApp>
-								{/* <InclusionContextApp> */}
-								<main className={cl('flex flex-col mb-32', aeonik.className)}>
-									<AppWrapper
-										supportedNetworks={supportedNetworks}
-										{...props}
-									/>
-								</main>
-								{/* </InclusionContextApp> */}
-							</BasketContextApp>
-						</LSTContextApp>
-					</WalletContextApp>
-				</PriceContextApp>
-				{/* </BootstrapContextApp> */}
+				<BootstrapContextApp>
+					<PriceContextApp>
+						<WalletContextApp>
+							<LSTContextApp>
+								<BasketContextApp>
+									{/* <InclusionContextApp> */}
+									<main className={cl('flex flex-col mb-32', aeonik.className)}>
+										<AppWrapper
+											supportedNetworks={supportedNetworks}
+											{...props}
+										/>
+									</main>
+									{/* </InclusionContextApp> */}
+								</BasketContextApp>
+							</LSTContextApp>
+						</WalletContextApp>
+					</PriceContextApp>
+				</BootstrapContextApp>
 			</WithMom>
 		</>
 	);

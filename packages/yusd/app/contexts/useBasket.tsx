@@ -73,7 +73,7 @@ export const BasketContextApp = ({children}: {children: React.ReactElement}): Re
 							address: toAddress(process.env.DEPOSIT_ADDRESS),
 							abi: BOOTSTRAP_ABI_NEW,
 							functionName: 'incentives',
-							args: [address, item.address],
+							args: [item.address, address],
 							chainId: Number(process.env.DEFAULT_CHAIN_ID)
 						}
 					] as any[];
@@ -316,7 +316,7 @@ export const BasketContextApp = ({children}: {children: React.ReactElement}): Re
 	// 	]
 	// );
 
-	return <BasketContext.Provider value={{}}>{children}</BasketContext.Provider>;
+	return <BasketContext.Provider value={{assets}}>{children}</BasketContext.Provider>;
 };
 
 const useBasket = (): TUseBasketProps => useContext(BasketContext);

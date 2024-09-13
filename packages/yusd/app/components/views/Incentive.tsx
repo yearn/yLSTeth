@@ -2,10 +2,8 @@ import React, {useState} from 'react';
 import {useAsyncTrigger} from '@builtbymom/web3/hooks/useAsyncTrigger';
 import {decodeAsBigInt, toAddress, toBigInt} from '@builtbymom/web3/utils';
 import {retrieveConfig} from '@builtbymom/web3/utils/wagmi';
-import {INCLUSION_INCENTIVE_ABI} from '@libAbi/inclusionIncentives.abi';
-import {WEIGHT_INCENTIVE_ABI} from '@libAbi/weightIncentives.abi';
+import BOOTSTRAP_ABI_NEW from '@libAbi/bootstrap.abi.new';
 import {readContracts} from '@wagmi/core';
-import {EPOCH_DURATION} from '@yUSD/utils/constants';
 import {getCurrentEpochNumber} from '@yUSD/utils/epochs';
 
 import {IncentiveHeader} from './Incentive.Header';
@@ -17,10 +15,7 @@ import type {ReactElement} from 'react';
 function ViewIncentive(): ReactElement {
 	const [currentTab, set_currentTab] = useState<'current' | 'potential'>('current');
 	const [epochToDisplay, set_epochToDisplay] = useState<number>(getCurrentEpochNumber());
-	const [areIncentivesOpen, set_areIncentivesLoaded] = useState({
-		isWeightIncentiveOpen: false,
-		isInclusionIncentiveOpen: false
-	});
+	const [areIncentivesOpen, set_areIncentivesLoaded] = useState(false);
 
 	/**********************************************************************************************
 	 ** Retrieve the deadline and genesis of the weight and inclusion incentives to know if they are
@@ -30,52 +25,33 @@ function ViewIncentive(): ReactElement {
 		const data = await readContracts(retrieveConfig(), {
 			contracts: [
 				{
-					abi: WEIGHT_INCENTIVE_ABI,
-					address: toAddress(process.env.WEIGHT_INCENTIVES_ADDRESS),
-					functionName: 'deposit_deadline',
+					abi: BOOTSTRAP_ABI_NEW,
+					address: toAddress(process.env.DEPOSIT_ADDRESS),
+					functionName: 'incentive_begin',
 					chainId: Number(process.env.DEFAULT_CHAIN_ID),
 					args: []
 				},
 				{
-					abi: WEIGHT_INCENTIVE_ABI,
-					address: toAddress(process.env.WEIGHT_INCENTIVES_ADDRESS),
-					functionName: 'genesis',
-					chainId: Number(process.env.DEFAULT_CHAIN_ID),
-					args: []
-				},
-				{
-					abi: INCLUSION_INCENTIVE_ABI,
-					address: toAddress(process.env.INCLUSION_INCENTIVES_ADDRESS),
-					functionName: 'deposit_deadline',
-					chainId: Number(process.env.DEFAULT_CHAIN_ID),
-					args: []
-				},
-				{
-					abi: INCLUSION_INCENTIVE_ABI,
-					address: toAddress(process.env.INCLUSION_INCENTIVES_ADDRESS),
-					functionName: 'genesis',
+					abi: BOOTSTRAP_ABI_NEW,
+					address: toAddress(process.env.DEPOSIT_ADDRESS),
+					functionName: 'incentive_end',
 					chainId: Number(process.env.DEFAULT_CHAIN_ID),
 					args: []
 				}
 			]
 		});
-		const weightIncentiveDeadline = decodeAsBigInt(data[0]);
-		const weightIncentiveGenesis = decodeAsBigInt(data[1]);
-		const inclusionIncentiveDeadline = decodeAsBigInt(data[2]);
-		const inclusionIncentiveGenesis = decodeAsBigInt(data[3]);
-		const now = toBigInt(Math.floor(Date.now() / 1000));
-		const epochDuration = toBigInt(EPOCH_DURATION);
+		const incentiveBegin = decodeAsBigInt(data[0]);
+		const incentiveEnd = decodeAsBigInt(data[1]);
 
-		set_areIncentivesLoaded({
-			isWeightIncentiveOpen: (now - weightIncentiveGenesis) % epochDuration <= weightIncentiveDeadline,
-			isInclusionIncentiveOpen: (now - inclusionIncentiveGenesis) % epochDuration <= inclusionIncentiveDeadline
-		});
+		const now = toBigInt(Math.floor(Date.now() / 1000));
+
+		set_areIncentivesLoaded(now - incentiveBegin <= incentiveEnd);
 	}, []);
 
 	return (
 		<section className={'grid grid-cols-1 pt-10 md:mb-20 md:pt-12'}>
 			<div className={'mb-20 md:mb-0'}>
-				<IncentiveHeader isIncentivePeriodClosed={areIncentivesOpen.isInclusionIncentiveOpen} />
+				<IncentiveHeader isIncentivePeriodClosed={!areIncentivesOpen} />
 				<IncentiveSelector incentivePeriodOpen={areIncentivesOpen} />
 				<IncentiveHistory
 					epochToDisplay={epochToDisplay}
