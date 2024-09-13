@@ -24,6 +24,7 @@ import {getClient} from '@yearn-finance/web-lib/utils/wagmi/utils';
 import useBootstrap from '@yUSD/contexts/useBootstrap';
 import {ETH_TOKEN} from '@yUSD/tokens';
 import {formatDate} from '@yUSD/utils';
+import {BOOTSTRAP_INIT_BLOCK_NUMBER} from '@yUSD/utils/constants';
 
 import type {ChangeEvent, ReactElement} from 'react';
 import type {Connector} from 'wagmi';
@@ -126,7 +127,7 @@ function ViewDeposit(): ReactElement {
 		set_isFetchingHistory(true);
 		const publicClient = getClient(Number(process.env.DEFAULT_CHAIN_ID));
 		const rangeLimit = toBigInt(Number(process.env.RANGE_LIMIT));
-		const deploymentBlockNumber = toBigInt(process.env.BOOTSTRAP_INIT_BLOCK_NUMBER);
+		const deploymentBlockNumber = toBigInt(BOOTSTRAP_INIT_BLOCK_NUMBER);
 		const currentBlockNumber = await publicClient.getBlockNumber();
 		const history: TDepositHistory[] = [];
 		for (let i = deploymentBlockNumber; i < currentBlockNumber; i += rangeLimit) {

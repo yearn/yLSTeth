@@ -225,12 +225,8 @@ function IncentiveRow(props: {
 	);
 }
 
-function IncentiveHistory(props: {
-	epochToDisplay: number;
-	set_epochToDisplay: (epoch: number) => void;
-	currentTab: 'all' | 'user';
-}): ReactElement {
-	const {assets, weightIncentives, isLoaded: isWeightLoaded} = useBasket();
+function IncentiveHistory(props: {epochToDisplay: number; set_epochToDisplay: (epoch: number) => void}): ReactElement {
+	const {assets, isLoaded: isWeightLoaded} = useBasket();
 	const {candidates, inclusionIncentives, isLoaded: isInclusionLoaded} = useInclusion();
 	const [shouldDisplayUserIncentive, set_shouldDisplayUserIncentive] = useState<boolean>(false);
 	const {
@@ -239,6 +235,8 @@ function IncentiveHistory(props: {
 		}
 	} = useBootstrap();
 	const [currentTab, set_currentTab] = useState<'all' | 'your'>('all');
+
+	console.warn({user, protocols});
 
 	/**********************************************************************************************
 	 * Group to display, which is either the current assets or the potential candidates.

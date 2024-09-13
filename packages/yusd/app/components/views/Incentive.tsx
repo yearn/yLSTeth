@@ -13,7 +13,6 @@ import {IncentiveSelector} from './Incentive.Selector';
 import type {ReactElement} from 'react';
 
 function ViewIncentive(): ReactElement {
-	const [currentTab, set_currentTab] = useState<'current' | 'potential'>('current');
 	const [epochToDisplay, set_epochToDisplay] = useState<number>(getCurrentEpochNumber());
 	const [areIncentivesOpen, set_areIncentivesLoaded] = useState(false);
 
@@ -42,7 +41,6 @@ function ViewIncentive(): ReactElement {
 		});
 		const incentiveBegin = decodeAsBigInt(data[0]);
 		const incentiveEnd = decodeAsBigInt(data[1]);
-
 		const now = toBigInt(Math.floor(Date.now() / 1000));
 
 		set_areIncentivesLoaded(now - incentiveBegin <= incentiveEnd);
@@ -56,7 +54,6 @@ function ViewIncentive(): ReactElement {
 				<IncentiveHistory
 					epochToDisplay={epochToDisplay}
 					set_epochToDisplay={set_epochToDisplay}
-					currentTab={currentTab}
 				/>
 			</div>
 		</section>

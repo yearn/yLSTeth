@@ -8,6 +8,8 @@ export const INITIAL_PERIOD_BLOCK = 20_676_912n;
 export const DAILY_AVG_BLOCKS = 7_200n;
 export const EPOCH_AVG_BLOCKS = 201_600n; // 4 weeks
 
+export const BOOTSTRAP_INIT_BLOCK_NUMBER = INITIAL_PERIOD_BLOCK;
+
 export const INITIAL_PERIOD_TIMESTAMP = 1_694_044_800;
 export const EPOCH_DURATION = 2_419_200; // 4 weeks
 export const VOTE_START_DELAY = 1_814_400; // 3 weeks

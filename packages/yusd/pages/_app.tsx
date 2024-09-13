@@ -2,15 +2,15 @@ import React from 'react';
 import localFont from 'next/font/local';
 import Head from 'next/head';
 import {useRouter} from 'next/router';
-import {arbitrum, base, fantom, mainnet, optimism, polygon} from 'viem/chains';
+import {mainnet} from 'viem/chains';
 import {AnimatePresence, motion} from 'framer-motion';
 import {WalletContextApp} from '@builtbymom/web3/contexts/useWallet';
 import {WithMom} from '@builtbymom/web3/contexts/WithMom';
 import {cl} from '@builtbymom/web3/utils/cl';
 import {motionVariants} from '@builtbymom/web3/utils/helpers';
-import {localhost} from '@builtbymom/web3/utils/wagmi';
 import AppHeader from '@libComponents/Header';
 import {BasketContextApp} from '@yUSD/contexts/useBasket';
+import {BootstrapContextApp} from '@yUSD/contexts/useBootstrap';
 import {LSTContextApp} from '@yUSD/contexts/useLST';
 import {PriceContextApp} from '@yUSD/contexts/usePrices';
 
@@ -19,7 +19,6 @@ import type {ReactElement} from 'react';
 import type {Chain} from 'viem/chains';
 
 import '../style.css';
-import {BootstrapContextApp} from '@yUSD/contexts/useBootstrap';
 
 const aeonik = localFont({
 	variable: '--font-aeonik',
@@ -75,7 +74,6 @@ function AppWrapper(props: AppProps & {supportedNetworks: Chain[]}): ReactElemen
 }
 
 function MyApp(props: AppProps): ReactElement {
-	const supportedNetworks = [mainnet, optimism, polygon, fantom, base, arbitrum, localhost];
 	return (
 		<>
 			<Head>
@@ -90,7 +88,7 @@ function MyApp(props: AppProps): ReactElement {
 				</style>
 			</Head>
 			<WithMom
-				supportedChains={supportedNetworks}
+				supportedChains={[mainnet]}
 				tokenLists={[
 					'https://raw.githubusercontent.com/SmolDapp/tokenLists/main/lists/yearn.json',
 					'https://raw.githubusercontent.com/SmolDapp/tokenLists/main/lists/smolAssets.json'
@@ -103,7 +101,7 @@ function MyApp(props: AppProps): ReactElement {
 									{/* <InclusionContextApp> */}
 									<main className={cl('flex flex-col mb-32', aeonik.className)}>
 										<AppWrapper
-											supportedNetworks={supportedNetworks}
+											supportedNetworks={[mainnet]}
 											{...props}
 										/>
 									</main>

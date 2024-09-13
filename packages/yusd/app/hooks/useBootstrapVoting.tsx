@@ -59,7 +59,7 @@ function useVoteEvents(): TUseVoteEventsResp {
 		set_isLoadingEvents(hasAlreadyBeLoaded.current ? false : true);
 		const publicClient = getClient(Number(process.env.DEFAULT_CHAIN_ID));
 		const rangeLimit = toBigInt(Number(process.env.RANGE_LIMIT));
-		const deploymentBlockNumber = toBigInt(process.env.BOOTSTRAP_INIT_BLOCK_NUMBER);
+		const deploymentBlockNumber = toBigInt(BOOTSTRAP_INIT_BLOCK_NUMBER);
 		const currentBlockNumber = await publicClient.getBlockNumber();
 		const userVotes: TDict<TNormalizedBN> = {};
 		for (let i = deploymentBlockNumber; i < currentBlockNumber; i += rangeLimit) {
