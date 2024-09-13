@@ -43,6 +43,7 @@ type TUseBasketProps = {
 	areIncentivesLoaded: boolean;
 	epoch: bigint | undefined;
 };
+
 const defaultProps: TUseBasketProps = {
 	assets: [],
 	basket: [],
