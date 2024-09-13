@@ -1,9 +1,8 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {decodeEventLog} from 'viem';
 import {useBlock} from 'wagmi';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
-import {useAsyncTrigger} from '@builtbymom/web3/hooks/useAsyncTrigger';
 import {toAddress} from '@builtbymom/web3/utils';
 import {getClient} from '@builtbymom/web3/utils/wagmi';
 import BOOTSTRAP_ABI_NEW from '@libAbi/bootstrap.abi.new';
@@ -15,16 +14,15 @@ import {DepositSelector} from './Deposit.Selector';
 
 import type {ReactElement} from 'react';
 import type {Address} from 'viem';
+import type {TAddress} from '@builtbymom/web3/types';
 import type {TDepositHistory, TLogTopic} from './Deposit.types';
 
 function ViewDeposit(): ReactElement {
 	const {address, chainID} = useWeb3();
 	const {getToken} = useWallet();
 	const {data: block} = useBlock({chainId: Number(process.env.DEFAULT_CHAIN_ID)});
-
 	const [history, set_history] = useState<undefined | TDepositHistory[]>(undefined);
-	const [isLoading, set_isLoading] = useState<boolean>(false);
-
+	const [loading, set_loading] = useState({isLoading: false, lastBlock: 0n});
 	const publicClient = useMemo(() => getClient(Number(process.env.DEFAULT_CHAIN_ID)), []);
 
 	/************************************************************************************************
@@ -34,10 +32,11 @@ function ViewDeposit(): ReactElement {
 	 ** - Returns an array of processed deposit log objects
 	 ** @param {bigint} fromBlock - The starting block number to fetch logs from
 	 ** @param {bigint} toBlock - The ending block number to fetch logs to
+	 ** @param {address} receiver - The address to fetch logs for
 	 ** @returns {Promise<TLogTopic[]>} An array of processed deposit log objects
 	 ************************************************************************************************/
 	const fetchDepositLogs = useCallback(
-		async (fromBlock: bigint, toBlock: bigint): Promise<TLogTopic[]> => {
+		async (fromBlock: bigint, toBlock: bigint, receiver: TAddress): Promise<TLogTopic[]> => {
 			const depositLogs = await publicClient.getLogs({
 				address: toAddress(process.env.DEPOSIT_ADDRESS),
 				event: {
@@ -51,9 +50,7 @@ function ViewDeposit(): ReactElement {
 						{name: 'value', type: 'uint256'}
 					]
 				},
-				args: {
-					receiver: address
-				},
+				args: {receiver},
 				fromBlock,
 				toBlock
 			});
@@ -67,9 +64,9 @@ function ViewDeposit(): ReactElement {
 						topics: log.topics
 					})
 				}))
-				.filter(each => (each.decodedEvent.args as {depositor: Address}).depositor === address) as TLogTopic[];
+				.filter(each => (each.decodedEvent.args as {depositor: Address}).depositor === receiver) as TLogTopic[];
 		},
-		[publicClient, address]
+		[publicClient]
 	);
 
 	/************************************************************************************************
@@ -79,10 +76,11 @@ function ViewDeposit(): ReactElement {
 	 ** - Returns an array of processed vote log objects
 	 ** @param {bigint} fromBlock - The starting block number to fetch logs from
 	 ** @param {bigint} toBlock - The ending block number to fetch logs to
+	 ** @param {address} voter - The address to fetch logs for
 	 ** @returns {Promise<TLogTopic[]>} An array of processed vote log objects
 	 ************************************************************************************************/
 	const fetchVoteLogs = useCallback(
-		async (fromBlock: bigint, toBlock: bigint): Promise<TLogTopic[]> => {
+		async (fromBlock: bigint, toBlock: bigint, voter: TAddress): Promise<TLogTopic[]> => {
 			const voteLogs = await publicClient.getLogs({
 				address: toAddress(process.env.DEPOSIT_ADDRESS),
 				event: {
@@ -94,9 +92,7 @@ function ViewDeposit(): ReactElement {
 						{name: 'amount', type: 'uint256'}
 					]
 				},
-				args: {
-					voter: address
-				},
+				args: {voter},
 				fromBlock,
 				toBlock
 			});
@@ -110,9 +106,9 @@ function ViewDeposit(): ReactElement {
 						topics: log.topics
 					})
 				}))
-				.filter(each => (each.decodedEvent.args as {voter: Address}).voter === address) as TLogTopic[];
+				.filter(each => (each.decodedEvent.args as {voter: Address}).voter === voter) as TLogTopic[];
 		},
-		[publicClient, address]
+		[publicClient]
 	);
 
 	/************************************************************************************************
@@ -153,24 +149,29 @@ function ViewDeposit(): ReactElement {
 	 ** - Uses mapDepositAndVoteTopicsToHistory to combine deposit and vote information
 	 ** - Updates the history state with processed log data
 	 ************************************************************************************************/
-	const refetchLogs = useAsyncTrigger(async (): Promise<void> => {
-		if (!block?.number) {
+	const refetchLogs = useCallback(async (): Promise<void> => {
+		if (!block?.number || !address) {
 			return;
 		}
 
-		set_isLoading(true);
+		if (loading.lastBlock === block.number) {
+			return;
+		}
+		set_loading({isLoading: true, lastBlock: 0n});
 		const fromBlock = block.number - 1000n;
 		const toBlock = block.number;
 		const [depositTopics, voteTopics] = await Promise.all([
-			fetchDepositLogs(fromBlock, toBlock),
-			fetchVoteLogs(fromBlock, toBlock)
+			fetchDepositLogs(fromBlock, toBlock, address),
+			fetchVoteLogs(fromBlock, toBlock, address)
 		]);
-
 		const history = mapDepositAndVoteTopicsToHistory(depositTopics, voteTopics);
-
 		set_history(history.filter((each): boolean => each.asset !== undefined));
-		set_isLoading(false);
-	}, [block?.number, fetchDepositLogs, fetchVoteLogs, mapDepositAndVoteTopicsToHistory]);
+		set_loading({isLoading: false, lastBlock: block.number});
+	}, [address, block?.number, fetchDepositLogs, fetchVoteLogs, loading.lastBlock, mapDepositAndVoteTopicsToHistory]);
+
+	useEffect(() => {
+		refetchLogs();
+	}, [refetchLogs]);
 
 	return (
 		<section className={'grid w-full grid-cols-1 pt-10 md:mb-20 md:px-4 md:pt-12'}>
@@ -179,7 +180,7 @@ function ViewDeposit(): ReactElement {
 				<DepositSelector refetchLogs={refetchLogs} />
 				<DepositHistory
 					history={history || []}
-					isLoading={isLoading}
+					isLoading={loading.isLoading}
 				/>
 			</div>
 		</section>
