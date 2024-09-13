@@ -16,11 +16,13 @@ import {
 	toNormalizedBN,
 	zeroNormalizedBN
 } from '@builtbymom/web3/utils';
+import {createUniqueID} from '@builtbymom/web3/utils/tools.identifier';
 import {retrieveConfig} from '@builtbymom/web3/utils/wagmi';
 import {BASKET_ABI} from '@libAbi/basket.abi';
 import {ONCHAIN_VOTE_WEIGHT_ABI} from '@libAbi/onchainVoteWeight.abi';
 import {WEIGHT_INCENTIVE_ABI} from '@libAbi/weightIncentives.abi';
-import {getBlockNumber, getClient, readContract, readContracts} from '@wagmi/core';
+import {acknowledge} from '@libUtils/helpers';
+import {getBlockNumber, getClient, readContract, readContracts, serialize} from '@wagmi/core';
 import {NO_CHANGE_LST_LIKE} from '@yETH/utils/constants';
 import {getEpochEndBlock, getEpochStartBlock} from '@yETH/utils/epochs';
 
@@ -75,6 +77,17 @@ export const BasketContextApp = ({children}: {children: React.ReactElement}): Re
 	const [pastWeightIncentives, set_pastWeightIncentives] = useState<TNDict<{data: TIncentives; hasData: boolean}>>(
 		{}
 	);
+
+	/**********************************************************************************************
+	 ** assets is an object with multiple level of depth. We want to create a unique hash from
+	 ** it to know when it changes. This new hash will be used to trigger the useEffect hook.
+	 ** We will use classic hash function to create a hash from the assets object.
+	 *********************************************************************************************/
+	const assetsHash = useMemo(() => {
+		acknowledge(assets.length);
+		const hash = createUniqueID(serialize(assets));
+		return hash;
+	}, [assets, assets.length]);
 
 	const {data: epoch} = useReadContract({
 		address: toAddress(process.env.WEIGHT_INCENTIVES_ADDRESS),
@@ -337,6 +350,7 @@ export const BasketContextApp = ({children}: {children: React.ReactElement}): Re
 			if (!assets.length) {
 				return;
 			}
+			acknowledge(assetsHash);
 			const rangeLimit = toBigInt(Number(process.env.RANGE_LIMIT));
 			const epochStartBlock = getEpochStartBlock(Number(_epoch));
 			const epochEndBlock = getEpochEndBlock(Number(_epoch));
@@ -438,7 +452,7 @@ export const BasketContextApp = ({children}: {children: React.ReactElement}): Re
 			set_weightIncentives(byCandidate);
 			set_pastWeightIncentives(prev => ({...prev, [Number(_epoch)]: {data: byCandidate, hasData: true}}));
 		},
-		[assets.length]
+		[assets, assetsHash]
 	);
 
 	const triggerWeightIncentivesRefresh = useAsyncTrigger(async (): Promise<void> => {
