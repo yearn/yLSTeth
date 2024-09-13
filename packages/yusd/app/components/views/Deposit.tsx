@@ -21,7 +21,7 @@ function ViewDeposit(): ReactElement {
 	const {address} = useWeb3();
 	const {data: block} = useBlock({chainId: Number(process.env.DEFAULT_CHAIN_ID)});
 	const [history, set_history] = useState<undefined | TDepositHistory[]>(undefined);
-	const [loading, set_loading] = useState({isLoading: false, lastBlock: 0n});
+	const [loading, set_loading] = useState({isLoading: true, lastBlock: 0n});
 	const publicClient = useMemo(() => getClient(Number(process.env.DEFAULT_CHAIN_ID)), []);
 
 	/************************************************************************************************
@@ -232,7 +232,7 @@ function ViewDeposit(): ReactElement {
 			return;
 		}
 
-		if (loading.lastBlock === block.number || loading.isLoading) {
+		if ((loading.lastBlock === block.number || loading.isLoading) && loading.lastBlock !== 0n) {
 			return;
 		}
 
