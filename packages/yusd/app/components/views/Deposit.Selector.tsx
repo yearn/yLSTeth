@@ -95,19 +95,18 @@ function DepositSelector({refetchLogs}: {refetchLogs: () => void}): ReactElement
 
 	/************************************************************************************************
 	 ** onChangeTokenToUse: Handles token selection change
-	 ** - Updates tokenToUse state
-	 ** - Sets tokenToVoteFor if the selected token is in possibleTokensToVoteFor
-	 ** @param {TToken | undefined} selectedToken - The newly selected token
+	 ** - Updates tokenToUse state with the selected token
+	 ** - Sets tokenToVoteFor to the selected token if it's in possibleTokensToVoteFor, otherwise undefined
+	 ** - Ensures consistency between deposit token and voting token selection
+	 ** @param {TToken | undefined} selectedToken - The newly selected token for deposit
 	 ************************************************************************************************/
 	const onChangeTokenToUse = useCallback((selectedToken: TToken | undefined): void => {
 		if (!selectedToken) {
 			return;
 		}
+		const isTokenVotable = Object.values(possibleTokensToVoteFor).some(t => t.address === selectedToken.address);
 		set_tokenToUse(selectedToken);
-
-		if (Object.values(possibleTokensToVoteFor).find(token => token.address === selectedToken.address)) {
-			set_tokenToVoteFor(selectedToken);
-		}
+		set_tokenToVoteFor(isTokenVotable ? selectedToken : undefined);
 	}, []);
 
 	/************************************************************************************************
