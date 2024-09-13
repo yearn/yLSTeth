@@ -97,7 +97,7 @@ function Claim(): ReactElement {
 	const [epochToDisplay, set_epochToDisplay] = useState<bigint | undefined>(undefined);
 
 	return (
-		<section className={'grid grid-cols-1 pt-10 md:mb-20 md:pt-12'}>
+		<section className={'grid w-full grid-cols-1 pt-10 md:mb-20 md:pt-12'}>
 			<div className={'mb-20 md:mb-0'}>
 				<ClaimHeading />
 				<EpochSelector

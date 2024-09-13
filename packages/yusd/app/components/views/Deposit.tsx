@@ -173,7 +173,7 @@ function ViewDeposit(): ReactElement {
 	}, [block?.number, fetchDepositLogs, fetchVoteLogs, mapDepositAndVoteTopicsToHistory]);
 
 	return (
-		<section className={'grid grid-cols-1 pt-10 md:mb-20 md:pt-12'}>
+		<section className={'grid w-full grid-cols-1 pt-10 md:mb-20 md:pt-12'}>
 			<div className={'mb-20 md:mb-0'}>
 				<DepositHeader isIncentivePeriodClosed={false} />
 				<DepositSelector refetchLogs={refetchLogs} />
