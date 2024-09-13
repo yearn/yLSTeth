@@ -9,18 +9,15 @@ function Timer({isIncentivePeriodClosed}: {isIncentivePeriodClosed: boolean}): R
 	const time = useTimer({endTime: Number(endPeriod - 3 * 24 * 3600)});
 
 	return (
-		<>
-			<b
-				suppressHydrationWarning
-				className={'font-number text-accent mt-2 text-3xl leading-10'}>
-				{isIncentivePeriodClosed ? 'closed' : `closes in ${time}`}
-			</b>
-		</>
+		<b
+			suppressHydrationWarning
+			className={'font-number text-accent mt-2 text-3xl leading-10'}>
+			{isIncentivePeriodClosed ? 'closed' : `closes in ${time}`}
+		</b>
 	);
 }
 
 function DepositHeader({isIncentivePeriodClosed}: {isIncentivePeriodClosed: boolean}): ReactElement {
-	console.log(isIncentivePeriodClosed);
 	return (
 		<div className={'mb-10 flex w-full flex-col justify-center'}>
 			<h1 className={'text-3xl font-black md:text-8xl'}>{'Bootstrapping'}</h1>
