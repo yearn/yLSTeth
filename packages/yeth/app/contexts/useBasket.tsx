@@ -85,10 +85,10 @@ export const BasketContextApp = ({children}: {children: React.ReactElement}): Re
 	 ** We will use classic hash function to create a hash from the assets object.
 	 *********************************************************************************************/
 	const assetsHash = useMemo(() => {
-		acknowledge(assets.length);
+		acknowledge(assets);
 		const hash = createUniqueID(serialize(assets));
 		return hash;
-	}, [assets, assets.length]);
+	}, [assets]);
 
 	const {data: epoch} = useReadContract({
 		address: toAddress(process.env.WEIGHT_INCENTIVES_ADDRESS),
