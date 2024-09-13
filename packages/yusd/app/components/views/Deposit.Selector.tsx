@@ -20,17 +20,25 @@ import {
 } from '@builtbymom/web3/utils';
 import {defaultTxStatus, handleTx} from '@builtbymom/web3/utils/wagmi';
 import ComboboxAddressInput from '@libComponents/ComboboxAddressInput';
+import {ImageWithFallback} from '@libComponents/ImageWithFallback';
 import {useDeepCompareEffect} from '@react-hookz/web';
 import {Button} from '@yearn-finance/web-lib/components/Button';
 import {ETH_TOKEN} from '@yUSD/tokens';
 import {possibleTokenAddressesToUse, possibleTokensToVoteFor} from '@yUSD/utils/constants';
 
-import {ImageWithFallback} from '../../../../lib/components/ImageWithFallback';
-
 import type {ChangeEvent, Dispatch, ReactElement, SetStateAction} from 'react';
 import type {TDict, TNormalizedBN, TToken} from '@builtbymom/web3/types';
 import type {TTxStatus} from '@builtbymom/web3/utils/wagmi';
 
+/************************************************************************************************
+ ** DepositSelector: Component for selecting and depositing tokens
+ ** - Allows users to choose a token to deposit and vote for
+ ** - Handles token approval and deposit transactions
+ ** - Updates balances and logs after successful transactions
+ ** @param {Object} props - Component props
+ ** @param {Function} props.refetchLogs - Function to refetch logs after a deposit
+ ** @returns {ReactElement} The rendered DepositSelector component
+ ************************************************************************************************/
 function DepositSelector({refetchLogs}: {refetchLogs: () => void}): ReactElement {
 	const {address, isActive, provider} = useWeb3();
 	const {safeChainID} = useChainID(Number(process.env.DEFAULT_CHAIN_ID));
@@ -52,10 +60,11 @@ function DepositSelector({refetchLogs}: {refetchLogs: () => void}): ReactElement
 
 	const hasAllowance = toBigInt(allowance) >= toBigInt(amountToSend?.raw);
 
-	/* 🔵 - Yearn Finance **************************************************************************
-	 ** On mount, fetch the token list from the tokenlistooor.
-	 ** Only the tokens in that list will be displayed.
-	 **********************************************************************************************/
+	/************************************************************************************************
+	 ** useDeepCompareEffect: Fetches and sets possible tokens to use
+	 ** - Filters tokens from the current network token list
+	 ** - Updates the possibleTokensToUse state
+	 ************************************************************************************************/
 	useDeepCompareEffect((): void => {
 		const possibleDestinationsTokens: TDict<TToken> = {};
 		for (const eachAddress of possibleTokenAddressesToUse) {
@@ -69,9 +78,11 @@ function DepositSelector({refetchLogs}: {refetchLogs: () => void}): ReactElement
 		set_possibleTokensToUse(possibleDestinationsTokens);
 	}, [currentNetworkTokenList, safeChainID]);
 
-	/* 🔵 - Yearn Finance **************************************************************************
-	 ** On balance or token change, update the balance of the token to use.
-	 **********************************************************************************************/
+	/************************************************************************************************
+	 ** balanceOf: Memoized balance of the selected token
+	 ** - Updates when tokenToUse or getBalance changes
+	 ** @returns {TNormalizedBN} The normalized balance of the selected token
+	 ************************************************************************************************/
 	const balanceOf = useMemo((): TNormalizedBN => {
 		if (!tokenToUse) {
 			return zeroNormalizedBN;
@@ -82,9 +93,12 @@ function DepositSelector({refetchLogs}: {refetchLogs: () => void}): ReactElement
 		);
 	}, [tokenToUse, getBalance]);
 
-	/* 🔵 - Yearn Finance **************************************************************************
-	 ** If it is possible to vote for the selected token, set the token to vote for.
-	 **********************************************************************************************/
+	/************************************************************************************************
+	 ** onChangeTokenToUse: Handles token selection change
+	 ** - Updates tokenToUse state
+	 ** - Sets tokenToVoteFor if the selected token is in possibleTokensToVoteFor
+	 ** @param {TToken | undefined} selectedToken - The newly selected token
+	 ************************************************************************************************/
 	const onChangeTokenToUse = useCallback((selectedToken: TToken | undefined): void => {
 		if (!selectedToken) {
 			return;
@@ -96,9 +110,12 @@ function DepositSelector({refetchLogs}: {refetchLogs: () => void}): ReactElement
 		}
 	}, []);
 
-	/* 🔵 - Yearn Finance **************************************************************************
-	 ** Change the inputed amount when the user types something in the input field.
-	 **********************************************************************************************/
+	/************************************************************************************************
+	 ** onChangeAmount: Handles amount input changes
+	 ** - Updates amountToSend state based on user input
+	 ** - Validates input against token balance
+	 ** @param {ChangeEvent<HTMLInputElement>} e - The input change event
+	 ************************************************************************************************/
 	const onChangeAmount = useCallback(
 		(e: ChangeEvent<HTMLInputElement>): void => {
 			if (!tokenToUse) {
@@ -135,9 +152,12 @@ function DepositSelector({refetchLogs}: {refetchLogs: () => void}): ReactElement
 		[tokenToUse, getBalance]
 	);
 
-	/* 🔵 - Yearn Finance **************************************************************************
-	 ** Change the inputed amount when the user select a percentage to set.
-	 **********************************************************************************************/
+	/************************************************************************************************
+	 ** updateToPercent: Updates amount based on percentage of balance
+	 ** - Calculates new amount based on given percentage
+	 ** - Updates amountToSend state
+	 ** @param {number} percent - The percentage to set
+	 ************************************************************************************************/
 	const updateToPercent = useCallback(
 		(percent: number): void => {
 			if (!tokenToUse) {
@@ -170,24 +190,17 @@ function DepositSelector({refetchLogs}: {refetchLogs: () => void}): ReactElement
 		[balanceOf, getBalance, tokenToUse]
 	);
 
-	/* 🔵 - Yearn Finance **************************************************************************
-	 ** Web3 action to approve the deposit of a given token and amount.
-	 **********************************************************************************************/
+	/************************************************************************************************
+	 ** onApprove: Handles token approval transaction
+	 ** - Approves the deposit contract to spend tokens
+	 ** - Updates approval status and refreshes allowance
+	 ************************************************************************************************/
 	const onApprove = useCallback(async (): Promise<void> => {
 		assert(isActive, 'Wallet not connected');
 		assert(provider, 'Provider not connected');
 		assert(amountToSend, 'Amount must be set');
 		assert(toBigInt(amountToSend?.raw) > 0n, 'Amount must be greater than 0');
 		assertAddress(tokenToUse?.address, 'Token to use not selected');
-
-		// const result = await approveERC20({
-		// 	connector: provider,
-		// 	chainID: 1,
-		// 	contractAddress: tokenToUse.address,
-		// 	amount: amountToSend.raw,
-		// 	statusHandler: set_approvalStatus,
-		// 	spenderAddress: toAddress(process.env.DEPOSIT_ADDRESS)
-		// });
 
 		const result = await handleTx(
 			{
@@ -230,6 +243,11 @@ function DepositSelector({refetchLogs}: {refetchLogs: () => void}): ReactElement
 		onRefresh
 	]);
 
+	/************************************************************************************************
+	 ** onDeposit: Handles token deposit transaction
+	 ** - Deposits tokens and updates vote
+	 ** - Refreshes allowance, logs, and balances on success
+	 ************************************************************************************************/
 	const onDeposit = useCallback(async (): Promise<void> => {
 		assert(isActive, 'Wallet not connected');
 		assert(provider, 'Provider not connected');

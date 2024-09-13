@@ -2,8 +2,13 @@ import {type ReactElement, type ReactNode} from 'react';
 import {cl, formatTAmount} from '@builtbymom/web3/utils';
 import IconChevronPlain from '@libIcons/IconChevronPlain';
 
-import type {TToken} from '@builtbymom/web3/types';
+import type {TDepositHistory} from './Deposit.types';
 
+/************************************************************************************************
+ ** HistoryRowSkeleton: Renders a skeleton row for the deposit history
+ ** - Used as a placeholder while loading actual data
+ ** - Mimics the structure of a real history row with placeholder elements
+ ************************************************************************************************/
 function HistoryRowSkeleton(): ReactElement {
 	return (
 		<div className={'flex flex-col md:grid md:grid-cols-11'}>
@@ -31,6 +36,12 @@ function HistoryRowSkeleton(): ReactElement {
 	);
 }
 
+/************************************************************************************************
+ ** HistoryRow: Renders a single row of deposit history
+ ** - Displays information about a single deposit transaction
+ ** - Shows block number, deposited asset, amount, received st-tokens, and voted asset
+ ** @param {TDepositHistory} props - The deposit history data for this row
+ ************************************************************************************************/
 function HistoryRow({block, asset, amount, stTokenAmount, votedAsset}: TDepositHistory): ReactElement {
 	return (
 		<div className={'flex flex-col md:grid md:grid-cols-11'}>
@@ -58,6 +69,13 @@ function HistoryRow({block, asset, amount, stTokenAmount, votedAsset}: TDepositH
 	);
 }
 
+/************************************************************************************************
+ ** HistoryContent: Renders the content of the deposit history
+ ** - Handles different states: loading, no history, and displaying history
+ ** - Renders skeleton rows while loading, a message for no history, or actual history rows
+ ** @param {TDepositHistory[]} history - Array of deposit history items
+ ** @param {boolean} isLoading - Flag indicating if the data is still loading
+ ************************************************************************************************/
 function HistoryContent({history, isLoading}: {history: TDepositHistory[]; isLoading: boolean}): ReactNode {
 	if (isLoading) {
 		return Array(3)
@@ -81,14 +99,13 @@ function HistoryContent({history, isLoading}: {history: TDepositHistory[]; isLoa
 	));
 }
 
-export type TDepositHistory = {
-	block: bigint;
-	asset: TToken;
-	amount: bigint;
-	stTokenAmount: bigint;
-	votedAsset: TToken;
-};
-
+/************************************************************************************************
+ ** DepositHistory: Main component for displaying the deposit history
+ ** - Renders a header with column titles and the history content
+ ** - Handles both loading state and actual history display
+ ** @param {TDepositHistory[]} history - Array of deposit history items to display
+ ** @param {boolean} isLoading - Flag indicating if the data is still loading
+ ************************************************************************************************/
 export function DepositHistory({history, isLoading}: {history: TDepositHistory[]; isLoading: boolean}): ReactElement {
 	return (
 		<div>

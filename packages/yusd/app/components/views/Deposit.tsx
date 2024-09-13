@@ -15,19 +15,7 @@ import {DepositSelector} from './Deposit.Selector';
 
 import type {ReactElement} from 'react';
 import type {Address} from 'viem';
-import type {TDepositHistory} from './Deposit.History';
-
-type TLogTopic = {
-	block: bigint;
-	decodedEvent: {
-		args: {
-			asset: Address;
-			amount: bigint;
-			value: bigint;
-			voter?: Address;
-		};
-	};
-};
+import type {TDepositHistory, TLogTopic} from './Deposit.types';
 
 function ViewDeposit(): ReactElement {
 	const {address, chainID} = useWeb3();
@@ -44,6 +32,9 @@ function ViewDeposit(): ReactElement {
 	 ** - Retrieves logs from the deposit contract
 	 ** - Decodes event logs and filters for the current user's deposits
 	 ** - Returns an array of processed deposit log objects
+	 ** @param {bigint} fromBlock - The starting block number to fetch logs from
+	 ** @param {bigint} toBlock - The ending block number to fetch logs to
+	 ** @returns {Promise<TLogTopic[]>} An array of processed deposit log objects
 	 ************************************************************************************************/
 	const fetchDepositLogs = useCallback(
 		async (fromBlock: bigint, toBlock: bigint): Promise<TLogTopic[]> => {
@@ -86,6 +77,9 @@ function ViewDeposit(): ReactElement {
 	 ** - Retrieves logs from the deposit contract for Vote events
 	 ** - Decodes event logs and filters for the current user's votes
 	 ** - Returns an array of processed vote log objects
+	 ** @param {bigint} fromBlock - The starting block number to fetch logs from
+	 ** @param {bigint} toBlock - The ending block number to fetch logs to
+	 ** @returns {Promise<TLogTopic[]>} An array of processed vote log objects
 	 ************************************************************************************************/
 	const fetchVoteLogs = useCallback(
 		async (fromBlock: bigint, toBlock: bigint): Promise<TLogTopic[]> => {
@@ -125,6 +119,9 @@ function ViewDeposit(): ReactElement {
 	 ** mapDepositAndVoteTopicsToHistory: Maps deposit and vote topics to history entries
 	 ** - Combines deposit and vote information
 	 ** - Returns an array of TDepositHistory objects
+	 ** @param {TLogTopic[]} depositTopics - Array of deposit log topics
+	 ** @param {TLogTopic[]} voteTopics - Array of vote log topics
+	 ** @returns {TDepositHistory[]} Array of deposit history objects
 	 ************************************************************************************************/
 	const mapDepositAndVoteTopicsToHistory = useCallback(
 		(depositTopics: TLogTopic[], voteTopics: TLogTopic[]): TDepositHistory[] => {
