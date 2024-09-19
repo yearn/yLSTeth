@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import {erc20Abi, parseAbiItem, toHex} from 'viem';
-import {useContractRead} from 'wagmi';
+import {useReadContract} from 'wagmi';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {
 	decodeAsNumber,
@@ -85,19 +85,19 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 		endpoint: `${yDaemonBaseUri}/prices/all`,
 		schema: yDaemonPricesSchema
 	});
-
+	console.log(prices);
 	/************************************************************************************************
 	 ** useContractRead calling the `deposited` method from the bootstrap contract to get the total
 	 ** deposited ETH from the contract.
 	 **
 	 ** @returns bigint - total deposited eth
 	 ************************************************************************************************/
-	const {data: totalDepositedETH} = useContractRead({
+	const {data: totalDepositedETH} = useReadContract({
 		address: toAddress(process.env.DEPOSIT_ADDRESS),
 		abi: BOOTSTRAP_ABI,
 		functionName: 'deposited'
 	});
-
+	console.log(totalDepositedETH);
 	/************************************************************************************************
 	 ** Memoize the total deposited value in USD, using the prices from the yDaemon API and the
 	 ** total deposited ETH from the contract.
@@ -112,7 +112,7 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 		}
 		return (
 			Number(toNormalizedBN(totalDepositedETH, 18).normalized) *
-			Number(toNormalizedBN(prices[ETH_TOKEN_ADDRESS] || 0, 6).normalized)
+			Number(toNormalizedBN(prices?.[ETH_TOKEN_ADDRESS] || 0, 6).normalized)
 		);
 	}, [prices, totalDepositedETH]);
 
@@ -302,9 +302,11 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 			if (!cur) {
 				return acc;
 			}
+			console.log(cur);
 			const key = cur.protocol;
 			const amount = toNormalizedBN(cur.amount, cur.incentiveToken?.decimals || 18).normalized;
 			const price = toNormalizedBN(prices?.[toAddress(cur.incentive)] || 0, 6).normalized;
+			console.log(price);
 			const value = Number(amount) * Number(price);
 			const estimatedAPR = getAPR(value);
 			if (!acc[key]) {

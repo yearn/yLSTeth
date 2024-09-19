@@ -3,9 +3,9 @@ import React from 'react';
 import {SubIncentiveRow} from './SubIncentiveRow';
 
 import type {ReactElement} from 'react';
-import type {TTokenIncentive} from '@libUtils/types';
+import type {TIncentives} from '@yUSD/hooks/useBootstrapIncentives';
 
-export function SubIncentiveWrapper(props: {incentives: TTokenIncentive[]}): ReactElement {
+export function SubIncentiveWrapper(props: {incentives: TIncentives[]}): ReactElement {
 	console.log('props.incentives', props.incentives);
 	return (
 		<div className={'border-t border-neutral-300 bg-neutral-200 px-4 pb-2 pt-4 md:px-72'}>
@@ -31,10 +31,10 @@ export function SubIncentiveWrapper(props: {incentives: TTokenIncentive[]}): Rea
 					<p className={'group flex flex-row text-xs text-neutral-500'}>{'APR'}</p>
 				</div>
 			</div>
-			{[...props.incentives].map(
+			{props.incentives.map(
 				(item, index): ReactElement => (
 					<SubIncentiveRow
-						key={`${index}_${item.address}`}
+						key={`${index}_${item.protocol}`}
 						item={item}
 					/>
 				)

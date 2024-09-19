@@ -2,20 +2,11 @@ import React, {createContext, useContext, useMemo} from 'react';
 import useBootstrapIncentives from '@yUSD/hooks/useBootstrapIncentives';
 
 import type {TUseBootstrapIncentivesResp} from '@yUSD/hooks/useBootstrapIncentives';
-import type {TUseBootstrapPeriodsResp} from '@yUSD/hooks/useBootstrapPeriods';
-import type {TUseBootstrapVotingResp} from '@yUSD/hooks/useBootstrapVoting';
-import type {TUseBootstrapWhitelistedLSTResp} from '@yUSD/hooks/useBootstrapWhitelistedLST';
 
 export type TUseBootstrapProps = {
-	periods: TUseBootstrapPeriodsResp;
-	whitelistedLST: TUseBootstrapWhitelistedLSTResp;
-	voting: TUseBootstrapVotingResp;
 	incentives: TUseBootstrapIncentivesResp;
 };
 const defaultProps: TUseBootstrapProps = {
-	periods: {} as unknown as TUseBootstrapPeriodsResp,
-	whitelistedLST: {} as unknown as TUseBootstrapWhitelistedLSTResp,
-	voting: {} as unknown as TUseBootstrapVotingResp,
 	incentives: {} as unknown as TUseBootstrapIncentivesResp
 };
 
@@ -29,9 +20,6 @@ export const BootstrapContextApp = ({children}: {children: React.ReactElement}):
 	const incentives = useBootstrapIncentives();
 	const contextValue = useMemo(
 		(): TUseBootstrapProps => ({
-			// periods,
-			// whitelistedLST,
-			// voting,
 			incentives
 		}),
 		[incentives]

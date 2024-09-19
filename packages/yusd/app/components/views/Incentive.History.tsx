@@ -1,20 +1,18 @@
 import React, {Fragment, useEffect, useMemo, useState} from 'react';
 import {useRouter} from 'next/router';
-import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {useChainID} from '@builtbymom/web3/hooks/useChainID';
-import {cl, formatAmount, formatPercent, toAddress, truncateHex} from '@builtbymom/web3/utils';
+import {cl, formatAmount, formatPercent, toAddress, toNormalizedBN, truncateHex} from '@builtbymom/web3/utils';
 import {ImageWithFallback} from '@libComponents/ImageWithFallback';
-import IconSpinner from '@libIcons/IconSpinner';
 import {IconChevronBottom} from '@yearn-finance/web-lib/icons/IconChevronBottom';
 import {SubIncentiveWrapper} from '@yUSD/components/views/SubIncentiveWrapper';
 import useBasket from '@yUSD/contexts/useBasket';
 import useBootstrap from '@yUSD/contexts/useBootstrap';
-import useInclusion from '@yUSD/contexts/useInclusion';
 import useLST from '@yUSD/contexts/useLST';
 import {usePrices} from '@yUSD/contexts/usePrices';
 
 import type {ReactElement} from 'react';
-import type {TIndexedTokenInfo, TTokenIncentive} from '@libUtils/types';
+import type {TIncentives} from '@yUSD/hooks/useBootstrapIncentives';
+import type {TIndexedTokenInfo} from '@libUtils/types';
 
 function IncentiveHistoryTabs(props: {
 	currentTab: 'all' | 'your';
@@ -81,12 +79,7 @@ function IncentiveHistoryTabs(props: {
 	);
 }
 
-function IncentiveRow(props: {
-	item: TIndexedTokenInfo;
-	incentives: TTokenIncentive[];
-	shouldDisplayUserIncentive: boolean;
-}): ReactElement {
-	const {address} = useWeb3();
+function IncentiveRow(props: {item: TIndexedTokenInfo; incentives: TIncentives[]}): ReactElement {
 	const {getPrice} = usePrices();
 	const {totalDepositedETH} = useLST();
 	const {safeChainID} = useChainID(Number(process.env.DEFAULT_CHAIN_ID));
@@ -99,12 +92,10 @@ function IncentiveRow(props: {
 	const candidateIncentiveValue = useMemo((): number => {
 		let sum = 0;
 		for (const incentive of props.incentives || []) {
-			// We don't care about this level for candidates incentives
-			const price = getPrice({address: incentive.address});
-			sum += incentive.amount.normalized * price.normalized;
+			sum += toNormalizedBN(incentive.amount, incentive.incentiveToken?.decimals || 18).normalized;
 		}
 		return sum;
-	}, [getPrice, props.incentives]);
+	}, [props.incentives]);
 
 	/**************************************************************************
 	 ** This method calculates the value of incentives per staked basket token.
@@ -113,8 +104,10 @@ function IncentiveRow(props: {
 		let sum = 0;
 		for (const incentive of props.incentives || []) {
 			// We don't care about this level for candidates incentives
-			const price = getPrice({address: incentive.address});
-			const value = incentive.amount.normalized * price.normalized;
+			const price = getPrice({address: incentive.protocol});
+			const value =
+				toNormalizedBN(incentive.amount, incentive.incentiveToken?.decimals || 18).normalized *
+				price.normalized;
 			const usdPerStakedBasketToken = value / totalDepositedETH.normalized;
 			sum += usdPerStakedBasketToken;
 		}
@@ -128,24 +121,17 @@ function IncentiveRow(props: {
 		let sum = 0;
 		for (const incentive of props.incentives || []) {
 			// We don't care about this level for candidates incentives
-			const price = getPrice({address: incentive.address});
+			const price = getPrice({address: incentive.protocol});
 			const basketTokenPrice = getPrice({address: toAddress(process.env.STYUSD_ADDRESS)});
-			const value = incentive.amount.normalized * price.normalized;
+			const value =
+				toNormalizedBN(incentive.amount, incentive.incentiveToken?.decimals || 18).normalized *
+				price.normalized;
 			sum += ((value * 12) / totalDepositedETH.normalized) * basketTokenPrice.normalized;
 		}
 		return sum;
 	}, [getPrice, props.incentives, totalDepositedETH.normalized]);
 
-	const allIncentives = useMemo((): TTokenIncentive[] => {
-		if (props.shouldDisplayUserIncentive) {
-			return props.incentives.filter(
-				(incentive): boolean => toAddress(incentive.depositor) === toAddress(address)
-			);
-		}
-		return props.incentives || [];
-	}, [address, props.incentives, props.shouldDisplayUserIncentive]);
-
-	const hasIncentives = allIncentives.length > 0;
+	const hasIncentives = props.incentives.length > 0;
 
 	if (!props.item) {
 		return <Fragment />;
@@ -219,7 +205,7 @@ function IncentiveRow(props: {
 			</summary>
 
 			<div className={hasIncentives ? 'block' : 'hidden'}>
-				<SubIncentiveWrapper incentives={allIncentives || []} />
+				<SubIncentiveWrapper incentives={props.incentives || []} />
 			</div>
 		</details>
 	);
@@ -227,8 +213,6 @@ function IncentiveRow(props: {
 
 function IncentiveHistory(props: {epochToDisplay: number; set_epochToDisplay: (epoch: number) => void}): ReactElement {
 	const {assets, isLoaded: isWeightLoaded} = useBasket();
-	const {candidates, inclusionIncentives, isLoaded: isInclusionLoaded} = useInclusion();
-	const [shouldDisplayUserIncentive, set_shouldDisplayUserIncentive] = useState<boolean>(false);
 	const {
 		incentives: {
 			groupIncentiveHistory: {user, protocols}
@@ -236,18 +220,16 @@ function IncentiveHistory(props: {epochToDisplay: number; set_epochToDisplay: (e
 	} = useBootstrap();
 	const [currentTab, set_currentTab] = useState<'all' | 'your'>('all');
 
-	console.warn({user, protocols});
-
 	/**********************************************************************************************
 	 * Group to display, which is either the current assets or the potential candidates.
 	 * The user can toggle between the two using the currentTab prop.
 	 **********************************************************************************************/
-	// const incentivesToDisplay = useMemo((): TDict<TDict<TTokenIncentive[]>> => {
-	// 	if (props.currentTab === 'all') {
-	// 		return Object.values(protocols).map((protocol): TDict<TTokenIncentive[]> => protocol);
-	// 	}
-	// 	return possibleTokenAddressesToVoteFor; // TODO: update
-	// }, [props.currentTab]);
+	const incentivesToDisplay = useMemo(() => {
+		if (currentTab === 'all') {
+			return protocols;
+		}
+		return user;
+	}, [currentTab, protocols, user]);
 
 	return (
 		<div className={'mt-2 pt-8'}>
@@ -282,18 +264,11 @@ function IncentiveHistory(props: {epochToDisplay: number; set_epochToDisplay: (e
 					return (
 						<IncentiveRow
 							key={`${item.address}_${props.epochToDisplay}`}
-							incentives={protocols?.[item.address]?.incentives || []}
-							shouldDisplayUserIncentive={shouldDisplayUserIncentive}
+							incentives={incentivesToDisplay?.[item.address]?.incentives || []}
 							item={item}
 						/>
 					);
 				})}
-
-				{!isWeightLoaded && (
-					<div className={'mt-6 flex flex-row items-center justify-center pb-12 pt-6'}>
-						<IconSpinner className={'!h-6 !w-6 !text-neutral-400'} />
-					</div>
-				)}
 			</div>
 		</div>
 	);
