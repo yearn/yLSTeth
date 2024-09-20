@@ -16,6 +16,7 @@ export type TLogTopic = {
 			amount: bigint;
 			value: bigint;
 			voter?: TAddress;
+			depositor?: TAddress;
 		};
 	};
 };

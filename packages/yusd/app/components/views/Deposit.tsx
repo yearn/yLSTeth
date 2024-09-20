@@ -34,10 +34,9 @@ function ViewDeposit(): ReactElement {
 	 ** @returns {Promise<TLogTopic[]>} An array of processed deposit log objects
 	 ************************************************************************************************/
 	const fetchDepositLogs = useCallback(
-		async (fromBlock: bigint, toBlock: bigint, receiver: TAddress): Promise<TLogTopic[]> => {
+		async (fromBlock: bigint, toBlock: bigint): Promise<TLogTopic[]> => {
 			const rangeLimit = toBigInt(Number(process.env.RANGE_LIMIT));
 			let allDepositLogs: TLogTopic[] = [];
-
 			for (let i = fromBlock; i < toBlock; i += rangeLimit) {
 				const endBlock = i + rangeLimit > toBlock ? toBlock : i + rangeLimit;
 				const depositLogs = await publicClient.getLogs({
@@ -53,11 +52,9 @@ function ViewDeposit(): ReactElement {
 							{name: 'value', type: 'uint256'}
 						]
 					},
-					args: {receiver},
 					fromBlock: i,
 					toBlock: endBlock
 				});
-
 				const processedLogs = depositLogs.map(log => ({
 					block: log.blockNumber,
 					decodedEvent: decodeEventLog({
@@ -69,7 +66,6 @@ function ViewDeposit(): ReactElement {
 
 				allDepositLogs = allDepositLogs.concat(processedLogs);
 			}
-
 			return allDepositLogs;
 		},
 		[publicClient]
@@ -82,11 +78,10 @@ function ViewDeposit(): ReactElement {
 	 ** - Returns an array of processed vote log objects
 	 ** @param {bigint} fromBlock - The starting block number to fetch logs from
 	 ** @param {bigint} toBlock - The ending block number to fetch logs to
-	 ** @param {address} voter - The address to fetch logs for
 	 ** @returns {Promise<TLogTopic[]>} An array of processed vote log objects
 	 ************************************************************************************************/
 	const fetchVoteLogs = useCallback(
-		async (fromBlock: bigint, toBlock: bigint, voter: TAddress): Promise<TLogTopic[]> => {
+		async (fromBlock: bigint, toBlock: bigint): Promise<TLogTopic[]> => {
 			const rangeLimit = toBigInt(Number(process.env.RANGE_LIMIT));
 			let allVoteLogs: TLogTopic[] = [];
 
@@ -103,7 +98,6 @@ function ViewDeposit(): ReactElement {
 							{name: 'amount', type: 'uint256'}
 						]
 					},
-					args: {voter},
 					fromBlock: i,
 					toBlock: endBlock
 				});
@@ -174,15 +168,20 @@ function ViewDeposit(): ReactElement {
 	 ** @param {TLogTopic[]} depositTopics - Array of deposit log topics
 	 ** @param {TLogTopic[]} voteTopics - Array of vote log topics
 	 ** @param {{[key: TAddress]: {symbol: string; decimals: number}}} tokenDetails - Token details
+	 ** @param {TAddress} address - Account address
 	 ** @returns {TDepositHistory[]} Array of deposit history objects
 	 ************************************************************************************************/
 	const mapDepositAndVoteTopicsToHistory = useCallback(
 		(
 			depositTopics: TLogTopic[],
 			voteTopics: TLogTopic[],
-			tokenDetails: {[key: TAddress]: {symbol: string; decimals: number}}
+			tokenDetails: {[key: TAddress]: {symbol: string; decimals: number}},
+			address: TAddress
 		): TDepositHistory[] => {
-			return depositTopics.map((depositTopic: TLogTopic): TDepositHistory => {
+			const filteredDepositTopics = depositTopics.filter(topic => {
+				return topic.decodedEvent.args.depositor === address;
+			});
+			return filteredDepositTopics.map((depositTopic: TLogTopic): TDepositHistory => {
 				const voteTopic = voteTopics.find((voteTopic: TLogTopic) => voteTopic.block === depositTopic.block);
 				const assetAddress = toAddress(depositTopic.decodedEvent.args.asset);
 				const assetDetails = tokenDetails[assetAddress] || {symbol: 'N/A', decimals: 18};
@@ -246,8 +245,8 @@ function ViewDeposit(): ReactElement {
 		const fromBlock = INITIAL_PERIOD_BLOCK;
 		const toBlock = block.number;
 		const [depositTopics, voteTopics] = await Promise.all([
-			fetchDepositLogs(fromBlock, toBlock, address),
-			fetchVoteLogs(fromBlock, toBlock, address)
+			fetchDepositLogs(fromBlock, toBlock),
+			fetchVoteLogs(fromBlock, toBlock)
 		]);
 
 		/************************************************************************************************
@@ -262,7 +261,7 @@ function ViewDeposit(): ReactElement {
 			)
 		);
 
-		const history = mapDepositAndVoteTopicsToHistory(depositTopics, voteTopics, tokenDetails);
+		const history = mapDepositAndVoteTopicsToHistory(depositTopics, voteTopics, tokenDetails, address);
 		set_history(history.filter((each): boolean => each.asset !== undefined));
 		set_loading({isLoading: false, lastBlock: block.number});
 	}, [
