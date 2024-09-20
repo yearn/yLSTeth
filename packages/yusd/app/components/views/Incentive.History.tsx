@@ -212,7 +212,7 @@ function IncentiveRow(props: {item: TIndexedTokenInfo; incentives: TIncentives[]
 }
 
 function IncentiveHistory(props: {epochToDisplay: number; set_epochToDisplay: (epoch: number) => void}): ReactElement {
-	const {assets, isLoaded: isWeightLoaded} = useBasket();
+	const {assets} = useBasket();
 	const {
 		incentives: {
 			groupIncentiveHistory: {user, protocols}
