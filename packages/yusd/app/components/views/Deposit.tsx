@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {decodeEventLog, erc20Abi} from 'viem';
-import {useBlock} from 'wagmi';
+import {useBlock, useReadContract} from 'wagmi';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {decodeAsNumber, decodeAsString, toAddress, toBigInt, zeroNormalizedBN} from '@builtbymom/web3/utils';
 import {getClient, retrieveConfig} from '@builtbymom/web3/utils/wagmi';
@@ -24,6 +24,19 @@ function ViewDeposit(): ReactElement {
 	const [loading, set_loading] = useState({isLoading: true, lastBlock: 0n});
 	const publicClient = useMemo(() => getClient(Number(process.env.DEFAULT_CHAIN_ID)), []);
 
+	const {data: depositEnd} = useReadContract({
+		address: toAddress(process.env.DEPOSIT_ADDRESS),
+		abi: BOOTSTRAP_ABI_NEW,
+		functionName: 'deposit_end'
+	});
+
+	const {data: incentiveEnd} = useReadContract({
+		address: toAddress(process.env.DEPOSIT_ADDRESS),
+		abi: BOOTSTRAP_ABI_NEW,
+		functionName: 'incentive_end'
+	});
+	const currentTimestamp = Math.floor(Date.now() / 1000);
+	console.log({depositEnd, incentiveEnd, currentTimestamp});
 	/************************************************************************************************
 	 ** fetchDepositLogs: Fetches and processes deposit logs for the current user
 	 ** - Retrieves logs from the deposit contract

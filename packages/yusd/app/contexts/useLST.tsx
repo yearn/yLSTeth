@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
 import React, {createContext, useContext, useMemo, useState} from 'react';
-import {erc20Abi} from 'viem';
 import {useContractReads, useReadContract} from 'wagmi';
 import {toAddress, toBigInt, toNormalizedBN, zeroNormalizedBN} from '@builtbymom/web3/utils';
 import {BASKET_ABI} from '@libAbi/basket.abi';
+import BOOTSTRAP_ABI_NEW from '@libAbi/bootstrap.abi.new';
 import useTVL from '@yUSD/hooks/useTVL';
 
 import type {TNormalizedBN} from '@builtbymom/web3/types';
@@ -16,7 +16,7 @@ type TUseLSTProps = {
 	TVL: number;
 	TAL: TNormalizedBN;
 	isTVLLoaded: boolean;
-	totalDepositedETH: TNormalizedBN;
+	totalDeposited: TNormalizedBN;
 	stats: {
 		amplification: bigint;
 		rampStopTime: bigint;
@@ -31,7 +31,7 @@ const defaultProps: TUseLSTProps = {
 	TVL: 0,
 	TAL: zeroNormalizedBN,
 	isTVLLoaded: false,
-	totalDepositedETH: zeroNormalizedBN,
+	totalDeposited: zeroNormalizedBN,
 	stats: {
 		amplification: toBigInt(0),
 		rampStopTime: toBigInt(0),
@@ -51,18 +51,13 @@ export const LSTContextApp = ({children}: {children: React.ReactElement}): React
 	 **
 	 ** @returns: bigint - total deposited eth
 	 **********************************************************************************************/
-	const {data: totalDepositedETH} = useReadContract({
-		address: toAddress(process.env.YUSD_ADDRESS),
-		abi: erc20Abi,
+	const {data: totalDeposited} = useReadContract({
+		address: toAddress(process.env.DEPOSIT_ADDRESS),
+		abi: BOOTSTRAP_ABI_NEW,
 		chainId: Number(process.env.DEFAULT_CHAIN_ID),
-		functionName: 'totalSupply',
-		query: {
-			select(data) {
-				return toNormalizedBN(data, 18);
-			}
-		}
+		functionName: 'deposited'
 	});
-
+	console.log(totalDeposited);
 	const {data: stats, isFetched: areStatsFetched} = useContractReads({
 		contracts: [
 			{
@@ -100,7 +95,7 @@ export const LSTContextApp = ({children}: {children: React.ReactElement}): React
 			TVL: TVLData.TVL,
 			TAL: TVLData.TAL,
 			isTVLLoaded: TVLData.isLoaded,
-			totalDepositedETH: totalDepositedETH || zeroNormalizedBN,
+			totalDeposited: totalDeposited ? toNormalizedBN(totalDeposited, 18) : zeroNormalizedBN,
 			stats: areStatsFetched
 				? {
 						amplification: toBigInt(stats?.[0]?.result as bigint),
@@ -110,7 +105,7 @@ export const LSTContextApp = ({children}: {children: React.ReactElement}): React
 					}
 				: defaultProps.stats
 		}),
-		[slippage, TVLData.TAL, TVLData.TVL, TVLData.isLoaded, areStatsFetched, stats, totalDepositedETH]
+		[slippage, TVLData.TAL, TVLData.TVL, TVLData.isLoaded, areStatsFetched, stats, totalDeposited]
 	);
 
 	return <LSTContext.Provider value={contextValue}>{children}</LSTContext.Provider>;

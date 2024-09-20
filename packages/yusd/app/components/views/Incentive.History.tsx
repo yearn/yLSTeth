@@ -36,7 +36,7 @@ function IncentiveHistoryTabs(props: {
 			<div className={'-mx-42 relative'}>
 				<button
 					onClick={(): void => {
-						router.push({pathname: router.pathname, query: {filter: 'all'}});
+						router.push({pathname: router.pathname, query: {filter: 'all'}}, undefined, {scroll: false});
 					}}
 					className={cl(
 						'mx-4 mb-2 text-lg transition-colors',
@@ -46,7 +46,7 @@ function IncentiveHistoryTabs(props: {
 				</button>
 				<button
 					onClick={(): void => {
-						router.push({pathname: router.pathname, query: {filter: 'your'}});
+						router.push({pathname: router.pathname, query: {filter: 'your'}}, undefined, {scroll: false});
 					}}
 					className={cl(
 						'mx-4 mb-2 text-lg transition-colors',
@@ -81,7 +81,7 @@ function IncentiveHistoryTabs(props: {
 
 function IncentiveRow(props: {item: TIndexedTokenInfo; incentives: TIncentives[]}): ReactElement {
 	const {getPrice} = usePrices();
-	const {totalDepositedETH} = useLST();
+	const {totalDeposited} = useLST();
 	const {safeChainID} = useChainID(Number(process.env.DEFAULT_CHAIN_ID));
 
 	/**************************************************************************
@@ -108,11 +108,11 @@ function IncentiveRow(props: {item: TIndexedTokenInfo; incentives: TIncentives[]
 			const value =
 				toNormalizedBN(incentive.amount, incentive.incentiveToken?.decimals || 18).normalized *
 				price.normalized;
-			const usdPerStakedBasketToken = value / totalDepositedETH.normalized;
+			const usdPerStakedBasketToken = value / totalDeposited.normalized;
 			sum += usdPerStakedBasketToken;
 		}
 		return sum;
-	}, [getPrice, props.incentives, totalDepositedETH.normalized]);
+	}, [getPrice, props.incentives, totalDeposited.normalized]);
 
 	/**************************************************************************
 	 ** This method calculates the estimated APR for the candidate.
@@ -126,10 +126,10 @@ function IncentiveRow(props: {item: TIndexedTokenInfo; incentives: TIncentives[]
 			const value =
 				toNormalizedBN(incentive.amount, incentive.incentiveToken?.decimals || 18).normalized *
 				price.normalized;
-			sum += ((value * 12) / totalDepositedETH.normalized) * basketTokenPrice.normalized;
+			sum += ((value * 12) / totalDeposited.normalized) * basketTokenPrice.normalized;
 		}
 		return sum;
-	}, [getPrice, props.incentives, totalDepositedETH.normalized]);
+	}, [getPrice, props.incentives, totalDeposited.normalized]);
 
 	const hasIncentives = props.incentives.length > 0;
 

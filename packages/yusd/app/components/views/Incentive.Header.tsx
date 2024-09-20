@@ -2,6 +2,7 @@ import React, {useMemo} from 'react';
 import {formatTAmount} from '@builtbymom/web3/utils';
 import {useTimer} from '@libHooks/useTimer';
 import {Renderable} from '@yearn-finance/web-lib/components/Renderable';
+import useBootstrap from '@yUSD/contexts/useBootstrap';
 import useLST from '@yUSD/contexts/useLST';
 import {useEpoch} from '@yUSD/hooks/useEpoch';
 
@@ -23,18 +24,20 @@ function Timer({isIncentivePeriodClosed}: {isIncentivePeriodClosed: boolean}): R
 }
 
 function IncentiveHeader({isIncentivePeriodClosed}: {isIncentivePeriodClosed: boolean}): ReactElement {
-	const {TVL} = useLST();
+	const {totalDeposited} = useLST();
+	const {
+		incentives: {groupIncentiveHistory}
+	} = useBootstrap();
 	/* 🔵 - Yearn Finance **************************************************************************
 	 ** Calculate the sum of all the incentives for all the protocols.
 	 **********************************************************************************************/
 	const sumOfAllIncentives = useMemo((): number => {
-		const sum = 0;
-		//TODO DO THIS
-		// for (const eachIncentive of Object.values(groupIncentiveHistory.protocols)) {
-		// 	sum += eachIncentive.normalizedSum;
-		// }
+		let sum = 0;
+		for (const eachIncentive of Object.values(groupIncentiveHistory.protocols)) {
+			sum += eachIncentive.normalizedSum;
+		}
 		return sum;
-	}, []);
+	}, [groupIncentiveHistory.protocols]);
 
 	return (
 		<div className={'mb-10 flex w-full flex-col justify-center'}>
@@ -60,7 +63,7 @@ function IncentiveHeader({isIncentivePeriodClosed}: {isIncentivePeriodClosed: bo
 							<Renderable
 								shouldRender={true}
 								fallback={'-'}>
-								{formatTAmount({value: TVL, decimals: 2, symbol: '$'})}
+								{formatTAmount({value: totalDeposited.normalized, decimals: 2, symbol: '$'})}
 							</Renderable>
 						</b>
 					</div>

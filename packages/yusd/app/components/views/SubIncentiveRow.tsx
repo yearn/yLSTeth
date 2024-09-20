@@ -10,7 +10,7 @@ import type {TIncentives} from '@yUSD/hooks/useBootstrapIncentives';
 
 export function SubIncentiveRow(props: {item: TIncentives}): ReactElement {
 	const {getPrice} = usePrices();
-	const {totalDepositedETH} = useLST();
+	const {totalDeposited} = useLST();
 	/**************************************************************************
 	 ** This method calculates the incentive value
 	 **************************************************************************/
@@ -27,8 +27,8 @@ export function SubIncentiveRow(props: {item: TIncentives}): ReactElement {
 	 **************************************************************************/
 	const incentiveAPR = useMemo((): number => {
 		const basketTokenPrice = getPrice({address: toAddress(process.env.STYUSD_ADDRESS)});
-		return ((incentiveValue * 12) / totalDepositedETH.normalized) * basketTokenPrice.normalized;
-	}, [getPrice, totalDepositedETH, incentiveValue]);
+		return ((incentiveValue * 12) / totalDeposited.normalized) * basketTokenPrice.normalized;
+	}, [getPrice, totalDeposited, incentiveValue]);
 
 	return (
 		<div

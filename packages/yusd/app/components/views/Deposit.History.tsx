@@ -1,6 +1,5 @@
 import {type ReactElement, type ReactNode} from 'react';
-import {cl, formatTAmount} from '@builtbymom/web3/utils';
-import IconChevronPlain from '@libIcons/IconChevronPlain';
+import {formatTAmount} from '@builtbymom/web3/utils';
 
 import type {TDepositHistory} from './Deposit.types';
 
@@ -117,11 +116,6 @@ export function DepositHistory({history, isLoading}: {history: TDepositHistory[]
 				</div>
 				<div className={'col-span-2 flex justify-end gap-1'}>
 					<p className={'group flex flex-row text-xs text-neutral-500'}>{'Asset deposited'}</p>
-					<IconChevronPlain
-						className={cl(
-							'yearn--sort-chevron text-neutral-500 transition-all group-hover:text-neutral-500'
-						)}
-					/>
 				</div>
 				<div className={'col-span-1 flex justify-end'}>
 					<p className={'group flex flex-row text-xs text-neutral-500'}>{'Amount'}</p>
