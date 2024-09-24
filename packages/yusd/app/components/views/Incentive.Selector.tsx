@@ -24,6 +24,7 @@ import BOOTSTRAP_ABI_NEW from '@libAbi/bootstrap.abi.new';
 import ComboboxAddressInput from '@libComponents/ComboboxAddressInput';
 import {useDeepCompareEffect} from '@react-hookz/web';
 import {Button} from '@yearn-finance/web-lib/components/Button';
+import useBootstrap from '@yUSD/contexts/useBootstrap';
 import {ETH_TOKEN} from '@yUSD/tokens';
 import {possibleTokensToVoteFor} from '@yUSD/utils/constants';
 
@@ -60,7 +61,6 @@ function WeightIncentiveSelector(props: {isIncentivePeriodOpen: boolean}): React
 	const {safeChainID} = useChainID(Number(process.env.DEFAULT_CHAIN_ID));
 	const {getBalance, onRefresh} = useWallet();
 	const basket = possibleTokensToVoteFor;
-	const [isLoadedBasket, set_isLoadedBasket] = useState<boolean>(false);
 	const {currentNetworkTokenList} = useTokenList();
 	const [amountToSend, set_amountToSend] = useState<TNormalizedBN | undefined>(undefined);
 	const [possibleTokensToUse, set_possibleTokensToUse] = useState<TDict<TToken | undefined>>({});
@@ -68,6 +68,11 @@ function WeightIncentiveSelector(props: {isIncentivePeriodOpen: boolean}): React
 	const [tokenToUse, set_tokenToUse] = useState<TToken | undefined>();
 	const [approvalStatus, set_approvalStatus] = useState<TTxStatus>(defaultTxStatus);
 	const [depositStatus, set_depositStatus] = useState<TTxStatus>(defaultTxStatus);
+
+	const {
+		incentives: {refreshIncentives}
+	} = useBootstrap();
+
 	const {data: allowance, refetch: refetchAllowance} = useReadContract({
 		abi: erc20Abi,
 		address: tokenToUse?.address,
@@ -75,7 +80,7 @@ function WeightIncentiveSelector(props: {isIncentivePeriodOpen: boolean}): React
 		chainId: Number(process.env.DEFAULT_CHAIN_ID),
 		args: [toAddress(address), toAddress(process.env.DEPOSIT_ADDRESS)]
 	});
-	console.log(allowance);
+
 	const hasAllowance = toBigInt(allowance) >= toBigInt(amountToSend?.raw);
 	/* 🔵 - Yearn Finance **************************************************************************
 	 ** On mount, fetch the token list from the tokenlistooor.
@@ -237,7 +242,7 @@ function WeightIncentiveSelector(props: {isIncentivePeriodOpen: boolean}): React
 		);
 		if (result.isSuccessful) {
 			refetchAllowance();
-			// refreshIncentives();
+			refreshIncentives();
 			onRefresh([
 				ETH_TOKEN,
 				{
@@ -257,6 +262,7 @@ function WeightIncentiveSelector(props: {isIncentivePeriodOpen: boolean}): React
 		onRefresh,
 		provider,
 		refetchAllowance,
+		refreshIncentives,
 		tokenToUse?.address,
 		tokenToUse?.decimals,
 		tokenToUse?.name,
