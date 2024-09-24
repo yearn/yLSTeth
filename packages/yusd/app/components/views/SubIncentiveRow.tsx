@@ -11,6 +11,7 @@ import type {TIncentives} from '@yUSD/hooks/useBootstrapIncentives';
 export function SubIncentiveRow(props: {item: TIncentives}): ReactElement {
 	const {getPrice} = usePrices();
 	const {totalDeposited} = useLST();
+
 	/**************************************************************************
 	 ** This method calculates the incentive value
 	 **************************************************************************/
@@ -70,7 +71,7 @@ export function SubIncentiveRow(props: {item: TIncentives}): ReactElement {
 				<p
 					suppressHydrationWarning
 					className={'font-number text-xxs pr-1 md:text-xs'}>
-					{`${formatPercent(incentiveAPR || 0, 4)}`}
+					{`${formatPercent(props.item.estimatedAPR || 0, 4)}`}
 				</p>
 			</div>
 		</div>

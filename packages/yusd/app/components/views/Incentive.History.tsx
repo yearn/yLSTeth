@@ -7,7 +7,6 @@ import {IconChevronBottom} from '@yearn-finance/web-lib/icons/IconChevronBottom'
 import {SubIncentiveWrapper} from '@yUSD/components/views/SubIncentiveWrapper';
 import useBasket from '@yUSD/contexts/useBasket';
 import useBootstrap from '@yUSD/contexts/useBootstrap';
-import useLST from '@yUSD/contexts/useLST';
 import {usePrices} from '@yUSD/contexts/usePrices';
 
 import type {ReactElement} from 'react';
@@ -81,7 +80,9 @@ function IncentiveHistoryTabs(props: {
 
 function IncentiveRow(props: {item: TIndexedTokenInfo; incentives: TIncentives[]}): ReactElement {
 	const {getPrice} = usePrices();
-	const {totalDeposited} = useLST();
+	const {
+		incentives: {totalDepositedUSD}
+	} = useBootstrap();
 	const {safeChainID} = useChainID(Number(process.env.DEFAULT_CHAIN_ID));
 
 	/**************************************************************************
@@ -108,28 +109,21 @@ function IncentiveRow(props: {item: TIndexedTokenInfo; incentives: TIncentives[]
 			const value =
 				toNormalizedBN(incentive.amount, incentive.incentiveToken?.decimals || 18).normalized *
 				price.normalized;
-			const usdPerStakedBasketToken = value / totalDeposited.normalized;
+			const usdPerStakedBasketToken = value / totalDepositedUSD.normalized;
 			sum += usdPerStakedBasketToken;
 		}
 		return sum;
-	}, [getPrice, props.incentives, totalDeposited.normalized]);
+	}, [getPrice, props.incentives, totalDepositedUSD]);
 
 	/**************************************************************************
 	 ** This method calculates the estimated APR for the candidate.
 	 **************************************************************************/
 	const candidateIncentivesEstimatedAPR = useMemo((): number => {
-		let sum = 0;
-		for (const incentive of props.incentives || []) {
-			// We don't care about this level for candidates incentives
-			const price = getPrice({address: incentive.protocol});
-			const basketTokenPrice = getPrice({address: toAddress(process.env.STYUSD_ADDRESS)});
-			const value =
-				toNormalizedBN(incentive.amount, incentive.incentiveToken?.decimals || 18).normalized *
-				price.normalized;
-			sum += ((value * 12) / totalDeposited.normalized) * basketTokenPrice.normalized;
-		}
-		return sum;
-	}, [getPrice, props.incentives, totalDeposited.normalized]);
+		const totalIncentives = props.incentives.reduce((acc, current) => acc + current.value, 0);
+
+		const totalAPR = (totalIncentives / totalDepositedUSD.normalized) * 100;
+		return totalAPR;
+	}, [props.incentives, totalDepositedUSD.normalized]);
 
 	const hasIncentives = props.incentives.length > 0;
 

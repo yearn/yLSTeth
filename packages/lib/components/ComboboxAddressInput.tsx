@@ -16,7 +16,7 @@ import {
 	zeroNormalizedBN
 } from '@builtbymom/web3/utils';
 import {retrieveConfig} from '@builtbymom/web3/utils/wagmi';
-import {Combobox, Transition} from '@headlessui/react';
+import {Combobox, ComboboxButton, ComboboxInput, ComboboxOptions, Transition} from '@headlessui/react';
 import IconCheck from '@libIcons/IconCheck';
 import IconChevronBoth from '@libIcons/IconChevronBoth';
 import IconSpinner from '@libIcons/IconSpinner';
@@ -236,7 +236,7 @@ function ComboboxAddressInput({
 		<div className={'w-full'}>
 			{isOpen ? (
 				<div
-					className={'fixed inset-0 z-0'}
+					className={'fixed inset-0 z-[999999]'}
 					onClick={(e): void => {
 						e.stopPropagation();
 						e.preventDefault();
@@ -248,7 +248,7 @@ function ComboboxAddressInput({
 				value={value}
 				onChange={onChange}>
 				<div className={'relative'}>
-					<Combobox.Button
+					<ComboboxButton
 						onClick={(): void => set_isOpen((o: boolean): boolean => !o)}
 						className={cl(
 							'grow-1 bg-neutral-0 col-span-12 flex h-10 w-full items-center rounded-md p-2 md:col-span-9',
@@ -269,7 +269,7 @@ function ComboboxAddressInput({
 								className={
 									'scrollbar-none w-full overflow-x-hidden text-ellipsis whitespace-nowrap pr-2 font-normal text-neutral-900'
 								}>
-								<Combobox.Input
+								<ComboboxInput
 									className={
 										'font-inter scrollbar-none w-full cursor-default overflow-x-scroll border-none bg-transparent p-0 outline-none'
 									}
@@ -306,7 +306,7 @@ function ComboboxAddressInput({
 								className={'size-4 text-neutral-500 transition-colors group-hover:text-neutral-900'}
 							/>
 						</div>
-					</Combobox.Button>
+					</ComboboxButton>
 					<Transition
 						as={Fragment}
 						show={isOpen}
@@ -317,7 +317,7 @@ function ComboboxAddressInput({
 						leaveFrom={'transform scale-100 opacity-100'}
 						leaveTo={'transform scale-95 opacity-0'}
 						afterLeave={(): void => set_query('')}>
-						<Combobox.Options
+						<ComboboxOptions
 							className={
 								'scrollbar-show bg-neutral-0 absolute left-0 z-50 mt-1 flex max-h-52 w-full min-w-fit flex-col overflow-y-scroll rounded-md shadow-lg md:min-w-[400px]'
 							}>
@@ -362,7 +362,7 @@ function ComboboxAddressInput({
 									<IconSpinner className={'!h-6 !w-6 !text-neutral-400'} />
 								</div>
 							)}
-						</Combobox.Options>
+						</ComboboxOptions>
 					</Transition>
 				</div>
 			</Combobox>

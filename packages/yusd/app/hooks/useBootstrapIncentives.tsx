@@ -13,13 +13,12 @@ import {
 	zeroNormalizedBN
 } from '@builtbymom/web3/utils';
 import {retrieveConfig} from '@builtbymom/web3/utils/wagmi';
-import BOOTSTRAP_ABI from '@libAbi/bootstrap.abi';
+import BOOTSTRAP_ABI_NEW from '@libAbi/bootstrap.abi.new';
 import {useFetch} from '@libHooks/useFetch';
 import {yDaemonPricesSchema} from '@libUtils/types';
 import {useAsync, useMountEffect, useUpdateEffect} from '@react-hookz/web';
 import {multicall} from '@wagmi/core';
 import {useYDaemonBaseURI} from '@yearn-finance/web-lib/hooks/useYDaemonBaseURI';
-import {ETH_TOKEN_ADDRESS} from '@yearn-finance/web-lib/utils/constants';
 import {getClient} from '@yearn-finance/web-lib/utils/wagmi/utils';
 import {BOOTSTRAP_INIT_BLOCK_NUMBER} from '@yUSD/utils/constants';
 
@@ -71,8 +70,7 @@ export type TUseBootstrapIncentivesResp = {
 	isFetchingHistory: boolean;
 	refreshIncentives: VoidFunction;
 	refreshClaimedIncentives: VoidFunction;
-	totalDepositedETH: TNormalizedBN;
-	totalDepositedUSD: number;
+	totalDepositedUSD: TNormalizedBN;
 };
 function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 	const {address} = useWeb3();
@@ -92,29 +90,11 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 	 **
 	 ** @returns bigint - total deposited eth
 	 ************************************************************************************************/
-	const {data: totalDepositedETH} = useReadContract({
+	const {data: totalDepositedUSD} = useReadContract({
 		address: toAddress(process.env.DEPOSIT_ADDRESS),
-		abi: BOOTSTRAP_ABI,
+		abi: BOOTSTRAP_ABI_NEW,
 		functionName: 'deposited'
 	});
-
-	/************************************************************************************************
-	 ** Memoize the total deposited value in USD, using the prices from the yDaemon API and the
-	 ** total deposited ETH from the contract.
-	 **
-	 ** @deps prices - list of prices from the yDaemon API
-	 ** @deps totalDepositedETH - total deposited ETH from the contract
-	 ** @returns number - total deposited value in USD
-	 ************************************************************************************************/
-	const totalDepositedValue = useMemo((): number => {
-		if (!prices || !totalDepositedETH) {
-			return 0;
-		}
-		return (
-			Number(toNormalizedBN(totalDepositedETH, 18).normalized) *
-			Number(toNormalizedBN(prices?.[ETH_TOKEN_ADDRESS] || 0, 6).normalized)
-		);
-	}, [prices, totalDepositedETH]);
 
 	/************************************************************************************************
 	 ** Connect to the node and listen for all the events since the deployment of the contracts.
@@ -293,10 +273,7 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 			return {protocols: {}, user: {}};
 		}
 		const getAPR = (USDValue: number): number =>
-			((USDValue * 12) /
-				(Number(toNormalizedBN(toBigInt(totalDepositedETH), 18).normalized) *
-					Number(toNormalizedBN(prices?.[ETH_TOKEN_ADDRESS] || 0, 6).normalized))) *
-			100;
+			(USDValue / Number(toNormalizedBN(toBigInt(totalDepositedUSD), 18).normalized)) * 100;
 
 		const groupByProtocol = incentiveHistory.reduce((acc, cur): TDict<TGroupedIncentives> => {
 			if (!cur) {
@@ -314,7 +291,7 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 					protocolName: cur.protocolName || truncateHex(cur.protocol, 6),
 					protocolSymbol: cur.protocolSymbol || truncateHex(cur.protocol, 6),
 					normalizedSum: value,
-					usdPerStETH: value / Number(toNormalizedBN(toBigInt(totalDepositedETH), 18).normalized),
+					usdPerStETH: value / Number(toNormalizedBN(toBigInt(totalDepositedUSD), 18).normalized),
 					incentives: [{...cur, value, estimatedAPR}]
 				};
 				return acc;
@@ -334,7 +311,7 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 				acc[key].incentives[incentiveIndex].estimatedAPR = getAPR(acc[key].incentives[incentiveIndex].value);
 			}
 			acc[key].usdPerStETH =
-				acc[key].normalizedSum / Number(toNormalizedBN(toBigInt(totalDepositedETH), 18).normalized);
+				acc[key].normalizedSum / Number(toNormalizedBN(toBigInt(totalDepositedUSD), 18).normalized);
 			return acc;
 		}, {} as TDict<TGroupedIncentives>);
 
@@ -354,7 +331,7 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 					protocolSymbol: cur.protocolSymbol || truncateHex(cur.protocol, 6),
 					normalizedSum: value,
 					estimatedAPR: estimatedAPR,
-					usdPerStETH: value / Number(toNormalizedBN(toBigInt(totalDepositedETH), 18).normalized),
+					usdPerStETH: value / Number(toNormalizedBN(toBigInt(totalDepositedUSD), 18).normalized),
 					incentives: [{...cur, value, estimatedAPR}]
 				};
 				return acc;
@@ -374,19 +351,18 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 				acc[key].incentives[incentiveIndex].estimatedAPR = getAPR(acc[key].incentives[incentiveIndex].value);
 			}
 			acc[key].usdPerStETH =
-				acc[key].normalizedSum / Number(toNormalizedBN(toBigInt(totalDepositedETH), 18).normalized);
+				acc[key].normalizedSum / Number(toNormalizedBN(toBigInt(totalDepositedUSD), 18).normalized);
 			return acc;
 		}, {} as TDict<TGroupedIncentives>);
 
 		return {protocols: groupByProtocol, user: groupForUser};
-	}, [address, incentiveHistory, prices, totalDepositedETH]);
+	}, [address, incentiveHistory, prices, totalDepositedUSD]);
 
 	return {
 		groupIncentiveHistory,
 		isFetchingHistory,
 		refreshIncentives: filterIncentivizeEvents,
-		totalDepositedETH: toNormalizedBN(totalDepositedETH || 0n, 18),
-		totalDepositedUSD: totalDepositedValue,
+		totalDepositedUSD: toNormalizedBN(totalDepositedUSD || 0n, 18),
 		claimedIncentives: claimedIncentives,
 		refreshClaimedIncentives: filterClaimIncentiveEvents
 	};
