@@ -1,5 +1,5 @@
 import React from 'react';
-import ViewDeposit from '@yUSD/components/views/Deposit';
+import ViewDeposit from '@yUSD/components/bootstrapViews/Deposit';
 
 import type {ReactElement} from 'react';
 

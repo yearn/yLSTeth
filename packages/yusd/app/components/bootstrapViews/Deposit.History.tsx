@@ -1,7 +1,7 @@
 import {type ReactElement, type ReactNode} from 'react';
 import {formatTAmount} from '@builtbymom/web3/utils';
 
-import type {TDepositHistory} from './Deposit.types';
+import type {TDepositHistory} from '../views/Deposit.types';
 
 /************************************************************************************************
  ** HistoryRowSkeleton: Renders a skeleton row for the deposit history
