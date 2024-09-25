@@ -1,31 +1,25 @@
 import React, {useMemo} from 'react';
-import {formatAmount, formatPercent, toAddress, truncateHex} from '@builtbymom/web3/utils';
-import {ImageWithFallback} from '@libComponents/ImageWithFallback';
-import useLST from '@yUSD/contexts/useLST';
+import {formatAmount, formatPercent, formatTAmount, toNormalizedBN} from '@builtbymom/web3/utils';
 import {usePrices} from '@yUSD/contexts/usePrices';
 
-import type {ReactElement} from 'react';
-import type {TTokenIncentive} from '@libUtils/types';
+import {ImageWithFallback} from '../../../../lib/components/ImageWithFallback';
 
-export function SubIncentiveRow(props: {item: TTokenIncentive}): ReactElement {
+import type {ReactElement} from 'react';
+import type {TIncentives} from '@yUSD/hooks/useBootstrapIncentives';
+
+export function SubIncentiveRow(props: {item: TIncentives}): ReactElement {
 	const {getPrice} = usePrices();
-	const {totalDeposited} = useLST();
 
 	/**************************************************************************
 	 ** This method calculates the incentive value
 	 **************************************************************************/
 	const incentiveValue = useMemo((): number => {
-		const price = getPrice({address: props.item.address});
-		return props.item.amount.normalized * price.normalized;
+		const price = getPrice({address: props.item.protocol});
+		return (
+			Number(toNormalizedBN(props.item.amount, props.item.incentiveToken?.decimals || 18).normalized) *
+			price.normalized
+		);
 	}, [getPrice, props.item]);
-
-	/**************************************************************************
-	 ** This method calculates the estimated APR for the incentive
-	 **************************************************************************/
-	const incentiveAPR = useMemo((): number => {
-		const basketTokenPrice = getPrice({address: toAddress(process.env.STYETH_ADDRESS)});
-		return ((incentiveValue * 12) / totalDeposited.normalized) * basketTokenPrice.normalized;
-	}, [getPrice, totalDeposited, incentiveValue]);
 
 	return (
 		<div
@@ -34,8 +28,8 @@ export function SubIncentiveRow(props: {item: TTokenIncentive}): ReactElement {
 			<div className={'col-span-2 flex w-full flex-row items-center space-x-2'}>
 				<div className={'size-6 min-w-[24px]'}>
 					<ImageWithFallback
-						src={props.item?.logoURI || ''}
-						altSrc={`${process.env.SMOL_ASSETS_URL}/token/${Number(process.env.DEFAULT_CHAIN_ID)}/${props.item.address}/logo-32.png`}
+						altSrc={props.item?.incentiveToken?.logoURI || ''}
+						src={`${process.env.SMOL_ASSETS_URL}/token/${Number(process.env.DEFAULT_CHAIN_ID)}/${props.item.incentiveToken?.address}/logo-32.png`}
 						alt={''}
 						unoptimized
 						width={24}
@@ -43,14 +37,17 @@ export function SubIncentiveRow(props: {item: TTokenIncentive}): ReactElement {
 					/>
 				</div>
 				<div>
-					<p className={'text-xs'}>{props.item?.symbol || truncateHex(props.item.address, 6)}</p>
+					<p className={'text-xs'}>{props.item.incentiveToken?.symbol}</p>
 				</div>
 			</div>
 			<div className={'col-span-2 flex items-center justify-end'}>
 				<p
 					suppressHydrationWarning
 					className={'font-number text-xxs pr-1 md:text-xs'}>
-					{`${formatAmount(props.item.amount?.normalized || 0, 6, 6)}`}
+					{`${formatTAmount({
+						value: toNormalizedBN(props.item.amount, props.item.incentiveToken?.decimals || 18).normalized,
+						decimals: props.item.incentiveToken?.decimals || 18
+					})}`}
 				</p>
 			</div>
 			<div className={'col-span-2 flex items-center justify-end'}>
@@ -64,7 +61,7 @@ export function SubIncentiveRow(props: {item: TTokenIncentive}): ReactElement {
 				<p
 					suppressHydrationWarning
 					className={'font-number text-xxs pr-1 md:text-xs'}>
-					{`${formatPercent(incentiveAPR || 0, 4)}`}
+					{`${formatPercent(props.item.estimatedAPR || 0, 4)}`}
 				</p>
 			</div>
 		</div>

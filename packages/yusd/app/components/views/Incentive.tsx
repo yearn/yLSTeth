@@ -2,8 +2,10 @@ import React, {useState} from 'react';
 import {useAsyncTrigger} from '@builtbymom/web3/hooks/useAsyncTrigger';
 import {decodeAsBigInt, toAddress, toBigInt} from '@builtbymom/web3/utils';
 import {retrieveConfig} from '@builtbymom/web3/utils/wagmi';
-import BOOTSTRAP_ABI_NEW from '@libAbi/bootstrap.abi.new';
+import {INCLUSION_INCENTIVE_ABI} from '@libAbi/inclusionIncentives.abi';
+import {WEIGHT_INCENTIVE_ABI} from '@libAbi/weightIncentives.abi';
 import {readContracts} from '@wagmi/core';
+import {EPOCH_DURATION} from '@yUSD/utils/constants';
 import {getCurrentEpochNumber} from '@yUSD/utils/epochs';
 
 import {IncentiveHeader} from './Incentive.Header';
@@ -13,8 +15,12 @@ import {IncentiveSelector} from './Incentive.Selector';
 import type {ReactElement} from 'react';
 
 function ViewIncentive(): ReactElement {
+	const [currentTab, set_currentTab] = useState<'current' | 'potential'>('current');
 	const [epochToDisplay, set_epochToDisplay] = useState<number>(getCurrentEpochNumber());
-	const [areIncentivesOpen, set_areIncentivesLoaded] = useState(false);
+	const [areIncentivesOpen, set_areIncentivesLoaded] = useState({
+		isWeightIncentiveOpen: false,
+		isInclusionIncentiveOpen: false
+	});
 
 	/**********************************************************************************************
 	 ** Retrieve the deadline and genesis of the weight and inclusion incentives to know if they are
@@ -24,37 +30,64 @@ function ViewIncentive(): ReactElement {
 		const data = await readContracts(retrieveConfig(), {
 			contracts: [
 				{
-					abi: BOOTSTRAP_ABI_NEW,
-					address: toAddress(process.env.DEPOSIT_ADDRESS),
-					functionName: 'incentive_begin',
+					abi: WEIGHT_INCENTIVE_ABI,
+					address: toAddress(process.env.WEIGHT_INCENTIVES_ADDRESS),
+					functionName: 'deposit_deadline',
 					chainId: Number(process.env.DEFAULT_CHAIN_ID),
 					args: []
 				},
 				{
-					abi: BOOTSTRAP_ABI_NEW,
-					address: toAddress(process.env.DEPOSIT_ADDRESS),
-					functionName: 'incentive_end',
+					abi: WEIGHT_INCENTIVE_ABI,
+					address: toAddress(process.env.WEIGHT_INCENTIVES_ADDRESS),
+					functionName: 'genesis',
+					chainId: Number(process.env.DEFAULT_CHAIN_ID),
+					args: []
+				},
+				{
+					abi: INCLUSION_INCENTIVE_ABI,
+					address: toAddress(process.env.INCLUSION_INCENTIVES_ADDRESS),
+					functionName: 'deposit_deadline',
+					chainId: Number(process.env.DEFAULT_CHAIN_ID),
+					args: []
+				},
+				{
+					abi: INCLUSION_INCENTIVE_ABI,
+					address: toAddress(process.env.INCLUSION_INCENTIVES_ADDRESS),
+					functionName: 'genesis',
 					chainId: Number(process.env.DEFAULT_CHAIN_ID),
 					args: []
 				}
 			]
 		});
-		const incentiveBegin = decodeAsBigInt(data[0]);
-		const incentiveEnd = decodeAsBigInt(data[1]);
+		const weightIncentiveDeadline = decodeAsBigInt(data[0]);
+		const weightIncentiveGenesis = decodeAsBigInt(data[1]);
+		const inclusionIncentiveDeadline = decodeAsBigInt(data[2]);
+		const inclusionIncentiveGenesis = decodeAsBigInt(data[3]);
 		const now = toBigInt(Math.floor(Date.now() / 1000));
+		const epochDuration = toBigInt(EPOCH_DURATION);
 
-		set_areIncentivesLoaded(now - incentiveBegin <= incentiveEnd);
+		set_areIncentivesLoaded({
+			isWeightIncentiveOpen: (now - weightIncentiveGenesis) % epochDuration <= weightIncentiveDeadline,
+			isInclusionIncentiveOpen: (now - inclusionIncentiveGenesis) % epochDuration <= inclusionIncentiveDeadline
+		});
 	}, []);
 
 	return (
 		<section className={'grid w-full grid-cols-1 pt-10 md:mb-20 md:px-4 md:pt-12'}>
 			<div className={'mb-20 md:mb-0'}>
-				<IncentiveHeader isIncentivePeriodClosed={!areIncentivesOpen} />
-				<IncentiveSelector incentivePeriodOpen={areIncentivesOpen} />
-				<IncentiveHistory
-					epochToDisplay={epochToDisplay}
-					set_epochToDisplay={set_epochToDisplay}
+				<IncentiveHeader isIncentivePeriodClosed={areIncentivesOpen.isInclusionIncentiveOpen} />
+				<IncentiveSelector
+					incentivePeriodOpen={areIncentivesOpen}
+					currentTab={currentTab}
+					set_currentTab={set_currentTab}
 				/>
+				<div className={'bg-neutral-100'}>
+					<IncentiveHistory
+						epochToDisplay={epochToDisplay}
+						set_epochToDisplay={set_epochToDisplay}
+						currentTab={currentTab}
+					/>
+				</div>
 			</div>
 		</section>
 	);

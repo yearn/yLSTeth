@@ -1,5 +1,5 @@
 import React from 'react';
-import Incentive from '@yUSD/components/views/Incentive';
+import Incentive from '@yUSD/components/bootstrapViews/Incentive';
 
 import type {ReactElement} from 'react';
 

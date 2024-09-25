@@ -9,8 +9,8 @@ import {motionVariants} from '@builtbymom/web3/utils/helpers';
 import AppHeader from '@libComponents/Header';
 import {WithFonts} from '@libComponents/WithFonts';
 import {supportedNetworks} from '@libUtils/chains';
-import {BasketContextApp} from '@yUSD/contexts/useBasket';
 import {BootstrapContextApp} from '@yUSD/contexts/useBootstrap';
+import {BootstrapBasketContextApp} from '@yUSD/contexts/useBootstrapBasket';
 import {LSTContextApp} from '@yUSD/contexts/useLST';
 import {PriceContextApp} from '@yUSD/contexts/usePrices';
 
@@ -86,7 +86,7 @@ function MyApp(props: AppProps): ReactElement {
 					<PriceContextApp>
 						<WalletContextApp>
 							<LSTContextApp>
-								<BasketContextApp>
+								<BootstrapBasketContextApp>
 									{/* <InclusionContextApp> */}
 									<main className={cl('flex flex-col mb-32', aeonik.className)}>
 										<AppWrapper
@@ -95,7 +95,7 @@ function MyApp(props: AppProps): ReactElement {
 										/>
 									</main>
 									{/* </InclusionContextApp> */}
-								</BasketContextApp>
+								</BootstrapBasketContextApp>
 							</LSTContextApp>
 						</WalletContextApp>
 					</PriceContextApp>
