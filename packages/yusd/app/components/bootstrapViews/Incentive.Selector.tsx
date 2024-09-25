@@ -203,7 +203,6 @@ function WeightIncentiveSelector(props: {isIncentivePeriodOpen: boolean}): React
 			amount: toBigInt(amountToSend?.raw),
 			statusHandler: set_approvalStatus
 		});
-		console.log(result);
 		if (result.isSuccessful) {
 			refetchAllowance();
 			await onRefresh([

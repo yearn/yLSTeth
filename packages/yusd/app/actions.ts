@@ -441,7 +441,6 @@ export async function propose(props: TPropose): Promise<TTxResponse> {
 	const cidv0 = CID.parse(props.ipfs);
 	const cidV1 = cidv0.toV1();
 	const multihashDigestInHex = uint8ArrayToString(cidV1.multihash.digest, 'base16').toUpperCase();
-	console.warn([`0x${multihashDigestInHex}`, props.script]);
 
 	return await handleTx(props, {
 		address: toAddress(process.env.ONCHAIN_GOV_ADDRESS),

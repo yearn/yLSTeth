@@ -123,8 +123,6 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 				toBlock
 			});
 
-			console.warn(logs);
-
 			for (const log of logs) {
 				const {protocol, incentive, amount, depositor} = log.args;
 				incentives.push({
@@ -157,7 +155,9 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 	 ** @deps depositStatus - The status of the vote
 	 ************************************************************************************************/
 	const filterClaimIncentiveEvents = useCallback(async (): Promise<void> => {
-		if (!address || depositStatus !== 'ended') {
+		if (!address) {
+			//INFO: THIS IS TIME RELATED, NOT BLOCK
+			// if (!address || depositStatus !== 'ended') { //INFO: THIS IS TIME RELATED, NOT BLOCK
 			return;
 		}
 		const publicClient = getClient(Number(process.env.DEFAULT_CHAIN_ID));

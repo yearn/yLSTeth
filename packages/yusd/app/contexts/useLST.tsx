@@ -57,7 +57,6 @@ export const LSTContextApp = ({children}: {children: React.ReactElement}): React
 		chainId: Number(process.env.DEFAULT_CHAIN_ID),
 		functionName: 'deposited'
 	});
-	console.log(totalDeposited);
 	const {data: stats, isFetched: areStatsFetched} = useContractReads({
 		contracts: [
 			{
