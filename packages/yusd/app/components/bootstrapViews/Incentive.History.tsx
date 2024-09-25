@@ -55,7 +55,7 @@ function IncentiveHistoryTabs(props: {
 				<div className={'absolute bottom-0 left-0 flex h-0.5 w-full flex-row bg-neutral-300'}>
 					<div
 						className={cl(
-							'h-full w-fit transition-colors mx-4',
+							'h-full w-fit transition-colors px-4',
 							props.currentTab === 'all' ? 'bg-black' : 'bg-transparent'
 						)}>
 						<button className={'pointer-events-none invisible h-0 p-0 text-lg font-bold opacity-0'}>
@@ -64,7 +64,7 @@ function IncentiveHistoryTabs(props: {
 					</div>
 					<div
 						className={cl(
-							'h-full w-fit transition-colors ml-2',
+							'h-full w-fit transition-colors pl-2',
 							props.currentTab === 'your' ? 'bg-black' : 'bg-transparent'
 						)}>
 						<button className={'pointer-events-none invisible h-0 p-0 text-lg font-bold opacity-0'}>
@@ -142,11 +142,7 @@ function IncentiveRow(props: {item: TIndexedTokenInfo; incentives: TIncentives[]
 					e.stopPropagation();
 				}
 			}}>
-			<summary
-				className={cl(
-					'grid grid-cols-12 p-4 px-0 md:px-4',
-					hasIncentives ? 'cursor-pointer' : '!cursor-default'
-				)}>
+			<summary className={cl('grid grid-cols-12 p-4', hasIncentives ? 'cursor-pointer' : '!cursor-default')}>
 				<div className={'col-span-12 flex w-full flex-row items-center space-x-6 md:col-span-5'}>
 					<div className={'size-10 min-w-[40px]'}>
 						<ImageWithFallback
