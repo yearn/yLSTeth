@@ -20,7 +20,7 @@ import {Combobox, ComboboxButton, ComboboxInput, ComboboxOptions, Transition} fr
 import IconCheck from '@libIcons/IconCheck';
 import IconChevronBoth from '@libIcons/IconChevronBoth';
 import IconSpinner from '@libIcons/IconSpinner';
-import {useAsync, useThrottledState} from '@react-hookz/web';
+import {useAsync} from '@react-hookz/web';
 import {multicall} from '@wagmi/core';
 
 import {ImageWithFallback} from './ImageWithFallback';
@@ -115,7 +115,6 @@ function ComboboxAddressInput({
 	const {getBalance, onRefresh} = useWallet();
 	const {safeChainID} = useChainID(Number(process.env.DEFAULT_CHAIN_ID));
 	const [query, set_query] = useState('');
-	const [isOpen, set_isOpen] = useThrottledState(false, 400);
 	const [isLoadingTokenData, set_isLoadingTokenData] = useState(false);
 	const {currentNetworkTokenList} = useTokenList();
 
@@ -195,9 +194,8 @@ function ComboboxAddressInput({
 				balance: zeroNormalizedBN,
 				value: 0
 			});
-			set_isOpen(false);
 		},
-		[fetchToken, onAddValue, onChangeValue, possibleValues, safeChainID, set_isOpen, tokenData]
+		[fetchToken, onAddValue, onChangeValue, possibleValues, safeChainID, tokenData]
 	);
 
 	useEffect((): void => {
@@ -234,22 +232,11 @@ function ComboboxAddressInput({
 
 	return (
 		<div className={'w-full'}>
-			{isOpen ? (
-				<div
-					className={'fixed inset-0 z-[999999]'}
-					onClick={(e): void => {
-						e.stopPropagation();
-						e.preventDefault();
-						set_isOpen(false);
-					}}
-				/>
-			) : null}
 			<Combobox<unknown>
 				value={value}
 				onChange={onChange}>
-				<div className={'relative'}>
+				<div className={'relative z-[999999]'}>
 					<ComboboxButton
-						onClick={(): void => set_isOpen((o: boolean): boolean => !o)}
 						className={cl(
 							'grow-1 bg-neutral-0 col-span-12 flex h-10 w-full items-center rounded-md p-2 md:col-span-9',
 							buttonClassName
@@ -274,6 +261,9 @@ function ComboboxAddressInput({
 										'font-inter scrollbar-none w-full cursor-default overflow-x-scroll border-none bg-transparent p-0 outline-none'
 									}
 									displayValue={(dest: TAddress): string => {
+										if (!value) {
+											return '';
+										}
 										if (isZeroAddress(dest)) {
 											return possibleValues?.[toAddress(dest)]?.name || '';
 										}
@@ -288,7 +278,6 @@ function ComboboxAddressInput({
 									autoCorrect={'off'}
 									spellCheck={false}
 									onChange={(event): void => {
-										set_isOpen(true);
 										set_query(event.target.value);
 									}}
 								/>
@@ -309,7 +298,6 @@ function ComboboxAddressInput({
 					</ComboboxButton>
 					<Transition
 						as={Fragment}
-						show={isOpen}
 						enter={'transition duration-100 ease-out'}
 						enterFrom={'transform scale-95 opacity-0'}
 						enterTo={'transform scale-100 opacity-100'}

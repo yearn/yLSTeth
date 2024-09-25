@@ -6,7 +6,6 @@ import type {ReactElement} from 'react';
 import type {TIncentives} from '@yUSD/hooks/useBootstrapIncentives';
 
 export function SubIncentiveWrapper(props: {incentives: TIncentives[]}): ReactElement {
-	console.log('props.incentives', props.incentives);
 	return (
 		<div className={'border-t border-neutral-300 bg-neutral-200 px-4 pb-2 pt-4 md:px-72'}>
 			<div className={'mb-4'}>

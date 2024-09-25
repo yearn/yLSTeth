@@ -1,5 +1,5 @@
 import React from 'react';
-import Claim from '@yUSD/components/views/Claim';
+import Claim from '@yUSD/components/bootstrapViews/Claim';
 
 import type {ReactElement} from 'react';
 

@@ -6,6 +6,7 @@ import {toAddress, toBigInt, toNormalizedBN, zeroNormalizedBN} from '@builtbymom
 import BOOTSTRAP_ABI from '@libAbi/bootstrap.abi';
 import {useDeepCompareMemo} from '@react-hookz/web';
 import {getClient} from '@yearn-finance/web-lib/utils/wagmi/utils';
+import {BOOTSTRAP_INIT_BLOCK_NUMBER} from '@yUSD/utils/constants';
 
 import type {TAddress, TAddressWagmi, TDict, TNormalizedBN} from '@builtbymom/web3/types';
 

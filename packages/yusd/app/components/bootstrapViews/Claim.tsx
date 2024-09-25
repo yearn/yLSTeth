@@ -9,6 +9,7 @@ import {Button} from '@yearn-finance/web-lib/components/Button';
 import {Modal} from '@yearn-finance/web-lib/components/Modal';
 import {multicall} from '@yUSD/actions';
 import useBootstrap from '@yUSD/contexts/useBootstrap';
+import {whitelistedLST} from '@yUSD/utils/constants';
 
 import type {ReactElement} from 'react';
 import type {Hex} from 'viem';
@@ -172,27 +173,28 @@ function ClaimConfirmationModal({
 }
 
 function Timer(): ReactElement {
-	const {periods} = useBootstrap();
-	const {voteEnd} = periods || {};
-	const time = useTimer({endTime: Number(voteEnd)});
+	// const {periods} = useBootstrap();
+	// const {voteEnd} = periods || {};
+	// const time = useTimer({endTime: Number(voteEnd)});
+	const time = useTimer({endTime: Number(17454515)});
 	return <>{`in ${time}`}</>;
 }
 
 function ClaimHeading(): ReactElement {
-	const {
-		periods: {voteStatus}
-	} = useBootstrap();
-	if (voteStatus === 'ended') {
-		return (
-			<div className={'mb-10 flex w-[52%] flex-col justify-center'}>
-				<h1 className={'text-3xl font-black md:text-8xl'}>{'Claim'}</h1>
-				<p className={'pt-8 text-neutral-700'}>{'You did your democratic duty beautifully anon.'}</p>
-				<p className={'text-neutral-700'}>
-					{'And now it’s time to claim your ‘good on chain citizen’ rewards. Enjoy!'}
-				</p>
-			</div>
-		);
-	}
+	// const {
+	// 	periods: {voteStatus}
+	// } = useBootstrap();
+	// if (voteStatus === 'ended') {
+	// 	return (
+	// 		<div className={'mb-10 flex w-[52%] flex-col justify-center'}>
+	// 			<h1 className={'text-3xl font-black md:text-8xl'}>{'Claim'}</h1>
+	// 			<p className={'pt-8 text-neutral-700'}>{'You did your democratic duty beautifully anon.'}</p>
+	// 			<p className={'text-neutral-700'}>
+	// 				{'And now it’s time to claim your ‘good on chain citizen’ rewards. Enjoy!'}
+	// 			</p>
+	// 		</div>
+	// 	);
+	// }
 
 	return (
 		<div className={'mb-10 flex w-3/4 flex-col justify-center'}>
@@ -222,8 +224,7 @@ function ClaimHeading(): ReactElement {
 function Claim(): ReactElement {
 	const {address, provider} = useWeb3();
 	const {
-		periods: {voteStatus},
-		whitelistedLST: {whitelistedLST},
+		// whitelistedLST: {whitelistedLST},
 		voting: {voteData, onUpdate: refreshVoteData},
 		incentives: {groupIncentiveHistory, claimedIncentives, refreshClaimedIncentives}
 	} = useBootstrap();
@@ -231,16 +232,8 @@ function Claim(): ReactElement {
 	const [claimableRefund, set_claimableRefund] = useState<TClaimDetails[]>([]);
 	const [totalRefundValue, set_totalRefundValue] = useState<number>(0);
 	const [isModalOpen, set_isModalOpen] = useState<boolean>(false);
-	const [className, set_className] = useState('pointer-events-none opacity-40');
+	const [className] = useState('pointer-events-none opacity-40');
 	const [refundStatus, set_refundStatus] = useState<TTxStatus>(defaultTxStatus);
-
-	useEffect((): void => {
-		if (voteStatus !== 'ended') {
-			set_className('pointer-events-none opacity-40');
-		} else {
-			set_className('');
-		}
-	}, [voteStatus, className]);
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	 ** Compute the totalVotes you did for all the whitelistedLSTs you voted for.
@@ -255,7 +248,7 @@ function Claim(): ReactElement {
 			sum += item?.extra?.votes || 0n;
 		}
 		return toNormalizedBN(sum, 18);
-	}, [whitelistedLST]);
+	}, []);
 
 	/* 🔵 - Yearn Finance **************************************************************************
 	 ** Once the data are loaded, we need to compute the total incentives you can claim. The
@@ -477,10 +470,8 @@ function Claim(): ReactElement {
 		<section className={'grid w-full grid-cols-1 pt-10 md:mb-20 md:px-4 md:pt-12'}>
 			<div className={'mb-20 md:mb-0'}>
 				<ClaimHeading />
-				<div
-					key={voteStatus}
-					className={'flex flex-col gap-10 md:flex-row md:gap-6'}>
-					<div className={cl('flex flex-col md:w-1/2 lg:w-[352px]', className)}>
+				<div className={'flex flex-col gap-10 md:flex-row md:gap-6'}>
+					<div className={cl('flex flex-col md:w-1/2 lg:w-[352px]')}>
 						<div className={'mb-4 w-full bg-neutral-100 p-4'}>
 							<p className={'pb-2'}>{'Your claimable incentives, $'}</p>
 							<b

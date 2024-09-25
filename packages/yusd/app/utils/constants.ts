@@ -33,21 +33,6 @@ export const possibleTokenAddressesToUse = [
 ];
 
 export const possibleTokensToVoteFor: TDict<TIndexedTokenInfo> = {
-	'0x6B175474E89094C44Da98b954EedeAC495271d0F': {
-		address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
-		balance: {
-			raw: 0n,
-			normalized: 0,
-			display: '0'
-		},
-		chainID: 1,
-		decimals: 18,
-		logoURI: 'https://assets.smold.app/api/token/1/0x6B175474E89094C44Da98b954EedeAC495271d0F/logo-128.png',
-		name: 'Dai Stablecoin',
-		symbol: 'DAI',
-		index: 0,
-		value: 0
-	},
 	'0x83F20F44975D03b1b09e64809B757c47f942BEeA': {
 		address: '0x83F20F44975D03b1b09e64809B757c47f942BEeA',
 		balance: {
@@ -63,8 +48,8 @@ export const possibleTokensToVoteFor: TDict<TIndexedTokenInfo> = {
 		index: 1,
 		value: 0
 	},
-	'0xdAC17F958D2ee523a2206206994597C13D831ec7': {
-		address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+	'0x3d2FdAb1fA27ddDe9dcB77f151768beB839bC9ED': {
+		address: '0x3d2FdAb1fA27ddDe9dcB77f151768beB839bC9ED',
 		balance: {
 			raw: 0n,
 			normalized: 0,
@@ -73,8 +58,41 @@ export const possibleTokensToVoteFor: TDict<TIndexedTokenInfo> = {
 		chainID: 1,
 		decimals: 6,
 		logoURI: 'https://assets.smold.app/api/token/1/0xdAC17F958D2ee523a2206206994597C13D831ec7/logo-128.png',
-		name: 'Tether USD',
-		symbol: 'USDT',
+		name: 'Fake USD',
+		symbol: 'fUSDT',
+		index: 2,
+		value: 0
+	}
+};
+
+export const whitelistedLST: TDict<TIndexedTokenInfo> = {
+	'0x83F20F44975D03b1b09e64809B757c47f942BEeA': {
+		address: '0x83F20F44975D03b1b09e64809B757c47f942BEeA',
+		balance: {
+			raw: 0n,
+			normalized: 0,
+			display: '0'
+		},
+		chainID: 1,
+		decimals: 18,
+		logoURI: 'https://assets.smold.app/api/token/1/0x83F20F44975D03b1b09e64809B757c47f942BEeA/logo-128.png',
+		name: 'Savings Dai',
+		symbol: 'sDAI',
+		index: 1,
+		value: 0
+	},
+	'0x3d2FdAb1fA27ddDe9dcB77f151768beB839bC9ED': {
+		address: '0x3d2FdAb1fA27ddDe9dcB77f151768beB839bC9ED',
+		balance: {
+			raw: 0n,
+			normalized: 0,
+			display: '0'
+		},
+		chainID: 1,
+		decimals: 6,
+		logoURI: 'https://assets.smold.app/api/token/1/0xdAC17F958D2ee523a2206206994597C13D831ec7/logo-128.png',
+		name: 'Fake USD',
+		symbol: 'fUSDT',
 		index: 2,
 		value: 0
 	}

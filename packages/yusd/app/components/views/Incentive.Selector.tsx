@@ -237,7 +237,7 @@ function WeightIncentiveSelector(props: {isIncentivePeriodOpen: boolean}): React
 				functionName: 'incentivize',
 				abi: BOOTSTRAP_ABI_NEW,
 				confirmation: 1,
-				args: [toAddress(tokenToUse.address), toAddress(lstToIncentive?.address), toBigInt(amountToSend?.raw)]
+				args: [toAddress(lstToIncentive?.address), toAddress(tokenToUse.address), toBigInt(amountToSend?.raw)]
 			}
 		);
 		if (result.isSuccessful) {

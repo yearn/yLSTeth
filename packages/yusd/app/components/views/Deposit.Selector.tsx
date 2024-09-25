@@ -18,7 +18,7 @@ import {
 	toNormalizedBN,
 	zeroNormalizedBN
 } from '@builtbymom/web3/utils';
-import {defaultTxStatus, handleTx} from '@builtbymom/web3/utils/wagmi';
+import {approveERC20, defaultTxStatus, handleTx} from '@builtbymom/web3/utils/wagmi';
 import ComboboxAddressInput from '@libComponents/ComboboxAddressInput';
 import {ImageWithFallback} from '@libComponents/ImageWithFallback';
 import {useDeepCompareEffect} from '@react-hookz/web';
@@ -201,21 +201,14 @@ function DepositSelector({refetchLogs}: {refetchLogs: () => void}): ReactElement
 		assert(toBigInt(amountToSend?.raw) > 0n, 'Amount must be greater than 0');
 		assertAddress(tokenToUse?.address, 'Token to use not selected');
 
-		const result = await handleTx(
-			{
-				connector: provider,
-				chainID: 1,
-				contractAddress: tokenToUse.address,
-				statusHandler: set_approvalStatus
-			},
-			{
-				address: toAddress(tokenToUse.address),
-				functionName: 'approve',
-				abi: erc20Abi,
-				confirmation: 1,
-				args: [toAddress(process.env.DEPOSIT_ADDRESS), amountToSend.raw]
-			}
-		);
+		const result = await approveERC20({
+			connector: provider,
+			chainID: Number(process.env.DEFAULT_CHAIN_ID),
+			contractAddress: toAddress(tokenToUse.address),
+			spenderAddress: toAddress(process.env.DEPOSIT_ADDRESS),
+			amount: amountToSend.raw,
+			statusHandler: set_approvalStatus
+		});
 
 		if (result.isSuccessful) {
 			refetchAllowance();
@@ -280,6 +273,7 @@ function DepositSelector({refetchLogs}: {refetchLogs: () => void}): ReactElement
 				args: [toAddress(tokenToUse.address), toBigInt(amountToSend?.raw), toAddress(tokenToVoteFor?.address)]
 			}
 		);
+		// TODO: LIST IS NOT REFRESHED HERE AFTER DEPOSIT CC @w84april
 		if (result.isSuccessful) {
 			refetchAllowance();
 			refetchLogs();
