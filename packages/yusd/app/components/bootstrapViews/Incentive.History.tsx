@@ -6,7 +6,6 @@ import {ImageWithFallback} from '@libComponents/ImageWithFallback';
 import {IconChevronBottom} from '@yearn-finance/web-lib/icons/IconChevronBottom';
 import {SubIncentiveWrapper} from '@yUSD/components/bootstrapViews/SubIncentiveWrapper';
 import useBootstrap from '@yUSD/contexts/useBootstrap';
-import useBasket from '@yUSD/contexts/useBootstrapBasket';
 import {usePrices} from '@yUSD/contexts/usePrices';
 
 import type {ReactElement} from 'react';
@@ -206,7 +205,7 @@ function IncentiveRow(props: {item: TIndexedTokenInfo; incentives: TIncentives[]
 }
 
 function IncentiveHistory(props: {epochToDisplay: number; set_epochToDisplay: (epoch: number) => void}): ReactElement {
-	const {assets} = useBasket();
+	const {assets} = useBootstrap();
 	const {
 		incentives: {
 			groupIncentiveHistory: {user, protocols}

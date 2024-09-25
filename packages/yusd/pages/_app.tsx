@@ -10,7 +10,6 @@ import AppHeader from '@libComponents/Header';
 import {WithFonts} from '@libComponents/WithFonts';
 import {supportedNetworks} from '@libUtils/chains';
 import {BootstrapContextApp} from '@yUSD/contexts/useBootstrap';
-import {BootstrapBasketContextApp} from '@yUSD/contexts/useBootstrapBasket';
 import {LSTContextApp} from '@yUSD/contexts/useLST';
 import {PriceContextApp} from '@yUSD/contexts/usePrices';
 
@@ -86,16 +85,14 @@ function MyApp(props: AppProps): ReactElement {
 					<PriceContextApp>
 						<WalletContextApp>
 							<LSTContextApp>
-								<BootstrapBasketContextApp>
-									{/* <InclusionContextApp> */}
-									<main className={cl('flex flex-col mb-32', aeonik.className)}>
-										<AppWrapper
-											supportedNetworks={supportedNetworks}
-											{...props}
-										/>
-									</main>
-									{/* </InclusionContextApp> */}
-								</BootstrapBasketContextApp>
+								{/* <InclusionContextApp> */}
+								<main className={cl('flex flex-col mb-32', aeonik.className)}>
+									<AppWrapper
+										supportedNetworks={supportedNetworks}
+										{...props}
+									/>
+								</main>
+								{/* </InclusionContextApp> */}
 							</LSTContextApp>
 						</WalletContextApp>
 					</PriceContextApp>
