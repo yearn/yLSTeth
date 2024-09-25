@@ -58,8 +58,8 @@ export const possibleTokensToVoteFor: TDict<TIndexedTokenInfo> = {
 		chainID: 1,
 		decimals: 6,
 		logoURI: 'https://assets.smold.app/api/token/1/0xdAC17F958D2ee523a2206206994597C13D831ec7/logo-128.png',
-		name: 'Fake USD',
-		symbol: 'fUSDT',
+		name: 'Mock USD',
+		symbol: 'MOCK',
 		index: 2,
 		value: 0
 	}
@@ -91,8 +91,8 @@ export const whitelistedLST: TDict<TIndexedTokenInfo> = {
 		chainID: 1,
 		decimals: 6,
 		logoURI: 'https://assets.smold.app/api/token/1/0xdAC17F958D2ee523a2206206994597C13D831ec7/logo-128.png',
-		name: 'Fake USD',
-		symbol: 'fUSDT',
+		name: 'Mock USD',
+		symbol: 'MOCK',
 		index: 2,
 		value: 0
 	}
