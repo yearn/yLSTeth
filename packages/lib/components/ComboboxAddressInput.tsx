@@ -16,7 +16,14 @@ import {
 	zeroNormalizedBN
 } from '@builtbymom/web3/utils';
 import {retrieveConfig} from '@builtbymom/web3/utils/wagmi';
-import {Combobox, ComboboxButton, ComboboxInput, ComboboxOptions, Transition} from '@headlessui/react';
+import {
+	Combobox,
+	ComboboxButton,
+	ComboboxInput,
+	ComboboxOption as Option,
+	ComboboxOptions,
+	Transition
+} from '@headlessui/react';
 import IconCheck from '@libIcons/IconCheck';
 import IconChevronBoth from '@libIcons/IconChevronBoth';
 import IconSpinner from '@libIcons/IconSpinner';
@@ -48,11 +55,12 @@ function ComboboxOption({
 	const {getBalance} = useWallet();
 
 	return (
-		<Combobox.Option
-			className={({active: isActive}): string =>
-				`relative cursor-pointer select-none p-2 ${
+		<Option
+			className={({focus: isActive}): string =>
+				cl(
+					'relative cursor-pointer select-none p-2 hover:bg-neutral-100 transition-colors w-full',
 					isActive ? 'bg-purple-300/10 text-neutral-900' : 'text-neutral-900'
-				}`
+				)
 			}
 			value={toAddress(option?.address)}>
 			{({selected: isSelected}): ReactElement => (
@@ -98,7 +106,7 @@ function ComboboxOption({
 					) : null}
 				</div>
 			)}
-		</Combobox.Option>
+		</Option>
 	);
 }
 
@@ -307,7 +315,7 @@ function ComboboxAddressInput({
 						afterLeave={(): void => set_query('')}>
 						<ComboboxOptions
 							className={
-								'scrollbar-show bg-neutral-0 absolute left-0 z-50 mt-1 flex max-h-52 w-full min-w-fit flex-col overflow-y-scroll rounded-md shadow-lg md:min-w-[400px]'
+								'scrollbar-show bg-neutral-0 absolute left-0 z-50 mt-1 flex max-h-52 w-full min-w-fit flex-col overflow-y-auto rounded-md shadow-lg md:min-w-[400px]'
 							}>
 							{Object.values(possibleValues || []).length === 0 ? (
 								<div
