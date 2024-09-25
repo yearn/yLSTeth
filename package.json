@@ -12,7 +12,7 @@
     "@builtbymom/web3": "0.0.212",
     "@curvefi/api": "^2.58.3",
     "@headlessui/react": "2.1.8",
-    "@rainbow-me/rainbowkit": "^2.0.7",
+    "@rainbow-me/rainbowkit": "2.1.3",
     "@react-hookz/web": "^24.0.4",
     "@tanstack/react-query": "^5.35.1",
     "@wagmi/core": "^2.9.1",
@@ -33,8 +33,8 @@
     "sass": "^1.77.0",
     "sharp": "^0.33.3",
     "swr": "^2.2.5",
-    "viem": "^2.10.2",
-    "wagmi": "^2.8.1",
+    "viem": "2.18.8",
+    "wagmi": "2.12.2",
     "zod": "^3.23.7"
   },
   "devDependencies": {
