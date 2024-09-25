@@ -5,17 +5,25 @@ import HeroAsLottie from '@libComponents/HeroAsLottie';
 import {useTimer} from '@libHooks/useTimer';
 import {Button} from '@yearn-finance/web-lib/components/Button';
 import useBootstrap from '@yUSD/contexts/useBootstrap';
+import {useEpoch} from '@yUSD/hooks/useEpoch';
 import {customVariants} from '@yUSD/utils';
 
 import type {ReactElement} from 'react';
 
-function Timer(): ReactElement {
-	const {periods} = useBootstrap();
-	const {depositBegin, depositEnd, depositStatus} = periods || {};
-	const time = useTimer({endTime: depositStatus === 'started' ? Number(depositEnd) : Number(depositBegin)});
-	return <>{depositStatus === 'ended' ? 'ended' : depositStatus === 'started' ? time : `in ${time}`}</>;
-}
+function Timer({isIncentivePeriodClosed}: {isIncentivePeriodClosed: boolean}): ReactElement {
+	const {endPeriod} = useEpoch();
+	const time = useTimer({endTime: Number(endPeriod - 3 * 24 * 3600)});
 
+	return (
+		<>
+			<b
+				suppressHydrationWarning
+				className={'font-number text-accent mt-2 text-3xl leading-10'}>
+				{isIncentivePeriodClosed ? 'closed' : `Ends in ${time}`}
+			</b>
+		</>
+	);
+}
 function Phase2Started(): ReactElement {
 	return (
 		<section className={'absolute inset-x-0 grid grid-cols-12 gap-0 px-4 pt-10 md:gap-20 md:pt-12'}>
@@ -32,13 +40,13 @@ function Phase2Started(): ReactElement {
 					</motion.h1>
 					<motion.b
 						suppressHydrationWarning
-						className={'font-number mt-4 text-3xl text-purple-300 md:text-4xl'}
+						className={'font-number text-3xl md:text-4xl'}
 						variants={customVariants(0.04)}
 						custom={'0vw'}
 						initial={'initial'}
 						animate={'move'}
 						exit={'exit'}>
-						<Timer />
+						<Timer isIncentivePeriodClosed={false} />
 					</motion.b>
 				</div>
 				<div>
