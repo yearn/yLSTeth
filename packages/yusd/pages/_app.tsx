@@ -1,14 +1,14 @@
 import React from 'react';
 import localFont from 'next/font/local';
-import Head from 'next/head';
 import {useRouter} from 'next/router';
-import {mainnet} from 'viem/chains';
 import {AnimatePresence, motion} from 'framer-motion';
 import {WalletContextApp} from '@builtbymom/web3/contexts/useWallet';
 import {WithMom} from '@builtbymom/web3/contexts/WithMom';
 import {cl} from '@builtbymom/web3/utils/cl';
 import {motionVariants} from '@builtbymom/web3/utils/helpers';
 import AppHeader from '@libComponents/Header';
+import {WithFonts} from '@libComponents/WithFonts';
+import {supportedNetworks} from '@libUtils/chains';
 import {BasketContextApp} from '@yUSD/contexts/useBasket';
 import {BootstrapContextApp} from '@yUSD/contexts/useBootstrap';
 import {LSTContextApp} from '@yUSD/contexts/useLST';
@@ -75,20 +75,9 @@ function AppWrapper(props: AppProps & {supportedNetworks: Chain[]}): ReactElemen
 
 function MyApp(props: AppProps): ReactElement {
 	return (
-		<>
-			<Head>
-				<style
-					jsx
-					global>
-					{`
-						html {
-							font-family: ${aeonik.style.fontFamily};
-						}
-					`}
-				</style>
-			</Head>
+		<WithFonts>
 			<WithMom
-				supportedChains={[mainnet]}
+				supportedChains={supportedNetworks}
 				tokenLists={[
 					'https://raw.githubusercontent.com/SmolDapp/tokenLists/main/lists/yearn.json',
 					'https://raw.githubusercontent.com/SmolDapp/tokenLists/main/lists/smolAssets.json'
@@ -101,7 +90,7 @@ function MyApp(props: AppProps): ReactElement {
 									{/* <InclusionContextApp> */}
 									<main className={cl('flex flex-col mb-32', aeonik.className)}>
 										<AppWrapper
-											supportedNetworks={[mainnet]}
+											supportedNetworks={supportedNetworks}
 											{...props}
 										/>
 									</main>
@@ -112,7 +101,7 @@ function MyApp(props: AppProps): ReactElement {
 					</PriceContextApp>
 				</BootstrapContextApp>
 			</WithMom>
-		</>
+		</WithFonts>
 	);
 }
 
