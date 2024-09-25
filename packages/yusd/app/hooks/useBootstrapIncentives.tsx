@@ -74,7 +74,7 @@ export type TUseBootstrapIncentivesResp = {
 };
 function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 	const {address} = useWeb3();
-	const {voteStatus} = useBootstrapPeriods();
+	const {depositStatus} = useBootstrapPeriods();
 	const [incentives, set_incentives] = useState<TIncentives[]>([]);
 	const [claimedIncentives, set_claimedIncentives] = useState<TIncentivesClaimed[] | undefined>(undefined);
 	const [isFetchingHistory, set_isFetchingHistory] = useState(false);
@@ -154,10 +154,10 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 	 ** From that we will be able to create our mappings
 	 **
 	 ** @deps address - The address of the user
-	 ** @deps voteStatus - The status of the vote
+	 ** @deps depositStatus - The status of the vote
 	 ************************************************************************************************/
 	const filterClaimIncentiveEvents = useCallback(async (): Promise<void> => {
-		if (!address || voteStatus !== 'ended') {
+		if (!address || depositStatus !== 'ended') {
 			return;
 		}
 		const publicClient = getClient(Number(process.env.DEFAULT_CHAIN_ID));
@@ -186,7 +186,7 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 			}
 		}
 		set_claimedIncentives(incentivesClaimed);
-	}, [address, voteStatus]);
+	}, [address, depositStatus]);
 	useEffect((): void => {
 		filterClaimIncentiveEvents();
 	}, [filterClaimIncentiveEvents]);
