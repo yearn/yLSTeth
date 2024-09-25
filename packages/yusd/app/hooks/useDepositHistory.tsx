@@ -60,6 +60,7 @@ function useDepositHistory(): TUseDepositHistoryResp {
 				});
 				const processedLogs = depositLogs.map(log => ({
 					block: log.blockNumber,
+					txHash: log.transactionHash,
 					decodedEvent: decodeEventLog({
 						abi: BOOTSTRAP_ABI_NEW,
 						data: log.data,
@@ -107,6 +108,7 @@ function useDepositHistory(): TUseDepositHistoryResp {
 
 				const processedLogs = voteLogs.map(log => ({
 					block: log.blockNumber,
+					txHash: log.transactionHash,
 					decodedEvent: decodeEventLog({
 						abi: BOOTSTRAP_ABI_NEW,
 						data: log.data,
@@ -192,6 +194,7 @@ function useDepositHistory(): TUseDepositHistoryResp {
 				const votedAssetDetails = tokenDetails[votedAssetAddress] || {symbol: 'N/A', decimals: 18};
 				return {
 					block: depositTopic.block,
+					txHash: depositTopic.txHash,
 					asset: {
 						address: assetAddress,
 						chainID: Number(process.env.DEFAULT_CHAIN_ID),

@@ -1,7 +1,9 @@
+import type {Hex} from 'viem';
 import type {TAddress, TToken} from '@builtbymom/web3/types';
 
 export type TDepositHistory = {
 	block: bigint;
+	txHash: Hex;
 	asset: TToken;
 	amount: bigint;
 	stTokenAmount: bigint;
@@ -10,6 +12,7 @@ export type TDepositHistory = {
 
 export type TLogTopic = {
 	block: bigint;
+	txHash: Hex;
 	decodedEvent: {
 		args: {
 			asset: TAddress;
