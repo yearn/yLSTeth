@@ -1,5 +1,4 @@
 import React, {useCallback, useMemo, useState} from 'react';
-import {useRouter} from 'next/router';
 import assert from 'assert';
 import {erc20Abi} from 'viem';
 import {useReadContract} from 'wagmi';
@@ -35,19 +34,9 @@ import type {TDict, TNormalizedBN, TToken} from '@builtbymom/web3/types';
 import type {TTxStatus} from '@builtbymom/web3/utils/wagmi';
 
 function IncentiveMenuTabs(): ReactElement {
-	const router = useRouter();
-
 	return (
 		<div className={'overflow-hidden'}>
 			<div className={'relative'}>
-				<button
-					onClick={(): void => {
-						router.push({pathname: router.pathname, query: {action: 'current'}});
-					}}
-					className={cl('mx-4 mb-2 text-lg transition-colors font-bold')}>
-					{'Current participants '}
-				</button>
-
 				<div className={'absolute bottom-0 left-0 flex h-0.5 w-full flex-row bg-neutral-300'}>
 					<div className={cl('w-[223px] transition-colors bg-black h-px')} />
 				</div>
@@ -269,7 +258,7 @@ function WeightIncentiveSelector(props: {isIncentivePeriodOpen: boolean}): React
 	]);
 
 	return (
-		<div className={'p-4 md:py-10'}>
+		<div className={'md:py-10'}>
 			<b className={'text-xl font-black'}>{'Select LST to incentivize '}</b>
 
 			<div className={'mt-4 grid w-full grid-cols-1 gap-2 md:grid-cols-2 md:gap-2 lg:grid-cols-4 lg:gap-4'}>
@@ -376,7 +365,7 @@ function WeightIncentiveSelector(props: {isIncentivePeriodOpen: boolean}): React
 
 function IncentiveSelector(props: {incentivePeriodOpen: boolean}): ReactElement {
 	return (
-		<div className={'pt-4'}>
+		<div>
 			<IncentiveMenuTabs />
 			<WeightIncentiveSelector isIncentivePeriodOpen={props.incentivePeriodOpen} />
 		</div>
