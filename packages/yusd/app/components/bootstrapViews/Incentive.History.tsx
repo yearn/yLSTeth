@@ -64,7 +64,7 @@ function IncentiveHistoryTabs(props: {
 					</div>
 					<div
 						className={cl(
-							'h-full w-fit transition-colors pl-2',
+							'h-full w-fit transition-colors pl-4',
 							props.currentTab === 'your' ? 'bg-black' : 'bg-transparent'
 						)}>
 						<button className={'pointer-events-none invisible h-0 p-0 text-lg font-bold opacity-0'}>
