@@ -383,7 +383,7 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 		isFetchingHistory,
 		refreshIncentives: filterIncentivizeEvents,
 		totalDepositedUSD: toNormalizedBN(totalDepositedUSD || 0n, 18),
-		totalSupply,
+		totalSupply: totalSupply || zeroNormalizedBN,
 		claimedIncentives: claimedIncentives,
 		refreshClaimedIncentives: filterClaimIncentiveEvents
 	};
