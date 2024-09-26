@@ -334,7 +334,7 @@ function Claim(): ReactElement {
 		 ** with accurate value calculations and transaction data prepared for execution.
 		 ************************************************************************************************/
 		for (const protocol of voteData.winners) {
-			const incentivesForThisProtocol = groupIncentiveHistory.protocols[protocol];
+			const incentivesForThisProtocol = groupIncentiveHistory.user[protocol];
 			if (!incentivesForThisProtocol) {
 				continue;
 			}
@@ -388,7 +388,7 @@ function Claim(): ReactElement {
 		 **    with all necessary data prepared for execution in a batch transaction.
 		 ************************************************************************************************/
 		for (const protocol of nonWinnerProtocols) {
-			const incentivesForThisProtocol = groupIncentiveHistory.protocols[protocol];
+			const incentivesForThisProtocol = groupIncentiveHistory.user[protocol];
 			if (!incentivesForThisProtocol) {
 				continue;
 			}
@@ -441,9 +441,9 @@ function Claim(): ReactElement {
 	]);
 
 	/************************************************************************************************
-	 ** Compute the total amount of incentives you already claimed.
+	 ** Compute the total amount of incentives you can claim.
 	 **
-	 ** @deps: claimableIncentive - The list of all the incentives you can claim.
+	 ** @deps: claimableIncentive - The list of all the incentives you .
 	 ** @returns: number - The total amount of incentives you can claim.
 	 **********************************************************************************************/
 	const totalToClaim = useMemo(
