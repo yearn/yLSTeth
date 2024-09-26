@@ -1,15 +1,13 @@
 import React, {Fragment, useEffect, useMemo, useState} from 'react';
 import {useRouter} from 'next/router';
 import {useChainID} from '@builtbymom/web3/hooks/useChainID';
-import {cl, formatAmount, formatPercent, toAddress, toNormalizedBN, truncateHex} from '@builtbymom/web3/utils';
+import {cl, formatAmount, formatPercent, toAddress, truncateHex} from '@builtbymom/web3/utils';
 import {ImageWithFallback} from '@libComponents/ImageWithFallback';
 import {IconChevronBottom} from '@yearn-finance/web-lib/icons/IconChevronBottom';
 import {SubIncentiveWrapper} from '@yUSD/components/bootstrapViews/SubIncentiveWrapper';
 import useBootstrap from '@yUSD/contexts/useBootstrap';
-import {usePrices} from '@yUSD/contexts/usePrices';
 
 import type {ReactElement} from 'react';
-import type {TIncentives} from '@yUSD/hooks/useBootstrapIncentives';
 import type {TIndexedTokenInfo} from '@libUtils/types';
 
 function IncentiveHistoryTabs(props: {
@@ -77,36 +75,69 @@ function IncentiveHistoryTabs(props: {
 	);
 }
 
-function IncentiveRow(props: {item: TIndexedTokenInfo; incentives: TIncentives[]}): ReactElement {
-	const {getPrice} = usePrices();
+function IncentiveRow(props: {item: TIndexedTokenInfo; currentTab: 'all' | 'your'}): ReactElement {
 	const {
-		incentives: {totalDepositedUSD, totalSupply}
+		incentives: {
+			totalDepositedUSD,
+			totalSupply,
+			groupIncentiveHistory: {protocols, user}
+		}
 	} = useBootstrap();
 	const {safeChainID} = useChainID(Number(process.env.DEFAULT_CHAIN_ID));
+
+	const protocolIncentives = useMemo(
+		() => protocols?.[props.item.address]?.incentives || [],
+		[props.item.address, protocols]
+	);
+	const userIncentives = useMemo(() => user?.[props.item.address]?.incentives || [], [props.item.address, user]);
+
+	/**********************************************************************************************
+	 * Group to display, which is either the current assets or the potential candidates.
+	 * The user can toggle between the two using the currentTab prop.
+	 **********************************************************************************************/
+	const incentivesToDisplay = useMemo(() => {
+		if (props.currentTab === 'all') {
+			return protocolIncentives;
+		}
+		return userIncentives;
+	}, [props.currentTab, protocolIncentives, userIncentives]);
 
 	/**************************************************************************
 	 ** This method calculates the total incentive value for the candidate.
 	 ** It does so by iterating over the incentives and summing the value of
 	 ** each.
 	 **************************************************************************/
-	const candidateIncentiveValue = props.incentives.reduce((acc, current) => acc + current.value, 0);
+	const candidateIncentiveValue = protocolIncentives.reduce((acc, current) => acc + current.value, 0);
+
+	/**************************************************************************
+	 ** This method calculates the total incentive value for the candidate.
+	 ** It does so by iterating over the user's incentives and summing the value of
+	 ** each.
+	 **************************************************************************/
+	const candidateIncentiveValueForUser = userIncentives.reduce((acc, current) => acc + current.value, 0);
+
+	/**********************************************************************************************
+	 * Group to display, which is either the current assets or the potential candidates.
+	 * The user can toggle between the two using the currentTab prop.
+	 **********************************************************************************************/
+	const valueToDisplay = useMemo(() => {
+		if (props.currentTab === 'all') {
+			return candidateIncentiveValue;
+		}
+		return candidateIncentiveValueForUser;
+	}, [candidateIncentiveValue, candidateIncentiveValueForUser, props.currentTab]);
 
 	/**************************************************************************
 	 ** This method calculates the value of incentives per staked basket token.
 	 **************************************************************************/
 	const candidateIncentivesPerStakedBasketToken = useMemo((): number => {
 		let sum = 0;
-		for (const incentive of props.incentives || []) {
-			// We don't care about this level for candidates incentives
-			const price = getPrice({address: toAddress(incentive.incentiveToken?.address)});
-			const value =
-				toNormalizedBN(incentive.amount, incentive.incentiveToken?.decimals || 18).normalized *
-				price.normalized;
-			const usdPerStakedBasketToken = value / totalSupply.normalized;
+		for (const incentive of protocolIncentives) {
+			const usdPerStakedBasketToken = incentive.value / totalSupply.normalized;
 			sum += usdPerStakedBasketToken;
 		}
 		return sum;
-	}, [getPrice, props.incentives, totalSupply.normalized]);
+	}, [protocolIncentives, totalSupply.normalized]);
 
 	/**************************************************************************
 	 ** This method calculates the estimated APR for the candidate.
@@ -116,7 +147,7 @@ function IncentiveRow(props: {item: TIndexedTokenInfo; incentives: TIncentives[]
 		return totalAPR;
 	}, [candidateIncentiveValue, totalDepositedUSD.normalized]);
 
-	const hasIncentives = props.incentives.length > 0;
+	const hasIncentives = incentivesToDisplay.length > 0;
 
 	if (!props.item) {
 		return <Fragment />;
@@ -159,7 +190,7 @@ function IncentiveRow(props: {item: TIndexedTokenInfo; incentives: TIncentives[]
 					<p
 						suppressHydrationWarning
 						className={'font-number'}>
-						{`$${formatAmount(candidateIncentiveValue, 2, 2)}`}
+						{`$${formatAmount(valueToDisplay, 2, 2)}`}
 					</p>
 				</div>
 				<div className={'col-span-12 mt-2 flex justify-between md:col-span-2 md:mt-0 md:justify-end'}>
@@ -186,7 +217,7 @@ function IncentiveRow(props: {item: TIndexedTokenInfo; incentives: TIncentives[]
 			</summary>
 
 			<div className={hasIncentives ? 'block' : 'hidden'}>
-				<SubIncentiveWrapper incentives={props.incentives || []} />
+				<SubIncentiveWrapper incentives={incentivesToDisplay || []} />
 			</div>
 		</details>
 	);
@@ -194,23 +225,8 @@ function IncentiveRow(props: {item: TIndexedTokenInfo; incentives: TIncentives[]
 
 function IncentiveHistory(props: {epochToDisplay: number; set_epochToDisplay: (epoch: number) => void}): ReactElement {
 	const {assets} = useBootstrap();
-	const {
-		incentives: {
-			groupIncentiveHistory: {user, protocols}
-		}
-	} = useBootstrap();
-	const [currentTab, set_currentTab] = useState<'all' | 'your'>('all');
 
-	/**********************************************************************************************
-	 * Group to display, which is either the current assets or the potential candidates.
-	 * The user can toggle between the two using the currentTab prop.
-	 **********************************************************************************************/
-	const incentivesToDisplay = useMemo(() => {
-		if (currentTab === 'all') {
-			return protocols;
-		}
-		return user;
-	}, [currentTab, protocols, user]);
+	const [currentTab, set_currentTab] = useState<'all' | 'your'>('all');
 
 	return (
 		<div className={'mt-2 pt-8'}>
@@ -245,7 +261,7 @@ function IncentiveHistory(props: {epochToDisplay: number; set_epochToDisplay: (e
 					return (
 						<IncentiveRow
 							key={`${item.address}_${props.epochToDisplay}`}
-							incentives={incentivesToDisplay?.[item.address]?.incentives || []}
+							currentTab={currentTab}
 							item={item}
 						/>
 					);

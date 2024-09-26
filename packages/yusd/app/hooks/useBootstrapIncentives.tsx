@@ -301,7 +301,6 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 			const key = cur.protocol;
 			const amount = toNormalizedBN(cur.amount, cur.incentiveToken?.decimals || 18).normalized;
 			const price = toNormalizedBN(prices?.[toAddress(cur.incentive)] || 0, 6).normalized;
-			console.log(cur);
 			const value = Number(amount) * Number(price);
 			const estimatedAPR = getAPR(value);
 			if (!acc[key]) {
@@ -311,7 +310,7 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 					protocolName: cur.protocolName || truncateHex(cur.protocol, 6),
 					protocolSymbol: cur.protocolSymbol || truncateHex(cur.protocol, 6),
 					normalizedSum: value,
-					usdPerStETH: value / Number(toNormalizedBN(toBigInt(totalDepositedUSD), 18).normalized),
+					usdPerStETH: value / Number(totalSupply?.normalized),
 					incentives: [{...cur, value, estimatedAPR}]
 				};
 				return acc;
@@ -330,8 +329,7 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 				acc[key].incentives[incentiveIndex].value += value;
 				acc[key].incentives[incentiveIndex].estimatedAPR = getAPR(acc[key].incentives[incentiveIndex].value);
 			}
-			acc[key].usdPerStETH =
-				acc[key].normalizedSum / Number(toNormalizedBN(toBigInt(totalDepositedUSD), 18).normalized);
+			acc[key].usdPerStETH = acc[key].normalizedSum / Number(totalSupply?.normalized);
 			return acc;
 		}, {} as TDict<TGroupedIncentives>);
 
@@ -343,7 +341,11 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 			const amount = toNormalizedBN(cur.amount, cur.incentiveToken?.decimals ?? 18).normalized;
 			const price = toNormalizedBN(prices?.[toAddress(cur.incentive)] || 0, 6).normalized;
 			const value = Number(amount) * Number(price);
-			const estimatedAPR = getAPR(value);
+			const estimatedAPR =
+				groupByProtocol[key].incentives.find(item => item.incentive === cur.incentive)?.estimatedAPR || 0;
+			const usdPerStETH =
+				groupByProtocol[key].incentives.find(item => item.incentive === cur.incentive)?.estimatedAPR || 0;
+
 			if (!acc[key]) {
 				acc[key] = {
 					protocol: cur.protocol,
@@ -351,7 +353,7 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 					protocolSymbol: cur.protocolSymbol || truncateHex(cur.protocol, 6),
 					normalizedSum: value,
 					estimatedAPR: estimatedAPR,
-					usdPerStETH: value / Number(toNormalizedBN(toBigInt(totalDepositedUSD), 18).normalized),
+					usdPerStETH: usdPerStETH,
 					incentives: [{...cur, value, estimatedAPR}]
 				};
 				return acc;
@@ -362,21 +364,20 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 			);
 			if (incentiveIndex === -1) {
 				acc[key].normalizedSum += value;
-				acc[key].estimatedAPR = getAPR(acc[key].normalizedSum);
+				acc[key].estimatedAPR = estimatedAPR;
 				acc[key].incentives.push({...cur, value, estimatedAPR});
 			} else {
 				acc[key].normalizedSum += value;
 				acc[key].incentives[incentiveIndex].amount += cur.amount;
 				acc[key].incentives[incentiveIndex].value += value;
-				acc[key].incentives[incentiveIndex].estimatedAPR = getAPR(acc[key].incentives[incentiveIndex].value);
+				acc[key].incentives[incentiveIndex].estimatedAPR = estimatedAPR;
 			}
-			acc[key].usdPerStETH =
-				acc[key].normalizedSum / Number(toNormalizedBN(toBigInt(totalDepositedUSD), 18).normalized);
+			acc[key].usdPerStETH = usdPerStETH;
 			return acc;
 		}, {} as TDict<TGroupedIncentives>);
 
 		return {protocols: groupByProtocol, user: groupForUser};
-	}, [address, incentiveHistory, prices, totalDepositedUSD]);
+	}, [address, incentiveHistory, prices, totalDepositedUSD, totalSupply?.normalized]);
 
 	return {
 		groupIncentiveHistory,
