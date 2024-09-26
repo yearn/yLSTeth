@@ -86,8 +86,8 @@ function AppWrapper(props: AppProps & {supportedNetworks: Chain[]}): ReactElemen
  ** @param props - The properties passed to MyApp, including AppProps
  ** @return ReactElement - The main application component wrapped with context providers
  ****************************************************************************************************/
+const supportedNetworks = [mainnet, optimism, polygon, fantom, base, arbitrum, localhost];
 function MyApp(props: AppProps): ReactElement {
-	const supportedNetworks = [mainnet, optimism, polygon, fantom, base, arbitrum, localhost];
 	return (
 		<Fragment>
 			<Meta
