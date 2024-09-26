@@ -153,7 +153,7 @@ function Phase2Ended(): ReactElement {
 						initial={'initial'}
 						animate={'move'}
 						exit={'exit'}>
-						<Timer />
+						<Timer isIncentivePeriodClosed={true} />
 					</motion.b>
 				</div>
 				<motion.div

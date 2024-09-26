@@ -1,6 +1,5 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {formatAmount, formatPercent, formatTAmount, toNormalizedBN} from '@builtbymom/web3/utils';
-import {usePrices} from '@yUSD/contexts/usePrices';
 
 import {ImageWithFallback} from '../../../../lib/components/ImageWithFallback';
 
@@ -8,19 +7,6 @@ import type {ReactElement} from 'react';
 import type {TIncentives} from '@yUSD/hooks/useBootstrapIncentives';
 
 export function SubIncentiveRow(props: {item: TIncentives}): ReactElement {
-	const {getPrice} = usePrices();
-
-	/**************************************************************************
-	 ** This method calculates the incentive value
-	 **************************************************************************/
-	const incentiveValue = useMemo((): number => {
-		const price = getPrice({address: props.item.protocol});
-		return (
-			Number(toNormalizedBN(props.item.amount, props.item.incentiveToken?.decimals || 18).normalized) *
-			price.normalized
-		);
-	}, [getPrice, props.item]);
-
 	return (
 		<div
 			aria-label={'content'}
@@ -54,7 +40,7 @@ export function SubIncentiveRow(props: {item: TIncentives}): ReactElement {
 				<p
 					suppressHydrationWarning
 					className={'font-number text-xxs pr-1 md:text-xs'}>
-					{`$${formatAmount(incentiveValue, 2, 2)}`}
+					{`$${formatAmount(props.item.value, 2, 2)}`}
 				</p>
 			</div>
 			<div className={'col-span-2 flex items-center justify-end'}>

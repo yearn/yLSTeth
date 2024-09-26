@@ -71,6 +71,7 @@ export type TUseBootstrapIncentivesResp = {
 	refreshIncentives: VoidFunction;
 	refreshClaimedIncentives: VoidFunction;
 	totalDepositedUSD: TNormalizedBN;
+	totalSupply: TNormalizedBN;
 };
 function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 	const {address} = useWeb3();
@@ -94,6 +95,24 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 		address: toAddress(process.env.DEPOSIT_ADDRESS),
 		abi: BOOTSTRAP_ABI_NEW,
 		functionName: 'deposited'
+	});
+
+	/************************************************************************************************
+	 ** useContractRead calling the `totalSupply` method from the stYUSD contract to get the total
+	 ** supply of stYUSD tokens.
+	 **
+	 ** @returns TNormalizedBN - total supply of stYUSD tokens
+	 ************************************************************************************************/
+	const {data: totalSupply} = useReadContract({
+		address: toAddress(process.env.STYUSD_ADDRESS),
+		abi: erc20Abi,
+		chainId: Number(process.env.DEFAULT_CHAIN_ID),
+		functionName: 'totalSupply',
+		query: {
+			select(data) {
+				return toNormalizedBN(data, 18);
+			}
+		}
 	});
 
 	/************************************************************************************************
@@ -282,6 +301,7 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 			const key = cur.protocol;
 			const amount = toNormalizedBN(cur.amount, cur.incentiveToken?.decimals || 18).normalized;
 			const price = toNormalizedBN(prices?.[toAddress(cur.incentive)] || 0, 6).normalized;
+			console.log(cur);
 			const value = Number(amount) * Number(price);
 			const estimatedAPR = getAPR(value);
 			if (!acc[key]) {
@@ -363,6 +383,7 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 		isFetchingHistory,
 		refreshIncentives: filterIncentivizeEvents,
 		totalDepositedUSD: toNormalizedBN(totalDepositedUSD || 0n, 18),
+		totalSupply,
 		claimedIncentives: claimedIncentives,
 		refreshClaimedIncentives: filterClaimIncentiveEvents
 	};

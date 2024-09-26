@@ -80,7 +80,7 @@ function IncentiveHistoryTabs(props: {
 function IncentiveRow(props: {item: TIndexedTokenInfo; incentives: TIncentives[]}): ReactElement {
 	const {getPrice} = usePrices();
 	const {
-		incentives: {totalDepositedUSD}
+		incentives: {totalDepositedUSD, totalSupply}
 	} = useBootstrap();
 	const {safeChainID} = useChainID(Number(process.env.DEFAULT_CHAIN_ID));
 
@@ -89,13 +89,7 @@ function IncentiveRow(props: {item: TIndexedTokenInfo; incentives: TIncentives[]
 	 ** It does so by iterating over the incentives and summing the value of
 	 ** each.
 	 **************************************************************************/
-	const candidateIncentiveValue = useMemo((): number => {
-		let sum = 0;
-		for (const incentive of props.incentives || []) {
-			sum += toNormalizedBN(incentive.amount, incentive.incentiveToken?.decimals || 18).normalized;
-		}
-		return sum;
-	}, [props.incentives]);
+	const candidateIncentiveValue = props.incentives.reduce((acc, current) => acc + current.value, 0);
 
 	/**************************************************************************
 	 ** This method calculates the value of incentives per staked basket token.
@@ -104,25 +98,23 @@ function IncentiveRow(props: {item: TIndexedTokenInfo; incentives: TIncentives[]
 		let sum = 0;
 		for (const incentive of props.incentives || []) {
 			// We don't care about this level for candidates incentives
-			const price = getPrice({address: incentive.protocol});
+			const price = getPrice({address: toAddress(incentive.incentiveToken?.address)});
 			const value =
 				toNormalizedBN(incentive.amount, incentive.incentiveToken?.decimals || 18).normalized *
 				price.normalized;
-			const usdPerStakedBasketToken = value / totalDepositedUSD.normalized;
+			const usdPerStakedBasketToken = value / totalSupply.normalized;
 			sum += usdPerStakedBasketToken;
 		}
 		return sum;
-	}, [getPrice, props.incentives, totalDepositedUSD]);
+	}, [getPrice, props.incentives, totalSupply.normalized]);
 
 	/**************************************************************************
 	 ** This method calculates the estimated APR for the candidate.
 	 **************************************************************************/
 	const candidateIncentivesEstimatedAPR = useMemo((): number => {
-		const totalIncentives = props.incentives.reduce((acc, current) => acc + current.value, 0);
-
-		const totalAPR = (totalIncentives / totalDepositedUSD.normalized) * 100;
+		const totalAPR = (candidateIncentiveValue / totalDepositedUSD.normalized) * 100;
 		return totalAPR;
-	}, [props.incentives, totalDepositedUSD.normalized]);
+	}, [candidateIncentiveValue, totalDepositedUSD.normalized]);
 
 	const hasIncentives = props.incentives.length > 0;
 
