@@ -18,12 +18,17 @@ export type TUseDepositHistoryResp = {
 		isLoading: boolean;
 		lastBlock: bigint;
 	};
-	refetchLogs: () => Promise<void>;
+	refetchLogs: (forceRefetch: boolean) => Promise<void>;
 };
 
 function useDepositHistory(): TUseDepositHistoryResp {
 	const {address} = useWeb3();
 	const {data: block} = useBlock({chainId: Number(process.env.DEFAULT_CHAIN_ID)});
+
+	const [depositTopics, set_depositTopics] = useState<TLogTopic[]>([]);
+	const [voteTopics, set_voteTopics] = useState<TLogTopic[]>([]);
+	const [tokenDetails, set_tokenDetails] = useState<{[key: TAddress]: {symbol: string; decimals: number}}>({});
+
 	const [history, set_history] = useState<TDepositHistory[] | undefined>(undefined);
 	const [loading, set_loading] = useState({isLoading: true, lastBlock: 0n});
 	const publicClient = useMemo(() => getClient(Number(process.env.DEFAULT_CHAIN_ID)), []);
@@ -232,54 +237,46 @@ function useDepositHistory(): TUseDepositHistoryResp {
 	 ** - Updates the history state with processed log data
 	 ** - Implements a locking mechanism to prevent concurrent executions
 	 ************************************************************************************************/
-	const refetchLogs = useCallback(async (): Promise<void> => {
-		if (!block?.number) {
-			return;
-		}
+	const refetchLogs = useCallback(
+		async (forceRefetch: boolean): Promise<void> => {
+			if (!block?.number) {
+				return;
+			}
 
-		if (!address) {
-			set_loading(prevLoading => ({...prevLoading, isLoading: false}));
-			return;
-		}
+			if (!forceRefetch) {
+				if ((loading.lastBlock === block.number || loading.isLoading) && loading.lastBlock !== 0n) {
+					return;
+				}
+			}
 
-		if ((loading.lastBlock === block.number || loading.isLoading) && loading.lastBlock !== 0n) {
-			return;
-		}
+			set_loading(prevLoading => ({...prevLoading, isLoading: true}));
 
-		set_loading(prevLoading => ({...prevLoading, isLoading: true}));
+			const fromBlock = INITIAL_PERIOD_BLOCK;
+			const toBlock = block.number;
+			const [depositTopics, voteTopics] = await Promise.all([
+				fetchDepositLogs(fromBlock, toBlock),
+				fetchVoteLogs(fromBlock, toBlock)
+			]);
+			/************************************************************************************************
+			 ** As we might not have the token details in the cache, we need to fetch them
+			 ***********************************************************************************************/
+			const tokenDetails = await fetchTokenDetails(
+				Array.from(
+					new Set([
+						...depositTopics.map(topic => toAddress(topic.decodedEvent.args.asset)),
+						...voteTopics.map(topic => toAddress(topic.decodedEvent.args.asset))
+					])
+				)
+			);
 
-		const fromBlock = INITIAL_PERIOD_BLOCK;
-		const toBlock = block.number;
-		const [depositTopics, voteTopics] = await Promise.all([
-			fetchDepositLogs(fromBlock, toBlock),
-			fetchVoteLogs(fromBlock, toBlock)
-		]);
+			set_depositTopics(depositTopics);
+			set_voteTopics(voteTopics);
+			set_tokenDetails(tokenDetails);
 
-		/************************************************************************************************
-		 ** As we might not have the token details in the cache, we need to fetch them
-		 ***********************************************************************************************/
-		const tokenDetails = await fetchTokenDetails(
-			Array.from(
-				new Set([
-					...depositTopics.map(topic => toAddress(topic.decodedEvent.args.asset)),
-					...voteTopics.map(topic => toAddress(topic.decodedEvent.args.asset))
-				])
-			)
-		);
-
-		const history = mapDepositAndVoteTopicsToHistory(depositTopics, voteTopics, tokenDetails, address);
-		set_history(history.filter((each): boolean => each.asset !== undefined));
-		set_loading({isLoading: false, lastBlock: block.number});
-	}, [
-		address,
-		block?.number,
-		fetchDepositLogs,
-		fetchTokenDetails,
-		fetchVoteLogs,
-		loading.isLoading,
-		loading.lastBlock,
-		mapDepositAndVoteTopicsToHistory
-	]);
+			set_loading({isLoading: false, lastBlock: block.number});
+		},
+		[block?.number, fetchDepositLogs, fetchTokenDetails, fetchVoteLogs, loading.isLoading, loading.lastBlock]
+	);
 
 	/************************************************************************************************
 	 ** This useEffect hook is responsible for fetching and updating deposit logs.
@@ -298,7 +295,7 @@ function useDepositHistory(): TUseDepositHistoryResp {
 		let isCancelled = false;
 		const fetchData = async (): Promise<void> => {
 			if (!isCancelled) {
-				await refetchLogs();
+				await refetchLogs(false);
 			}
 		};
 		fetchData();
@@ -306,6 +303,25 @@ function useDepositHistory(): TUseDepositHistoryResp {
 			isCancelled = true;
 		};
 	}, [refetchLogs]);
+
+	/************************************************************************************************
+	 ** This useEffect hook updates the history state when relevant data changes.
+	 ** It filters and maps deposit and vote topics to create a comprehensive history.
+	 **
+	 ** Key points:
+	 ** 1. Runs when address, depositTopics, voteTopics, or tokenDetails change.
+	 ** 2. Only processes data if a user address is available.
+	 ** 3. Uses mapDepositAndVoteTopicsToHistory to combine and format the data.
+	 ** 4. Filters out any history items with undefined assets.
+	 ** 5. Updates the history state with the processed data.
+	 ************************************************************************************************/
+	useEffect(() => {
+		if (!address) {
+			return;
+		}
+		const history = mapDepositAndVoteTopicsToHistory(depositTopics, voteTopics, tokenDetails, address);
+		set_history(history.filter((each): boolean => each.asset !== undefined));
+	}, [address, depositTopics, mapDepositAndVoteTopicsToHistory, tokenDetails, voteTopics]);
 
 	return {history, loading, refetchLogs};
 }

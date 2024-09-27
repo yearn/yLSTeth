@@ -18,10 +18,11 @@ import {
 	toNormalizedBN,
 	zeroNormalizedBN
 } from '@builtbymom/web3/utils';
-import {approveERC20, defaultTxStatus, handleTx} from '@builtbymom/web3/utils/wagmi';
+import {approveERC20, defaultTxStatus, handleTx, retrieveConfig} from '@builtbymom/web3/utils/wagmi';
 import ComboboxAddressInput from '@libComponents/ComboboxAddressInput';
 import {ImageWithFallback} from '@libComponents/ImageWithFallback';
 import {useDeepCompareEffect} from '@react-hookz/web';
+import {waitForTransactionReceipt} from '@wagmi/core';
 import {Button} from '@yearn-finance/web-lib/components/Button';
 import {ETH_TOKEN} from '@yUSD/tokens';
 import {possibleTokenAddressesToUse, possibleTokensToVoteFor} from '@yUSD/utils/constants';
@@ -273,21 +274,27 @@ function DepositSelector({refetchLogs}: {refetchLogs: () => void}): ReactElement
 				args: [toAddress(tokenToUse.address), toBigInt(amountToSend?.raw), toAddress(tokenToVoteFor?.address)]
 			}
 		);
-		// TODO: LIST IS NOT REFRESHED HERE AFTER DEPOSIT CC @w84april
-		if (result.isSuccessful) {
-			refetchAllowance();
-			refetchLogs();
-			onRefresh([
-				ETH_TOKEN,
-				{
-					decimals: tokenToUse.decimals,
-					name: tokenToUse.name,
-					symbol: tokenToUse.symbol,
-					address: tokenToUse.address,
-					chainID: Number(process.env.DEFAULT_CHAIN_ID)
-				}
-			]);
-			set_amountToSend(zeroNormalizedBN);
+
+		if (result.isSuccessful && result.receipt?.transactionHash) {
+			const receipt = await waitForTransactionReceipt(retrieveConfig(), {
+				hash: result.receipt?.transactionHash,
+				confirmations: 1
+			});
+			if (receipt.status === 'success') {
+				refetchAllowance();
+				refetchLogs();
+				onRefresh([
+					ETH_TOKEN,
+					{
+						decimals: tokenToUse.decimals,
+						name: tokenToUse.name,
+						symbol: tokenToUse.symbol,
+						address: tokenToUse.address,
+						chainID: Number(process.env.DEFAULT_CHAIN_ID)
+					}
+				]);
+				set_amountToSend(zeroNormalizedBN);
+			}
 		}
 	}, [
 		isActive,
