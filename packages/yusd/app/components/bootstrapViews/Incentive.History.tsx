@@ -75,7 +75,11 @@ function IncentiveHistoryTabs(props: {
 	);
 }
 
-function IncentiveRow(props: {item: TIndexedTokenInfo; currentTab: 'all' | 'your'}): ReactElement {
+function IncentiveRow(props: {
+	item: TIndexedTokenInfo;
+	currentTab: 'all' | 'your';
+	totalIncentiveTitle: string;
+}): ReactElement {
 	const {
 		incentives: {
 			isFetchingHistory,
@@ -187,7 +191,7 @@ function IncentiveRow(props: {item: TIndexedTokenInfo; currentTab: 'all' | 'your
 					</div>
 				</div>
 				<div className={'col-span-12 mt-4 flex justify-between md:col-span-2 md:mt-0 md:justify-end'}>
-					<small className={cl('block text-neutral-500 md:hidden')}>{'Total incentive (USD)'}</small>
+					<small className={cl('block text-neutral-500 md:hidden')}>{props.totalIncentiveTitle}</small>
 					{isFetchingHistory ? (
 						<div className={'skeleton-lg h-4 w-20'} />
 					) : (
@@ -241,6 +245,13 @@ function IncentiveHistory(props: {epochToDisplay: number; set_epochToDisplay: (e
 
 	const [currentTab, set_currentTab] = useState<'all' | 'your'>('all');
 
+	const totalIncentiveTitle = useMemo(() => {
+		if (currentTab === 'all') {
+			return 'Total incentive (USD)';
+		}
+		return 'Your total incentive (USD)';
+	}, [currentTab]);
+
 	return (
 		<div className={'mt-2 pt-8'}>
 			<div className={''}>
@@ -255,7 +266,7 @@ function IncentiveHistory(props: {epochToDisplay: number; set_epochToDisplay: (e
 						<p className={'text-xs text-neutral-500'}>{'STABLE'}</p>
 					</div>
 					<div className={'col-span-2 flex justify-end'}>
-						<p className={'group flex flex-row text-xs text-neutral-500'}>{'Total incentive (USD)'}</p>
+						<p className={'group flex flex-row text-xs text-neutral-500'}>{totalIncentiveTitle}</p>
 					</div>
 					<div className={'col-span-2 flex justify-end'}>
 						<p className={'group flex flex-row text-xs text-neutral-500'}>{'USD/st-yUSD'}</p>
@@ -271,6 +282,7 @@ function IncentiveHistory(props: {epochToDisplay: number; set_epochToDisplay: (e
 				{assets.map((item): ReactElement => {
 					return (
 						<IncentiveRow
+							totalIncentiveTitle={totalIncentiveTitle}
 							key={`${item.address}_${props.epochToDisplay}`}
 							currentTab={currentTab}
 							item={item}
