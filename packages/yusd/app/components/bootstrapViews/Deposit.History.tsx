@@ -14,11 +14,11 @@ import type {TDepositHistory} from '../views/Deposit.types';
 function HistoryRowSkeleton(): ReactElement {
 	return (
 		<div className={'flex flex-col md:grid md:grid-cols-11'}>
-			<div className={'col-span-2 flex justify-between md:justify-start'}>
+			<div className={'col-span-3 flex justify-between md:justify-start'}>
 				<p className={'md:hidden'}>{'Block:'}</p>
 				<div className={'skeleton-lg h-4 w-20'} />
 			</div>
-			<div className={'col-span-2 flex justify-between md:justify-end'}>
+			<div className={'col-span-1 flex justify-start'}>
 				<p className={'md:hidden'}>{'Asset deposited:'}</p>
 				<div className={'skeleton-lg h-4 w-20'} />
 			</div>
@@ -30,7 +30,8 @@ function HistoryRowSkeleton(): ReactElement {
 				<p className={'md:hidden'}>{'Amount of st-token recieved:'}</p>
 				<div className={'skeleton-lg h-4 w-20'} />
 			</div>
-			<div className={'col-span-2 flex justify-between md:justify-end'}>
+			<div className={'col-span-1'} />
+			<div className={'col-span-1 flex'}>
 				<p className={'md:hidden'}>{'Token voted for:'}</p>
 				<div className={'skeleton-lg h-4 w-20'} />
 			</div>
