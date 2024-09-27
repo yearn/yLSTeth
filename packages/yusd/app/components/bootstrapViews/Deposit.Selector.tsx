@@ -259,7 +259,7 @@ function DepositSelector({refetchLogs}: {refetchLogs: () => void}): ReactElement
 			tokenToUse: toAddress(tokenToUse.address),
 			tokenToVote: toAddress(tokenToVoteFor?.address),
 			amount: amountToSend?.raw || 0n,
-			statusHandler: set_approvalStatus
+			statusHandler: set_depositStatus
 		});
 
 		if (result.isSuccessful) {
