@@ -688,6 +688,7 @@ function ViewIncentive(): ReactElement {
 			spenderAddress: toAddress(process.env.BOOTSTRAP_ADDRESS),
 			amount: amountToSend.raw,
 			statusHandler: set_approvalStatus
+			confirmation: 1
 		});
 		if (result.isSuccessful) {
 			refetchAllowance();

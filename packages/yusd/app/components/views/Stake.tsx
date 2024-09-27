@@ -116,7 +116,8 @@ function ViewStakeUnstake(): ReactElement {
 			contractAddress: YUSD_TOKEN.address,
 			spenderAddress: STYUSD_TOKEN.address,
 			amount: fromAmount.raw,
-			statusHandler: set_txStatus
+			statusHandler: set_txStatus,
+			confirmation: 1
 		});
 		if (result.isSuccessful) {
 			refreshAllowance();

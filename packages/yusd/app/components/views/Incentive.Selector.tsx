@@ -241,7 +241,8 @@ function WeightIncentiveSelector(props: {isIncentivePeriodOpen: boolean}): React
 			contractAddress: tokenToUse.address,
 			spenderAddress: toAddress(process.env.WEIGHT_INCENTIVES_ADDRESS),
 			amount: toBigInt(0),
-			statusHandler: set_approvalStatus
+			statusHandler: set_approvalStatus,
+			confirmation: 1
 		});
 		if (result.isSuccessful) {
 			refetchAllowance();
@@ -556,7 +557,8 @@ function InclusionIncentiveSelector(props: {isIncentivePeriodOpen: boolean}): Re
 			contractAddress: tokenToUse.address,
 			spenderAddress: toAddress(process.env.INCLUSION_INCENTIVES_ADDRESS),
 			amount: toBigInt(amountToSend?.raw),
-			statusHandler: set_approvalStatus
+			statusHandler: set_approvalStatus,
+			confirmation: 1
 		});
 		if (result.isSuccessful) {
 			refetchAllowance();

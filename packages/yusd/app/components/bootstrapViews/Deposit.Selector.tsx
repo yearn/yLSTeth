@@ -212,7 +212,8 @@ function DepositSelector({refetchLogs}: {refetchLogs: () => void}): ReactElement
 			contractAddress: toAddress(tokenToUse.address),
 			spenderAddress: toAddress(process.env.DEPOSIT_ADDRESS),
 			amount: amountToSend.raw,
-			statusHandler: set_approvalStatus
+			statusHandler: set_approvalStatus,
+			confirmation: 1
 		});
 
 		if (result.isSuccessful) {

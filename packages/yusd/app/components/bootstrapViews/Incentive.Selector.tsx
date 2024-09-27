@@ -191,7 +191,8 @@ function WeightIncentiveSelector(): ReactElement {
 			contractAddress: tokenToUse.address,
 			spenderAddress: toAddress(process.env.DEPOSIT_ADDRESS),
 			amount: toBigInt(amountToSend?.raw),
-			statusHandler: set_approvalStatus
+			statusHandler: set_approvalStatus,
+			confirmation: 1
 		});
 		if (result.isSuccessful) {
 			refetchAllowance();
