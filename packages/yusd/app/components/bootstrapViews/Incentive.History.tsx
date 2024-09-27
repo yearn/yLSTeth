@@ -78,6 +78,7 @@ function IncentiveHistoryTabs(props: {
 function IncentiveRow(props: {item: TIndexedTokenInfo; currentTab: 'all' | 'your'}): ReactElement {
 	const {
 		incentives: {
+			isFetchingHistory,
 			totalDepositedUSD,
 			totalSupply,
 			groupIncentiveHistory: {protocols, user}
@@ -186,28 +187,40 @@ function IncentiveRow(props: {item: TIndexedTokenInfo; currentTab: 'all' | 'your
 					</div>
 				</div>
 				<div className={'col-span-12 mt-4 flex justify-between md:col-span-2 md:mt-0 md:justify-end'}>
-					<small className={'block text-neutral-500 md:hidden'}>{'Total incentive (USD)'}</small>
-					<p
-						suppressHydrationWarning
-						className={'font-number'}>
-						{`$${formatAmount(valueToDisplay, 2, 2)}`}
-					</p>
+					<small className={cl('block text-neutral-500 md:hidden')}>{'Total incentive (USD)'}</small>
+					{isFetchingHistory ? (
+						<div className={'skeleton-lg h-4 w-20'} />
+					) : (
+						<p
+							suppressHydrationWarning
+							className={'font-number'}>
+							{`$${formatAmount(valueToDisplay, 2, 2)}`}
+						</p>
+					)}
 				</div>
 				<div className={'col-span-12 mt-2 flex justify-between md:col-span-2 md:mt-0 md:justify-end'}>
 					<small className={'block text-neutral-500 md:hidden'}>{'USD/st-yUSD'}</small>
-					<p
-						suppressHydrationWarning
-						className={'font-number'}>
-						{`$${formatAmount(candidateIncentivesPerStakedBasketToken, 2, 2)}`}
-					</p>
+					{isFetchingHistory ? (
+						<div className={'skeleton-lg h-4 w-20'} />
+					) : (
+						<p
+							suppressHydrationWarning
+							className={'font-number'}>
+							{`$${formatAmount(candidateIncentivesPerStakedBasketToken, 2, 2)}`}
+						</p>
+					)}
 				</div>
 				<div className={'col-span-12 mt-2 flex justify-between md:col-span-2 md:mt-0 md:justify-end'}>
 					<small className={'block text-neutral-500 md:hidden'}>{'st-yUSD vAPR'}</small>
-					<p
-						suppressHydrationWarning
-						className={'font-number'}>
-						{`${formatPercent(candidateIncentivesEstimatedAPR, 4)}`}
-					</p>
+					{isFetchingHistory ? (
+						<div className={'skeleton-lg h-4 w-20'} />
+					) : (
+						<p
+							suppressHydrationWarning
+							className={'font-number'}>
+							{`${formatPercent(candidateIncentivesEstimatedAPR, 4)}`}
+						</p>
+					)}
 				</div>
 				<div className={'col-span-1 hidden justify-end md:flex'}>
 					<IconChevronBottom
@@ -242,15 +255,13 @@ function IncentiveHistory(props: {epochToDisplay: number; set_epochToDisplay: (e
 						<p className={'text-xs text-neutral-500'}>{'STABLE'}</p>
 					</div>
 					<div className={'col-span-2 flex justify-end'}>
-						<p className={'group flex flex-row text-xs text-neutral-500 md:-mr-2'}>
-							{'Total incentive (USD)'}
-						</p>
+						<p className={'group flex flex-row text-xs text-neutral-500'}>{'Total incentive (USD)'}</p>
 					</div>
 					<div className={'col-span-2 flex justify-end'}>
-						<p className={'group flex flex-row text-xs text-neutral-500 md:-mr-2'}>{'USD/st-yUSD'}</p>
+						<p className={'group flex flex-row text-xs text-neutral-500'}>{'USD/st-yUSD'}</p>
 					</div>
 					<div className={'col-span-2 flex justify-end'}>
-						<p className={'group flex flex-row text-xs text-neutral-500 md:-mr-2'}>{'st-yUSD vAPR'}</p>
+						<p className={'group flex flex-row text-xs text-neutral-500'}>{'st-yUSD vAPR'}</p>
 					</div>
 					<div className={'col-span-1 flex justify-end'} />
 				</div>
