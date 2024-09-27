@@ -6,6 +6,7 @@ import {assertAddress, ETH_TOKEN_ADDRESS, toAddress, WETH_TOKEN_ADDRESS} from '@
 import {handleTx} from '@builtbymom/web3/utils/wagmi';
 import {BASKET_ABI} from '@libAbi/basket.abi';
 import BOOTSTRAP_ABI from '@libAbi/bootstrap.abi';
+import BOOTSTRAP_ABI_NEW from '@libAbi/bootstrap.abi.new';
 import {CURVE_SWAP_ABI} from '@libAbi/curveswap.abi';
 import {GOVERNOR_ABI} from '@libAbi/governor.abi';
 import {INCLUSION_ABI} from '@libAbi/inclusion.abi';
@@ -638,6 +639,31 @@ export async function incentivize(props: TIncentivize): Promise<TTxResponse> {
 		address: process.env.BOOTSTRAP_ADDRESS,
 		abi: BOOTSTRAP_ABI,
 		functionName: 'incentivize',
+		confirmation: 1,
 		args: [props.protocolAddress, props.incentiveAddress, props.amount]
+	});
+}
+
+/* 🔵 - Yearn Finance **********************************************************
+ ** BOOTSTRAP
+ ******************************************************************************/
+type TDeposit = TWriteTransaction & {
+	tokenToUse: TAddress;
+	tokenToVote: TAddress;
+	amount: bigint;
+};
+export async function deposit(props: TDeposit): Promise<TTxResponse> {
+	assert(props.connector, 'No connector');
+	assert(props.amount > 0n, 'Amount is 0');
+	assertAddress(process.env.DEPOSIT_ADDRESS, 'DEPOSIT_ADDRESS');
+	assertAddress(props.tokenToUse, 'tokenToUse');
+	assertAddress(props.tokenToVote, 'tokenToVote');
+
+	return await handleTx(props, {
+		address: process.env.DEPOSIT_ADDRESS,
+		abi: BOOTSTRAP_ABI_NEW,
+		functionName: 'deposit',
+		confirmation: 1,
+		args: [props.tokenToUse, props.amount, props.tokenToVote]
 	});
 }

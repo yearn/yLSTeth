@@ -18,12 +18,12 @@ import {
 	toNormalizedBN,
 	zeroNormalizedBN
 } from '@builtbymom/web3/utils';
-import {approveERC20, defaultTxStatus, handleTx, retrieveConfig} from '@builtbymom/web3/utils/wagmi';
+import {approveERC20, defaultTxStatus} from '@builtbymom/web3/utils/wagmi';
 import ComboboxAddressInput from '@libComponents/ComboboxAddressInput';
 import {ImageWithFallback} from '@libComponents/ImageWithFallback';
 import {useDeepCompareEffect} from '@react-hookz/web';
-import {waitForTransactionReceipt} from '@wagmi/core';
 import {Button} from '@yearn-finance/web-lib/components/Button';
+import {deposit} from '@yUSD/actions';
 import {ETH_TOKEN} from '@yUSD/tokens';
 import {possibleTokenAddressesToUse, possibleTokensToVoteFor} from '@yUSD/utils/constants';
 
@@ -252,56 +252,30 @@ function DepositSelector({refetchLogs}: {refetchLogs: () => void}): ReactElement
 		assert(toBigInt(amountToSend?.raw) > 0n, 'Amount must be greater than 0');
 		assertAddress(tokenToUse?.address, 'Token to use not selected');
 
-		const result = await handleTx(
-			{
-				connector: provider,
-				chainID: 1,
-				contractAddress: toAddress(process.env.DEPOSIT_ADDRESS),
-				statusHandler: set_depositStatus
-			},
-			{
-				address: toAddress(process.env.DEPOSIT_ADDRESS),
-				functionName: 'deposit',
-				abi: [
-					{
-						stateMutability: 'nonpayable',
-						type: 'function',
-						name: 'deposit',
-						inputs: [
-							{name: '_asset', type: 'address'},
-							{name: '_amount', type: 'uint256'},
-							{name: '_vote', type: 'address'}
-						],
-						outputs: [{name: '', type: 'uint256'}]
-					}
-				],
-				confirmation: 1,
-				args: [toAddress(tokenToUse.address), toBigInt(amountToSend?.raw), toAddress(tokenToVoteFor?.address)]
-			}
-		);
+		const result = await deposit({
+			connector: provider,
+			chainID: Number(process.env.DEFAULT_CHAIN_ID),
+			contractAddress: toAddress(process.env.DEPOSIT_ADDRESS),
+			tokenToUse: toAddress(tokenToUse.address),
+			tokenToVote: toAddress(tokenToVoteFor?.address),
+			amount: amountToSend?.raw || 0n,
+			statusHandler: set_approvalStatus
+		});
 
-		if (result.isSuccessful && result.receipt?.transactionHash) {
-			const receipt = await waitForTransactionReceipt(retrieveConfig(), {
-				hash: result.receipt?.transactionHash,
-				confirmations: 1
-			});
-			if (receipt.status === 'success') {
-				await new Promise(resolve => setTimeout(resolve, 1000)); // Sleep for 1 second
-				refetchAllowance();
-				refetchLogs();
-
-				onRefresh([
-					ETH_TOKEN,
-					{
-						decimals: tokenToUse.decimals,
-						name: tokenToUse.name,
-						symbol: tokenToUse.symbol,
-						address: tokenToUse.address,
-						chainID: Number(process.env.DEFAULT_CHAIN_ID)
-					}
-				]);
-				set_amountToSend(zeroNormalizedBN);
-			}
+		if (result.isSuccessful) {
+			refetchAllowance();
+			refetchLogs();
+			onRefresh([
+				ETH_TOKEN,
+				{
+					decimals: tokenToUse.decimals,
+					name: tokenToUse.name,
+					symbol: tokenToUse.symbol,
+					address: tokenToUse.address,
+					chainID: Number(process.env.DEFAULT_CHAIN_ID)
+				}
+			]);
+			set_amountToSend(zeroNormalizedBN);
 		}
 	}, [
 		isActive,
