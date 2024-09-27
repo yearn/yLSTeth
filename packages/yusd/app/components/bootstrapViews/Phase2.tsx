@@ -2,29 +2,18 @@ import React from 'react';
 import Link from 'next/link';
 import {motion} from 'framer-motion';
 import HeroAsLottie from '@libComponents/HeroAsLottie';
-import {useTimer} from '@libHooks/useTimer';
 import {Button} from '@yearn-finance/web-lib/components/Button';
 import useBootstrap from '@yUSD/contexts/useBootstrap';
-import {useEpoch} from '@yUSD/hooks/useEpoch';
 import {customVariants} from '@yUSD/utils';
+
+import {Timer} from './Timer';
 
 import type {ReactElement} from 'react';
 
-function Timer({isIncentivePeriodClosed}: {isIncentivePeriodClosed: boolean}): ReactElement {
-	const {endPeriod} = useEpoch();
-	const time = useTimer({endTime: Number(endPeriod - 3 * 24 * 3600)});
-
-	return (
-		<>
-			<b
-				suppressHydrationWarning
-				className={'font-number text-accent mt-2 text-3xl leading-10'}>
-				{isIncentivePeriodClosed ? 'closed' : `Ends in ${time}`}
-			</b>
-		</>
-	);
-}
-function Phase2Started(): ReactElement {
+function Phase2(): ReactElement {
+	const {
+		periods: {depositEnd, depositStatus}
+	} = useBootstrap();
 	return (
 		<section className={'absolute inset-x-0 grid grid-cols-12 gap-0 px-4 pt-10 md:gap-20 md:pt-12'}>
 			<div className={'col-span-12 mb-20 md:col-span-6 md:mb-0'}>
@@ -46,7 +35,10 @@ function Phase2Started(): ReactElement {
 						initial={'initial'}
 						animate={'move'}
 						exit={'exit'}>
-						<Timer isIncentivePeriodClosed={false} />
+						<Timer
+							endTime={Number(depositEnd)}
+							status={depositStatus}
+						/>
 					</motion.b>
 				</div>
 				<div>
@@ -129,88 +121,6 @@ function Phase2Started(): ReactElement {
 			</motion.div>
 		</section>
 	);
-}
-
-function Phase2Ended(): ReactElement {
-	return (
-		<section className={'absolute inset-x-0 grid grid-cols-12 gap-0 px-4 pt-10 md:gap-20 md:pt-12'}>
-			<div className={'col-span-12 mb-20 md:col-span-6 md:mb-0'}>
-				<div className={'mb-10 flex flex-col justify-center'}>
-					<motion.h1
-						className={'text-3xl md:text-8xl'}
-						variants={customVariants(0.02)}
-						custom={'0vw'}
-						initial={'initial'}
-						animate={'move'}
-						exit={'exit'}>
-						{'Bootstrapping'}
-					</motion.h1>
-					<motion.b
-						suppressHydrationWarning
-						className={'font-number mt-4 text-4xl leading-10 text-purple-300'}
-						variants={customVariants(0.04)}
-						custom={'0vw'}
-						initial={'initial'}
-						animate={'move'}
-						exit={'exit'}>
-						<Timer isIncentivePeriodClosed={true} />
-					</motion.b>
-				</div>
-				<motion.div
-					className={'mb-6 grid w-full grid-cols-1 text-neutral-700'}
-					variants={customVariants(0.05)}
-					custom={'0vw'}
-					initial={'initial'}
-					animate={'move'}
-					exit={'exit'}>
-					<p>
-						{
-							'Good times were shared, laughs were had, financial incentives were posted... but now the bootstrapping phases has ended.'
-						}
-					</p>
-					&nbsp;
-					<p>
-						{
-							'But worry not, that means it’s time to vote on which LSTs you want to see included in yETH. yETH holders - head over to Vote in order to vote and receive incentives for doing so (whether the LST you voted for ends up in yETH or not).'
-						}
-					</p>
-				</motion.div>
-				<motion.div
-					variants={customVariants(0.06)}
-					custom={'0vw'}
-					initial={'initial'}
-					animate={'move'}
-					exit={'exit'}>
-					<Link href={'/incentivize'}>
-						<Button className={'yearn--button w-full rounded-md !text-sm md:w-1/2'}>
-							{'Check Incentives'}
-						</Button>
-					</Link>
-				</motion.div>
-			</div>
-			<motion.div
-				className={'relative col-span-12 hidden h-screen md:col-span-6 md:flex'}
-				variants={customVariants(0.06)}
-				custom={'0vw'}
-				initial={'initial'}
-				animate={'move'}
-				exit={'exit'}>
-				<div className={'absolute inset-0 top-20 flex size-full justify-center'}>
-					<HeroAsLottie id={'bribe'} />
-				</div>
-			</motion.div>
-		</section>
-	);
-}
-
-function Phase2(): ReactElement {
-	const {periods} = useBootstrap();
-	const {depositStatus} = periods || {};
-
-	if (depositStatus === 'ended') {
-		return <Phase2Ended />;
-	}
-	return <Phase2Started />;
 }
 
 export default Phase2;

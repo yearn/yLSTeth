@@ -5,6 +5,9 @@ export type TUseBootstrapPeriodsResp = {
 	incentiveEnd: bigint;
 	depositBegin: bigint;
 	depositEnd: bigint;
+	claimBegin: bigint;
+	claimEnd: bigint;
+	claimStatus: 'started' | 'ended' | 'none';
 	incentiveStatus: 'started' | 'ended' | 'none';
 	depositStatus: 'started' | 'ended' | 'none';
 };
@@ -13,6 +16,8 @@ export type TPeriods = {
 	INCENTIVE_END: string;
 	DEPOSIT_BEGIN: string;
 	DEPOSIT_END: string;
+	CLAIM_BEGIN: string;
+	CLAIM_END: string;
 };
 
 function useBootstrapPeriods(): TUseBootstrapPeriodsResp {
@@ -21,6 +26,8 @@ function useBootstrapPeriods(): TUseBootstrapPeriodsResp {
 	const incentiveEnd = toBigInt((process.env.PERIODS as unknown as TPeriods).INCENTIVE_END);
 	const depositBegin = toBigInt((process.env.PERIODS as unknown as TPeriods).DEPOSIT_BEGIN);
 	const depositEnd = toBigInt((process.env.PERIODS as unknown as TPeriods).DEPOSIT_END);
+	const claimBegin = toBigInt((process.env.PERIODS as unknown as TPeriods).CLAIM_BEGIN);
+	const claimEnd = toBigInt((process.env.PERIODS as unknown as TPeriods).CLAIM_END);
 
 	return {
 		incentiveBegin,
@@ -40,6 +47,16 @@ function useBootstrapPeriods(): TUseBootstrapPeriodsResp {
 				? depositBegin > nowBigInt
 					? 'none'
 					: depositBegin < nowBigInt && nowBigInt < depositEnd
+						? 'started'
+						: 'ended'
+				: 'none',
+		claimBegin,
+		claimEnd,
+		claimStatus:
+			claimBegin > BigInt(0) && claimEnd > BigInt(0)
+				? claimBegin > nowBigInt
+					? 'none'
+					: claimBegin < nowBigInt && nowBigInt < claimEnd
 						? 'started'
 						: 'ended'
 				: 'none'

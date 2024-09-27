@@ -45,7 +45,7 @@ function IncentiveMenuTabs(): ReactElement {
 	);
 }
 
-function WeightIncentiveSelector(props: {isIncentivePeriodOpen: boolean}): ReactElement {
+function WeightIncentiveSelector(): ReactElement {
 	const {address, isActive, provider} = useWeb3();
 	const {safeChainID} = useChainID(Number(process.env.DEFAULT_CHAIN_ID));
 	const {getBalance, onRefresh} = useWallet();
@@ -59,7 +59,8 @@ function WeightIncentiveSelector(props: {isIncentivePeriodOpen: boolean}): React
 	const [depositStatus, set_depositStatus] = useState<TTxStatus>(defaultTxStatus);
 
 	const {
-		incentives: {refreshIncentives}
+		incentives: {refreshIncentives},
+		periods: {incentiveStatus}
 	} = useBootstrap();
 
 	const {data: allowance, refetch: refetchAllowance} = useReadContract({
@@ -347,7 +348,7 @@ function WeightIncentiveSelector(props: {isIncentivePeriodOpen: boolean}): React
 						isBusy={hasAllowance ? depositStatus.pending : approvalStatus.pending}
 						isDisabled={
 							!(hasAllowance ? depositStatus.none : approvalStatus.none) ||
-							!props.isIncentivePeriodOpen ||
+							incentiveStatus !== 'started' ||
 							toBigInt(amountToSend?.raw) === 0n ||
 							toBigInt(amountToSend?.raw) > balanceOf.raw ||
 							lstToIncentive === undefined ||
@@ -363,11 +364,11 @@ function WeightIncentiveSelector(props: {isIncentivePeriodOpen: boolean}): React
 	);
 }
 
-function IncentiveSelector(props: {incentivePeriodOpen: boolean}): ReactElement {
+function IncentiveSelector(): ReactElement {
 	return (
 		<div>
 			<IncentiveMenuTabs />
-			<WeightIncentiveSelector isIncentivePeriodOpen={props.incentivePeriodOpen} />
+			<WeightIncentiveSelector />
 		</div>
 	);
 }

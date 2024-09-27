@@ -5,13 +5,14 @@ import {useAsyncTrigger} from '@builtbymom/web3/hooks/useAsyncTrigger';
 import {cl, decodeAsBigInt, formatAmount, toAddress, toNormalizedBN, truncateHex} from '@builtbymom/web3/utils';
 import {defaultTxStatus, retrieveConfig} from '@builtbymom/web3/utils/wagmi';
 import BOOTSTRAP_ABI_NEW from '@libAbi/bootstrap.abi.new';
-import {useTimer} from '@libHooks/useTimer';
 import {readContracts} from '@wagmi/core';
 import {Button} from '@yearn-finance/web-lib/components/Button';
 import {Modal} from '@yearn-finance/web-lib/components/Modal';
 import {multicall} from '@yUSD/actions';
 import useBootstrap from '@yUSD/contexts/useBootstrap';
 import {usePrices} from '@yUSD/contexts/usePrices';
+
+import {Timer} from './Timer';
 
 import type {ReactElement} from 'react';
 import type {Hex} from 'viem';
@@ -174,29 +175,10 @@ function ClaimConfirmationModal({
 	);
 }
 
-function Timer(): ReactElement {
-	// const {periods} = useBootstrap();
-	// const {voteEnd} = periods || {};
-	// const time = useTimer({endTime: Number(voteEnd)});
-	const time = useTimer({endTime: Number(17454515)});
-	return <>{`in ${time}`}</>;
-}
-
 function ClaimHeading(): ReactElement {
-	// const {
-	// 	periods: {voteStatus}
-	// } = useBootstrap();
-	// if (voteStatus === 'ended') {
-	// 	return (
-	// 		<div className={'mb-10 flex w-[52%] flex-col justify-center'}>
-	// 			<h1 className={'text-3xl font-black md:text-8xl'}>{'Claim'}</h1>
-	// 			<p className={'pt-8 text-neutral-700'}>{'You did your democratic duty beautifully anon.'}</p>
-	// 			<p className={'text-neutral-700'}>
-	// 				{'And now it’s time to claim your ‘good on chain citizen’ rewards. Enjoy!'}
-	// 			</p>
-	// 		</div>
-	// 	);
-	// }
+	const {
+		periods: {claimBegin, claimStatus}
+	} = useBootstrap();
 
 	return (
 		<div className={'mb-10 flex w-3/4 flex-col justify-center'}>
@@ -211,7 +193,10 @@ function ClaimHeading(): ReactElement {
 			<b
 				suppressHydrationWarning
 				className={'font-number mt-4 text-4xl leading-10 text-purple-300'}>
-				<Timer />
+				<Timer
+					endTime={Number(claimBegin)}
+					status={claimStatus}
+				/>
 			</b>
 			<p className={'pt-8 text-neutral-700'}>
 				{

@@ -1,32 +1,18 @@
 import React, {useMemo} from 'react';
 import {formatTAmount} from '@builtbymom/web3/utils';
-import {useTimer} from '@libHooks/useTimer';
 import {Renderable} from '@yearn-finance/web-lib/components/Renderable';
 import useBootstrap from '@yUSD/contexts/useBootstrap';
 import useLST from '@yUSD/contexts/useLST';
-import {useEpoch} from '@yUSD/hooks/useEpoch';
+
+import {Timer} from './Timer';
 
 import type {ReactElement} from 'react';
 
-function Timer({isIncentivePeriodClosed}: {isIncentivePeriodClosed: boolean}): ReactElement {
-	const {endPeriod} = useEpoch();
-	const time = useTimer({endTime: Number(endPeriod - 3 * 24 * 3600)});
-
-	return (
-		<>
-			<b
-				suppressHydrationWarning
-				className={'font-number text-accent mt-2 text-3xl leading-10'}>
-				{isIncentivePeriodClosed ? 'closed' : `Ends in ${time}`}
-			</b>
-		</>
-	);
-}
-
-function IncentiveHeader({isIncentivePeriodClosed}: {isIncentivePeriodClosed: boolean}): ReactElement {
+function IncentiveHeader(): ReactElement {
 	const {totalDeposited} = useLST();
 	const {
-		incentives: {groupIncentiveHistory}
+		incentives: {groupIncentiveHistory},
+		periods: {incentiveEnd, incentiveStatus}
 	} = useBootstrap();
 	/* 🔵 - Yearn Finance **************************************************************************
 	 ** Calculate the sum of all the incentives for all the protocols.
@@ -42,7 +28,10 @@ function IncentiveHeader({isIncentivePeriodClosed}: {isIncentivePeriodClosed: bo
 	return (
 		<div className={'mb-10 flex w-full flex-col justify-center'}>
 			<h1 className={'text-3xl font-black md:text-8xl'}>{'Incentivize'}</h1>
-			<Timer isIncentivePeriodClosed={isIncentivePeriodClosed} />
+			<Timer
+				endTime={Number(incentiveEnd)}
+				status={incentiveStatus}
+			/>
 			<div className={'mt-6 flex w-full flex-col items-start gap-4 md:grid-cols-1 md:flex-row md:gap-6'}>
 				<div className={'w-full'}>
 					<p className={'text-neutral-700'}>

@@ -240,7 +240,7 @@ function IncentiveRow(props: {
 	);
 }
 
-function IncentiveHistory(props: {epochToDisplay: number; set_epochToDisplay: (epoch: number) => void}): ReactElement {
+function IncentiveHistory(): ReactElement {
 	const {assets} = useBootstrap();
 
 	const [currentTab, set_currentTab] = useState<'all' | 'your'>('all');
@@ -283,7 +283,7 @@ function IncentiveHistory(props: {epochToDisplay: number; set_epochToDisplay: (e
 					return (
 						<IncentiveRow
 							totalIncentiveTitle={totalIncentiveTitle}
-							key={`${item.address}_${props.epochToDisplay}`}
+							key={item.address}
 							currentTab={currentTab}
 							item={item}
 						/>
