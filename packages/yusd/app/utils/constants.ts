@@ -29,7 +29,8 @@ export const NO_CHANGE_LST_LIKE: TIndexedTokenInfo = {
 export const possibleTokenAddressesToUse = [
 	'0x83F20F44975D03b1b09e64809B757c47f942BEeA',
 	'0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-	'0xdAC17F958D2ee523a2206206994597C13D831ec7'
+	'0xdAC17F958D2ee523a2206206994597C13D831ec7',
+	'0x3d2FdAb1fA27ddDe9dcB77f151768beB839bC9ED'
 ];
 
 export const possibleTokensToVoteFor: TDict<TIndexedTokenInfo> = {

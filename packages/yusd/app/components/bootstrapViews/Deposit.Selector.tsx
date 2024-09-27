@@ -75,6 +75,10 @@ function DepositSelector({refetchLogs}: {refetchLogs: () => void}): ReactElement
 			if (currentNetworkTokenList[eachAddress]) {
 				possibleDestinationsTokens[toAddress(eachAddress)] = currentNetworkTokenList[eachAddress];
 			}
+
+			if (eachAddress === '0x3d2FdAb1fA27ddDe9dcB77f151768beB839bC9ED') {
+				possibleDestinationsTokens[toAddress(eachAddress)] = possibleTokensToVoteFor[eachAddress];
+			}
 		}
 		set_possibleTokensToUse(possibleDestinationsTokens);
 	}, [currentNetworkTokenList, safeChainID]);
