@@ -43,7 +43,7 @@ function DepositHeader(): ReactElement {
 					</div>
 					<div
 						className={
-							'flex w-full flex-col justify-end space-y-4 pb-2 md:w-auto md:flex-row md:space-x-4 md:space-y-0'
+							'flex w-full flex-col justify-end space-y-4 pb-2 md:-mt-4 md:w-auto md:flex-row md:space-x-4 md:space-y-0'
 						}>
 						<div className={'w-full min-w-[200px] bg-neutral-100 p-4 md:w-fit'}>
 							<p className={'whitespace-nowrap pb-2'}>{'Current total deposits, USD'}</p>
