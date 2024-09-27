@@ -263,9 +263,8 @@ function DepositSelector({refetchLogs}: {refetchLogs: () => void}): ReactElement
 		});
 
 		if (result.isSuccessful) {
-			refetchAllowance();
-			refetchLogs();
-			onRefresh([
+			await refetchAllowance();
+			await onRefresh([
 				ETH_TOKEN,
 				{
 					decimals: tokenToUse.decimals,
@@ -276,6 +275,9 @@ function DepositSelector({refetchLogs}: {refetchLogs: () => void}): ReactElement
 				}
 			]);
 			set_amountToSend(zeroNormalizedBN);
+			setTimeout(() => {
+				refetchLogs();
+			}, 1000);
 		}
 	}, [
 		isActive,
