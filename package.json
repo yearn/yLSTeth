@@ -9,7 +9,7 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
   },
   "dependencies": {
-    "@builtbymom/web3": "0.0.212",
+    "@builtbymom/web3": "^0.0.213",
     "@curvefi/api": "^2.58.3",
     "@headlessui/react": "2.1.8",
     "@rainbow-me/rainbowkit": "2.1.3",
