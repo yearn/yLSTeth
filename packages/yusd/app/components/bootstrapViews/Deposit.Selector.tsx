@@ -285,8 +285,10 @@ function DepositSelector({refetchLogs}: {refetchLogs: () => void}): ReactElement
 				confirmations: 1
 			});
 			if (receipt.status === 'success') {
+				await new Promise(resolve => setTimeout(resolve, 1000)); // Sleep for 1 second
 				refetchAllowance();
 				refetchLogs();
+
 				onRefresh([
 					ETH_TOKEN,
 					{

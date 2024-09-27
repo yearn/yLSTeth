@@ -516,7 +516,7 @@ function Claim(): ReactElement {
 						</div>
 						<Button
 							onClick={(): void => set_isModalOpen(true)}
-							isDisabled={claimableIncentive.length === 0}
+							isDisabled={claimableIncentive.length === 0 || totalToClaim === 0}
 							className={'yearn--button w-full rounded-md !text-sm'}>
 							{'Claim'}
 						</Button>
@@ -533,7 +533,7 @@ function Claim(): ReactElement {
 						<Button
 							variant={'outlined'}
 							onClick={onRefund}
-							isDisabled={claimableRefund.length === 0}
+							isDisabled={claimableRefund.length === 0 || totalRefundValue === 0}
 							isBusy={refundStatus.pending}
 							className={'yearn--button w-full rounded-md !text-sm'}>
 							{'Refund'}
