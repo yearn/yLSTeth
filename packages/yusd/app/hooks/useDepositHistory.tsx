@@ -238,13 +238,13 @@ function useDepositHistory(): TUseDepositHistoryResp {
 	 ** - Implements a locking mechanism to prevent concurrent executions
 	 ************************************************************************************************/
 	const refetchLogs = useCallback(
-		async (forceRefetch: boolean): Promise<void> => {
-			if (!block?.number) {
+		async (forceRefetch: boolean, forceToBlock?: bigint): Promise<void> => {
+			const toBlock = forceToBlock || block?.number;
+			if (!toBlock) {
 				return;
 			}
-
 			if (!forceRefetch) {
-				if ((loading.lastBlock === block.number || loading.isLoading) && loading.lastBlock !== 0n) {
+				if ((loading.lastBlock === toBlock || loading.isLoading) && loading.lastBlock !== 0n) {
 					return;
 				}
 			}
@@ -252,7 +252,7 @@ function useDepositHistory(): TUseDepositHistoryResp {
 			set_loading(prevLoading => ({...prevLoading, isLoading: true}));
 
 			const fromBlock = INITIAL_PERIOD_BLOCK;
-			const toBlock = block.number;
+
 			const [depositTopics, voteTopics] = await Promise.all([
 				fetchDepositLogs(fromBlock, toBlock),
 				fetchVoteLogs(fromBlock, toBlock)
@@ -273,7 +273,7 @@ function useDepositHistory(): TUseDepositHistoryResp {
 			set_voteTopics(voteTopics);
 			set_tokenDetails(tokenDetails);
 
-			set_loading({isLoading: false, lastBlock: block.number});
+			set_loading({isLoading: false, lastBlock: toBlock});
 		},
 		[block?.number, fetchDepositLogs, fetchTokenDetails, fetchVoteLogs, loading.isLoading, loading.lastBlock]
 	);
@@ -302,7 +302,7 @@ function useDepositHistory(): TUseDepositHistoryResp {
 		return () => {
 			isCancelled = true;
 		};
-	}, [refetchLogs]);
+	}, [block?.number]);
 
 	/************************************************************************************************
 	 ** This useEffect hook updates the history state when relevant data changes.

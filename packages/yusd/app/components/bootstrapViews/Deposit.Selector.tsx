@@ -40,7 +40,11 @@ import type {TTxStatus} from '@builtbymom/web3/utils/wagmi';
  ** @param {Function} props.refetchLogs - Function to refetch logs after a deposit
  ** @returns {ReactElement} The rendered DepositSelector component
  ************************************************************************************************/
-function DepositSelector({refetchLogs}: {refetchLogs: () => void}): ReactElement {
+function DepositSelector({
+	refetchLogs
+}: {
+	refetchLogs: (forceRefetch: boolean, toBlock?: bigint) => Promise<void>;
+}): ReactElement {
 	const {address, isActive, provider} = useWeb3();
 	const {safeChainID} = useChainID(Number(process.env.DEFAULT_CHAIN_ID));
 	const {getBalance, onRefresh} = useWallet();
@@ -275,9 +279,7 @@ function DepositSelector({refetchLogs}: {refetchLogs: () => void}): ReactElement
 				}
 			]);
 			set_amountToSend(zeroNormalizedBN);
-			setTimeout(() => {
-				refetchLogs();
-			}, 1000);
+			await refetchLogs(true, result.receipt?.blockNumber);
 		}
 	}, [
 		isActive,
@@ -375,7 +377,7 @@ function DepositSelector({refetchLogs}: {refetchLogs: () => void}): ReactElement
 			<div className={'w-full pt-4 md:pt-0'}>
 				<p className={'hidden pb-1 text-neutral-600 md:block'}>&nbsp;</p>
 				<Button
-					onClick={(): unknown => (hasAllowance ? onDeposit() : onApprove())}
+					onClick={async (): Promise<unknown> => (hasAllowance ? await onDeposit() : await onApprove())}
 					isBusy={hasAllowance ? depositStatus.pending : approvalStatus.pending}
 					isDisabled={
 						!(hasAllowance ? depositStatus.none : approvalStatus.none) ||
