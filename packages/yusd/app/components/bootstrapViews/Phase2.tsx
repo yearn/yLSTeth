@@ -116,7 +116,7 @@ function Phase2(): ReactElement {
 				animate={'move'}
 				exit={'exit'}>
 				<div className={'absolute inset-0 top-20 flex size-full justify-center'}>
-					<HeroAsLottie id={'bribe'} />
+					<HeroAsLottie id={'bootstrap'} />
 				</div>
 			</motion.div>
 		</section>
