@@ -41,9 +41,11 @@ import type {TTxStatus} from '@builtbymom/web3/utils/wagmi';
  ** @returns {ReactElement} The rendered DepositSelector component
  ************************************************************************************************/
 function DepositSelector({
-	refetchLogs
+	refetchLogs,
+	refreshTotalDepositedUSD
 }: {
 	refetchLogs: (forceRefetch: boolean, toBlock?: bigint) => Promise<void>;
+	refreshTotalDepositedUSD: VoidFunction;
 }): ReactElement {
 	const {address, isActive, provider} = useWeb3();
 	const {safeChainID} = useChainID(Number(process.env.DEFAULT_CHAIN_ID));
@@ -280,6 +282,7 @@ function DepositSelector({
 			]);
 			set_amountToSend(zeroNormalizedBN);
 			await refetchLogs(true, result.receipt?.blockNumber);
+			refreshTotalDepositedUSD();
 		}
 	}, [
 		isActive,
@@ -291,8 +294,9 @@ function DepositSelector({
 		tokenToUse?.symbol,
 		tokenToVoteFor?.address,
 		refetchAllowance,
+		onRefresh,
 		refetchLogs,
-		onRefresh
+		refreshTotalDepositedUSD
 	]);
 
 	return (

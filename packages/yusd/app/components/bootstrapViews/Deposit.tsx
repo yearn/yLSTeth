@@ -9,14 +9,18 @@ import type {ReactElement} from 'react';
 
 function ViewDeposit(): ReactElement {
 	const {
-		depositHistory: {history, loading, refetchLogs}
+		depositHistory: {history, loading, refetchLogs},
+		incentives: {refreshTotalDepositedUSD}
 	} = useBootstrap();
 
 	return (
 		<section className={'grid w-full grid-cols-1 pt-10 md:mb-20 md:px-4 md:pt-12'}>
 			<div className={'mb-20 md:mb-0'}>
 				<DepositHeader />
-				<DepositSelector refetchLogs={refetchLogs} />
+				<DepositSelector
+					refetchLogs={refetchLogs}
+					refreshTotalDepositedUSD={refreshTotalDepositedUSD}
+				/>
 				<DepositHistory
 					history={history || []}
 					isLoading={loading.isLoading}

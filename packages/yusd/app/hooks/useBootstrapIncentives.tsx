@@ -22,8 +22,6 @@ import {useYDaemonBaseURI} from '@yearn-finance/web-lib/hooks/useYDaemonBaseURI'
 import {getClient} from '@yearn-finance/web-lib/utils/wagmi/utils';
 import {BOOTSTRAP_INIT_BLOCK_NUMBER} from '@yUSD/utils/constants';
 
-import useBootstrapPeriods from './useBootstrapPeriods';
-
 import type {Hex} from 'viem';
 import type {TAddress, TDict, TNormalizedBN} from '@builtbymom/web3/types';
 import type {TIndexedTokenInfo, TYDaemonPrices} from '@libUtils/types';
@@ -71,11 +69,11 @@ export type TUseBootstrapIncentivesResp = {
 	refreshIncentives: VoidFunction;
 	refreshClaimedIncentives: VoidFunction;
 	totalDepositedUSD: TNormalizedBN;
+	refreshTotalDepositedUSD: VoidFunction;
 	totalSupply: TNormalizedBN;
 };
 function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 	const {address} = useWeb3();
-	const {depositStatus} = useBootstrapPeriods();
 	const [incentives, set_incentives] = useState<TIncentives[]>([]);
 	const [claimedIncentives, set_claimedIncentives] = useState<TIncentivesClaimed[] | undefined>(undefined);
 	const [isFetchingHistory, set_isFetchingHistory] = useState(false);
@@ -87,11 +85,11 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 
 	/************************************************************************************************
 	 ** useContractRead calling the `deposited` method from the bootstrap contract to get the total
-	 ** deposited ETH from the contract.
+	 ** deposited USD from the contract.
 	 **
-	 ** @returns bigint - total deposited eth
+	 ** @returns bigint - total deposited USD
 	 ************************************************************************************************/
-	const {data: totalDepositedUSD} = useReadContract({
+	const {data: totalDepositedUSD, refetch} = useReadContract({
 		address: toAddress(process.env.DEPOSIT_ADDRESS),
 		abi: BOOTSTRAP_ABI_NEW,
 		functionName: 'deposited'
@@ -205,7 +203,8 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 			}
 		}
 		set_claimedIncentives(incentivesClaimed);
-	}, [address, depositStatus]);
+	}, [address]);
+
 	useEffect((): void => {
 		filterClaimIncentiveEvents();
 	}, [filterClaimIncentiveEvents]);
@@ -384,6 +383,7 @@ function useBootstrapIncentives(): TUseBootstrapIncentivesResp {
 		isFetchingHistory,
 		refreshIncentives: filterIncentivizeEvents,
 		totalDepositedUSD: toNormalizedBN(totalDepositedUSD || 0n, 18),
+		refreshTotalDepositedUSD: refetch,
 		totalSupply: totalSupply || zeroNormalizedBN,
 		claimedIncentives: claimedIncentives,
 		refreshClaimedIncentives: filterClaimIncentiveEvents

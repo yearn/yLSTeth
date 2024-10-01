@@ -32,6 +32,7 @@ function useDepositHistory(): TUseDepositHistoryResp {
 	const [history, set_history] = useState<TDepositHistory[] | undefined>(undefined);
 	const [loading, set_loading] = useState({isLoading: true, lastBlock: 0n});
 	const publicClient = useMemo(() => getClient(Number(process.env.DEFAULT_CHAIN_ID)), []);
+
 	/************************************************************************************************
 	 ** fetchDepositLogs: Fetches and processes deposit logs for the current user
 	 ** - Retrieves logs from the deposit contract
