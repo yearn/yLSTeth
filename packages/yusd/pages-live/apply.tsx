@@ -147,7 +147,8 @@ function Form(): ReactElement {
 			contractAddress: toAddress(process.env.YUSD_ADDRESS),
 			spenderAddress: toAddress(process.env.INCLUSION_VOTE_ADDRESS),
 			amount: feeForApplication.raw,
-			statusHandler: set_approveStatus
+			statusHandler: set_approveStatus,
+			confirmation: 1
 		});
 		if (result.isSuccessful) {
 			refetchAllowance();

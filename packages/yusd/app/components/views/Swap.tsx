@@ -284,7 +284,8 @@ function ViewSwapBox({
 			contractAddress: selectedFromLST.address,
 			spenderAddress: toAddress(process.env.POOL_ADDRESS),
 			amount: fromAmount.raw,
-			statusHandler: set_txStatus
+			statusHandler: set_txStatus,
+			confirmation: 1
 		});
 		if (result.isSuccessful) {
 			refreshAllowance();

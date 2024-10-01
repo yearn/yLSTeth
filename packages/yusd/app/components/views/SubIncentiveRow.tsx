@@ -1,16 +1,15 @@
 import React, {useMemo} from 'react';
 import {formatAmount, formatPercent, toAddress, truncateHex} from '@builtbymom/web3/utils';
+import {ImageWithFallback} from '@libComponents/ImageWithFallback';
 import useLST from '@yUSD/contexts/useLST';
 import {usePrices} from '@yUSD/contexts/usePrices';
-
-import {ImageWithFallback} from '../../../../lib/components/ImageWithFallback';
 
 import type {ReactElement} from 'react';
 import type {TTokenIncentive} from '@libUtils/types';
 
 export function SubIncentiveRow(props: {item: TTokenIncentive}): ReactElement {
 	const {getPrice} = usePrices();
-	const {totalDepositedETH} = useLST();
+	const {totalDeposited} = useLST();
 
 	/**************************************************************************
 	 ** This method calculates the incentive value
@@ -24,9 +23,9 @@ export function SubIncentiveRow(props: {item: TTokenIncentive}): ReactElement {
 	 ** This method calculates the estimated APR for the incentive
 	 **************************************************************************/
 	const incentiveAPR = useMemo((): number => {
-		const basketTokenPrice = getPrice({address: toAddress(process.env.STYUSD_ADDRESS)});
-		return ((incentiveValue * 12) / totalDepositedETH.normalized) * basketTokenPrice.normalized;
-	}, [getPrice, totalDepositedETH, incentiveValue]);
+		const basketTokenPrice = getPrice({address: toAddress(process.env.STYETH_ADDRESS)});
+		return ((incentiveValue * 12) / totalDeposited.normalized) * basketTokenPrice.normalized;
+	}, [getPrice, totalDeposited, incentiveValue]);
 
 	return (
 		<div

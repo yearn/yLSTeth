@@ -14,6 +14,7 @@ import BOOTSTRAP_ABI from '@libAbi/bootstrap.abi';
 import {useAsync, useMountEffect, useUpdateEffect} from '@react-hookz/web';
 import {multicall} from '@wagmi/core';
 import {getClient} from '@yearn-finance/web-lib/utils/wagmi/utils';
+import {BOOTSTRAP_INIT_BLOCK_NUMBER} from '@yUSD/utils/constants';
 
 import type {TAddress, TDict} from '@builtbymom/web3/types';
 import type {TIndexedTokenInfo} from '@libUtils/types';
@@ -36,7 +37,7 @@ function useFilterWhitelistedLST(): TUseFilterWhitelistedLSTResp {
 		set_isLoading(true);
 		const publicClient = getClient(Number(process.env.DEFAULT_CHAIN_ID));
 		const rangeLimit = toBigInt(Number(process.env.RANGE_LIMIT));
-		const deploymentBlockNumber = toBigInt(process.env.BOOTSTRAP_INIT_BLOCK_NUMBER);
+		const deploymentBlockNumber = toBigInt(BOOTSTRAP_INIT_BLOCK_NUMBER);
 		const currentBlockNumber = await publicClient.getBlockNumber();
 		const whitelisted: TAddress[] = [];
 		for (let i = deploymentBlockNumber; i < currentBlockNumber; i += rangeLimit) {
@@ -131,11 +132,26 @@ function useBootstrapWhitelistedLST(): TUseBootstrapWhitelistedLSTResp {
 			};
 		}
 
-		/* 🔵 - Yearn Finance **********************************************************************
-		 ** For each token, compute weight which is the percentage of votes for this token over the
-		 ** total votes
-		 ** If the weight is more than 40%, scale it down to 40% and scale up the other tokens
-		 ******************************************************************************************/
+		/************************************************************************************************
+		 ** This section calculates the voting weight for each whitelisted token based on the votes it
+		 ** received. The process involves several steps:
+		 **
+		 ** 1. For each token, calculate its initial weight as: (votes for this token / total votes) * 100
+		 ** 2. If any token's weight exceeds 40%, cap it at 40% to prevent dominance
+		 ** 3. After capping, recalculate the total weight of all tokens
+		 ** 4. If the total weight is less than 100% (due to capping), redistribute the remaining weight
+		 **    among the non-capped tokens
+		 **
+		 ** This approach ensures a more balanced distribution of voting power:
+		 ** - It prevents any single token from having disproportionate influence
+		 ** - It maintains the relative voting power of smaller tokens
+		 ** - It ensures the total voting weight always sums to 100%
+		 **
+		 ** The 40% cap is a governance decision to balance between allowing popular tokens to have
+		 ** significant influence while still ensuring diversity in the voting power distribution.
+		 **
+		 ** @dev The actual implementation of this logic follows in the code below.
+		 ************************************************************************************************/
 		const maxWeight = 40;
 		let totalWeightAfterScaling = 0;
 		for (const token of Object.values(tokens)) {
