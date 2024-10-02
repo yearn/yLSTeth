@@ -179,7 +179,7 @@ const nav: TMenu[] = [
 	{path: '/claim', label: 'Claim'},
 	{path: '/apply', label: 'Apply'},
 	{path: '/propose', label: 'Propose'},
-	{path: 'https://docs.yearn.fi/getting-started/products/yeth/overview', label: 'Docs'}
+	{path: 'https://docs.yearn.fi/getting-started/products/ypools/yeth/overview', label: 'Docs'}
 ];
 
 function AppHeader(): ReactElement {
