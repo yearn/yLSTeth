@@ -244,7 +244,7 @@ function AppHeader({version}: {version: 'bootstrap' | 'live'}): ReactElement {
 						</button>
 					</div>
 					<div className={'flex w-1/3 justify-center'}>
-						<LogoYPools className={'mt-6 text-[#63C532]'} />
+						<LogoYPools className={'text-accent mt-6'} />
 					</div>
 					<div className={'flex w-1/3 items-center justify-end'}>
 						<NetworkSelector networks={[]} />
