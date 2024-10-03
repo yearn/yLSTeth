@@ -1,0 +1,14 @@
+{
+	"name": "yeth",
+	"version": "0.0.2",
+	"private": true,
+	"scripts": {
+		"dev": "next",
+		"dev:ts": "tsc --watch",
+		"start": "tsc && next build && next start",
+		"build": "tsc && next build"
+	},
+	"dependencies": {
+		"lib": "workspace:*"
+	}
+}

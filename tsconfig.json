@@ -2,10 +2,22 @@
 	"compilerOptions": {
 		"rootDirs": ["."],
 		"baseUrl": ".",
-		/* Basic Options */
+		"paths": {
+			"@yETH/*": ["packages/yeth/app/*"],
+			"@yUSD/*": ["packages/yusd/app/*"],
+
+			"@libAbi/*": ["packages/lib/abi/*"],
+			"@libComponents/*": ["packages/lib/components/*"],
+			"@libHooks/*": ["packages/lib/hooks/*"],
+			"@libIcons/*": ["packages/lib/icons/*"],
+			"@libUtils/*": ["packages/lib/utils/*"]
+		},
+		"types": ["bun-types"],
 		"target": "esnext",
 		"module": "esnext",
 		"lib": ["es6", "es7", "esnext", "dom"],
+		"allowImportingTsExtensions": true,
+		"moduleDetection": "force",
 		"allowJs": true,
 		"jsx": "preserve",
 		"removeComments": false,
@@ -31,11 +43,9 @@
 		"noEmit": true,
 		"incremental": true,
 		"isolatedModules": true,
-		"plugins": [
-			{
-				"name": "next"
-			}
-		]
+		"composite": true,
+		"downlevelIteration": true,
+		"plugins": [{"name": "next"}]
 	},
 	"exclude": ["node_modules"],
 	"include": [
@@ -43,13 +53,21 @@
 		"**/*.ts",
 		"**/*.tsx",
 		"**/*.d.tsx",
+		"packages",
+		"packages/*",
 		"public",
-		"postcss.config.js",
-		"tailwind.config.js",
-		"next.config.js",
-		"theme.config.js",
+		"public/manifest.json",
+		"stylelint.config",
+		"commitlint.config",
+		"packages/*/postcss.config.js",
+		"packages/*/tailwind.config.js",
+		"packages/*/next.config.js",
+		"packages/*/stylelint.config.js",
 		".eslintrc.js",
 		".next/types/**/*.ts",
-		"permit.ts.experimentation"
+		"jest.config.js",
+		"vitest.config.ts",
+		"worker/index.js",
+		"utils/*/*.json"
 	]
 }
