@@ -1,6 +1,5 @@
-import React from 'react';
+import React, {Fragment} from 'react';
 import localFont from 'next/font/local';
-import Head from 'next/head';
 import {useRouter} from 'next/router';
 import {arbitrum, base, fantom, mainnet, optimism, polygon} from 'viem/chains';
 import {AnimatePresence, motion} from 'framer-motion';
@@ -10,6 +9,8 @@ import {cl} from '@builtbymom/web3/utils/cl';
 import {motionVariants} from '@builtbymom/web3/utils/helpers';
 import {localhost} from '@builtbymom/web3/utils/wagmi';
 import AppHeader from '@libComponents/Header';
+import {Meta} from '@libComponents/Meta';
+import {WithFonts} from '@libComponents/WithFonts';
 import {BasketContextApp} from '@yETH/contexts/useBasket';
 import {InclusionContextApp} from '@yETH/contexts/useInclusion';
 import {LSTContextApp} from '@yETH/contexts/useLST';
@@ -88,42 +89,43 @@ function AppWrapper(props: AppProps & {supportedNetworks: Chain[]}): ReactElemen
 function MyApp(props: AppProps): ReactElement {
 	const supportedNetworks = [mainnet, optimism, polygon, fantom, base, arbitrum, localhost];
 	return (
-		<>
-			<Head>
-				<style
-					jsx
-					global>
-					{`
-						html {
-							font-family: ${aeonik.style.fontFamily};
-						}
-					`}
-				</style>
-			</Head>
-			<WithMom
-				supportedChains={supportedNetworks}
-				tokenLists={[
-					'https://raw.githubusercontent.com/SmolDapp/tokenLists/main/lists/yearn.json',
-					'https://raw.githubusercontent.com/SmolDapp/tokenLists/main/lists/smolAssets.json'
-				]}>
-				<PriceContextApp>
-					<WalletContextApp>
-						<LSTContextApp>
-							<BasketContextApp>
-								<InclusionContextApp>
-									<main className={cl('flex flex-col mb-32', aeonik.className)}>
-										<AppWrapper
-											supportedNetworks={supportedNetworks}
-											{...props}
-										/>
-									</main>
-								</InclusionContextApp>
-							</BasketContextApp>
-						</LSTContextApp>
-					</WalletContextApp>
-				</PriceContextApp>
-			</WithMom>
-		</>
+		<Fragment>
+			<Meta
+				title={'yETH'}
+				description={
+					'A basket of LSTs in a single token. Simple, straight forward, risk adjusted liquid staking yield.'
+				}
+				titleColor={'#FFFFFF'}
+				themeColor={'#5913FB'}
+				og={'https://yeth.yearn.fi/og.png'}
+				uri={'https://yeth.yearn.fi'}
+			/>
+			<WithFonts>
+				<WithMom
+					supportedChains={supportedNetworks}
+					tokenLists={[
+						'https://raw.githubusercontent.com/SmolDapp/tokenLists/main/lists/yearn.json',
+						'https://raw.githubusercontent.com/SmolDapp/tokenLists/main/lists/smolAssets.json'
+					]}>
+					<PriceContextApp>
+						<WalletContextApp>
+							<LSTContextApp>
+								<BasketContextApp>
+									<InclusionContextApp>
+										<main className={cl('flex flex-col mb-32', aeonik.className)}>
+											<AppWrapper
+												supportedNetworks={supportedNetworks}
+												{...props}
+											/>
+										</main>
+									</InclusionContextApp>
+								</BasketContextApp>
+							</LSTContextApp>
+						</WalletContextApp>
+					</PriceContextApp>
+				</WithMom>
+			</WithFonts>
+		</Fragment>
 	);
 }
 
