@@ -185,7 +185,7 @@ function AppHeader({version}: {version: 'bootstrap' | 'live'}): ReactElement {
 			];
 		}
 		return [
-			{path: '/', label: 'yUSD'},
+			{path: '/', label: 'Home'},
 			// {path: '/deposit', label: 'Deposit'},
 			{path: '/incentivize', label: 'Incentivize'},
 			{path: '/vote', label: 'Vote'},
