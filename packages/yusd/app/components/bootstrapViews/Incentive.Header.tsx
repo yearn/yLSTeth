@@ -24,7 +24,7 @@ function IncentiveHeader(): ReactElement {
 		}
 		return sum;
 	}, [groupIncentiveHistory.protocols]);
-
+	console.log(groupIncentiveHistory);
 	return (
 		<div className={'mb-10 flex w-full flex-col justify-center'}>
 			<h1 className={'text-3xl font-black md:text-8xl'}>{'Incentivize'}</h1>

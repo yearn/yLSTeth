@@ -1,7 +1,8 @@
 import React, {Fragment, useEffect, useMemo, useState} from 'react';
 import {useRouter} from 'next/router';
+import {zeroAddress} from 'viem';
 import {useChainID} from '@builtbymom/web3/hooks/useChainID';
-import {cl, formatAmount, formatPercent, toAddress, truncateHex} from '@builtbymom/web3/utils';
+import {cl, formatAmount, formatPercent, toAddress, truncateHex, zeroNormalizedBN} from '@builtbymom/web3/utils';
 import {ImageWithFallback} from '@libComponents/ImageWithFallback';
 import {IconChevronBottom} from '@yearn-finance/web-lib/icons/IconChevronBottom';
 import {SubIncentiveWrapper} from '@yUSD/components/bootstrapViews/SubIncentiveWrapper';
@@ -174,9 +175,10 @@ function IncentiveRow(props: {
 				<div className={'col-span-12 flex w-full flex-row items-center space-x-6 md:col-span-5'}>
 					<div className={'size-10 min-w-[40px]'}>
 						<ImageWithFallback
-							src={`https://assets.smold.app/api/token/${safeChainID}/${toAddress(
+							altSrc={`https://assets.smold.app/api/token/${safeChainID}/${toAddress(
 								props.item?.address
 							)}/logo-128.png`}
+							src={props.item.logoURI || ''}
 							alt={''}
 							unoptimized
 							width={40}
@@ -251,7 +253,7 @@ function IncentiveHistory(): ReactElement {
 		}
 		return 'Your total incentive (USD)';
 	}, [currentTab]);
-
+	console.log(assets);
 	return (
 		<div className={'mt-2 pt-8'}>
 			<div className={''}>
@@ -289,6 +291,20 @@ function IncentiveHistory(): ReactElement {
 						/>
 					);
 				})}
+				<IncentiveRow
+					totalIncentiveTitle={totalIncentiveTitle}
+					currentTab={currentTab}
+					item={{
+						address: zeroAddress,
+						balance: zeroNormalizedBN,
+						chainID: Number(process.env.DEFAULT_CHAIN_ID),
+						decimals: 18, // ?
+						index: -1,
+						name: 'This incentive will be distributed to all participant',
+						symbol: 'Extra Incentive',
+						value: 0
+					}}
+				/>
 			</div>
 		</div>
 	);
