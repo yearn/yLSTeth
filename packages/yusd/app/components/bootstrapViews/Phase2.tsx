@@ -2,6 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import {motion} from 'framer-motion';
 import HeroAsLottie from '@libComponents/HeroAsLottie';
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from '@radix-ui/react-tooltip';
 import {Button} from '@yearn-finance/web-lib/components/Button';
 import useBootstrap from '@yUSD/contexts/useBootstrap';
 import {customVariants} from '@yUSD/utils';
@@ -10,10 +11,29 @@ import {Timer} from './Timer';
 
 import type {ReactElement} from 'react';
 
+type TPhase = 'bootstrap' | 'launch-prep' | 'deployment';
+
 function Phase2(): ReactElement {
 	const {
 		periods: {depositEnd, depositStatus}
 	} = useBootstrap();
+	const phases: TPhase[] = ['bootstrap', 'launch-prep', 'deployment'];
+	const currentPhase = 'bootstrap';
+	const currentPhaseIndex = phases.indexOf(currentPhase);
+
+	const getPhaseDescription = (phase: TPhase): string => {
+		switch (phase) {
+			case 'bootstrap':
+				return 'Deposit and vote on which tokens to launch with, choose from 5-6 whitelisted assets or add your own. No withdrawals allowed.';
+			case 'launch-prep':
+				return 'Deposits are closed. The top 4 assets are selected and set as the initial pool weights. All other assets are converted into these.';
+			case 'deployment':
+				return "The pool is initialized, and we're live.";
+			default:
+				return 'Unknown phase';
+		}
+	};
+
 	return (
 		<section className={'absolute inset-x-0 grid grid-cols-12 gap-0 px-4 pt-10 md:gap-20 md:pt-12'}>
 			<div className={'col-span-12 mb-20 md:col-span-6 md:mb-0'}>
@@ -43,6 +63,40 @@ function Phase2(): ReactElement {
 				</div>
 				<div>
 					<div className={'flex flex-col'}>
+						<div className={'mb-8 w-full'}>
+							<div className={'mb-2 flex justify-between'}>
+								{phases.map((phase, index) => (
+									<TooltipProvider key={phase}>
+										<Tooltip delayDuration={100}>
+											<TooltipTrigger asChild>
+												<div className={'cursor-help text-center'}>
+													<div
+														className={`mx-auto mb-2 flex size-8 items-center justify-center rounded-full ${index <= currentPhaseIndex ? 'bg-accent' : 'bg-neutral-300'}`}>
+														<span className={'font-bold text-white'}>{index + 1}</span>
+													</div>
+													<p className={'text-sm capitalize'}>{phase.replace('-', ' ')}</p>
+												</div>
+											</TooltipTrigger>
+											<TooltipContent side={'bottom'}>
+												<div
+													className={
+														'max-w-xs border border-neutral-100 bg-white px-4 py-2 text-sm shadow-md'
+													}>
+													<p>{getPhaseDescription(phase)}</p>
+												</div>
+											</TooltipContent>
+										</Tooltip>
+									</TooltipProvider>
+								))}
+							</div>
+							<div className={'h-2 rounded-full bg-neutral-200'}>
+								<div
+									className={'bg-accent h-full rounded-full transition-all duration-500 ease-in-out'}
+									style={{width: `${((currentPhaseIndex + 1) / phases.length) * 100}%`}}
+								/>
+							</div>
+						</div>
+
 						<div className={'mb-6'}>
 							<p
 								title={'Deposit'}
