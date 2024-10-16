@@ -53,7 +53,7 @@ function WeightIncentiveSelector(): ReactElement {
 	const {currentNetworkTokenList} = useTokenList();
 	const [amountToSend, set_amountToSend] = useState<TNormalizedBN | undefined>(undefined);
 	const [possibleTokensToUse, set_possibleTokensToUse] = useState<TDict<TToken | undefined>>({});
-	const [lstToIncentive, set_lstToIncentive] = useState<TToken | undefined>();
+	const [tokenToIncentive, set_tokenToIncentive] = useState<TToken | undefined>();
 	const [tokenToUse, set_tokenToUse] = useState<TToken | undefined>();
 	const [approvalStatus, set_approvalStatus] = useState<TTxStatus>(defaultTxStatus);
 	const [depositStatus, set_depositStatus] = useState<TTxStatus>(defaultTxStatus);
@@ -227,7 +227,7 @@ function WeightIncentiveSelector(): ReactElement {
 				functionName: 'incentivize',
 				abi: BOOTSTRAP_ABI_NEW,
 				confirmation: 1,
-				args: [toAddress(lstToIncentive?.address), toAddress(tokenToUse.address), toBigInt(amountToSend?.raw)]
+				args: [toAddress(tokenToIncentive?.address), toAddress(tokenToUse.address), toBigInt(amountToSend?.raw)]
 			}
 		);
 		if (result.isSuccessful) {
@@ -248,7 +248,7 @@ function WeightIncentiveSelector(): ReactElement {
 	}, [
 		amountToSend?.raw,
 		isActive,
-		lstToIncentive?.address,
+		tokenToIncentive?.address,
 		onRefresh,
 		provider,
 		refetchAllowance,
@@ -261,17 +261,17 @@ function WeightIncentiveSelector(): ReactElement {
 
 	return (
 		<div className={'md:py-10'}>
-			<b className={'text-xl font-black'}>{'Select LST to incentivize '}</b>
+			<b className={'text-xl font-black'}>{'Select Token to incentivize'}</b>
 
 			<div className={'mt-4 grid w-full grid-cols-1 gap-2 md:grid-cols-2 md:gap-2 lg:grid-cols-4 lg:gap-4'}>
 				<div>
-					<p className={'pb-1 text-sm text-neutral-600 md:text-base'}>{'Select LST'}</p>
+					<p className={'pb-1 text-sm text-neutral-600 md:text-base'}>{'Select Token'}</p>
 					<ComboboxAddressInput
 						shouldDisplayBalance={false}
-						value={lstToIncentive?.address}
+						value={tokenToIncentive?.address}
 						buttonClassName={'border border-neutral-500 rounded-sm'}
 						possibleValues={basket} //TODO: Rename/remove this when we have a real LST
-						onChangeValue={set_lstToIncentive}
+						onChangeValue={set_tokenToIncentive}
 					/>
 					<p className={'hidden pt-1 text-xs lg:block'}>&nbsp;</p>
 				</div>
@@ -352,7 +352,7 @@ function WeightIncentiveSelector(): ReactElement {
 							incentiveStatus !== 'started' ||
 							toBigInt(amountToSend?.raw) === 0n ||
 							toBigInt(amountToSend?.raw) > balanceOf.raw ||
-							lstToIncentive === undefined ||
+							tokenToIncentive === undefined ||
 							isZeroAddress(tokenToUse?.address)
 						}
 						className={'yearn--button w-full rounded-md !text-sm'}>
