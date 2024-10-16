@@ -1,10 +1,12 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {encodeFunctionData} from 'viem';
+import {useBlockNumber} from 'wagmi';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {useAsyncTrigger} from '@builtbymom/web3/hooks/useAsyncTrigger';
 import {cl, decodeAsBigInt, formatAmount, toAddress, toNormalizedBN, truncateHex} from '@builtbymom/web3/utils';
 import {defaultTxStatus, retrieveConfig} from '@builtbymom/web3/utils/wagmi';
 import BOOTSTRAP_ABI_NEW from '@libAbi/bootstrap.abi.new';
+import {Counter} from '@libComponents/Counter';
 import {readContracts} from '@wagmi/core';
 import {Button} from '@yearn-finance/web-lib/components/Button';
 import {Modal} from '@yearn-finance/web-lib/components/Modal';
@@ -222,6 +224,8 @@ function Claim(): ReactElement {
 	const [isModalOpen, set_isModalOpen] = useState<boolean>(false);
 	const [className] = useState('pointer-events-none opacity-40');
 	const [refundStatus, set_refundStatus] = useState<TTxStatus>(defaultTxStatus);
+
+	const {data: blockNumber} = useBlockNumber({watch: true});
 
 	/************************************************************************************************
 	 ** Get Claimable Incentives
@@ -485,6 +489,10 @@ function Claim(): ReactElement {
 		}
 	}
 
+	useEffect(() => {
+		refreshClaimableIncentives();
+	}, [blockNumber, refreshClaimableIncentives]);
+
 	return (
 		<section className={'grid w-full grid-cols-1 pt-10 md:mb-20 md:px-4 md:pt-12'}>
 			<div className={'mb-20 md:mb-0'}>
@@ -493,11 +501,13 @@ function Claim(): ReactElement {
 					<div className={cl('flex flex-col md:w-1/2 lg:w-[352px]')}>
 						<div className={'mb-4 w-full bg-neutral-100 p-4'}>
 							<p className={'pb-2'}>{'Your claimable incentives, $'}</p>
-							<b
-								suppressHydrationWarning
-								className={'font-number text-3xl'}>
-								{`$${formatAmount(totalToClaim, 2, 2)}`}
-							</b>
+
+							<span className={'font-number text-3xl font-bold'}>{'$'}</span>
+							<Counter
+								value={totalToClaim}
+								decimals={2}
+								className={'font-number text-3xl font-bold'}
+							/>
 						</div>
 						<Button
 							onClick={(): void => set_isModalOpen(true)}
