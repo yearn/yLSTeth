@@ -173,11 +173,18 @@ function IncentiveRow(props: {
 			}}>
 			<summary className={cl('grid grid-cols-12 p-4', hasIncentives ? 'cursor-pointer' : '!cursor-default')}>
 				<div className={'col-span-12 flex w-full flex-row items-center space-x-6 md:col-span-5'}>
-					<div className={'size-10 min-w-[40px]'}>
+					<div
+						className={cl(
+							'size-10 min-w-[40px] border rounded-full',
+							props.item?.address === zeroAddress
+								? 'border-neutral-900/10 bg-neutral-600/5'
+								: 'border-transparent'
+						)}>
 						<ImageWithFallback
 							altSrc={`https://assets.smold.app/api/token/${safeChainID}/${toAddress(
 								props.item?.address
 							)}/logo-128.png`}
+							className={props.item?.address === zeroAddress ? 'opacity-0' : ''}
 							src={props.item.logoURI || ''}
 							alt={''}
 							unoptimized
