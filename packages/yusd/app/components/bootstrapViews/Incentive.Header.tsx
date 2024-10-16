@@ -36,7 +36,7 @@ function IncentiveHeader(): ReactElement {
 				<div className={'w-full'}>
 					<p className={'text-neutral-700'}>
 						{
-							'Pick which STABLE you are incentivizing for, and which token you’ll be posting the incentive in. Remember, if your token is not included in the final yUSD basket you’ll be refunded the full amount of your incentive.'
+							'Time to incentive your token. Pick me vibes. And hey, no worries — if you don’t make the final yUSD basket, you get a full refund on your incentive. np.'
 						}
 					</p>
 				</div>

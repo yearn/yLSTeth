@@ -106,19 +106,19 @@ function Phase2(): ReactElement {
 							<div className={'text-neutral-700'}>
 								<p>
 									{
-										'Depositooooors! Lock ETH in the Bootstrapper contract and recieve st-yETH at a 1:1 rate (nice when the maths is simple eh?)'
+										'Depositors assemble! Lock stablecoins in the Bootstrapper contract and get st-yUSD at a lovely 1:1 ratio (because simple is beautiful).'
 									}
 								</p>
 								&nbsp;
 								<p>
 									{
-										'This ETH is locked for the 16 week duration of the Bootstrapping period in which time you can vote on LSTs to include in yETH in exchange for bri...incentives.'
+										'Your stable coins will be locked for xxx weeks, during which you get to vote on which yield bearing stables belong in yUSD. Plus, you get incentives don’t let that governance power go to your head anon.'
 									}
 								</p>
 								&nbsp;
 								<p>
 									{
-										'You’ll get incentives from the LSTs that end up in the yETH basket, whether or not you voted from them. So no need for clever games, vote however you want. Plus you’ll be receiving the yield from the LSTs during the lock up period. Win win. '
+										'And here’s the kicker—no need for fancy strategies. You’ll earn incentives from all yield bearing stablesthat end up in the yUSD basket, regardless of your votes. On top of that, you’ll be raking in yield during the entire lock-up period. Winning all around.'
 									}
 								</p>
 							</div>
@@ -142,13 +142,13 @@ function Phase2(): ReactElement {
 								&nbsp;
 								<p>
 									{
-										'If your LST does not get included in yETH (sad), you’ll be able to claim back the full incentive amount (happy).'
+										'If your Token does not get included in yUSD (sad), you’ll be able to claim back the full incentive amount (happy).'
 									}
 								</p>
 								&nbsp;
 								<p>
 									{
-										'If your LST is included in yETH, your incentive will be distributed to all st-yETH holders that participated in the voting process, whether they voted for you or not.'
+										'If your Token is included in yUSD, your incentive will be distributed to all st-yUSD holders that participated in the voting process, whether they voted for you or not.'
 									}
 								</p>
 							</div>

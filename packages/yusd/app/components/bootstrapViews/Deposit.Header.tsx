@@ -33,12 +33,12 @@ function DepositHeader(): ReactElement {
 				/>
 				<div className={'mt-6 flex w-full flex-col items-start gap-4 md:grid-cols-1 md:flex-row md:gap-6'}>
 					<div className={'w-full text-neutral-700'}>
-						<p>{'Decide how much ETH you want to lock as st-yUSD.'}</p>
-						<p>{'Remember this ETH will be locked for 16 weeks, but by holding st-yUSD:'}</p>
-						<p className={'mt-4 font-black'}>
+						<p>{'Decide how much stablecoin you want to bootstrap as st-yUSD.'}</p>
+						<p>
 							{
-								'You’ll receive incentives for voting on which STABLEs will be included in yUSD. Ka-ching.'
+								'Your stable will be locked for xxx weeks, but here’s the bright side: by holding st-yUSD, '
 							}
+							{'you’ll earn incentives for voting on which stables make it into yUSD. Lessssgo!'}
 						</p>
 					</div>
 					<div

@@ -200,12 +200,12 @@ function ClaimHeading(): ReactElement {
 					status={claimStatus}
 				/>
 			</b>
+
 			<p className={'pt-8 text-neutral-700'}>
-				{
-					'If you voted for any LSTs you’d like to see included in yETH, you’re eligble to recieve incentives from the top 5 protocols (even if you didn’t vote for them).'
-				}
+				{claimBegin
+					? 'Anon, you crushed your civic duty on-chain. Now, it’s reward time! Go ahead and claim your perks. Enjoy the spoils!'
+					: 'Hold your horses anon, you can claim soon.'}
 			</p>
-			<p className={'text-neutral-700'}>{' But hold your horses anon, you can claim soon.'}</p>
 		</div>
 	);
 }
