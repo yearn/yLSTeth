@@ -12,7 +12,7 @@ import {ImageWithFallback} from '@libComponents/ImageWithFallback';
 import useAPR from '@libHooks/useAPR';
 import IconChevronBoth from '@libIcons/IconChevronBoth';
 import {useMountEffect, useUnmountEffect} from '@react-hookz/web';
-import ViewDeposit from '@yUSD/components/views/Deposit';
+import ViewDeposit from '@yUSD/components/bootstrapViews/Deposit';
 import ViewStake from '@yUSD/components/views/Stake';
 import ViewSwap from '@yUSD/components/views/Swap';
 import LSTInPool from '@yUSD/components/views/ViewLSTInPool';

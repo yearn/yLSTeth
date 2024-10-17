@@ -4,15 +4,16 @@ import {useChainID} from '@builtbymom/web3/hooks/useChainID';
 import {cl, formatAmount, formatPercent, toAddress, truncateHex} from '@builtbymom/web3/utils';
 import {ImageWithFallback} from '@libComponents/ImageWithFallback';
 import Toggle from '@libComponents/toggle';
-import IconSpinner from '@libIcons/IconSpinner';
 import {IconChevronBottom} from '@yearn-finance/web-lib/icons/IconChevronBottom';
-import {SubIncentiveWrapper} from '@yUSD/components/views/SubIncentiveWrapper';
 import useBasket from '@yUSD/contexts/useBasket';
 import useInclusion from '@yUSD/contexts/useInclusion';
 import useLST from '@yUSD/contexts/useLST';
 import {usePrices} from '@yUSD/contexts/usePrices';
 import {NO_CHANGE_LST_LIKE} from '@yUSD/utils/constants';
 import {getCurrentEpochNumber} from '@yUSD/utils/epochs';
+
+import IconSpinner from '../../../../lib/icons/IconSpinner';
+import {SubIncentiveWrapper} from './SubIncentiveWrapper';
 
 import type {ReactElement} from 'react';
 import type {TDict} from '@builtbymom/web3/types';
@@ -25,7 +26,7 @@ function IncentiveRow(props: {
 }): ReactElement {
 	const {address} = useWeb3();
 	const {getPrice} = usePrices();
-	const {totalDepositedETH} = useLST();
+	const {totalDeposited} = useLST();
 	const {safeChainID} = useChainID(Number(process.env.DEFAULT_CHAIN_ID));
 
 	/**************************************************************************
@@ -55,12 +56,12 @@ function IncentiveRow(props: {
 			for (const eachIncentive of incentive) {
 				const price = getPrice({address: eachIncentive.address});
 				const value = eachIncentive.amount.normalized * price.normalized;
-				const usdPerStakedBasketToken = value / totalDepositedETH.normalized;
+				const usdPerStakedBasketToken = value / totalDeposited.normalized;
 				sum += usdPerStakedBasketToken;
 			}
 		}
 		return sum;
-	}, [getPrice, props.incentives, totalDepositedETH.normalized]);
+	}, [getPrice, props.incentives, totalDeposited.normalized]);
 
 	/**************************************************************************
 	 ** This method calculates the estimated APR for the candidate.
@@ -71,13 +72,13 @@ function IncentiveRow(props: {
 			// We don't care about this level for candidates incentives
 			for (const eachIncentive of incentive) {
 				const price = getPrice({address: eachIncentive.address});
-				const basketTokenPrice = getPrice({address: toAddress(process.env.STYUSD_ADDRESS)});
+				const basketTokenPrice = getPrice({address: toAddress(process.env.STYETH_ADDRESS)});
 				const value = eachIncentive.amount.normalized * price.normalized;
-				sum += ((value * 12) / totalDepositedETH.normalized) * basketTokenPrice.normalized;
+				sum += ((value * 12) / totalDeposited.normalized) * basketTokenPrice.normalized;
 			}
 		}
 		return sum;
-	}, [getPrice, props.incentives, totalDepositedETH.normalized]);
+	}, [getPrice, props.incentives, totalDeposited.normalized]);
 
 	const allIncentives = useMemo((): TTokenIncentive[] => {
 		const flattenIncentives = Object.values(props.incentives || {}).flat();
@@ -140,7 +141,7 @@ function IncentiveRow(props: {
 					</p>
 				</div>
 				<div className={'col-span-12 mt-2 flex justify-between md:col-span-2 md:mt-0 md:justify-end'}>
-					<small className={'block text-neutral-500 md:hidden'}>{'USD/st-yUSD'}</small>
+					<small className={'block text-neutral-500 md:hidden'}>{'USD/st-yETH'}</small>
 					<p
 						suppressHydrationWarning
 						className={'font-number'}>
@@ -148,7 +149,7 @@ function IncentiveRow(props: {
 					</p>
 				</div>
 				<div className={'col-span-12 mt-2 flex justify-between md:col-span-2 md:mt-0 md:justify-end'}>
-					<small className={'block text-neutral-500 md:hidden'}>{'st-yUSD vAPR'}</small>
+					<small className={'block text-neutral-500 md:hidden'}>{'st-yETH vAPR'}</small>
 					<p
 						suppressHydrationWarning
 						className={'font-number'}>
@@ -174,8 +175,8 @@ function IncentiveHistory(props: {
 	set_epochToDisplay: (epoch: number) => void;
 	currentTab: 'current' | 'potential';
 }): ReactElement {
-	const {assets, weightIncentives, isLoaded: isWeightLoaded} = useBasket();
 	const {candidates, inclusionIncentives, isLoaded: isInclusionLoaded} = useInclusion();
+	const {assets, weightIncentives, isLoaded: isWeightLoaded} = useBasket();
 	const [shouldDisplayUserIncentive, set_shouldDisplayUserIncentive] = useState<boolean>(false);
 
 	/**********************************************************************************************
@@ -242,7 +243,9 @@ function IncentiveHistory(props: {
 					<div className={'flex flex-row items-center space-x-2'}>
 						<p
 							className={cl(
-								shouldDisplayUserIncentive ? 'font-bold text-accent' : 'font-normal text-neutral-600'
+								shouldDisplayUserIncentive
+									? 'font-bold text-purple-300'
+									: 'font-normal text-neutral-600'
 							)}>
 							{'Show my incentives'}
 						</p>
@@ -266,10 +269,10 @@ function IncentiveHistory(props: {
 						</p>
 					</div>
 					<div className={'col-span-2 flex justify-end'}>
-						<p className={'group flex flex-row text-xs text-neutral-500 md:-mr-2'}>{'USD/st-yUSD'}</p>
+						<p className={'group flex flex-row text-xs text-neutral-500 md:-mr-2'}>{'USD/st-yETH'}</p>
 					</div>
 					<div className={'col-span-2 flex justify-end'}>
-						<p className={'group flex flex-row text-xs text-neutral-500 md:-mr-2'}>{'st-yUSD vAPR'}</p>
+						<p className={'group flex flex-row text-xs text-neutral-500 md:-mr-2'}>{'st-yETH vAPR'}</p>
 					</div>
 					<div className={'col-span-1 flex justify-end'} />
 				</div>

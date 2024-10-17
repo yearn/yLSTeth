@@ -21,6 +21,7 @@ import {
 } from '@builtbymom/web3/utils';
 import {approveERC20, defaultTxStatus} from '@builtbymom/web3/utils/wagmi';
 import ComboboxAddressInput from '@libComponents/ComboboxAddressInput';
+import {ImageWithFallback} from '@libComponents/ImageWithFallback';
 import {useDeepCompareEffect} from '@react-hookz/web';
 import {Button} from '@yearn-finance/web-lib/components/Button';
 import {depositInclusionIncentive, depositWeightIncentive} from '@yUSD/actions';
@@ -28,8 +29,6 @@ import useBasket from '@yUSD/contexts/useBasket';
 import useInclusion from '@yUSD/contexts/useInclusion';
 import {ETH_TOKEN} from '@yUSD/tokens';
 import {NO_CHANGE_LST_LIKE} from '@yUSD/utils/constants';
-
-import {ImageWithFallback} from '../../../../lib/components/ImageWithFallback';
 
 import type {ChangeEvent, ReactElement} from 'react';
 import type {TDict, TNormalizedBN, TToken} from '@builtbymom/web3/types';
@@ -61,7 +60,7 @@ function IncentiveMenuTabs(props: {
 					}}
 					className={cl(
 						'mx-4 mb-2 text-lg transition-colors',
-						props.currentTab === 'current' ? 'text-accent font-bold' : 'text-neutral-400'
+						props.currentTab === 'current' ? 'text-purple-300 font-bold' : 'text-neutral-400'
 					)}>
 					{'Weight votes'}
 				</button>
@@ -71,7 +70,7 @@ function IncentiveMenuTabs(props: {
 					}}
 					className={cl(
 						'mx-4 mb-2 text-lg transition-colors',
-						props.currentTab === 'potential' ? 'text-accent font-bold' : 'text-neutral-400'
+						props.currentTab === 'potential' ? 'text-purple-300 font-bold' : 'text-neutral-400'
 					)}>
 					{'Inclusion votes'}
 				</button>
@@ -79,7 +78,7 @@ function IncentiveMenuTabs(props: {
 					<div
 						className={cl(
 							'h-full w-fit transition-colors ml-4',
-							props.currentTab === 'current' ? 'bg-accent' : 'bg-transparent'
+							props.currentTab === 'current' ? 'bg-purple-300' : 'bg-transparent'
 						)}>
 						<button className={'pointer-events-none invisible h-0 p-0 text-lg font-bold opacity-0'}>
 							{'Weight votes'}
@@ -88,7 +87,7 @@ function IncentiveMenuTabs(props: {
 					<div
 						className={cl(
 							'h-full w-fit transition-colors ml-4',
-							props.currentTab === 'potential' ? 'bg-accent' : 'bg-transparent'
+							props.currentTab === 'potential' ? 'bg-purple-300' : 'bg-transparent'
 						)}>
 						<button className={'pointer-events-none invisible h-0 p-0 text-lg font-bold opacity-0'}>
 							{'Inclusion votes'}
@@ -108,8 +107,8 @@ function WeightIncentiveSelector(props: {isIncentivePeriodOpen: boolean}): React
 	const {currentNetworkTokenList} = useTokenList();
 	const [amountToSend, set_amountToSend] = useState<TNormalizedBN | undefined>(undefined);
 	const [possibleTokensToUse, set_possibleTokensToUse] = useState<TDict<TToken | undefined>>({});
-	const [lstToIncentive, set_lstToIncentive] = useState<TToken | undefined>();
-	const [tokenToUse, set_tokenToUse] = useState<TToken | undefined>();
+	const [lstToIncentive, set_lstToIncentive] = useState<TToken | undefined>(undefined);
+	const [tokenToUse, set_tokenToUse] = useState<TToken | undefined>(undefined);
 	const [approvalStatus, set_approvalStatus] = useState<TTxStatus>(defaultTxStatus);
 	const [depositStatus, set_depositStatus] = useState<TTxStatus>(defaultTxStatus);
 	const {data: hasAllowance, refetch: refetchAllowance} = useReadContract({
@@ -242,7 +241,8 @@ function WeightIncentiveSelector(props: {isIncentivePeriodOpen: boolean}): React
 			contractAddress: tokenToUse.address,
 			spenderAddress: toAddress(process.env.WEIGHT_INCENTIVES_ADDRESS),
 			amount: toBigInt(0),
-			statusHandler: set_approvalStatus
+			statusHandler: set_approvalStatus,
+			confirmation: 1
 		});
 		if (result.isSuccessful) {
 			refetchAllowance();
@@ -325,7 +325,7 @@ function WeightIncentiveSelector(props: {isIncentivePeriodOpen: boolean}): React
 								{}
 							)
 						}}
-						onChangeValue={set_lstToIncentive}
+						onChangeValue={selected => set_lstToIncentive(selected as TToken)}
 					/>
 					<p className={'hidden pt-1 text-xs lg:block'}>&nbsp;</p>
 				</div>
@@ -338,7 +338,7 @@ function WeightIncentiveSelector(props: {isIncentivePeriodOpen: boolean}): React
 						value={tokenToUse?.address}
 						possibleValues={possibleTokensToUse}
 						onAddValue={set_possibleTokensToUse}
-						onChangeValue={set_tokenToUse}
+						onChangeValue={selected => set_tokenToUse(selected as TToken)}
 					/>
 					<p className={'hidden pt-1 text-xs lg:block'}>&nbsp;</p>
 				</div>
@@ -379,7 +379,7 @@ function WeightIncentiveSelector(props: {isIncentivePeriodOpen: boolean}): React
 								tabIndex={-1}
 								onClick={(): void => updateToPercent(100)}
 								className={cl(
-									'px-2 py-1 text-xs rounded-md border border-accent transition-colors bg-accent text-white'
+									'px-2 py-1 text-xs rounded-md border border-purple-300 transition-colors bg-purple-300 text-white'
 								)}>
 								{'Max'}
 							</button>
@@ -557,7 +557,8 @@ function InclusionIncentiveSelector(props: {isIncentivePeriodOpen: boolean}): Re
 			contractAddress: tokenToUse.address,
 			spenderAddress: toAddress(process.env.INCLUSION_INCENTIVES_ADDRESS),
 			amount: toBigInt(amountToSend?.raw),
-			statusHandler: set_approvalStatus
+			statusHandler: set_approvalStatus,
+			confirmation: 1
 		});
 		if (result.isSuccessful) {
 			refetchAllowance();
@@ -637,7 +638,7 @@ function InclusionIncentiveSelector(props: {isIncentivePeriodOpen: boolean}): Re
 								{}
 							)
 						}}
-						onChangeValue={set_lstToIncentive}
+						onChangeValue={selected => set_lstToIncentive(selected as TToken)}
 					/>
 					<p className={'hidden pt-1 text-xs lg:block'}>&nbsp;</p>
 				</div>
@@ -648,9 +649,9 @@ function InclusionIncentiveSelector(props: {isIncentivePeriodOpen: boolean}): Re
 					</p>
 					<ComboboxAddressInput
 						value={tokenToUse?.address}
-						possibleValues={possibleTokensToUse}
+						possibleValues={possibleTokensToUse as TDict<TToken | undefined>}
 						onAddValue={set_possibleTokensToUse}
-						onChangeValue={set_tokenToUse}
+						onChangeValue={(selected): void => set_tokenToUse(selected as TToken)}
 					/>
 					<p className={'hidden pt-1 text-xs lg:block'}>&nbsp;</p>
 				</div>
@@ -691,7 +692,7 @@ function InclusionIncentiveSelector(props: {isIncentivePeriodOpen: boolean}): Re
 								tabIndex={-1}
 								onClick={(): void => updateToPercent(100)}
 								className={cl(
-									'px-2 py-1 text-xs rounded-md border border-accent transition-colors bg-accent text-white'
+									'px-2 py-1 text-xs rounded-md border border-purple-300 transition-colors bg-purple-300 text-white'
 								)}>
 								{'Max'}
 							</button>

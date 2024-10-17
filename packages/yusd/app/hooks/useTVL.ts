@@ -3,12 +3,11 @@ import {useReadContract} from 'wagmi';
 import {toAddress, toNormalizedBN, zeroNormalizedBN} from '@builtbymom/web3/utils';
 import {BASKET_ABI} from '@libAbi/basket.abi';
 import {useFetch} from '@libHooks/useFetch';
-import {yDaemonPricesSchema} from '@libUtils/types';
+import {type TYDaemonPrices, yDaemonPricesSchema} from '@libUtils/types';
 import {useYDaemonBaseURI} from '@yearn-finance/web-lib/hooks/useYDaemonBaseURI';
 import {YUSD_TOKEN} from '@yUSD/tokens';
 
 import type {TNormalizedBN} from '@builtbymom/web3/types';
-import type {TYDaemonPrices} from '@libUtils/types';
 
 export type TTVLData = {TVL: number; TAL: TNormalizedBN; isLoaded: boolean};
 function useTVL(): TTVLData {

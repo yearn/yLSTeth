@@ -2,16 +2,24 @@ import React from 'react';
 import {motion} from 'framer-motion';
 import HeroAsLottie from '@libComponents/HeroAsLottie';
 import {useTimer} from '@libHooks/useTimer';
-import useBootstrap from '@yUSD/contexts/useBootstrap';
+import {useEpoch} from '@yUSD/hooks/useEpoch';
 import {customVariants} from '@yUSD/utils';
 
 import type {ReactElement} from 'react';
 
-function Timer(): ReactElement {
-	const {periods} = useBootstrap();
-	const {voteBegin, voteEnd, voteStatus} = periods || {};
-	const time = useTimer({endTime: voteStatus === 'started' ? Number(voteEnd) : Number(voteBegin)});
-	return <>{voteStatus === 'ended' ? 'ended' : voteStatus === 'started' ? time : `in ${time}`}</>;
+function Timer({isIncentivePeriodClosed}: {isIncentivePeriodClosed: boolean}): ReactElement {
+	const {endPeriod} = useEpoch();
+	const time = useTimer({endTime: Number(endPeriod - 3 * 24 * 3600)});
+
+	return (
+		<>
+			<b
+				suppressHydrationWarning
+				className={'font-number text-accent mt-2 text-3xl leading-10'}>
+				{isIncentivePeriodClosed ? 'closed' : `Ends in ${time}`}
+			</b>
+		</>
+	);
 }
 
 function Phase3({variant}: {variant: string[]}): ReactElement {
@@ -45,7 +53,7 @@ function Phase3({variant}: {variant: string[]}): ReactElement {
 						initial={'initial'}
 						animate={'move'}
 						exit={'exit'}>
-						<Timer />
+						<Timer isIncentivePeriodClosed={false} />
 					</motion.b>
 				</div>
 
