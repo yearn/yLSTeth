@@ -67,6 +67,25 @@ function DepositSelector({
 
 	const hasAllowance = toBigInt(allowance) >= toBigInt(amountToSend?.raw);
 
+	const {data: rate} = useReadContract({
+		abi: [
+			{
+				inputs: [{name: '_asset', type: 'address'}],
+				name: 'rate',
+				outputs: [{name: '', type: 'uint256'}],
+				stateMutability: 'view',
+				type: 'function'
+			}
+		],
+		address: toAddress('0x3d2FdAb1fA27ddDe9dcB77f151768beB839bC9ED'),
+		functionName: 'rate',
+		chainId: Number(process.env.DEFAULT_CHAIN_ID),
+		args: [toAddress(tokenToUse?.address)]
+	});
+
+	const stTokenToReceive =
+		toNormalizedBN(toBigInt(rate), 18).normalized * toNormalizedBN(toBigInt(amountToSend?.raw), 18).normalized;
+
 	/************************************************************************************************
 	 ** useDeepCompareEffect: Fetches and sets possible tokens to use
 	 ** - Filters tokens from the current network token list
@@ -376,7 +395,6 @@ function DepositSelector({
 					possibleValues={possibleTokensToVoteFor}
 					onChangeValue={set_tokenToVoteFor}
 				/>
-				<p className={'hidden pt-1 text-xs lg:block'}>&nbsp;</p>
 			</div>
 
 			<div className={'w-full pt-4 md:pt-0'}>
@@ -394,7 +412,11 @@ function DepositSelector({
 					className={'yearn--button w-full rounded-md !text-sm'}>
 					{hasAllowance ? 'Deposit' : 'Approve'}
 				</Button>
-				<p className={'pl-2 pt-1 text-xs text-neutral-600'}>&nbsp;</p>
+				<small
+					suppressHydrationWarning
+					className={'pl-2 pt-1 text-xs text-neutral-600'}>
+					{`You will receive ${formatAmount(stTokenToReceive, 2, 6)} st-yUSD`}
+				</small>
 			</div>
 		</div>
 	);

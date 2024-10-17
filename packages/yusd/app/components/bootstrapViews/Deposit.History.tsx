@@ -140,6 +140,7 @@ function HistoryContent({history, isLoading}: {history: TDepositHistory[]; isLoa
  ** @param {boolean} isLoading - Flag indicating if the data is still loading
  ************************************************************************************************/
 export function DepositHistory({history, isLoading}: {history: TDepositHistory[]; isLoading: boolean}): ReactElement {
+	console.log(history);
 	return (
 		<div>
 			<div
