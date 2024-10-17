@@ -184,7 +184,7 @@ function IncentiveRow(props: {
 							altSrc={`https://assets.smold.app/api/token/${safeChainID}/${toAddress(
 								props.item?.address
 							)}/logo-128.png`}
-							className={props.item?.address === zeroAddress ? 'opacity-0' : ''}
+							className={cl(props.item?.address === zeroAddress ? 'opacity-0' : '', 'rounded-full')}
 							src={props.item.logoURI || ''}
 							alt={''}
 							unoptimized
@@ -288,16 +288,6 @@ function IncentiveHistory(): ReactElement {
 			</div>
 
 			<div className={'min-h-[74px] bg-neutral-100'}>
-				{assets.map((item): ReactElement => {
-					return (
-						<IncentiveRow
-							totalIncentiveTitle={totalIncentiveTitle}
-							key={item.address}
-							currentTab={currentTab}
-							item={item}
-						/>
-					);
-				})}
 				<IncentiveRow
 					totalIncentiveTitle={totalIncentiveTitle}
 					currentTab={currentTab}
@@ -312,6 +302,16 @@ function IncentiveHistory(): ReactElement {
 						value: 0
 					}}
 				/>
+				{assets.map((item): ReactElement => {
+					return (
+						<IncentiveRow
+							totalIncentiveTitle={totalIncentiveTitle}
+							key={item.address}
+							currentTab={currentTab}
+							item={item}
+						/>
+					);
+				})}
 			</div>
 		</div>
 	);
