@@ -3,6 +3,7 @@ import Link from 'next/link';
 import {formatTAmount} from '@builtbymom/web3/utils';
 import {ImageWithFallback} from '@libComponents/ImageWithFallback';
 import {IconLinkOut} from '@yearn-finance/web-lib/icons/IconLinkOut';
+import {possibleTokensToVoteFor} from '@yUSD/utils/constants';
 
 import type {TDepositHistory} from '../views/Deposit.types';
 
@@ -46,6 +47,10 @@ function HistoryRowSkeleton(): ReactElement {
  ** @param {TDepositHistory} props - The deposit history data for this row
  ************************************************************************************************/
 function HistoryRow({block, asset, amount, stTokenAmount, votedAsset, txHash}: TDepositHistory): ReactElement {
+	console.log(votedAsset);
+	console.log(
+		`${process.env.SMOL_ASSETS_URL}/token/${Number(process.env.DEFAULT_CHAIN_ID)}/${votedAsset?.address}/logo-32.png`
+	);
 	return (
 		<div className={'flex flex-col md:grid md:grid-cols-11'}>
 			<div className={'col-span-3 flex justify-between md:justify-start'}>
@@ -65,7 +70,7 @@ function HistoryRow({block, asset, amount, stTokenAmount, votedAsset, txHash}: T
 						alt={''}
 						unoptimized
 						key={asset?.logoURI || ''}
-						src={asset?.logoURI || ''}
+						src={possibleTokensToVoteFor[asset.address]?.logoURI || asset?.logoURI || ''}
 						altSrc={`${process.env.SMOL_ASSETS_URL}/token/${Number(process.env.DEFAULT_CHAIN_ID)}/${asset?.address}/logo-32.png`}
 						width={24}
 						height={24}
@@ -90,7 +95,7 @@ function HistoryRow({block, asset, amount, stTokenAmount, votedAsset, txHash}: T
 						alt={''}
 						unoptimized
 						key={votedAsset?.logoURI || ''}
-						src={votedAsset?.logoURI || ''}
+						src={possibleTokensToVoteFor[votedAsset.address]?.logoURI || votedAsset?.logoURI || ''}
 						altSrc={`${process.env.SMOL_ASSETS_URL}/token/${Number(process.env.DEFAULT_CHAIN_ID)}/${votedAsset?.address}/logo-32.png`}
 						width={24}
 						height={24}

@@ -105,7 +105,7 @@ function DepositSelector({
 				possibleDestinationsTokens[toAddress(eachAddress)] = possibleTokensToVoteFor[eachAddress];
 			}
 		}
-		console.log(possibleDestinationsTokens);
+
 		set_possibleTokensToUse(possibleDestinationsTokens);
 	}, [currentNetworkTokenList, safeChainID]);
 
