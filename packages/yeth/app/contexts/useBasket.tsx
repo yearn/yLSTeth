@@ -469,15 +469,6 @@ export const BasketContextApp = ({children}: {children: React.ReactElement}): Re
 		[pastWeightIncentives]
 	);
 
-	console.warn({
-		assets,
-		basket,
-		weightIncentives,
-		currentVotesForNoChanges,
-		areIncentivesLoaded,
-		pastWeightIncentives
-	});
-
 	const contextValue = useMemo(
 		(): TUseBasketProps => ({
 			assets,

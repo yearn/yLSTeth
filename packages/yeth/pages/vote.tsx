@@ -476,7 +476,7 @@ function OnChainProposal(props: {
 			</div>
 			<b className={'text-2xl'}>{data.title}</b>
 			<div className={'markdown scrollbar-show max-h-60 overflow-y-scroll'}>
-				<Markdown>{data.description}</Markdown>
+				<Markdown>{data?.description || (data as unknown as string) || ''}</Markdown>
 			</div>
 			<div>
 				<dl className={'-mt-4 grid grid-cols-2 gap-0 rounded bg-neutral-200 p-4'}>
