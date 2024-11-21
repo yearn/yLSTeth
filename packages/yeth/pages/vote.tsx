@@ -771,7 +771,7 @@ function ProposalWrapper(): ReactElement {
 				votedProposals++;
 			}
 		}
-		set_shouldVoteForProposals(votedProposals > 0);
+		set_shouldVoteForProposals(votedProposals === 0);
 	}, [address]);
 
 	/**********************************************************************************************
