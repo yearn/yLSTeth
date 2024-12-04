@@ -95,7 +95,7 @@ export const BasketContextApp = ({children}: {children: React.ReactElement}): Re
 		 * will allow us to retrieve the address of each asset
 		 *********************************************************************/
 		const numAssets = await readContract(retrieveConfig(), {
-			address: toAddress(process.env.BASKET_ADDRESS),
+			address: toAddress(process.env.POOL_ADDRESS),
 			abi: BASKET_ABI,
 			functionName: 'num_assets',
 			chainId: Number(process.env.DEFAULT_CHAIN_ID)
@@ -107,7 +107,7 @@ export const BasketContextApp = ({children}: {children: React.ReactElement}): Re
 		 *********************************************************************/
 		const allAssets = await readContracts(retrieveConfig(), {
 			contracts: Array.from({length: Number(numAssets)}, (_, i) => ({
-				address: toAddress(process.env.BASKET_ADDRESS),
+				address: toAddress(process.env.POOL_ADDRESS),
 				abi: BASKET_ABI,
 				functionName: 'assets',
 				chainId: Number(process.env.DEFAULT_CHAIN_ID),
