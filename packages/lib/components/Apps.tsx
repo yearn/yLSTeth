@@ -76,8 +76,8 @@ export const APPS = {
 		icon: (
 			<LogoYearn
 				className={'!size-6 !max-h-6 !max-w-6'}
-				back={'text-neutral-0'}
-				front={'text-neutral-900'}
+				back={'text-black'}
+				front={'text-white'}
 			/>
 		)
 	},
@@ -102,7 +102,7 @@ export const APPS = {
 		icon: (
 			<LogoYearn
 				className={'!size-6 !max-h-6 !max-w-6'}
-				back={'text-primary'}
+				back={'text-[#0675F9]'}
 				front={'text-white'}
 			/>
 		)
