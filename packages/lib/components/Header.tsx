@@ -6,10 +6,11 @@ import {useConnect, usePublicClient} from 'wagmi';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {truncateHex} from '@builtbymom/web3/utils';
 import {retrieveConfig} from '@builtbymom/web3/utils/wagmi';
-import LogoYPools from '@libIcons/LogoYUSD';
 import {useAccountModal, useChainModal} from '@rainbow-me/rainbowkit';
 import {ModalMobileMenu} from '@yearn-finance/web-lib/components/ModalMobileMenu';
 import {IconWallet} from '@yearn-finance/web-lib/icons/IconWallet';
+
+import {LogoPopover} from './LogoPopover';
 
 import type {ReactElement} from 'react';
 import type {Chain} from 'viem';
@@ -244,7 +245,7 @@ function AppHeader({version}: {version: 'bootstrap' | 'live'}): ReactElement {
 						</button>
 					</div>
 					<div className={'flex w-1/3 justify-center'}>
-						<LogoYPools className={'text-accent mt-6'} />
+						<LogoPopover />
 					</div>
 					<div className={'flex w-1/3 items-center justify-end'}>
 						<NetworkSelector networks={[]} />
