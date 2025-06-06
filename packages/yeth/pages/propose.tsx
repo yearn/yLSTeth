@@ -417,7 +417,7 @@ function ProposalWrapper(): ReactElement {
 
 	return (
 		<div className={'bg-neutral-0 relative mx-auto mb-0 flex min-h-screen w-full flex-col pt-20'}>
-			<div className={'relative mx-auto mt-6 w-screen max-w-5xl'}>
+			<div className={'relative mx-auto mt-6 max-w-5xl'}>
 				<section className={'grid grid-cols-12 gap-0 px-4 pt-10 md:gap-20 md:pt-12'}>
 					<div className={'col-span-12 md:col-span-6 md:mb-0'}>
 						<div className={'mb-6 flex flex-col justify-center'}>
