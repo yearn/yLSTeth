@@ -780,7 +780,7 @@ function ProposalWrapper(): ReactElement {
 	const hasOpenProposals = governanceProposals.some(proposal => proposal.state === 1n);
 	return (
 		<div className={'bg-neutral-0 relative mx-auto mb-0 flex min-h-screen w-full flex-col pt-20'}>
-			<div className={'relative mx-auto mt-6 max-w-5xl'}>
+			<div className={'relative mx-auto mt-6'}>
 				<VoteHeader
 					votePower={data?.votePower}
 					isLoading={isLoading}
