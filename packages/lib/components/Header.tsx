@@ -7,15 +7,15 @@ import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {truncateHex} from '@builtbymom/web3/utils';
 import {retrieveConfig} from '@builtbymom/web3/utils/wagmi';
 import {useAccountModal, useChainModal} from '@rainbow-me/rainbowkit';
-import {ModalMobileMenu} from '@yearn-finance/web-lib/components/ModalMobileMenu';
 import {IconWallet} from '@yearn-finance/web-lib/icons/IconWallet';
 
 import {LogoPopover} from './LogoPopover';
+import {ModalMobileMenu} from './ModalMobileMenu';
 
 import type {ReactElement} from 'react';
 import type {Chain} from 'viem';
 
-type TMenu = {path: string; label: string | ReactElement; target?: string};
+export type TMenu = {path: string; label: string | ReactElement; target?: string};
 type TNavbar = {nav: TMenu[]; currentPathName: string};
 type TNetwork = {value: number; label: string};
 export type THeader = {
@@ -258,21 +258,9 @@ function AppHeader({version}: {version: 'bootstrap' | 'live'}): ReactElement {
 				shouldUseNetworks={true}
 				isOpen={isMenuOpen}
 				onClose={(): void => set_isMenuOpen(false)}
-				supportedNetworks={[mainnet, localhost]}>
-				{nav?.map(
-					(option): ReactElement => (
-						<Link
-							key={option.path}
-							href={option.path}>
-							<div
-								className={'mobile-nav-item'}
-								onClick={(): void => set_isMenuOpen(false)}>
-								<p className={'font-bold'}>{option.label}</p>
-							</div>
-						</Link>
-					)
-				)}
-			</ModalMobileMenu>
+				supportedNetworks={[mainnet, localhost]}
+				nav={nav}
+			/>
 		</div>
 	);
 }
