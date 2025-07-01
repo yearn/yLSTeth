@@ -176,7 +176,7 @@ function Tabs(props: {
 }
 
 function SnapshotProposal(props: {uri: string}): ReactElement | null {
-	const sanitizedURI = props?.uri.replace('ipfs://', 'https://snapshot.4everland.link/ipfs/');
+	const sanitizedURI = props?.uri.replace('ipfs://', 'https://ipfs.io/ipfs/');
 	const {data, isLoading} = useFetch<TProposalRoot>({
 		endpoint: sanitizedURI,
 		schema: proposalSchema
@@ -252,8 +252,8 @@ function OnChainProposal(props: {
 	useAsyncTrigger(async () => {
 		set_isLoading(true);
 		const getters = [
-			axios.get(props.proposal.cid.replace('ipfs://', 'https://snapshot.4everland.link/ipfs/')),
-			axios.get((props.proposal.cidV1 || '').replace('ipfs://', 'https://snapshot.4everland.link/ipfs/'))
+			axios.get(props.proposal.cid.replace('ipfs://', 'https://ipfs.io/ipfs/')),
+			axios.get((props.proposal.cidV1 || '').replace('ipfs://', 'https://ipfs.io/ipfs/'))
 		];
 		const result = await Promise.allSettled(getters);
 		if (result[0].status === 'fulfilled') {
