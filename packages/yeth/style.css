@@ -655,6 +655,10 @@ dialog::backdrop {
 	}
 }
 
+.markdown a {
+	text-decoration: underline;
+}
+
 .skeleton-lg {
 	@apply animate-pulse rounded-md bg-neutral-300;
 }
