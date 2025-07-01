@@ -100,7 +100,7 @@ function Tabs(props: {
 						</span>
 					)}
 				</button>
-				<button
+				{/* <button
 					onClick={(): void => {
 						router.push({pathname: router.pathname, query: {action: 'inclusion'}});
 					}}
@@ -119,7 +119,7 @@ function Tabs(props: {
 							<span className={'relative inline-flex size-2.5 rounded-full bg-purple-300'} />
 						</span>
 					)}
-				</button>
+				</button> */}
 				<button
 					onClick={(): void => {
 						router.push({pathname: router.pathname, query: {action: 'governance'}});
@@ -151,7 +151,7 @@ function Tabs(props: {
 							{'LST weights'}
 						</button>
 					</div>
-					<div
+					{/*<div
 						className={cl(
 							'h-full transition-colors ml-7 w-fit',
 							props.currentTab === 'inclusion' ? 'bg-purple-300' : 'bg-transparent'
@@ -159,7 +159,7 @@ function Tabs(props: {
 						<button className={'pointer-events-none invisible h-0 p-0 text-lg font-bold opacity-0'}>
 							{'Inclusion'}
 						</button>
-					</div>
+					</div>*/}
 					<div
 						className={cl(
 							'h-full w-fit transition-colors ml-7',
@@ -176,7 +176,7 @@ function Tabs(props: {
 }
 
 function SnapshotProposal(props: {uri: string}): ReactElement | null {
-	const sanitizedURI = props?.uri.replace('ipfs://', 'https://snapshot.4everland.link/ipfs/');
+	const sanitizedURI = props?.uri.replace('ipfs://', 'https://ipfs.io/ipfs/');
 	const {data, isLoading} = useFetch<TProposalRoot>({
 		endpoint: sanitizedURI,
 		schema: proposalSchema
@@ -252,8 +252,8 @@ function OnChainProposal(props: {
 	useAsyncTrigger(async () => {
 		set_isLoading(true);
 		const getters = [
-			axios.get(props.proposal.cid.replace('ipfs://', 'https://snapshot.4everland.link/ipfs/')),
-			axios.get((props.proposal.cidV1 || '').replace('ipfs://', 'https://snapshot.4everland.link/ipfs/'))
+			axios.get(props.proposal.cid.replace('ipfs://', 'https://ipfs.io/ipfs/')),
+			axios.get((props.proposal.cidV1 || '').replace('ipfs://', 'https://ipfs.io/ipfs/'))
 		];
 		const result = await Promise.allSettled(getters);
 		if (result[0].status === 'fulfilled') {

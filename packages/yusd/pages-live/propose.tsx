@@ -191,7 +191,7 @@ function Form(props: {canPropose: boolean}): ReactElement {
 
 function SnapshotProposal(props: {uri: string; triggerLoaded: () => void}): ReactElement | null {
 	const {address} = useAccount();
-	const sanitizedURI = props?.uri.replace('ipfs://', 'https://snapshot.4everland.link/ipfs/');
+	const sanitizedURI = props?.uri.replace('ipfs://', 'https://ipfs.io/ipfs/');
 	const {data, isLoading} = useFetch<TProposalRoot>({
 		endpoint: sanitizedURI,
 		schema: proposalSchema
@@ -246,7 +246,7 @@ function OnChainProposal(props: {
 }): ReactElement {
 	const {provider} = useWeb3();
 	const [retractStatus, set_retractStatus] = useState<TTxStatus>(defaultTxStatus);
-	const sanitizedURI = props.proposal.cid.replace('ipfs://', 'https://snapshot.4everland.link/ipfs/');
+	const sanitizedURI = props.proposal.cid.replace('ipfs://', 'https://ipfs.io/ipfs/');
 	const {data, isLoading} = useFetch<TOnChainProposal>({
 		endpoint: sanitizedURI,
 		schema: onChainProposalSchema
