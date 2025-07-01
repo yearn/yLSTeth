@@ -151,7 +151,7 @@ function Tabs(props: {
 							{'LST weights'}
 						</button>
 					</div>
-					<div
+					{/*<div
 						className={cl(
 							'h-full transition-colors ml-7 w-fit',
 							props.currentTab === 'inclusion' ? 'bg-purple-300' : 'bg-transparent'
@@ -159,7 +159,7 @@ function Tabs(props: {
 						<button className={'pointer-events-none invisible h-0 p-0 text-lg font-bold opacity-0'}>
 							{'Inclusion'}
 						</button>
-					</div>
+					</div>*/}
 					<div
 						className={cl(
 							'h-full w-fit transition-colors ml-7',
