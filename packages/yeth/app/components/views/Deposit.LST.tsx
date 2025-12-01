@@ -162,6 +162,7 @@ function ViewDepositLST({
 			)
 		);
 	}, [amounts, getBalance, basket]);
+	console.log(canDeposit);
 
 	const shouldApproveDeposit = useMemo((): boolean => {
 		return amounts.some((item, index): boolean => item.raw > basket[index].poolAllowance.raw);
@@ -297,7 +298,8 @@ function ViewDepositLST({
 								: onDeposit()
 						}
 						isBusy={shouldApproveDeposit ? txStatus.pending : txStatusDeposit.pending}
-						isDisabled={!canDeposit || !provider || toBigInt(estimateOut.value) === 0n}
+						// isDisabled={!canDeposit || !provider || toBigInt(estimateOut.value) === 0n}
+						isDisabled={true}
 						variant={'outlined'}
 						className={'w-full md:w-[184px]'}>
 						{shouldApproveDeposit ? 'Approve for Deposit' : 'Deposit'}
@@ -309,7 +311,8 @@ function ViewDepositLST({
 								: onDepositAndStake()
 						}
 						isBusy={shouldApproveDepositStake ? txStatusApproveDS.pending : txStatusDepositStake.pending}
-						isDisabled={!canDeposit || !provider || toBigInt(estimateOut.value) === 0n}
+						// isDisabled={!canDeposit || !provider || toBigInt(estimateOut.value) === 0n}
+						isDisabled={true}
 						className={'w-fit md:min-w-[184px]'}>
 						{shouldApproveDepositStake ? 'Approve for Deposit & Stake' : 'Deposit & Stake'}
 					</Button>
