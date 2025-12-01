@@ -201,6 +201,22 @@ function AppHeader({version}: {version: 'bootstrap' | 'live'}): ReactElement {
 		<div
 			id={'head'}
 			className={'bg-neutral-0/95 fixed inset-x-0 top-0 z-50 w-full'}>
+			<div
+				className={
+					'w-full bg-amber-100 text-amber-900 px-4 py-3 text-sm md:text-base text-center md:text-left'
+				}>
+				<b>{'⚠️ The yETH pool has been paused following a security incident.'}</b>{' '}
+				{
+					'More updates will be provided as we have them. Please check X/twitter for the most up to date information: '
+				}
+				<a
+					className={'underline font-semibold'}
+					href={'https://x.com/yearnfi'}
+					target={'_blank'}
+					rel={'noreferrer'}>
+					{'https://x.com/yearnfi'}
+				</a>
+			</div>
 			<div className={'mx-auto max-w-5xl'}>
 				<header className={'yearn--header'}>
 					<Navbar
