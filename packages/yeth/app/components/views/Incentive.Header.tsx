@@ -60,7 +60,7 @@ function IncentiveHeader({isIncentivePeriodClosed}: {isIncentivePeriodClosed: bo
 						</li>
 					</ul>
 				</div>
-				<div className={'flex w-full justify-end space-x-4 pb-2 md:w-auto'}>
+				<div className={'flex w-full flex-col justify-end max-md:space-y-4 md:flex-row md:space-x-4'}>
 					<div className={'w-full min-w-[200px] bg-neutral-100 p-4 md:w-fit'}>
 						<p className={'whitespace-nowrap pb-2'}>{'Current total deposits, USD'}</p>
 						<b

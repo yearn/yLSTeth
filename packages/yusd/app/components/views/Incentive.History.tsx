@@ -98,7 +98,7 @@ function IncentiveRow(props: {
 		<details
 			aria-label={'content'}
 			className={cl(
-				'border-b-2 border-neutral-0 bg-neutral-200/50 transition-colors open:bg-neutral-200',
+				'border-b-2 border-neutral-0 bg-neutral-200/50 transition-colors max-md:px-4 open:bg-neutral-200',
 				hasIncentives ? 'hover:bg-neutral-200' : ''
 			)}
 			onClick={(e): void => {

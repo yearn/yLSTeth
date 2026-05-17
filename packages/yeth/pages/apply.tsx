@@ -221,7 +221,7 @@ function Form(): ReactElement {
 			id={'apply-form'}
 			onSubmit={onSubmit}
 			className={'relative col-span-12 flex-col bg-neutral-100 p-10 pb-8 md:col-span-6 md:flex'}>
-			<div className={'flex w-full flex-row space-x-4'}>
+			<div className={'flex w-full flex-col max-md:space-y-4 md:flex-row md:space-x-4'}>
 				<div className={'flex w-[200px] flex-col'}>
 					<p className={'mb-1 text-sm text-neutral-600'}>{'Your LST address'}</p>
 					<div
@@ -316,7 +316,7 @@ function Form(): ReactElement {
 export default function Apply(): ReactElement {
 	return (
 		<div className={'bg-neutral-0 relative mx-auto mb-0 flex min-h-screen w-full flex-col pt-20'}>
-			<div className={'relative mx-auto mt-6 w-screen max-w-5xl'}>
+			<div className={'relative mx-auto mt-6'}>
 				<section className={'grid grid-cols-12 gap-0 px-4 pt-10 md:gap-20 md:pt-12'}>
 					<div className={'col-span-12 md:col-span-6 md:mb-0 md:pt-12'}>
 						<div className={'mb-10 flex flex-col justify-center'}>

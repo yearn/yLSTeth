@@ -421,7 +421,7 @@ function Index({router}: {router: Router}): ReactElement {
 	}
 
 	return (
-		<div className={'relative mx-auto mt-6 w-screen max-w-5xl'}>
+		<div className={'relative mt-6'}>
 			<div onClick={(): void => triggerPoolView(true)}>
 				<Heading scope={headingScope} />
 			</div>
