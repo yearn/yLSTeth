@@ -6,9 +6,13 @@
 		"dev": "next",
 		"dev:ts": "tsc --watch",
 		"start": "tsc && next build && next start",
-		"build": "tsc && next build"
+		"build": "tsc && next build",
+		"build:cloudflare": "tsc && STATIC_EXPORT=true next build"
 	},
 	"dependencies": {
 		"lib": "workspace:*"
+	},
+	"devDependencies": {
+		"wrangler": "4.161.0"
 	}
 }
