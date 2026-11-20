@@ -1,0 +1,21 @@
+name: Deploy to Cloudflare Workers
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: write
+
+jobs:
+  deploy:
+    uses: yearn/yearn-gha/.github/workflows/cloudflare-deploy.yml@98064cbbea45a15fd4746c43d4476d47bda3c2f8
+    with:
+      project: yeth
+      sync-secrets: false
+      working-directory: packages/yeth
+      identity-id: ${{ github.event_name == 'pull_request' && vars.DOPPLER_PREVIEW_IDENTITY_ID || vars.DOPPLER_PRODUCTION_IDENTITY_ID }}

@@ -7,13 +7,14 @@ const {PHASE_EXPORT} = require('next/constants');
 
 module.exports = phase =>
 	withPWA({
+		...(process.env.STATIC_EXPORT === 'true' ? {output: 'export'} : {}),
 		experimental: {
 			externalDir: true
 		},
 		transpilePackages: ['lib'],
 		assetPrefix: process.env.IPFS_BUILD === 'true' || phase === PHASE_EXPORT ? './' : '/',
 		images: {
-			unoptimized: process.env.IPFS_BUILD === 'true' || phase === PHASE_EXPORT,
+			unoptimized: process.env.IPFS_BUILD === 'true' || process.env.STATIC_EXPORT === 'true' || phase === PHASE_EXPORT,
 			domains: ['raw.githubusercontent.com', 'assets.smold.app']
 		},
 		redirects() {
